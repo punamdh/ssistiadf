@@ -1,0 +1,190 @@
+{
+  "name" : "PPL_Tableau_QVRU_T_Th_1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_ContainerName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import258_') AS CM_Adjust_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_FileName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import258_') AS CM_Adjust_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_FilePath' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import258_') AS CM_Adjust_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import258_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import258_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258__source_SchemaName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258_') AS OLE_DB_Destination_530_Summary_Report_Import258__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258__source_TableName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258_') AS OLE_DB_Destination_530_Summary_Report_Import258__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258__sink_SchemaName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258_') AS OLE_DB_Destination_530_Summary_Report_Import258__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258__sink_TableName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = 'OLE_DB_Destination_530_Summary_Report_Import258_') AS OLE_DB_Destination_530_Summary_Report_Import258__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Removes_Records_for_Re-load_intra-day259__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  delete from PLHS.dbo.Tableau_Summary530_CMAdjust\n  where cast(Import_date as date)  = cast(getdate() as date) \n;\n\n  delete from PLHS.dbo.tbl_tableau_530_505_ee_other \n  where cast(Import_date as date)  = cast(getdate() as date) \n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "530_Summary_Report_Import258_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Removes_Records_for_Re-load_intra-day259__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "530_Summary_Report_Import258_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "530_Summary_Report_Import258_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "530_Summary_Report_Import258_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CMAdjust" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "OLE_DB_Destination_530_Summary_Report_Import258_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "530_Summary_Report_Import258_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_530_Summary_Report_Import258__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_530_Summary_Report_Import258__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_530_Summary_Report_Import258__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_530_Summary_Report_Import258__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/Vulnerability_ETL"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

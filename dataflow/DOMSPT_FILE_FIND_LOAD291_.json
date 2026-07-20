@@ -1,0 +1,43 @@
+{
+  "name" : "DOMSPT_FILE_FIND_LOAD291_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/Vulnerability_ETL_v2022"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FoundFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "FileNameJiraNumber"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "LookupSelect"
+      }, {
+        "name" : "LookupIsMatch"
+      } ],
+      "script" : "parameters{\n\tsArchiveDirectory as string (),\n\tsFileName as string (),\n\tsSearchDirectory as string (),\n\tsSearchFileName as string ()\n}\n\nsource(output(\n\t\tTCOOPE as string,\n\t\tDRD as string,\n\t\tServer_WFGUID as string,\n\t\tSourceID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FoundFile\tsource(output(\n\t\tID as integer,\n\t\tDRDJiraNumber as string,\n\t\tTCOOPEJiraNumber as string,\n\t\tDevice_WFGUID as string,\n\t\tSourceID as string,\n\t\tSourceFileName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dbo.tbl_TCOOPE_DRD_Server_QID_Mapping',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nFoundFile derive(DRDJiraNumber = $User__sFileName,\n\t\timport_dt = toDate(toString(currentDate(), 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> FileNameJiraNumber\nFileNameJiraNumber,LookupLKPTABLE lookup(DRD == LookupLKPTABLE@DRDJiraNumber && FoundFile@SourceID == LookupLKPTABLE@SourceID && TCOOPE == TCOOPEJiraNumber && Server_WFGUID == Device_WFGUID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tDRDJiraNumber = FileNameJiraNumber@DRDJiraNumber,\n\t\timport_dt = import_dt,\n\t\tTCOOPE = TCOOPE,\n\t\tDRD = DRD,\n\t\tServer_WFGUID = Server_WFGUID,\n\t\tSourceID = FoundFile@SourceID,\n\t\tID = ID,\n\t\tTCOOPEJiraNumber = TCOOPEJiraNumber,\n\t\tDevice_WFGUID = Device_WFGUID,\n\t\tSourceFileName = SourceFileName\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupSelect\nLookupSelect split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@NotMatch sink(input(\n\t\tTCOOPEJiraNumber as string,\n\t\tSourceFileName as string,\n\t\tSourceID as string,\n\t\tDevice_WFGUID as string,\n\t\tDRDJiraNumber as string,\n\t\tImport_dt as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTCOOPEJiraNumber = TCOOPE,\n\t\tSourceFileName = DRDJiraNumber,\n\t\tSourceID,\n\t\tDevice_WFGUID = Server_WFGUID,\n\t\tDRDJiraNumber = DRD,\n\t\tImport_dt = import_dt)) ~> OLEDBDestination"
+    }
+  }
+}

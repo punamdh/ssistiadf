@@ -1,0 +1,29 @@
+{
+  "name" : "Last_Available_BP_Names325_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/Vulnerability_ETL_v2022"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "LastBPAvail",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tFileName as string (),\n\tFoundFile as string (),\n\tsFileDate as string (),\n\tsNewFileName as string ()\n}\n\nsource(output(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LastBPAvail\nLastBPAvail sink(input(\n\t\tDep_Date as timestamp 'dd-MM-yyyy',\n\t\tBuildpack_Name as string,\n\t\tProduct_Pack as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDep_Date = {Dep Date},\n\t\tBuildpack_Name = {Buildpack Name},\n\t\tProduct_Pack = {Product Pack})) ~> OLEDBDestination"
+    }
+  }
+}

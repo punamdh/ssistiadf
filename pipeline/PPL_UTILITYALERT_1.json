@@ -1,0 +1,178 @@
+{
+  "name" : "PPL_UTILITYALERT_1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Delete_alerts_older_than_2_months141__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_alerts_that_need_to_be_sent146_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "Select ID, [To],[Subject],isnull([body],'') as Body,BodyFormat, ISNULL(CC,'') CC FROM PLHS.dbo.tbl_ssis_utility where [To] != ' ' and SendDate is null",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "UTILITYALERT_1140_.PLHS",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "IFACTIVITY_FOREACH_Foreach_Loop_Container143_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_alerts_that_need_to_be_sent146_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.Test,variables('True'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FOREACH_Foreach_Loop_Container143_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('0_Get_alerts_that_need_to_be_sent146_').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "0_Foreach_Loop_Container143__Mark_Record_as_Sent14",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "Failure_Mail142_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_alerts_that_need_to_be_sent146_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "IFACTIVITY_FOREACH_Foreach_Loop_Container143_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/PLHS_Monthly_Metrics"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sBody" : {
+        "type" : "string",
+        "defaultValue" : "'Please Check the Table.'"
+      },
+      "sCC" : {
+        "type" : "string"
+      },
+      "rsFile" : {
+        "type" : "string"
+      },
+      "sSubject" : {
+        "type" : "string",
+        "defaultValue" : "'UtilityAlert'"
+      },
+      "iID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "sRAndSEmailAddress" : {
+        "type" : "string",
+        "defaultValue" : "'do-not-reply@wellsfargo.com'"
+      },
+      "iBodyFormat" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "sTO" : {
+        "type" : "string",
+        "defaultValue" : "'WFSRS@wellsfargo.com'"
+      }
+    }
+  }
+}

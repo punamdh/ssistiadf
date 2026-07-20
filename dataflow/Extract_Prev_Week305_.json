@@ -1,0 +1,31 @@
+{
+  "name" : "Extract_Prev_Week305_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/Vulnerability_ETL_v2022"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "RawLCMNEw",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblLCMNewWeekTracking"
+      } ],
+      "transformations" : [ {
+        "name" : "Importdate"
+      } ],
+      "script" : "parameters{\n\tArchiveUpdates as string (),\n\tFileName as string (),\n\tNewWeekLCM as integer (),\n\tOwner as string (),\n\tPrevWeekRC as integer (),\n\tsArchiveUpdates as string (),\n\tsFileLCMNew as string (),\n\tTimeStamp as string ()\n}\n\nsource(output(\n\t\tRamservername as string,\n\t\tCio as string,\n\t\tCiodirect as string,\n\t\tManagedbygroup as string,\n\t\tPrimaryapplication as string,\n\t\tCistatus as string,\n\t\tRtstatus as string,\n\t\tRtplannedactivity as string,\n\t\tFundingdate as string,\n\t\tRtdecomdate as string,\n\t\tRtplancertifieddate as string,\n\t\tHweoldate as string,\n\t\tApplicationids as string,\n\t\tNormalizedos as string,\n\t\tCioname as string,\n\t\tCiodirectname as string,\n\t\tProductname as string,\n\t\tPrimarytechmgr as string,\n\t\tEnvironment as string,\n\t\tLcmstatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> RawLCMNEw\nRawLCMNEw derive(Import_date = toString(currentDate())) ~> Importdate\nImportdate sink(input(\n\t\tRtplannedactivity as string,\n\t\tApplicationids as string,\n\t\tCio as string,\n\t\tCiodirectname as string,\n\t\tHweoldate as string,\n\t\tCioname as string,\n\t\tCiodirect as string,\n\t\tRtdecomdate as string,\n\t\tRtplancertifieddate as string,\n\t\tPrimarytechmgr as string,\n\t\tRamservername as string,\n\t\tCistatus as string,\n\t\tLcmstatus as string,\n\t\tNormalizedos as string,\n\t\tRtstatus as string,\n\t\tProductname as string,\n\t\tPrimaryapplication as string,\n\t\tEnvironment as string,\n\t\tImport_date as date 'dd-MM-yyyy',\n\t\tManagedbygroup as string,\n\t\tFundingdate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRtplannedactivity,\n\t\tApplicationids,\n\t\tCio,\n\t\tCiodirectname,\n\t\tHweoldate,\n\t\tCioname,\n\t\tCiodirect,\n\t\tRtdecomdate,\n\t\tRtplancertifieddate,\n\t\tPrimarytechmgr,\n\t\tRamservername,\n\t\tCistatus,\n\t\tLcmstatus,\n\t\tNormalizedos,\n\t\tRtstatus,\n\t\tProductname,\n\t\tPrimaryapplication,\n\t\tEnvironment,\n\t\tImport_date,\n\t\tManagedbygroup,\n\t\tFundingdate)) ~> tblLCMNewWeekTracking"
+    }
+  }
+}
