@@ -1,0 +1,31 @@
+{
+  "name" : "530_Summary_Report_Import70_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CMAdjust",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "CleanblanksVIIGUIDPATH"
+      } ],
+      "script" : "\n\nsource(output(\n\t\t{VIIDWFGUID + Path} as string,\n\t\tJAVA_PATH_ID as string,\n\t\t{Adj Consequence Model Escalation Date} as string,\n\t\tVIIDWFGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CMAdjust\nCMAdjust derive(Import_date = currentDate(),\n\t\t{VIIDWFGUID + Path} = replace(VIIDWFGUID___Path, toString(' '), toString(''))) ~> CleanblanksVIIGUIDPATH\nCleanblanksVIIGUIDPATH sink(input(\n\t\tVIIDWFGUID___Path as string,\n\t\tJava_Path as string,\n\t\tAdj_Consequence_Model_Escalation_Date as string,\n\t\tVIIDWFGUID as string,\n\t\tImport_date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tVIIDWFGUID___Path = {VIIDWFGUID + Path},\n\t\tJava_Path = JAVA_PATH_ID,\n\t\tAdj_Consequence_Model_Escalation_Date = {Adj Consequence Model Escalation Date},\n\t\tVIIDWFGUID,\n\t\tImport_date)) ~> OLEDBDestination"
+    }
+  }
+}

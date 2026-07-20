@@ -1,0 +1,229 @@
+{
+  "name" : "PPL_People_CommonProfile",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Common_Profile_Daily_Load79_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Common_Profile_Daily_Load79_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Common_Profile_Daily_Load79_') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Common_Profile_Daily_Load79_') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Common_Profile_Daily_Load79_') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79__source_SchemaName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79_') AS Flat_File_Destination_Common_Profile_Daily_Load79__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79__source_TableName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79_') AS Flat_File_Destination_Common_Profile_Daily_Load79__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79__sink_SchemaName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79_') AS Flat_File_Destination_Common_Profile_Daily_Load79__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79__sink_TableName' AND PIPELINE_NAME = 'People_CommonProfile' AND DATAFLOW_NAME = 'Flat_File_Destination_Common_Profile_Daily_Load79_') AS Flat_File_Destination_Common_Profile_Daily_Load79__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Common_Profile_Daily_Load79_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Common_Profile_Daily_Load79_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Common_Profile_Daily_Load79_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Common_Profile_Daily_Load79_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Flat_File_Destination_Common_Profile_Daily_Load79_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Common_Profile_Daily_Load79_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Common_Profile_Daily_Load79__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Common_Profile_Daily_Load79__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Common_Profile_Daily_Load79__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Flat_File_Destination_Common_Profile_Daily_Load79__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Data_Flow_Task80_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Flat_File_Destination_Common_Profile_Daily_Load79_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task80_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task80_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "Data_Flow_Task80_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "SharePointSource" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "ssistoadf/punamdtest"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

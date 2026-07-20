@@ -1,0 +1,31 @@
+{
+  "name" : "LoadData9_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest/Demo_Project 8"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExtractDatafromCSV",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tBody_Failure as string (),\n\tBody_Succ as string (),\n\tDepartmentList as string (),\n\tDepartmentName as string (),\n\tFilePath as string (),\n\tMailRecepient as string (),\n\tMailSender as string (),\n\tMailSubject as string (),\n\tRecievedFilePath as string (),\n\tStatus as string (),\n\tvar_BCC as string (),\n\tvar_CC as string (),\n\tvar_datediff as integer (),\n\tvar_Error_Description as string (),\n\tvar_project as string (),\n\tDestinationFolder as string (),\n\tLocalFolder as string ()\n}\n\nsource(output(\n\t\tJobTitle as string,\n\t\tDepartment as string,\n\t\tHourlyRate as string,\n\t\tActiveFlag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExtractDatafromCSV\nExtractDatafromCSV derive(ETLCreateDate = $System__StartTime) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDepartment as string,\n\t\tETLCreatedDate as timestamp 'dd-MM-yyyy',\n\t\tJobTitle as string,\n\t\tActiveFlag as string,\n\t\tHourlyRate as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDepartment,\n\t\tETLCreatedDate = ETLCreateDate,\n\t\tJobTitle,\n\t\tActiveFlag,\n\t\tHourlyRate)) ~> OLEDBDestination"
+    }
+  }
+}
