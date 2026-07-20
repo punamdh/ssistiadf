@@ -1,0 +1,69 @@
+{
+  "name" : "Dept_Demo21_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssistoadf/punamdtest"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "IFILDept",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "IFILEmp",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPManagerLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Dept20"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OFILDeptTgt"
+      } ],
+      "transformations" : [ {
+        "name" : "SRTDeptno"
+      }, {
+        "name" : "SRTDeptno0"
+      }, {
+        "name" : "MERGEJOINDeptno"
+      }, {
+        "name" : "MERGEJOINDeptnoREFORMAT1"
+      }, {
+        "name" : "TRNSFRM"
+      }, {
+        "name" : "LKPManager"
+      }, {
+        "name" : "SRTEmpno"
+      }, {
+        "name" : "TRNSFRMDeptMgr"
+      }, {
+        "name" : "LKPManagerIsMatch"
+      }, {
+        "name" : "UNIONALL"
+      }, {
+        "name" : "CONDITIONALSPLIT"
+      } ],
+      "script" : "parameters{\n\tDept10 as integer (),\n\tDept20 as integer (),\n\tRS_DEPT10 as string ()\n}\n\nsource(output(\n\t\tDeptno as integer,\n\t\tDname as string,\n\t\tLOC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> IFILDept\tsource(output(\n\t\tEMPNO as string,\n\t\tENAME as string,\n\t\tJOB as string,\n\t\tMGR as string,\n\t\tHIREDATE as date,\n\t\tSAL as integer,\n\t\tCOMM as string,\n\t\tDEPT_NO as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IFILEmp\tsource(output(\n\t\tDeptId as integer,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tMgrId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dbo.Manager',\n\tformat: 'query',\n\tstaged:false) ~> LKPManagerLKPTABLE\nIFILDept sort(asc(Deptno, false)) ~> SRTDeptno\nIFILEmp sort(asc(DEPT_NO, false)) ~> SRTDeptno0\nSRTDeptno,SRTDeptno0 join(Deptno == DEPT_NO,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MERGEJOINDeptno\nMERGEJOINDeptno derive(Deptno = Deptno,\n\t\tDname = Dname,\n\t\tLOC = LOC,\n\t\tEMPNO = EMPNO,\n\t\tENAME = ENAME,\n\t\tJOB = JOB,\n\t\tMGR = MGR,\n\t\tHIREDATE = HIREDATE,\n\t\tSAL = SAL,\n\t\tCOMM = COMM,\n\t\tDEPT_NO = DEPT_NO) ~> MERGEJOINDeptnoREFORMAT1\nMERGEJOINDeptnoREFORMAT1 derive(Store = 'New York Hub',\n\t\tCurrentDate = currentDate(),\n\t\tName = trim(EMPNO) + '-' + trim(ENAME),\n\t\tLocation = iifNull(LOC,'Chicago'),\n\t\tLoc_Short = substring(toString(LOC), toInteger(1), toInteger(3)),\n\t\tMGRID = trim(MGR)) ~> TRNSFRM\nTRNSFRM,LKPManagerLKPTABLE lookup(Deptno == DeptId,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPManager\nTRNSFRM sort(asc(EMPNO, false)) ~> SRTEmpno\nTRNSFRM derive(Dept_Mgr = Dname + ' ' + MGR,\n\t\tFindStr = locate('abc', Dname, 1)) ~> TRNSFRMDeptMgr\nLKPManager split(isMatch(), disjoint: true) ~> LKPManagerIsMatch@(Match,NotMatch)\nTRNSFRMDeptMgr,SRTEmpno union(byName: true) ~> UNIONALL\nUNIONALL sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OFILDeptTgt\nLKPManagerIsMatch@Match split(DEPT_NO == 10,DEPT_NO == 20, disjoint: true) ~> CONDITIONALSPLIT@(Dept10,Dept20,ConditionalSplitDefaultOutput)\nCONDITIONALSPLIT@Dept10 sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\t{})) ~> OutputPlaceHolderRSDEPT10\nCONDITIONALSPLIT@Dept20 sink(input(\n\t\tLOC as string,\n\t\tDEPTNO as integer,\n\t\tDNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tLOC,\n\t\tDEPTNO = Deptno,\n\t\tDNAME = Dname)) ~> Dept20"
+    }
+  }
+}
