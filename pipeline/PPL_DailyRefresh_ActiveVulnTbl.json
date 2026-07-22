@@ -32,6 +32,66 @@
         }
       }
     }, {
+      "name" : "Load_Metrics_Dash11_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Load_Metrics_Dash11__Clear_Current_Data12__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Metrics_Dash11__Load_tbl_Vuln_Metrics_Monthly",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Metrics_Dash11__Clear_Current_Data12__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
       "name" : "Prod17_",
       "type" : "IfCondition",
       "policy" : null,
@@ -49,6 +109,25 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
+          "name" : "Prod17__delete_data_from_Static_to_load_from_stage",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
           "name" : "Prod17__Truncate_Daily_Vuln_Table21__SCRIPT",
           "type" : "Script",
           "policy" : null,
@@ -68,38 +147,24 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "SWITCHACTIVITY_Load_Daily_Vuln_from_View20_",
-          "type" : "Switch",
+          "name" : "Load_Daily_Vuln_from_Stage19_0",
+          "type" : "ExecutePipeline",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "Prod17__delete_data_from_Static_to_load_from_stage",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "on" : {
-              "value" : "@Default",
-              "type" : "Expression"
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_Stage",
+              "type" : "PipelineReference"
             },
-            "cases" : [ ],
-            "defaultActivities" : [ ]
-          }
-        }, {
-          "name" : "Load_Daily_Vuln_from_View20__OLE_DB_Destination",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StageViewCount",
-            "value" : "@int(activity('Load_Daily_Vuln_from_View20_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
+            "waitOnCompletion" : false,
+            "parameters" : { }
           }
         }, {
           "name" : "Load_Daily_Vuln_from_View20_0",
@@ -122,52 +187,11 @@
             "parameters" : { }
           }
         }, {
-          "name" : "SWITCHACTIVITY_Prod17__delete_data_from_Static_to_",
-          "type" : "Switch",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SWITCHACTIVITY_Load_Daily_Vuln_from_View20_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "on" : {
-              "value" : "@if(greater(variables('StageViewCount'),0), 'Case1', Default)",
-              "type" : "Expression"
-            },
-            "cases" : [ {
-              "value" : "Case1",
-              "activities" : [ {
-                "name" : "Prod17__delete_data_from_Static_to_load_from_stage",
-                "type" : "Script",
-                "policy" : null,
-                "dependsOn" : [ ],
-                "state" : null,
-                "description" : null,
-                "onInactiveMarkAs" : null,
-                "linkedServiceName" : {
-                  "referenceName" : "AzureSqlDatabase1",
-                  "type" : "LinkedServiceReference"
-                },
-                "typeProperties" : {
-                  "scripts" : [ {
-                    "type" : "Query",
-                    "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
-                  } ],
-                  "scriptBlockExecutionTimeout" : null
-                }
-              } ]
-            } ],
-            "defaultActivities" : [ ]
-          }
-        }, {
-          "name" : "Load_Daily_Vuln_from_View20_",
+          "name" : "Load_Daily_Vuln_from_Stage19_",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Load_Daily_Vuln_from_View20_0",
+            "activity" : "Load_Daily_Vuln_from_Stage19_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -175,7 +199,8 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "source" : {
-              "type" : "AzureSqlsource"
+              "type" : "AzureSqlsource",
+              "sqlReaderQuery" : "SELECT * FROM dbo.tbl_VulnActive_Daily_Static_Stage"
             },
             "sink" : {
               "type" : "AzureSqlSink",
@@ -212,76 +237,11 @@
             }
           } ]
         }, {
-          "name" : "Load_Daily_Vuln_from_Stage19_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SWITCHACTIVITY_Prod17__delete_data_from_Static_to_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "OLE_DB_Destination_Load_Daily_Vuln_from_View20_",
+          "name" : "Load_Daily_Vuln_from_View20_",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Load_Daily_Vuln_from_View20_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "Load_Daily_Vuln_from_Stage19_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Load_Daily_Vuln_from_Stage19_0",
+            "activity" : "Load_Daily_Vuln_from_View20_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -289,8 +249,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "source" : {
-              "type" : "AzureSqlsource",
-              "sqlReaderQuery" : "SELECT * FROM dbo.tbl_VulnActive_Daily_Static_Stage"
+              "type" : "AzureSqlsource"
             },
             "sink" : {
               "type" : "AzureSqlSink",
@@ -371,6 +330,113 @@
               }
             }
           } ]
+        }, {
+          "name" : "OLE_DB_Destination_Load_Daily_Vuln_from_View20_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Daily_Vuln_from_View20_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Load_Daily_Vuln_from_View20__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Load_Daily_Vuln_from_View20__OLE_DB_Destination",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_Daily_Vuln_from_View20_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StageViewCount",
+            "value" : "@int(activity('Load_Daily_Vuln_from_View20_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
+          }
+        }, {
+          "name" : "SWITCHACTIVITY_Load_Daily_Vuln_from_View20_",
+          "type" : "Switch",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Daily_Vuln_from_View20__OLE_DB_Destination",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "on" : {
+              "value" : "@if(greater(variables('StageViewCount'),0), 'Case1', Default)",
+              "type" : "Expression"
+            },
+            "cases" : [ {
+              "value" : "Case1",
+              "activities" : [ {
+                "name" : "Prod17__delete_data_from_Static_to_load_from_stage",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
+            } ],
+            "defaultActivities" : [ ]
+          }
         } ]
       }
     }, {
@@ -569,7 +635,7 @@
         "value" : "@activity('Get_Time_Stamp_Execution_Path10__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "SWITCHACTIVITY_Load_Metrics_Dash11_",
+      "name" : "SWITCHACTIVITY_0_Get_Time_Stamp_Execution_Path10__",
       "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {

@@ -4,6 +4,144 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+      "name" : "Insert_Email_Records204_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Insert_Email_Records204__Check_New_Record_Body_-_K",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "declare @toprun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n\ndeclare @Lastrun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n;\n\nwith \ntoprun as \n( select id, CAST(body AS nvarchar(MAX)) as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n,\nlastrun as \n( select id,CAST(body AS nvarchar(MAX))  as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n, ID as \n(\nselect \na.*,b.body as bd2 from\ntoprun a\ninner join lastrun b on  a.body = b.body\n)\ndelete a \nfrom tbl_ssis_utility  a\ninner join id b on  a.ID = b.ID and b.bd2 is not null \n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Insert_Email_Records204__Insert_Records_into_Email",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "USE [PLHS]\nGO\n\ndeclare @yesterday date\nset @yesterday = (select BusinessDay from Calendar where CurrentDate = cast(getdate() as date)) \n-- TODO: Set parameter values here.\n\n\nINSERT INTO [dbo].[tbl_ssis_utility]\n ([To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,[CC]\n\t  )\nSELECT\n 'greg.wilkinson@wellsfargo.com;michael.dematos@wellsfargo.com;sergio.dsilva@wellsfargo.com;riyaz.sheikh@wellsfargo.com'\n ,'New/Re-Activated EM/HA vulnerability Alert'\n ,\n \ncast('The following list of Emergency/HA CombID have been identified as not being included in the pervious days Extract, validate with iTracker History\n\n' +string_agg('<br>'+a.CombID,',</br>')+'</br>' as ntext) \nas body\n,GETDATE() as receivedate \n,null as senddate\n,2 as bodyformat\n,'ethan.a.baker@wellsfargo.com;mark.bray@wellsfargo.com' as CC\n\nFROM \n\ntbl_VulnActive_Daily_Static a \nleft outer join \niTracker_Active_SN_CIO b on a.combid = b.combid and cast(b.ImportDate as date) =@yesterday\n\nWHERE Rating_Summary ='Emergency/HA'  and b.CombID is null and a.DRDStatus is null"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Insert_Email_Records204__Is_there_more_than_one_re",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Insert_Email_Records204__Insert_Records_into_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\nSELECT \nCASE WHEN COUNT(ReceiveDate) > 1 THEN 1 ELSE 0 END AS CompareFlag\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE);\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_0_Insert_Email_Records204__Is_there_more_than_on",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Insert_Email_Records204__Is_there_more_than_one_re",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CompareFlag",
+            "value" : "@activity('Insert_Email_Records204__Is_there_more_than_one_re').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "SWITCHACTIVITY_0_0_Insert_Email_Records204__Is_the",
+          "type" : "Switch",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_0_Insert_Email_Records204__Is_there_more_than_on",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "on" : {
+              "value" : "@if(equals(variables('CompareFlag'),1), 'Case1', Default)",
+              "type" : "Expression"
+            },
+            "cases" : [ {
+              "value" : "Case1",
+              "activities" : [ {
+                "name" : "Insert_Email_Records204__Check_New_Record_Body_-_K",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "declare @toprun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n\ndeclare @Lastrun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n;\n\nwith \ntoprun as \n( select id, CAST(body AS nvarchar(MAX)) as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n,\nlastrun as \n( select id,CAST(body AS nvarchar(MAX))  as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n, ID as \n(\nselect \na.*,b.body as bd2 from\ntoprun a\ninner join lastrun b on  a.body = b.body\n)\ndelete a \nfrom tbl_ssis_utility  a\ninner join id b on  a.ID = b.ID and b.bd2 is not null \n\n"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
+            } ],
+            "defaultActivities" : [ ]
+          }
+        } ]
+      }
+    }, {
       "name" : "Check_Import_Complete203__SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -19,6 +157,28 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : "SELECT   \ncase when \nCAST(max([iTracker_Import_date]) AS DATE)  = cast(getdate() as date)  then 1 else 0 end as flag\n\nFROM \n[PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Remove_Blank208__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_Email_Records204_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete from plhs.dbo.tbl_ssis_utility where body is null"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -44,7 +204,7 @@
         "value" : "@activity('Check_Import_Complete203__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "SWITCHACTIVITY_Insert_Email_Records204_",
+      "name" : "SWITCHACTIVITY_0_Check_Import_Complete203__VA",
       "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
@@ -76,6 +236,25 @@
               },
               "ifFalseActivities" : [ ],
               "ifTrueActivities" : [ {
+                "name" : "Insert_Email_Records204__Check_New_Record_Body_-_K",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "declare @toprun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n\ndeclare @Lastrun datetime = (SELECT\nmax(ReceiveDate)\n FROM tbl_ssis_utility\nWHERE SUBJECT ='New/Re-Activated EM/HA vulnerability Alert'\nAND CAST(RECEIVEDATE AS DATE) = CAST(GETDATE() AS DATE) )\n;\n\nwith \ntoprun as \n( select id, CAST(body AS nvarchar(MAX)) as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n,\nlastrun as \n( select id,CAST(body AS nvarchar(MAX))  as body from tbl_ssis_utility where ReceiveDate =@toprun and  [SUBJECT] ='New/Re-Activated EM/HA vulnerability Alert' ) \n, ID as \n(\nselect \na.*,b.body as bd2 from\ntoprun a\ninner join lastrun b on  a.body = b.body\n)\ndelete a \nfrom tbl_ssis_utility  a\ninner join id b on  a.ID = b.ID and b.bd2 is not null \n\n"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              }, {
                 "name" : "Insert_Email_Records204__Insert_Records_into_Email",
                 "type" : "Script",
                 "policy" : null,
@@ -138,7 +317,7 @@
                   "value" : "@activity('Insert_Email_Records204__Is_there_more_than_one_re').output.resultSets[0].rows[0][0]"
                 }
               }, {
-                "name" : "SWITCHACTIVITY_Insert_Email_Records204__Check_New_",
+                "name" : "SWITCHACTIVITY_0_0_Insert_Email_Records204__Is_the",
                 "type" : "Switch",
                 "policy" : null,
                 "dependsOn" : [ {
@@ -183,28 +362,6 @@
           } ]
         } ],
         "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "Remove_Blank208__SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SWITCHACTIVITY_Insert_Email_Records204_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "delete from plhs.dbo.tbl_ssis_utility where body is null"
-        } ],
-        "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {
