@@ -68,6 +68,40 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
+          "name" : "SWITCHACTIVITY_Load_Daily_Vuln_from_View286_",
+          "type" : "Switch",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "on" : {
+              "value" : "@Default",
+              "type" : "Expression"
+            },
+            "cases" : [ ],
+            "defaultActivities" : [ ]
+          }
+        }, {
+          "name" : "Load_Daily_Vuln_from_View286__OLE_DB_Destination",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StageViewCount",
+            "value" : "@int(activity('Load_Daily_Vuln_from_View286_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
+          }
+        }, {
           "name" : "Load_Daily_Vuln_from_View286_0",
           "type" : "ExecutePipeline",
           "policy" : null,
@@ -86,6 +120,47 @@
             },
             "waitOnCompletion" : false,
             "parameters" : { }
+          }
+        }, {
+          "name" : "SWITCHACTIVITY_Prod283__delete_data_from_Static_to",
+          "type" : "Switch",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SWITCHACTIVITY_Load_Daily_Vuln_from_View286_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "on" : {
+              "value" : "@if(greater(variables('StageViewCount'),0), 'Case1', Default)",
+              "type" : "Expression"
+            },
+            "cases" : [ {
+              "value" : "Case1",
+              "activities" : [ {
+                "name" : "Prod283__delete_data_from_Static_to_load_from_stag",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
+            } ],
+            "defaultActivities" : [ ]
           }
         }, {
           "name" : "Load_Daily_Vuln_from_View286_",
@@ -137,6 +212,26 @@
             }
           } ]
         }, {
+          "name" : "Load_Daily_Vuln_from_Stage285_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SWITCHACTIVITY_Prod283__delete_data_from_Static_to",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_Stage",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
           "name" : "OLE_DB_Destination_Load_Daily_Vuln_from_View286_",
           "type" : "Copy",
           "policy" : null,
@@ -181,88 +276,6 @@
               }
             }
           } ]
-        }, {
-          "name" : "Load_Daily_Vuln_from_View286__OLE_DB_Destination",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "OLE_DB_Destination_Load_Daily_Vuln_from_View286_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StageViewCount",
-            "value" : "@int(activity('Load_Daily_Vuln_from_View286_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
-          }
-        }, {
-          "name" : "SWITCHACTIVITY_Prod283__delete_data_from_Static_to",
-          "type" : "Switch",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Load_Daily_Vuln_from_View286__OLE_DB_Destination",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "on" : {
-              "value" : "@if(greater(variables('StageViewCount'),0), 'Case1', Default)",
-              "type" : "Expression"
-            },
-            "cases" : [ {
-              "value" : "Case1",
-              "activities" : [ {
-                "name" : "Prod283__delete_data_from_Static_to_load_from_stag",
-                "type" : "Script",
-                "policy" : null,
-                "dependsOn" : [ ],
-                "state" : null,
-                "description" : null,
-                "onInactiveMarkAs" : null,
-                "linkedServiceName" : {
-                  "referenceName" : "AzureSqlDatabase1",
-                  "type" : "LinkedServiceReference"
-                },
-                "typeProperties" : {
-                  "scripts" : [ {
-                    "type" : "Query",
-                    "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
-                  } ],
-                  "scriptBlockExecutionTimeout" : null
-                }
-              } ]
-            } ],
-            "defaultActivities" : [ ]
-          }
-        }, {
-          "name" : "Load_Daily_Vuln_from_Stage285_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SWITCHACTIVITY_Prod283__delete_data_from_Static_to",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
         }, {
           "name" : "Load_Daily_Vuln_from_Stage285_",
           "type" : "Copy",
