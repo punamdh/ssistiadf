@@ -223,25 +223,6 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "Sequence_Container5__Truncate_PrismaRegistry_Enric",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "TRUNCATE TABLE dbo.tbL_PrismaRegistry_Enriched"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
           "name" : "0_Sequence_Container5__Check_Source_Availability6_",
           "type" : "SetVariable",
           "policy" : {
@@ -261,26 +242,6 @@
           "typeProperties" : {
             "variableName" : "RegistryCount",
             "value" : "@activity('Sequence_Container5__Check_Source_Availability6__S').output.resultSets[0].rows[0][0]"
-          }
-        }, {
-          "name" : "ETL_PrismaRegistry7_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Sequence_Container5__Truncate_PrismaRegistry_Enric",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
           }
         }, {
           "name" : "SWITCHACTIVITY_0_Sequence_Container5__Check_Source",
@@ -319,123 +280,143 @@
                   } ],
                   "scriptBlockExecutionTimeout" : null
                 }
+              }, {
+                "name" : "ETL_PrismaRegistry7_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Sequence_Container5__Truncate_PrismaRegistry_Enric",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "ETL_PrismaRegistry7_",
+                "type" : "ExecuteDataFlow",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "ETL_PrismaRegistry7_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "dataflow" : {
+                    "referenceName" : "etl_prismaregistry7_",
+                    "type" : "DataFlowReference",
+                    "parameters" : { },
+                    "datasetParameters" : {
+                      "OLEDBDestination" : {
+                        "TableName" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                          "type" : "Expression"
+                        },
+                        "Schema" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                          "type" : "Expression"
+                        },
+                        "Container" : {
+                          "value" : "",
+                          "type" : "Expression"
+                        },
+                        "FileName" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "Directory" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "ColumnDelimiter" : ","
+                      },
+                      "vwPrismaRegistryEnrichedInfraDateFiltered" : {
+                        "TableName" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_TableName",
+                          "type" : "Expression"
+                        },
+                        "Schema" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_SchemaName",
+                          "type" : "Expression"
+                        },
+                        "Container" : {
+                          "value" : "",
+                          "type" : "Expression"
+                        },
+                        "FileName" : {
+                          "value" : "vwPrismaRegistry_Enriched_Infra_DateFiltered",
+                          "type" : "Expression"
+                        },
+                        "Directory" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "ColumnDelimiter" : ","
+                      }
+                    }
+                  },
+                  "compute" : null,
+                  "staging" : { }
+                }
+              }, {
+                "name" : "OLE_DB_Destination_ETL_PrismaRegistry7_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "ETL_PrismaRegistry7_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
               } ]
             } ],
             "defaultActivities" : [ ]
           }
-        }, {
-          "name" : "ETL_PrismaRegistry7_",
-          "type" : "ExecuteDataFlow",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "ETL_PrismaRegistry7_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "etl_prismaregistry7_",
-              "type" : "DataFlowReference",
-              "parameters" : { },
-              "datasetParameters" : {
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "vwPrismaRegistryEnrichedInfraDateFiltered" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "vwPrismaRegistry_Enriched_Infra_DateFiltered",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                }
-              }
-            },
-            "compute" : null,
-            "staging" : { }
-          }
-        }, {
-          "name" : "OLE_DB_Destination_ETL_PrismaRegistry7_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "ETL_PrismaRegistry7_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_ETL_PrismaRegistry7__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
         } ]
       }
     }, {

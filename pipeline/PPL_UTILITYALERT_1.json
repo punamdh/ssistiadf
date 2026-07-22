@@ -23,41 +23,6 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "FOREACH_Foreach_Loop_Container143_",
-      "type" : "ForEach",
-      "policy" : null,
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "items" : {
-          "value" : "@activity('0_Get_alerts_that_need_to_be_sent146_').output.value",
-          "type" : "Expression"
-        },
-        "activities" : [ {
-          "name" : "0_Foreach_Loop_Container143__Mark_Record_as_Sent14",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ],
-        "isSequential" : true
-      }
-    }, {
       "name" : "0_Get_alerts_that_need_to_be_sent146_",
       "type" : "Lookup",
       "policy" : {
@@ -87,29 +52,6 @@
           "referenceName" : "UTILITYALERT_1140_.PLHS",
           "type" : "DatasetReference"
         }
-      }
-    }, {
-      "name" : "Failure_Mail142_",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "FOREACH_Foreach_Loop_Container143_",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "PPL_abc",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : { }
       }
     }, {
       "name" : "SWITCHACTIVITY_0_Get_alerts_that_need_to_be_sent14",
@@ -163,6 +105,26 @@
                 }
               } ],
               "isSequential" : true
+            }
+          }, {
+            "name" : "Failure_Mail142_",
+            "type" : "ExecutePipeline",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "FOREACH_Foreach_Loop_Container143_",
+              "dependencyConditions" : [ "Failed" ]
+            } ],
+            "userProperties" : null,
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "pipeline" : {
+                "referenceName" : "PPL_abc",
+                "type" : "PipelineReference"
+              },
+              "waitOnCompletion" : false,
+              "parameters" : { }
             }
           } ]
         } ],

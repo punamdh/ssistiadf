@@ -32,44 +32,6 @@
         }
       }
     }, {
-      "name" : "Insert_Email_Records52_",
-      "type" : "IfCondition",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(1,1)",
-          "type" : "Expression"
-        },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Insert_Email_Records52__Insert_Records_into_Email_",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t'michael.dematos@wellsfargo.com'\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,null [CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily_v2]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ]
-      }
-    }, {
       "name" : "Execute_SQL_Task_151__SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -92,136 +54,6 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Daily_SII_Metric49_",
-      "type" : "IfCondition",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Insert_Email_Records52_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(1,1)",
-          "type" : "Expression"
-        },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Collect_Daily_SII_Metric50_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "Collect_Daily_SII_Metric50_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Collect_Daily_SII_Metric50_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlsource"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink",
-              "writeBehavior" : "insert",
-              "sqlWriterUseTableLock" : false
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_LKP",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Collect_Daily_SII_Metric50_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        } ]
-      }
-    }, {
       "name" : "0_Execute_SQL_Task_151__VA",
       "type" : "SetVariable",
       "policy" : {
@@ -241,28 +73,6 @@
       "typeProperties" : {
         "variableName" : "TodaysData",
         "value" : "@activity('Execute_SQL_Task_151__SCRIPT').output.resultSets[0].rows[0][0]"
-      }
-    }, {
-      "name" : "Only_Send_once_a_week54__SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Daily_SII_Metric49_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
-        } ],
-        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "SWITCHACTIVITY_0_Execute_SQL_Task_151__VA",
@@ -316,6 +126,158 @@
                   "scriptBlockExecutionTimeout" : null
                 }
               } ]
+            }
+          }, {
+            "name" : "Daily_SII_Metric49_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "Insert_Email_Records52_",
+              "dependencyConditions" : [ "Succeeded" ]
+            } ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
+                "type" : "Expression"
+              },
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "Collect_Daily_SII_Metric50_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "Collect_Daily_SII_Metric50_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Collect_Daily_SII_Metric50_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : {
+                    "type" : "AzureSqlsource"
+                  },
+                  "sink" : {
+                    "type" : "AzureSqlSink",
+                    "writeBehavior" : "insert",
+                    "sqlWriterUseTableLock" : false
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_LKP",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              }, {
+                "name" : "tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Collect_Daily_SII_Metric50_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric50__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              } ]
+            }
+          }, {
+            "name" : "Only_Send_once_a_week54__SCRIPT",
+            "type" : "Script",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "Daily_SII_Metric49_",
+              "dependencyConditions" : [ "Succeeded" ]
+            } ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "linkedServiceName" : {
+              "referenceName" : "AzureSqlDatabase1",
+              "type" : "LinkedServiceReference"
+            },
+            "typeProperties" : {
+              "scripts" : [ {
+                "type" : "Query",
+                "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+              } ],
+              "scriptBlockExecutionTimeout" : null
             }
           } ]
         } ],
