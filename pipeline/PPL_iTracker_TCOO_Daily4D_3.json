@@ -75,8 +75,8 @@
         "value" : "@activity('Get_Time_Stamp_Execution_Path300__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "Data_Imported_from_iTracker_into_Database294_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_Data_Imported_from_iTracker_into_Da",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "0_Get_Time_Stamp_Execution_Path300__VA",
@@ -86,465 +86,506 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(variables('ExecuteSeriesFlag'),1)",
+        "on" : {
+          "value" : "@if(equals(variables('ExecuteSeriesFlag'),1), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Data_Imported_from_iTracker_into_Database294__Dele",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "iTracker_Active_Data297_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Data_Imported_from_iTracker_into_Database294__Dele",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "iTracker_Active_Data297_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "iTracker_Active_Data297_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlsource",
-              "sqlReaderQuery" : "SELECT * ,DATEADD(\"day\",0,GETDATE()) AS ImportDate FROM COOITRACKER2.DBO.VSORFEEDSPRIMARY WITH (NOLOCK) WHERE (CTONAME IN ('RALPH GROCE','RAJAMANICKAM IYER','ROBERT OKAI','NON-MAPPED','JONATHAN FEIN') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE','TECHCDOT - TECHNOLOGY DATA')) AND STATUS = 'ACTIVE' AND RESPONSIBLEPARTY = 'APP' UNION ALL SELECT * FROM [COOITRACKER2].[DBO].[VSORFEEDSPRIMARY] WITH (NOLOCK) WHERE STATUS = 'ACTIVE' AND RESPONSIBLEPARTY != 'APP'AND ( TECHMANAGERNAME IN ('BAOHUA QIAO','BART MYSZKOWSKI','BEDROS YESSAIAN','DAVID KRAUSSE','KAMALAKAR BUSAM','MIKHAIL TSIONSKIY','RAJESH VELAMALA','STAN SOBOL','PEDRO SANTOS', 'ROBERTO REYES','SWETHA MANDA') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE','TECHCDOT - TECHNOLOGY DATA')) ) SELECT DISTINCT * FROM CTE"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink",
-              "writeBehavior" : "insert",
-              "sqlWriterUseTableLock" : false
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_LKP",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "Data_Imported_from_iTracker_into_Database294_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "iTracker_Active_Data297_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "iTracker_Active_Data297__iTracker_Active_SN_CIO",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "CountRowsToInsert",
-            "value" : "@int(activity('iTracker_Active_Data297_').output.runStatus.metrics.iTracker_Active_SN_CIO.rowsWritten)"
-          }
-        }, {
-          "name" : "Count_Inserted295__LOOKUP",
-          "type" : "Lookup",
-          "policy" : {
-            "timeout" : "0.12:00:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 30,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlSource",
-              "sqlReaderStoredProcedureName" : null,
-              "sqlReaderQuery" : "SELECT combid FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\nWHERE CAST(IMPORTDATE AS DATE) = CAST(GETDATE() AS DATE)",
-              "storedProcedureParameters" : null,
-              "queryTimeout" : "02:00:00",
-              "partitionOption" : "None"
-            },
-            "dataset" : {
-              "referenceName" : "Generic_OLEDB_DS_LKP",
-              "type" : "DatasetReference"
-            }
-          }
-        }, {
-          "name" : "Count_Inserted295__Todays_Inserted_Rowcount",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "CountInsertedRecords",
-            "value" : "@int(activity('Count_Inserted295__LOOKUP').output.firstRow.cnt)"
-          }
-        }, {
-          "name" : "Data_Imported_from_iTracker_into_Database294__Upda",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Count_Inserted295__Todays_Inserted_Rowcount",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "iTracker_Active_Data297__iTracker_Active_SN_CIO",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "Count_Inserted295__LOOKUP",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ]
-      }
-    }, {
-      "name" : "Validated_record_Import301_",
-      "type" : "IfCondition",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "0_Get_Time_Stamp_Execution_Path300__VA",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(variables('ExecuteSeriesFlag'),2)",
-          "type" : "Expression"
-        },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "iTracker_Validated_Data302_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "iTracker_Validated_Data302_",
-          "type" : "ExecuteDataFlow",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "iTracker_Validated_Data302_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "itracker_validated_data302_",
-              "type" : "DataFlowReference",
-              "parameters" : { },
-              "datasetParameters" : {
-                "iTrackerQuery" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "iTracker Query",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "Data_Imported_from_iTracker_into_Database294__Dele",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
                 },
-                "LastValidatedLookupLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Last Validated Lookup",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "Validated" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
                 }
-              }
-            },
-            "compute" : null,
-            "staging" : { }
-          }
-        }, {
-          "name" : "Validated_iTracker_Validated_Data302_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "iTracker_Validated_Data302_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__sink_SchemaName",
-                "type" : "Expression"
-              }
+              }, {
+                "name" : "iTracker_Active_Data297_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Data_Imported_from_iTracker_into_Database294__Dele",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "iTracker_Active_Data297_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Active_Data297_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : {
+                    "type" : "AzureSqlsource",
+                    "sqlReaderQuery" : "SELECT * ,DATEADD(\"day\",0,GETDATE()) AS ImportDate FROM COOITRACKER2.DBO.VSORFEEDSPRIMARY WITH (NOLOCK) WHERE (CTONAME IN ('RALPH GROCE','RAJAMANICKAM IYER','ROBERT OKAI','NON-MAPPED','JONATHAN FEIN') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE','TECHCDOT - TECHNOLOGY DATA')) AND STATUS = 'ACTIVE' AND RESPONSIBLEPARTY = 'APP' UNION ALL SELECT * FROM [COOITRACKER2].[DBO].[VSORFEEDSPRIMARY] WITH (NOLOCK) WHERE STATUS = 'ACTIVE' AND RESPONSIBLEPARTY != 'APP'AND ( TECHMANAGERNAME IN ('BAOHUA QIAO','BART MYSZKOWSKI','BEDROS YESSAIAN','DAVID KRAUSSE','KAMALAKAR BUSAM','MIKHAIL TSIONSKIY','RAJESH VELAMALA','STAN SOBOL','PEDRO SANTOS', 'ROBERTO REYES','SWETHA MANDA') OR SN_CIO IN ('TECHCOO - TECHNOLOGY CHIEF OPERATING OFFICE','TECHCDOT - TECHNOLOGY DATA')) ) SELECT DISTINCT * FROM CTE"
+                  },
+                  "sink" : {
+                    "type" : "AzureSqlSink",
+                    "writeBehavior" : "insert",
+                    "sqlWriterUseTableLock" : false
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_LKP",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              }, {
+                "name" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Active_Data297_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTracker_Active_SN_CIO_iTracker_Active_Data297__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              }, {
+                "name" : "iTracker_Active_Data297__iTracker_Active_SN_CIO",
+                "type" : "SetVariable",
+                "policy" : {
+                  "timeout" : "00:30:00",
+                  "retry" : 0,
+                  "retryIntervalInSeconds" : 0,
+                  "secureOutput" : false,
+                  "secureInput" : false
+                },
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "variableName" : "CountRowsToInsert",
+                  "value" : "@int(activity('iTracker_Active_Data297_').output.runStatus.metrics.iTracker_Active_SN_CIO.rowsWritten)"
+                }
+              }, {
+                "name" : "Count_Inserted295__LOOKUP",
+                "type" : "Lookup",
+                "policy" : {
+                  "timeout" : "0.12:00:00",
+                  "retry" : 0,
+                  "retryIntervalInSeconds" : 30,
+                  "secureOutput" : false,
+                  "secureInput" : false
+                },
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : {
+                    "type" : "AzureSqlSource",
+                    "sqlReaderStoredProcedureName" : null,
+                    "sqlReaderQuery" : "SELECT combid FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\nWHERE CAST(IMPORTDATE AS DATE) = CAST(GETDATE() AS DATE)",
+                    "storedProcedureParameters" : null,
+                    "queryTimeout" : "02:00:00",
+                    "partitionOption" : "None"
+                  },
+                  "dataset" : {
+                    "referenceName" : "Generic_OLEDB_DS_LKP",
+                    "type" : "DatasetReference"
+                  }
+                }
+              }, {
+                "name" : "Count_Inserted295__Todays_Inserted_Rowcount",
+                "type" : "SetVariable",
+                "policy" : {
+                  "timeout" : "00:30:00",
+                  "retry" : 0,
+                  "retryIntervalInSeconds" : 0,
+                  "secureOutput" : false,
+                  "secureInput" : false
+                },
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Active_SN_CIO_iTracker_Active_Data297_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "variableName" : "CountInsertedRecords",
+                  "value" : "@int(activity('Count_Inserted295__LOOKUP').output.firstRow.cnt)"
+                }
+              }, {
+                "name" : "Data_Imported_from_iTracker_into_Database294__Upda",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Count_Inserted295__Todays_Inserted_Rowcount",
+                  "dependencyConditions" : [ "Succeeded" ]
+                }, {
+                  "activity" : "iTracker_Active_Data297__iTracker_Active_SN_CIO",
+                  "dependencyConditions" : [ "Succeeded" ]
+                }, {
+                  "activity" : "Count_Inserted295__LOOKUP",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
             }
           } ]
-        } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
-      "name" : "IFACTIVITY_Failure_Mail299_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_Validated_record_Import301_",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Imported_from_iTracker_into_Database294_",
+        "activity" : "0_Get_Time_Stamp_Execution_Path300__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "on" : {
+          "value" : "@if(equals(variables('ExecuteSeriesFlag'),2), 'Case1', Default)",
+          "type" : "Expression"
+        },
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "Validated_record_Import301_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
+                "type" : "Expression"
+              },
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "iTracker_Validated_Data302_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "iTracker_Validated_Data302_",
+                "type" : "ExecuteDataFlow",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Validated_Data302_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "dataflow" : {
+                    "referenceName" : "itracker_validated_data302_",
+                    "type" : "DataFlowReference",
+                    "parameters" : { },
+                    "datasetParameters" : {
+                      "iTrackerQuery" : {
+                        "TableName" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_TableName",
+                          "type" : "Expression"
+                        },
+                        "Schema" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_SchemaName",
+                          "type" : "Expression"
+                        },
+                        "Container" : {
+                          "value" : "",
+                          "type" : "Expression"
+                        },
+                        "FileName" : {
+                          "value" : "iTracker Query",
+                          "type" : "Expression"
+                        },
+                        "Directory" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "ColumnDelimiter" : ","
+                      },
+                      "Validated" : {
+                        "TableName" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_TableName",
+                          "type" : "Expression"
+                        },
+                        "Schema" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_SchemaName",
+                          "type" : "Expression"
+                        },
+                        "Container" : {
+                          "value" : "",
+                          "type" : "Expression"
+                        },
+                        "FileName" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "Directory" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "ColumnDelimiter" : ","
+                      },
+                      "LastValidatedLookupLKPTABLE" : {
+                        "TableName" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
+                          "type" : "Expression"
+                        },
+                        "Schema" : {
+                          "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_SchemaName",
+                          "type" : "Expression"
+                        },
+                        "Container" : {
+                          "value" : "",
+                          "type" : "Expression"
+                        },
+                        "FileName" : {
+                          "value" : "Last Validated Lookup",
+                          "type" : "Expression"
+                        },
+                        "Directory" : {
+                          "value" : null,
+                          "type" : "Expression"
+                        },
+                        "ColumnDelimiter" : ","
+                      }
+                    }
+                  },
+                  "compute" : null,
+                  "staging" : { }
+                }
+              }, {
+                "name" : "Validated_iTracker_Validated_Data302_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "iTracker_Validated_Data302_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_iTracker_Validated_Data302__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              } ]
+            }
+          } ]
+        } ],
+        "defaultActivities" : [ ]
+      }
+    }, {
+      "name" : "SWITCHACTIVITY_Failure_Mail299_",
+      "type" : "Switch",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SWITCHACTIVITY_Data_Imported_from_iTracker_into_Da",
         "dependencyConditions" : [ "Completed" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@not(equals(variables('CountInsertedRecords'),variables('CountRowsToInsert')))",
+        "on" : {
+          "value" : "@if(not(equals(variables('CountInsertedRecords'),variables('CountRowsToInsert'))), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Failure_Mail299_",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_abc",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        } ]
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "Failure_Mail299_",
+            "type" : "ExecutePipeline",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "userProperties" : null,
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "pipeline" : {
+                "referenceName" : "PPL_abc",
+                "type" : "PipelineReference"
+              },
+              "waitOnCompletion" : false,
+              "parameters" : { }
+            }
+          } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
       "name" : "Failure_Mail299_",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Validated_record_Import301_",
+        "activity" : "0_Get_Time_Stamp_Execution_Path300__VA",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "0_Get_Time_Stamp_Execution_Path300__VA",
+        "activity" : "SWITCHACTIVITY_Validated_record_Import301_",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -561,7 +602,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_21_07/Vulnerability_ETL_v2022"
+      "name" : "Wellfargo_22_07/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {

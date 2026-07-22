@@ -54,8 +54,8 @@
         }
       }
     }, {
-      "name" : "IFACTIVITY_FOREACH_Foreach_Loop_Container143_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container143_",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "0_Get_alerts_that_need_to_be_sent146_",
@@ -65,47 +65,50 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(pipeline().parameters.Test,variables('True'))",
+        "on" : {
+          "value" : "@if(equals(pipeline().parameters.Test,variables('True')), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "FOREACH_Foreach_Loop_Container143_",
-          "type" : "ForEach",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "items" : {
-              "value" : "@activity('0_Get_alerts_that_need_to_be_sent146_').output.value",
-              "type" : "Expression"
-            },
-            "activities" : [ {
-              "name" : "0_Foreach_Loop_Container143__Mark_Record_as_Sent14",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureSqlDatabase1",
-                "type" : "LinkedServiceReference"
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "FOREACH_Foreach_Loop_Container143_",
+            "type" : "ForEach",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "items" : {
+                "value" : "@activity('0_Get_alerts_that_need_to_be_sent146_').output.value",
+                "type" : "Expression"
               },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "Query",
-                  "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
-                } ],
-                "scriptBlockExecutionTimeout" : null
-              }
-            } ],
-            "isSequential" : true
-          }
-        } ]
+              "activities" : [ {
+                "name" : "0_Foreach_Loop_Container143__Mark_Record_as_Sent14",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ],
+              "isSequential" : true
+            }
+          } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
       "name" : "Failure_Mail142_",
@@ -118,7 +121,7 @@
         "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "IFACTIVITY_FOREACH_Foreach_Loop_Container143_",
+        "activity" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container143_",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -135,7 +138,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_21_07/PLHS_Monthly_Metrics"
+      "name" : "Wellfargo_22_07/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {

@@ -203,8 +203,8 @@
             "value" : "@int(activity('Load_Daily_Vuln_from_View86_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
           }
         }, {
-          "name" : "IFACTIVITY_Prod83__delete_data_from_Static_to_load",
-          "type" : "IfCondition",
+          "name" : "SWITCHACTIVITY_Prod83__delete_data_from_Static_to_",
+          "type" : "Switch",
           "policy" : null,
           "dependsOn" : [ {
             "activity" : "Load_Daily_Vuln_from_View86__OLE_DB_Destination",
@@ -214,38 +214,41 @@
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "expression" : {
-              "value" : "@greater(variables('StageViewCount'),0)",
+            "on" : {
+              "value" : "@if(greater(variables('StageViewCount'),0), 'Case1', Default)",
               "type" : "Expression"
             },
-            "ifFalseActivities" : [ ],
-            "ifTrueActivities" : [ {
-              "name" : "Prod83__delete_data_from_Static_to_load_from_stage",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureSqlDatabase1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "Query",
-                  "text" : " delete FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
-                } ],
-                "scriptBlockExecutionTimeout" : null
-              }
-            } ]
+            "cases" : [ {
+              "value" : "Case1",
+              "activityList" : [ {
+                "name" : "Prod83__delete_data_from_Static_to_load_from_stage",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : " delete FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
+            } ],
+            "defaultActivities" : [ ]
           }
         }, {
           "name" : "Load_Daily_Vuln_from_Stage85_0",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "IFACTIVITY_Prod83__delete_data_from_Static_to_load",
+            "activity" : "SWITCHACTIVITY_Prod83__delete_data_from_Static_to_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : null,
@@ -553,181 +556,200 @@
         "value" : "@activity('Get_Time_Stamp_Execution_Path76__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "Sequence_Container88_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_Sequence_Container88_",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "0_Get_Time_Stamp_Execution_Path76__VA",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
-      "state" : "Inactive",
+      "state" : null,
       "description" : null,
-      "onInactiveMarkAs" : "Succeeded",
+      "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(variables('ExecutionFlag'),2)",
+        "on" : {
+          "value" : "@if(equals(variables('ExecutionFlag'),2), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Sequence_Container88__Multi_Load_delete_Dev90__SCR",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : " delete FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static_dev]"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "Ad-_Hoc_Dev_Load89__OLE_DB_Destination",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StageViewCount",
-            "value" : "@int(activity('Ad-_Hoc_Dev_Load89_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
-          }
-        }, {
-          "name" : "Ad-_Hoc_Dev_Load89_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Sequence_Container88__Multi_Load_delete_Dev90__SCR",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "Ad-_Hoc_Dev_Load89_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Ad-_Hoc_Dev_Load89_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlsource"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink",
-              "writeBehavior" : "insert",
-              "sqlWriterUseTableLock" : false
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_LKP",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "Sequence_Container88_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : "Inactive",
+            "description" : null,
+            "onInactiveMarkAs" : "Succeeded",
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "Sequence_Container88__Multi_Load_delete_Dev90__SCR",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : " delete FROM [PLHS].[dbo].[tbl_VulnActive_Daily_Static_dev]"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              }, {
+                "name" : "Ad-_Hoc_Dev_Load89__OLE_DB_Destination",
+                "type" : "SetVariable",
+                "policy" : {
+                  "timeout" : "00:30:00",
+                  "retry" : 0,
+                  "retryIntervalInSeconds" : 0,
+                  "secureOutput" : false,
+                  "secureInput" : false
+                },
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "variableName" : "StageViewCount",
+                  "value" : "@int(activity('Ad-_Hoc_Dev_Load89_').output.runStatus.metrics.OLE_DB_Destination.rowsWritten)"
+                }
+              }, {
+                "name" : "Ad-_Hoc_Dev_Load89_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Sequence_Container88__Multi_Load_delete_Dev90__SCR",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "Ad-_Hoc_Dev_Load89_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Ad-_Hoc_Dev_Load89_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : {
+                    "type" : "AzureSqlsource"
+                  },
+                  "sink" : {
+                    "type" : "AzureSqlSink",
+                    "writeBehavior" : "insert",
+                    "sqlWriterUseTableLock" : false
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_LKP",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              }, {
+                "name" : "OLE_DB_Destination_Ad-_Hoc_Dev_Load89_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Ad-_Hoc_Dev_Load89_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              } ]
             }
           } ]
-        }, {
-          "name" : "OLE_DB_Destination_Ad-_Hoc_Dev_Load89_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Ad-_Hoc_Dev_Load89_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Ad-_Hoc_Dev_Load89__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
       "name" : "Load_Metrics_Dash77_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Sequence_Container88_",
+        "activity" : "SWITCHACTIVITY_Sequence_Container88_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -784,7 +806,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_21_07/PLHS_Monthly_Metrics"
+      "name" : "Wellfargo_22_07/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {

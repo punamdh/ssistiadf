@@ -75,8 +75,8 @@
         "value" : "@activity('Execute_SQL_Task_1253__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "Insert_Email_Records254_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_Insert_Email_Records254_",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "0_Execute_SQL_Task_1253__VA",
@@ -86,38 +86,57 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(variables('TodaysData'),1)",
+        "on" : {
+          "value" : "@if(equals(variables('TodaysData'),1), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Insert_Email_Records254__Insert_Records_into_Email",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,[CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n"
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ]
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "Insert_Email_Records254_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
+                "type" : "Expression"
+              },
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "Insert_Email_Records254__Insert_Records_into_Email",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,[CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ]
+            }
+          } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
       "name" : "Daily_SII_Metric251_",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Insert_Email_Records254_",
+        "activity" : "SWITCHACTIVITY_Insert_Email_Records254_",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -266,7 +285,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_21_07/Vulnerability_ETL"
+      "name" : "Wellfargo_22_07/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {

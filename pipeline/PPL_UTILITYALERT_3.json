@@ -54,8 +54,8 @@
         }
       }
     }, {
-      "name" : "IFACTIVITY_FOREACH_Foreach_Loop_Container347_",
-      "type" : "IfCondition",
+      "name" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container347_",
+      "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "0_Get_alerts_that_need_to_be_sent350_",
@@ -65,47 +65,50 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(pipeline().parameters.Test,variables('True'))",
+        "on" : {
+          "value" : "@if(equals(pipeline().parameters.Test,variables('True')), 'Case1', Default)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "FOREACH_Foreach_Loop_Container347_",
-          "type" : "ForEach",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "items" : {
-              "value" : "@activity('0_Get_alerts_that_need_to_be_sent350_').output.value",
-              "type" : "Expression"
-            },
-            "activities" : [ {
-              "name" : "0_Foreach_Loop_Container347__Mark_Record_as_Sent34",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureSqlDatabase1",
-                "type" : "LinkedServiceReference"
+        "cases" : [ {
+          "value" : "Case1",
+          "activityList" : [ {
+            "name" : "FOREACH_Foreach_Loop_Container347_",
+            "type" : "ForEach",
+            "policy" : null,
+            "dependsOn" : [ ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "items" : {
+                "value" : "@activity('0_Get_alerts_that_need_to_be_sent350_').output.value",
+                "type" : "Expression"
               },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "Query",
-                  "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
-                } ],
-                "scriptBlockExecutionTimeout" : null
-              }
-            } ],
-            "isSequential" : true
-          }
-        } ]
+              "activities" : [ {
+                "name" : "0_Foreach_Loop_Container347__Mark_Record_as_Sent34",
+                "type" : "Script",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "linkedServiceName" : {
+                  "referenceName" : "AzureSqlDatabase1",
+                  "type" : "LinkedServiceReference"
+                },
+                "typeProperties" : {
+                  "scripts" : [ {
+                    "type" : "Query",
+                    "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
+                  } ],
+                  "scriptBlockExecutionTimeout" : null
+                }
+              } ],
+              "isSequential" : true
+            }
+          } ]
+        } ],
+        "defaultActivities" : [ ]
       }
     }, {
       "name" : "Failure_Mail346_",
@@ -118,7 +121,7 @@
         "activity" : "Delete_alerts_older_than_2_months345__SCRIPT",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "IFACTIVITY_FOREACH_Foreach_Loop_Container347_",
+        "activity" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container347_",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -135,7 +138,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Wellfargo_21_07/Vulnerability_ETL_v2022"
+      "name" : "Wellfargo_22_07/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {
