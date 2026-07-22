@@ -23,20 +23,39 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SWITCHACTIVITY_0_Get_alerts_that_need_to_be_sent14",
-      "type" : "Switch",
+      "name" : "FOREACH_Foreach_Loop_Container143_",
+      "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "on" : {
-          "value" : "@Default",
+        "items" : {
+          "value" : "@activity('0_Get_alerts_that_need_to_be_sent146_').output.value",
           "type" : "Expression"
         },
-        "cases" : [ ],
-        "defaultActivities" : [ ]
+        "activities" : [ {
+          "name" : "0_Foreach_Loop_Container143__Mark_Record_as_Sent14",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @0)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "0_Get_alerts_that_need_to_be_sent146_",
@@ -70,12 +89,35 @@
         }
       }
     }, {
-      "name" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container143_",
+      "name" : "Failure_Mail142_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "FOREACH_Foreach_Loop_Container143_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "SWITCHACTIVITY_0_Get_alerts_that_need_to_be_sent14",
       "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SWITCHACTIVITY_0_Get_alerts_that_need_to_be_sent14",
-        "dependencyConditions" : [ "Succeeded" ]
+        "activity" : "0_Get_alerts_that_need_to_be_sent146_",
+        "dependencyConditions" : [ "Failed" ]
       } ],
       "state" : null,
       "description" : null,
@@ -124,33 +166,24 @@
             }
           } ]
         } ],
-        "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "Failure_Mail142_",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Delete_alerts_older_than_2_months141__SCRIPT",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "SWITCHACTIVITY_0_Get_alerts_that_need_to_be_sent14",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "SWITCHACTIVITY_FOREACH_Foreach_Loop_Container143_",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "PPL_abc",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : { }
+        "defaultActivities" : [ {
+          "name" : "Failure_Mail142_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_abc",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
       }
     } ],
     "folder" : {
