@@ -25,6 +25,27 @@
         }
       }
     }, {
+      "name" : "sArchiveUpdates",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sArchiveUpdates",
+        "value" : {
+          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp'),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -53,33 +74,6 @@
         }
       }
     }, {
-      "name" : "sArchiveUpdates",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ArchiveUpdates",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "sArchiveUpdates",
-        "value" : {
-          "value" : "@concat('\\\\\\\\wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\Dropzone\\\\LCM\\\\Archive\\\\NewLCM_',variables('TimeStamp'),'.csv')",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "GETMETADATA_Collect_Updates123_",
       "type" : "GetMetadata",
       "policy" : {
@@ -91,6 +85,12 @@
       },
       "dependsOn" : [ {
         "activity" : "sArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchiveUpdates",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -237,6 +237,29 @@
               "type" : "DataFlowReference",
               "parameters" : { },
               "datasetParameters" : {
+                "OLEDBDestination1" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination1_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination1_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "LookupLKPTABLE" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_TableName",
@@ -252,29 +275,6 @@
                   },
                   "FileName" : {
                     "value" : "Lookup",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -300,13 +300,13 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "OLEDBDestination1" : {
+                "OLEDBDestination" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination1_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination1_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
                     "type" : "Expression"
                   },
                   "Container" : {
@@ -729,6 +729,23 @@
               "type" : "DataFlowReference",
               "parameters" : { },
               "datasetParameters" : {
+                "RawLCMNEw" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "tblLCMNewWeekTracking" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.tblLCMNewWeekTracking_TableName",
@@ -748,23 +765,6 @@
                   },
                   "Directory" : {
                     "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "RawLCMNEw" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.RawLCMNEw_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
