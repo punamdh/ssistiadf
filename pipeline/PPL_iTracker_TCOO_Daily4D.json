@@ -75,7 +75,27 @@
         "value" : "@activity('Get_Time_Stamp_Execution_Path35__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "SWITCHACTIVITY_Data_Imported_from_iTracker_into_Da",
+      "name" : "Failure_Mail34_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Time_Stamp_Execution_Path35__VA",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_abc",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "SWITCHACTIVITY_0_Get_Time_Stamp_Execution_Path35__",
       "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
@@ -87,7 +107,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "on" : {
-          "value" : "@if(equals(variables('ExecuteSeriesFlag'),1), 'Case1', Default)",
+          "value" : "@if(equals(variables('ExecuteSeriesFlag'),1), 'Case1', if(equals(variables('ExecuteSeriesFlag'),2), 'Case2', Default))",
           "type" : "Expression"
         },
         "cases" : [ {
@@ -365,28 +385,48 @@
                 }
               } ]
             }
+          }, {
+            "name" : "SWITCHACTIVITY_Data_Imported_from_iTracker_into_Da",
+            "type" : "Switch",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "Data_Imported_from_iTracker_into_Database28_",
+              "dependencyConditions" : [ "Completed" ]
+            } ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "on" : {
+                "value" : "@if(not(equals(variables('CountInsertedRecords'),variables('CountRowsToInsert'))), 'Case1', Default)",
+                "type" : "Expression"
+              },
+              "cases" : [ {
+                "value" : "Case1",
+                "activities" : [ {
+                  "name" : "Failure_Mail34_",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "PPL_abc",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                } ]
+              } ],
+              "defaultActivities" : [ ]
+            }
           } ]
-        } ],
-        "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "SWITCHACTIVITY_Validated_record_Import36_",
-      "type" : "Switch",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "0_Get_Time_Stamp_Execution_Path35__VA",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "on" : {
-          "value" : "@if(equals(variables('ExecuteSeriesFlag'),2), 'Case1', Default)",
-          "type" : "Expression"
-        },
-        "cases" : [ {
-          "value" : "Case1",
+        }, {
+          "value" : "Case2",
           "activities" : [ {
             "name" : "Validated_record_Import36_",
             "type" : "IfCondition",
@@ -578,33 +618,14 @@
                 }
               } ]
             }
-          } ]
-        } ],
-        "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "SWITCHACTIVITY_Failure_Mail34_",
-      "type" : "Switch",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SWITCHACTIVITY_Data_Imported_from_iTracker_into_Da",
-        "dependencyConditions" : [ "Completed" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "on" : {
-          "value" : "@if(not(equals(variables('CountInsertedRecords'),variables('CountRowsToInsert'))), 'Case1', Default)",
-          "type" : "Expression"
-        },
-        "cases" : [ {
-          "value" : "Case1",
-          "activities" : [ {
+          }, {
             "name" : "Failure_Mail34_",
             "type" : "ExecutePipeline",
             "policy" : null,
-            "dependsOn" : [ ],
+            "dependsOn" : [ {
+              "activity" : "Validated_record_Import36_",
+              "dependencyConditions" : [ "Failed" ]
+            } ],
             "userProperties" : null,
             "state" : null,
             "description" : null,
@@ -620,29 +641,6 @@
           } ]
         } ],
         "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "Failure_Mail34_",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "0_Get_Time_Stamp_Execution_Path35__VA",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "SWITCHACTIVITY_Validated_record_Import36_",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "PPL_abc",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : { }
       }
     } ],
     "folder" : {

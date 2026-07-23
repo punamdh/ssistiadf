@@ -75,7 +75,7 @@
         "value" : "@activity('Execute_SQL_Task_1336__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "SWITCHACTIVITY_Insert_Email_Records337_",
+      "name" : "SWITCHACTIVITY_0_Execute_SQL_Task_1336__VA",
       "type" : "Switch",
       "policy" : null,
       "dependsOn" : [ {
@@ -127,161 +127,161 @@
                 }
               } ]
             }
+          }, {
+            "name" : "Daily_SII_Metric334_",
+            "type" : "IfCondition",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "Insert_Email_Records337_",
+              "dependencyConditions" : [ "Succeeded" ]
+            } ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "typeProperties" : {
+              "expression" : {
+                "value" : "@equals(1,1)",
+                "type" : "Expression"
+              },
+              "ifFalseActivities" : [ ],
+              "ifTrueActivities" : [ {
+                "name" : "Collect_Daily_SII_Metric335_0",
+                "type" : "ExecutePipeline",
+                "policy" : null,
+                "dependsOn" : [ ],
+                "userProperties" : null,
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "pipeline" : {
+                    "referenceName" : "PPL_Generic_db_replication_Stage",
+                    "type" : "PipelineReference"
+                  },
+                  "waitOnCompletion" : false,
+                  "parameters" : { }
+                }
+              }, {
+                "name" : "Collect_Daily_SII_Metric335_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Collect_Daily_SII_Metric335_0",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : {
+                    "type" : "AzureSqlsource"
+                  },
+                  "sink" : {
+                    "type" : "AzureSqlSink",
+                    "writeBehavior" : "insert",
+                    "sqlWriterUseTableLock" : false
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_LKP",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              }, {
+                "name" : "tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335_",
+                "type" : "Copy",
+                "policy" : null,
+                "dependsOn" : [ {
+                  "activity" : "Collect_Daily_SII_Metric335_",
+                  "dependencyConditions" : [ "Succeeded" ]
+                } ],
+                "state" : null,
+                "description" : null,
+                "onInactiveMarkAs" : null,
+                "typeProperties" : {
+                  "source" : { },
+                  "sink" : {
+                    "type" : "AzureSqlSink"
+                  }
+                },
+                "inputs" : [ {
+                  "referenceName" : "Generic_OLEDB_DS_TGT",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__source_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__source_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ],
+                "outputs" : [ {
+                  "referenceName" : "Generic11",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "TableName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__sink_TableName",
+                      "type" : "Expression"
+                    },
+                    "Schema" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__sink_SchemaName",
+                      "type" : "Expression"
+                    }
+                  }
+                } ]
+              } ]
+            }
+          }, {
+            "name" : "Only_Send_once_a_week339__SCRIPT",
+            "type" : "Script",
+            "policy" : null,
+            "dependsOn" : [ {
+              "activity" : "Daily_SII_Metric334_",
+              "dependencyConditions" : [ "Succeeded" ]
+            } ],
+            "state" : null,
+            "description" : null,
+            "onInactiveMarkAs" : null,
+            "linkedServiceName" : {
+              "referenceName" : "AzureSqlDatabase1",
+              "type" : "LinkedServiceReference"
+            },
+            "typeProperties" : {
+              "scripts" : [ {
+                "type" : "Query",
+                "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+              } ],
+              "scriptBlockExecutionTimeout" : null
+            }
           } ]
         } ],
         "defaultActivities" : [ ]
-      }
-    }, {
-      "name" : "Daily_SII_Metric334_",
-      "type" : "IfCondition",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SWITCHACTIVITY_Insert_Email_Records337_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(1,1)",
-          "type" : "Expression"
-        },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Collect_Daily_SII_Metric335_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_Stage",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : { }
-          }
-        }, {
-          "name" : "Collect_Daily_SII_Metric335_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Collect_Daily_SII_Metric335_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "AzureSqlsource"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink",
-              "writeBehavior" : "insert",
-              "sqlWriterUseTableLock" : false
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_LKP",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "Collect_Daily_SII_Metric335_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.tbl_SII_Vuln_History_Alerts_Collect_Daily_SII_Metric335__sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        } ]
-      }
-    }, {
-      "name" : "Only_Send_once_a_week339__SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Daily_SII_Metric334_",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
-        } ],
-        "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {
