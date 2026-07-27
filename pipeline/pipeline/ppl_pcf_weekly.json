@@ -1,0 +1,215 @@
+{
+  "name" : "ppl_pcf_weekly",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PCF_Build_Packs_All_Mappings_ContainerName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'PCF_All_data245_') AS PCF_Build_Packs_All_Mappings_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PCF_Build_Packs_All_Mappings_FileName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'PCF_All_data245_') AS PCF_Build_Packs_All_Mappings_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PCF_Build_Packs_All_Mappings_FilePath' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'PCF_All_data245_') AS PCF_Build_Packs_All_Mappings_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'PCF_All_data245_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'PCF_All_data245_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_PCF_All_data245__source_SchemaName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'OLE_DB_Destination_PCF_All_data245_') AS OLE_DB_Destination_PCF_All_data245__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_PCF_All_data245__source_TableName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'OLE_DB_Destination_PCF_All_data245_') AS OLE_DB_Destination_PCF_All_data245__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_PCF_All_data245__sink_SchemaName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'OLE_DB_Destination_PCF_All_data245_') AS OLE_DB_Destination_PCF_All_data245__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_PCF_All_data245__sink_TableName' AND PIPELINE_NAME = 'PCF_Weekly' AND DATAFLOW_NAME = 'OLE_DB_Destination_PCF_All_data245_') AS OLE_DB_Destination_PCF_All_data245__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Execute_SQL_Task244__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Execute_SQL_Task244__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task244__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sFileDate",
+        "value" : "@activity('Execute_SQL_Task244__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "PCF_All_data245_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Execute_SQL_Task244__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_Stage",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "PCF_All_data245_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PCF_All_data245_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "pcf_all_data245_",
+          "type" : "DataFlowReference",
+          "parameters" : { },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "PCFBuildPacksAllMappings" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "OLE_DB_Destination_PCF_All_data245_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "PCF_All_data245_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_PCF_All_data245__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_PCF_All_data245__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_PCF_All_data245__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_PCF_All_data245__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Wellfargo_22_07/Vulnerability_ETL"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sFileDate" : {
+        "type" : "string"
+      }
+    }
+  }
+}
