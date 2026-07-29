@@ -97,6 +97,32 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
+          "name" : "Prepare_Source_File160__FindLatestQTEFile162_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Prepare_Source_File160__FindLatestQTEFile162_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
           "name" : "0_Prepare_Source_File160__CopyToArchive161_",
           "type" : "Copy",
           "policy" : {
@@ -106,7 +132,10 @@
             "secureOutput" : false,
             "secureInput" : false
           },
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "Prepare_Source_File160__FindLatestQTEFile162_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -193,6 +222,35 @@
             "enableLogging" : false,
             "storeSettings" : null
           }
+        }, {
+          "name" : "Prepare_Source_File160__Log_Output163_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Prepare_Source_File160__RenameFile164__DELETE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Prepare_Source_File160__Log_Output163_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
         } ]
       }
     }, {
@@ -253,7 +311,7 @@
           "type" : "Expression"
         },
         "condition" : {
-          "value" : "@equals(1, 1)",
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'ReadinessReport.xlsx'))",
           "type" : "Expression"
         }
       }
@@ -340,11 +398,11 @@
             "type" : "DatasetReference",
             "parameters" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_TableName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly155__source_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_SchemaName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly155__source_SchemaName",
                 "type" : "Expression"
               }
             }
@@ -354,56 +412,11 @@
             "type" : "DatasetReference",
             "parameters" : {
               "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly155__sink_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "OLE_DB_Destination_QTEReadiness_Weekly155_",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly155_",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : { },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_QTEReadiness_Weekly155__source_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_QTEReadiness_Weekly155__source_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic11",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_QTEReadiness_Weekly155__sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_QTEReadiness_Weekly155__sink_SchemaName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly155__sink_SchemaName",
                 "type" : "Expression"
               }
             }
@@ -413,7 +426,7 @@
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "OLE_DB_Destination_QTEReadiness_Weekly155_",
+            "activity" : "QTEReadiness_Weekly155_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -453,9 +466,9 @@
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
               "userProperties" : null,
-              "state" : null,
+              "state" : "Inactive",
               "description" : null,
-              "onInactiveMarkAs" : null,
+              "onInactiveMarkAs" : "Succeeded",
               "typeProperties" : {
                 "pipeline" : {
                   "referenceName" : "PPL_Generic_db_replication_Stage",
@@ -490,11 +503,11 @@
                 "type" : "DatasetReference",
                 "parameters" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp158__source_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp158__source_SchemaName",
                     "type" : "Expression"
                   }
                 }
@@ -504,56 +517,11 @@
                 "type" : "DatasetReference",
                 "parameters" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp158__sink_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_SchemaName",
-                    "type" : "Expression"
-                  }
-                }
-              } ]
-            }, {
-              "name" : "SQL_qte_coo_tech_app_disp_Load_COO_Tech_App_Disp158_",
-              "type" : "Copy",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "Load_COO_Tech_App_Disp158_",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "source" : { },
-                "sink" : {
-                  "type" : "AzureSqlSink"
-                }
-              },
-              "inputs" : [ {
-                "referenceName" : "Generic_OLEDB_DS_TGT",
-                "type" : "DatasetReference",
-                "parameters" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_qte_coo_tech_app_disp_Load_COO_Tech_App_Disp158__source_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_qte_coo_tech_app_disp_Load_COO_Tech_App_Disp158__source_SchemaName",
-                    "type" : "Expression"
-                  }
-                }
-              } ],
-              "outputs" : [ {
-                "referenceName" : "Generic11",
-                "type" : "DatasetReference",
-                "parameters" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_qte_coo_tech_app_disp_Load_COO_Tech_App_Disp158__sink_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_qte_coo_tech_app_disp_Load_COO_Tech_App_Disp158__sink_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp158__sink_SchemaName",
                     "type" : "Expression"
                   }
                 }
@@ -565,7 +533,7 @@
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "OLE_DB_Destination_QTEReadiness_Weekly155_",
+            "activity" : "QTEReadiness_Weekly155_",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
