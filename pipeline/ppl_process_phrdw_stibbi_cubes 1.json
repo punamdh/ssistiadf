@@ -1,0 +1,196 @@
+{
+  "name" : "ppl_process_phrdw_stibbi_cubes 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "var_copy_recipients",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_copy_recipients",
+        "value" : {
+          "value" : "@variables('Var_copy_recipients')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "var_database",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_database",
+        "value" : {
+          "value" : "@variables('SSAS_InitialCatalog')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "var_env",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_env",
+        "value" : {
+          "value" : "@variables('Var_env')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "var_recipients",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_recipients",
+        "value" : {
+          "value" : "@variables('Var_recipients')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Process_Cube1715_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "var_recipients",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "var_copy_recipients",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "var_database",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "var_env",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Process_Cube1715__Process_Cube1716_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "Failure_Notification1714__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Process_Cube1715_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @var_subject varchar(200)\nDECLARE @rec as varchar(200)--  changed to varchar(200) from varchar(100), by Ren, 20210625\nDECLARE @copy_rec varchar(255)\nSET @var_subject = 'Failed to process '+@var_env+' cube in '+@var_recipients+ ' environment'\nSET @rec=@var_copy_recipients\nSET @copy_rec=@var_database\n\nEXEC msdb.dbo.sp_send_dbmail\n@recipients=@rec, \n@copy_recipients=@copy_rec,\n@subject=@var_subject, \n@body='',\n@importance ='HIGH'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Success_Notification1717__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Process_Cube1715_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Declare @var_subject varchar(200)\nDECLARE @rec as varchar(200)--  changed to varchar(200) from varchar(100), by Ren, 20210625\nDECLARE @copy_rec varchar(255)\nSET @var_subject = 'Successfully processed '+@var_env+' cube in '+@var_recipients+ ' environment'\nSET @rec=@var_copy_recipients\nSET @copy_rec=@var_database\n\nEXEC msdb.dbo.sp_send_dbmail\n@recipients=@rec, \n@copy_recipients=@copy_rec,\n@subject=@var_subject, \n@body=''"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "var_copy_recipients" : {
+        "type" : "string",
+        "defaultValue" : "'rishabh.rajiv@phsa.ca; kaiwen.shi@phsa.ca;xiao.liu@phsa.ca'"
+      },
+      "var_recipients" : {
+        "type" : "string"
+      },
+      "var_env" : {
+        "type" : "string",
+        "defaultValue" : "'SP'"
+      },
+      "var_database" : {
+        "type" : "string",
+        "defaultValue" : "'PHRDW_STIBBI'"
+      }
+    }
+  }
+}

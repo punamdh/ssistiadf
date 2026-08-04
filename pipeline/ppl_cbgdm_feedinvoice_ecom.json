@@ -1,0 +1,1558 @@
+{
+  "name" : "ppl_cbgdm_feedinvoice_ecom",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileArchiveDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileArchiveDir",
+        "value" : {
+          "value" : "@concat(variables('FileArchiveFolder'),replace(variables('Environment'),'Prod',''),'\\\\',variables('FeedFolderLocal'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileLocalDir",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileLocalDir",
+        "value" : {
+          "value" : "@concat(variables('FileOutboundFeedFolder'),'\\\\',variables('FeedFolderLocal'),replace(variables('Environment'),'Prod',''))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileName",
+        "value" : {
+          "value" : "@if('Test', replace(variables('FeedFileName'),'.csv','csv'), variables('FeedFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReadFromSourcecsvAG",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromSourcecsvAG",
+        "value" : {
+          "value" : "@variables('InvoiceSK')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReadFromSourceInv",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromSourceInv",
+        "value" : {
+          "value" : "@variables('di_invoice_id')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReadFromSourceShp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromSourceShp",
+        "value" : {
+          "value" : "@variables('ds_project')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReadFromSourceTax",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromSourceTax",
+        "value" : {
+          "value" : "@variables('ds_project')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SFTPConfig",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SFTPConfig",
+        "value" : {
+          "value" : "@variables('EcomSFTPConfig')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Stg_EcomInvoice_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Read_from_Stg_EcomInvoice_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Stg_EcomInvoice_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Read_from_Stg_EcomInvoice_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Write_to_Error_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Write_to_Error_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_ContainerName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Write_to_Invoice_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_FileName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Write_to_Invoice_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_FilePath' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Generate_Invoice_File320_') AS Write_to_Invoice_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Read_from_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Read_from_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_BC_Division_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Lookup_BC_Division_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_BC_Division_LKP_TABLE_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Lookup_BC_Division_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Write_to_Target_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Inv327_') AS Write_to_Target_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Shp328_') AS Read_from_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Shp328_') AS Read_from_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Shp328_') AS Write_to_Target_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Shp328_') AS Write_to_Target_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Read_from_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_Source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Read_from_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_BC_Division_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Lookup_BC_Division_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_BC_Division_LKP_TABLE_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Lookup_BC_Division_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Write_to_Target_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Load_Target_Table_Tax329_') AS Write_to_Target_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_Generate_Invoice_File320__source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Error_Generate_Invoice_File320_') AS Write_to_Error_Generate_Invoice_File320__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_Generate_Invoice_File320__source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Error_Generate_Invoice_File320_') AS Write_to_Error_Generate_Invoice_File320__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_Generate_Invoice_File320__sink_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Error_Generate_Invoice_File320_') AS Write_to_Error_Generate_Invoice_File320__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Error_Generate_Invoice_File320__sink_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Error_Generate_Invoice_File320_') AS Write_to_Error_Generate_Invoice_File320__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320__source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320_') AS Write_to_Invoice_File_Generate_Invoice_File320__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320__source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320_') AS Write_to_Invoice_File_Generate_Invoice_File320__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320__sink_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320_') AS Write_to_Invoice_File_Generate_Invoice_File320__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320__sink_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Invoice_File_Generate_Invoice_File320_') AS Write_to_Invoice_File_Generate_Invoice_File320__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Inv327__source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Inv327_') AS Write_to_Target_Load_Target_Table_Inv327__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Inv327__source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Inv327_') AS Write_to_Target_Load_Target_Table_Inv327__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Inv327__sink_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Inv327_') AS Write_to_Target_Load_Target_Table_Inv327__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Inv327__sink_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Inv327_') AS Write_to_Target_Load_Target_Table_Inv327__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Shp328__source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Shp328_') AS Write_to_Target_Load_Target_Table_Shp328__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Shp328__source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Shp328_') AS Write_to_Target_Load_Target_Table_Shp328__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Shp328__sink_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Shp328_') AS Write_to_Target_Load_Target_Table_Shp328__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Shp328__sink_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Shp328_') AS Write_to_Target_Load_Target_Table_Shp328__sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Tax329__source_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Tax329_') AS Write_to_Target_Load_Target_Table_Tax329__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Tax329__source_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Tax329_') AS Write_to_Target_Load_Target_Table_Tax329__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Tax329__sink_SchemaName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Tax329_') AS Write_to_Target_Load_Target_Table_Tax329__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_Target_Load_Target_Table_Tax329__sink_TableName' AND PIPELINE_NAME = 'CBGDM_FeedInvoice_Ecom' AND DATAFLOW_NAME = 'Write_to_Target_Load_Target_Table_Tax329_') AS Write_to_Target_Load_Target_Table_Tax329__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionID313__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SFTPConfig",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileArchiveDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileLocalDir",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadFromSourcecsvAG",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadFromSourceInv",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadFromSourceShp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadFromSourceTax",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID313__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID313__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID313__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container314_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID313__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "_DELETESequence_Container314__Remove_previously_lo",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Sequence_Container314__Load_Source_Tables323_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_DELETESequence_Container314__Remove_previously_lo",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container314__Load_Source_Tables323__Get_",
+              "type" : "Lookup",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource",
+                  "sqlReaderStoredProcedureName" : null,
+                  "sqlReaderQuery" : "SELECT SourceSystemId,DBConnStr\nFROM [Stg].[vEcomSrcConnStr] ",
+                  "storedProcedureParameters" : null,
+                  "queryTimeout" : "02:00:00",
+                  "partitionOption" : "None"
+                },
+                "dataset" : {
+                  "referenceName" : "Default_Table_Connection",
+                  "type" : "DatasetReference"
+                }
+              }
+            }, {
+              "name" : "Sequence_Container314__Load_Source_Tables323__Drop",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Load_Source_Tables323__Get_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DROP INDEX IF EXISTS [IDX_EcomInvoiceDetail_CL] ON [Stg].[EcomInvoiceDetail] WITH ( ONLINE = OFF )\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "FOREACH_Sequence_Container314__Load_Source_Tables3",
+              "type" : "ForEach",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Load_Source_Tables323__Drop",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('Sequence_Container314__Load_Source_Tables323__Get_').output.value",
+                  "type" : "Expression"
+                },
+                "activities" : [ {
+                  "name" : "Sequence_Container314__Load_Source_Tables323__Foreach_Source_System326__Script_Task330_",
+                  "type" : "AzureFunctionActivity",
+                  "policy" : {
+                    "timeout" : "0.12:00:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 30,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : "Inactive",
+                  "description" : "Script Task",
+                  "onInactiveMarkAs" : "Succeeded",
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureFunction1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "functionName" : {
+                      "value" : "Sequence_Container314__Load_Source_Tables323__Foreach_Source_System326__Script_Task330_",
+                      "type" : "Expression"
+                    },
+                    "method" : "POST",
+                    "headers" : { }
+                  }
+                }, {
+                  "name" : "Sequence_Container314__Load_Source_Tables323__Fore",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Sequence_Container314__Load_Source_Tables323__Foreach_Source_System326__Script_Task330_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "\nTRUNCATE TABLE [Stg].[EcomInvoiceDetail] WITH ( PARTITIONS(2));\nTRUNCATE TABLE [Stg].[EcomShippingDetail]  WITH ( PARTITIONS(2));\nTRUNCATE TABLE [Stg].[EcomTaxDetail]  WITH ( PARTITIONS(2));\n"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Inv327_0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Sequence_Container314__Load_Source_Tables323__Fore",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : null,
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "PPL_Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Inv327_",
+                  "type" : "ExecuteDataFlow",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Inv327_0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "dataflow" : {
+                      "referenceName" : "load_target_table_inv327_",
+                      "type" : "DataFlowReference",
+                      "parameters" : {
+                        "FeedFolderLocal" : {
+                          "type" : "Expression",
+                          "value" : "'Ecom'"
+                        },
+                        "ParentPackageExecutionID" : {
+                          "type" : "Expression",
+                          "value" : "-99"
+                        },
+                        "FeedFileName" : {
+                          "type" : "Expression",
+                          "value" : "'OpenBalanceInvoices.csv'"
+                        },
+                        "AgentJobId" : {
+                          "type" : "Expression",
+                          "value" : "'3FB07C97-F8AD-4B1A-BE08-6E47F5C3A81A'"
+                        },
+                        "FeedFolderExternal" : {
+                          "type" : "Expression",
+                          "value" : "'/InvoiceMaster/'"
+                        },
+                        "EcomFirstRunDate" : {
+                          "type" : "Expression",
+                          "value" : "toTimestamp('1/10/2022')"
+                        },
+                        "SubscriptionName" : {
+                          "type" : "Expression",
+                          "value" : "'EcomFeedInvoicesTest'"
+                        },
+                        "EcomRptGenWaitUntil" : {
+                          "type" : "Expression",
+                          "value" : "60"
+                        }
+                      },
+                      "datasetParameters" : {
+                        "WritetoTarget" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "LookupBCDivisionLKPTABLE" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Lookup BC Division",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "ReadfromSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Read from Source",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        }
+                      }
+                    },
+                    "compute" : null,
+                    "staging" : { }
+                  }
+                }, {
+                  "name" : "Write_to_Target_Load_Target_Table_Inv327_",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Inv327_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "source" : { },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Inv327__source_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Inv327__source_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic11",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Inv327__sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Inv327__sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                }, {
+                  "name" : "Load_Target_Table_Shp328_0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Write_to_Target_Load_Target_Table_Inv327_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : null,
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "PPL_Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Tax329_0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Write_to_Target_Load_Target_Table_Inv327_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : null,
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "PPL_Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : { }
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Shp328_",
+                  "type" : "ExecuteDataFlow",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Shp328_0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "dataflow" : {
+                      "referenceName" : "load_target_table_shp328_",
+                      "type" : "DataFlowReference",
+                      "parameters" : {
+                        "FeedFolderLocal" : {
+                          "type" : "Expression",
+                          "value" : "'Ecom'"
+                        },
+                        "ParentPackageExecutionID" : {
+                          "type" : "Expression",
+                          "value" : "-99"
+                        },
+                        "FeedFileName" : {
+                          "type" : "Expression",
+                          "value" : "'OpenBalanceInvoices.csv'"
+                        },
+                        "AgentJobId" : {
+                          "type" : "Expression",
+                          "value" : "'3FB07C97-F8AD-4B1A-BE08-6E47F5C3A81A'"
+                        },
+                        "FeedFolderExternal" : {
+                          "type" : "Expression",
+                          "value" : "'/InvoiceMaster/'"
+                        },
+                        "EcomFirstRunDate" : {
+                          "type" : "Expression",
+                          "value" : "toTimestamp('1/10/2022')"
+                        },
+                        "SubscriptionName" : {
+                          "type" : "Expression",
+                          "value" : "'EcomFeedInvoicesTest'"
+                        },
+                        "EcomRptGenWaitUntil" : {
+                          "type" : "Expression",
+                          "value" : "60"
+                        }
+                      },
+                      "datasetParameters" : {
+                        "ReadfromSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Read from Source",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "WritetoTarget" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        }
+                      }
+                    },
+                    "compute" : null,
+                    "staging" : { }
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Tax329_",
+                  "type" : "ExecuteDataFlow",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Tax329_0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "dataflow" : {
+                      "referenceName" : "load_target_table_tax329_",
+                      "type" : "DataFlowReference",
+                      "parameters" : {
+                        "FeedFolderLocal" : {
+                          "type" : "Expression",
+                          "value" : "'Ecom'"
+                        },
+                        "ParentPackageExecutionID" : {
+                          "type" : "Expression",
+                          "value" : "-99"
+                        },
+                        "FeedFileName" : {
+                          "type" : "Expression",
+                          "value" : "'OpenBalanceInvoices.csv'"
+                        },
+                        "AgentJobId" : {
+                          "type" : "Expression",
+                          "value" : "'3FB07C97-F8AD-4B1A-BE08-6E47F5C3A81A'"
+                        },
+                        "FeedFolderExternal" : {
+                          "type" : "Expression",
+                          "value" : "'/InvoiceMaster/'"
+                        },
+                        "EcomFirstRunDate" : {
+                          "type" : "Expression",
+                          "value" : "toTimestamp('1/10/2022')"
+                        },
+                        "SubscriptionName" : {
+                          "type" : "Expression",
+                          "value" : "'EcomFeedInvoicesTest'"
+                        },
+                        "EcomRptGenWaitUntil" : {
+                          "type" : "Expression",
+                          "value" : "60"
+                        }
+                      },
+                      "datasetParameters" : {
+                        "WritetoTarget" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "LookupBCDivisionLKPTABLE" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Lookup BC Division",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "ReadfromSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Read from Source",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        }
+                      }
+                    },
+                    "compute" : null,
+                    "staging" : { }
+                  }
+                }, {
+                  "name" : "Write_to_Target_Load_Target_Table_Shp328_",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Shp328_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "source" : { },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Shp328__source_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Shp328__source_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic11",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Shp328__sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Shp328__sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                }, {
+                  "name" : "Write_to_Target_Load_Target_Table_Tax329_",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Tax329_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : "Inactive",
+                  "description" : null,
+                  "onInactiveMarkAs" : "Succeeded",
+                  "typeProperties" : {
+                    "source" : { },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Tax329__source_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Tax329__source_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic11",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Tax329__sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Target_Load_Target_Table_Tax329__sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                } ],
+                "isSequential" : true
+              }
+            }, {
+              "name" : "Sequence_Container314__Load_Source_Tables323__Crea",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "FOREACH_Sequence_Container314__Load_Source_Tables3",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "CREATE UNIQUE CLUSTERED INDEX [IDX_EcomInvoiceDetail_CL] ON [Stg].[EcomInvoiceDetail]\n(\n\t[InvoiceSK] ASC,\n\t[ProdDetailId] ASC,\n\t[ProdLineNumber] ASC,\n\t[SourceSystemId] ASC\n)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF,\nIGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, \nALLOW_PAGE_LOCKS = ON) ON [parsch_SourceSystemId_new] ([SourceSystemId])"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Sequence_Container314__Load_Source_Tables323__Inse",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Load_Source_Tables323__Crea",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN\n\tDECLARE @CutOffDate date = @EcomFirstRunDate; \n\tSELECT DISTINCT \n\t\t [InvoiceSK]\n\t\t,[CustomerNumber] =  CAST('001'+CAST(SourceSystemid as varchar(3)) +'-'+ AccountNumber as varchar(50))\n\t\t,[InvoiceDate] = CAST([InvoiceDate] AS date)\n\t\t,[PurchaseOrderNumber] = REPLACE([PurchaseOrderNumber],'\"','')\n\t\t,[InvoiceCreatedDate] = CAST([InvoiceCreatedDate] AS date)\n\t\t,[InvoicedAmount]\n\t\t,[CustomerPayment]\n\t\t,[AmountDue]\n\t\t,[PDFFileName] = cast('Div_' + DivisionCode + '_Invoice_'+InvoiceSK+\n\t\t\t\t\t (CASE WHEN [InvoiceCreatedDate] > @CutOffDate THEN '' ELSE '_CTCH' END) as varchar(128))\n\t\t,[SourceSystemId]\n\t\t,[IsProcessed] = 'N'\n\t\t,[ETLCreateDate]\n\t\t,[ETLExecutionId]\n\tINTO #EcomInvProcHist\n\tFROM Stg.EcomInvoiceDetail I\n\tWHERE AmountDue <> 0\n\tAND NOT EXISTS (\n\t\tSELECT TOP 1 1 FROM [Stg].[EcomInvProcHist] H WITH (NOLOCK)\n\t\tWHERE I.[InvoiceSK] = H.[InvoiceSK]\n\t\tAND  I.AmountDue = H.AmountDue\n \t)\n \n\tDELETE H\n\tFROM [Stg].[EcomInvProcHist] H\n\tWHERE EXISTS (\n\t\tSELECT TOP 1 1 FROM #EcomInvProcHist T\n\t\tWHERE T.InvoiceSK = H.InvoiceSK\n\t\t)\n\n\n\tUPDATE H\n\tSET H.[AmountDue] = 0\n\t,ETLExecutionId = 0-ETLExecutionId\n\tFROM [Stg].[EcomInvProcHist] H\n\tWHERE EXISTS (\n\t\tSELECT TOP 1 1 FROM  Stg.EcomInvoiceDetail T\n\t\tWHERE T.InvoiceSK = H.InvoiceSK\n\t\tAND T.AmountDue = 0\n\t\t)\n\tAND  H.[AmountDue] <> 0\n\n\n\t--TRUNCATE TABLE [Stg].[EcomInvProcHist]\n\tINSERT INTO [Stg].[EcomInvProcHist] (\n\t\t [InvoiceSK]\n\t\t,[CustomerNumber]\n\t\t,[InvoiceDate]\n\t\t,[PurchaseOrderNumber]\n\t\t,[InvoiceCreatedDate]\n\t\t,[InvoicedAmount]\n\t\t,[CustomerPayment]\n\t\t,[AmountDue]\n\t\t,[PDFFileName]\n\t\t,[SourceSystemId]\n\t\t,[IsProcessed]\n\t\t,[ETLCreateDate]\n\t\t,[ETLExecutionId]\n\t)\n\tSELECT\n\t\t  [InvoiceSK]\n\t\t,[CustomerNumber]\n\t\t,[InvoiceDate]\n\t\t,[PurchaseOrderNumber]\n\t\t,[InvoiceCreatedDate]\n\t\t,[InvoicedAmount]\n\t\t,[CustomerPayment]\n\t\t,[AmountDue]\n\t\t,[PDFFileName]\n\t\t,[SourceSystemId]\n\t\t,[IsProcessed]\n\t\t,[ETLCreateDate]\n\t\t,[ETLExecutionId]\n\tFROM #EcomInvProcHist;\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container314__Load_Source_Tables323_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Execute_Ecom_InvoiceReport_AG318_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Execute_Ecom_InvoiceReport_Com319_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_F",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Execute_Ecom_InvoiceReport_AG318_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "--Ver1.0 Initial\n\nDECLARE @StartDate datetime =  @StartTime\nDECLARE @WaitUntil int= @EcomRptGenWaitUntil\n\nDECLARE @i INT = 1;\nDECLARE @Status NVARCHAR(4)\nDECLARE @Msg NVARCHAR(260);\nWAITFOR DELAY '00:01:00';\nWHILE (@i <= @WaitUntil*6)\nBEGIN\n\tWAITFOR DELAY '00:00:10';\n\tSELECT @Status = LEFT([LastStatus], 4)\n\tFROM ReportServer.[dbo].[Subscriptions] S\n\tINNER JOIN ReportServer.dbo.[Catalog]  C WITH (NOLOCK) ON Report_OID = ItemID\n\tWHERE LastRunTime > @StartDate\n\tAND S.[Description]='EcomFeedInvoicesAG'\n\tSET @Status = ISNULL(@Status, 'NoRn')\n\tIF (@Status != 'Pend')\n\tBEGIN\n\t\tBREAK\n\tEND\n\tSET @i = @i + 1;\nEND\nIF @Status != 'Done'\nBEGIN\n\tSET @Msg = FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss') + '|Error in Report subscription:' + @Status\n\tRAISERROR (@Msg, 16, 1);\nEND\n\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "0_Sequence_Container314__Generate_Ecom_Invoice_Pdf",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Execute_Ecom_InvoiceReport_Com319_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "--Ver1.0 Initial\n\nDECLARE @StartDate datetime =  @StartTime\nDECLARE @WaitUntil int= @EcomRptGenWaitUntil\nDECLARE @Subscription varchar(128) = @SubscriptionName\n\n\nDECLARE @i INT = 1;\nDECLARE @Status NVARCHAR(100)\nDECLARE @Msg NVARCHAR(260);\nWAITFOR DELAY '00:01:00';\nWHILE (@i <= @WaitUntil*6)\nBEGIN\n\tWAITFOR DELAY '00:00:10';\n\tSELECT @Status = [LastStatus]\n\tFROM ReportServer.[dbo].[Subscriptions] S\n\tINNER JOIN ReportServer.dbo.[Catalog] C WITH (NOLOCK) ON Report_OID = ItemID\n\tWHERE LastRunTime > @StartDate\n\tAND S.[Description]=@Subscription\n\tSET @Status = ISNULL(@Status, 'NoRn')\n\tIF (LEFT(@Status, 4) != 'Pend')\n\tBEGIN\n\t\tBREAK\n\tEND\n\tSET @i = @i + 1;\nEND\nIF NOT (LEFT(@Status, 4) = 'Done' AND CHARINDEX('0 errors',@Status) <>0 )\nBEGIN\n\tSET @Msg = FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss') + '|Error in Report subscription:' + @Status\n\tRAISERROR (@Msg, 16, 1);\nEND\n\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Generate_Invoice_File320_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "0_Sequence_Container314__Generate_Ecom_Invoice_Pdf",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Generate_Invoice_File320_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Generate_Invoice_File320_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "generate_invoice_file320_",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "FeedFolderLocal" : {
+                      "type" : "Expression",
+                      "value" : "'Ecom'"
+                    },
+                    "ParentPackageExecutionID" : {
+                      "type" : "Expression",
+                      "value" : "-99"
+                    },
+                    "FeedFileName" : {
+                      "type" : "Expression",
+                      "value" : "'OpenBalanceInvoices.csv'"
+                    },
+                    "AgentJobId" : {
+                      "type" : "Expression",
+                      "value" : "'3FB07C97-F8AD-4B1A-BE08-6E47F5C3A81A'"
+                    },
+                    "FeedFolderExternal" : {
+                      "type" : "Expression",
+                      "value" : "'/InvoiceMaster/'"
+                    },
+                    "EcomFirstRunDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('1/10/2022')"
+                    },
+                    "SubscriptionName" : {
+                      "type" : "Expression",
+                      "value" : "'EcomFeedInvoicesTest'"
+                    },
+                    "EcomRptGenWaitUntil" : {
+                      "type" : "Expression",
+                      "value" : "60"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "WritetoError" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoError_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoError_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadfromStgEcomInvoiceERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadfromStgEcomInvoice" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "Read from Stg EcomInvoice",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "WritetoInvoiceFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Write_to_Error_Generate_Invoice_File320_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Generate_Invoice_File320_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "source" : { },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Error_Generate_Invoice_File320__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Error_Generate_Invoice_File320__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Error_Generate_Invoice_File320__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Error_Generate_Invoice_File320__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "Write_to_Invoice_File_Generate_Invoice_File320_",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Generate_Invoice_File320_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Invoice_File_Generate_Invoice_File320__source_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Invoice_File_Generate_Invoice_File320__source_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic11",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Invoice_File_Generate_Invoice_File320__sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Write_to_Invoice_File_Generate_Invoice_File320__sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Move_Ecom_Feed_File_to_SFTP_Location321_",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Generate_Invoice_File320_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_to_Invoice_File_Generate_Invoice_File320_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : "Script Task",
+              "onInactiveMarkAs" : "Succeeded",
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Move_Ecom_Feed_File_to_SFTP_Location321_",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "1_0_Sequence_Container314__Generate_Ecom_Invoice_P",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315__Move_Ecom_Feed_File_to_SFTP_Location321_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : "Inactive",
+              "description" : null,
+              "onInactiveMarkAs" : "Succeeded",
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "\nUPDATE Stg.EcomInvProcHist\nSET IsProcessed='Y'\nWHERE IsProcessed='N'\nAND InvoiceSK IN(\nSELECT \n  RTRIM(REPLACE(CAST([Parameters] as varchar(100)),'InvoiceNumber=',''))\n  collate SQL_Latin1_General_CP1_CI_AS AS InvoiceSK\nFROM ReportServer.dbo.ExecutionLog3\nWHERE Status = 'RsSuccess' and\nTimeStart > CAST('10/16/2025 3:47:40 PM' as datetime)\n)\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Sequence_Container314__Update_Success_PackageExecu",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container314__Generate_Ecom_Invoice_Pdf_Files315_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@PackageExecutionID\n  ,@RowsReadNoError=@RowsReadNoError\n  ,@RowsInserted=@RowsInserted\n  ,@RowsUpdated=@RowsUpdated\n  ,@RowsDeleted=@RowsDeleted\n  ,@RowsReadError=@RowsReadError\n  ,@RowsNotWrittenError=@RowsNotWrittenError\n  ,@RowsDiscarded=@RowsDiscarded\n  ,@RowsLookupError=0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID336__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container314_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@StartTime\n  ,@PackageExecutionID=@PackageExecutionID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowsReadNoError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileArchiveDir" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Archive\\\\Ecom'"
+      },
+      "DestinationTableTax" : {
+        "type" : "string",
+        "defaultValue" : "'[Stg].[EcomTaxDetail]'"
+      },
+      "QueryReadFromSourcecsvAG" : {
+        "type" : "string",
+        "defaultValue" : "'--Ver 1.1\\nSELECT\\n\t[InvoiceNumber] = InvoiceSK\\n\t,[CustomerNumber]\\n\t,[InvoiceDate]\\n\t,[PurchaseOrderNumber]\\n\t,[InvoiceCreatedDate]\\n\t,[InvoicedAmount]\\n\t,[CustomerPayment]\\n\t,[AmountDue]\\n\t,[PDFFileName]\\nFROM  [Stg].[EcomInvProcHist]\\n  WHERE [AmountDue]<>0'"
+      },
+      "ForEachDBConnStr" : {
+        "type" : "string",
+        "defaultValue" : "'Data Source=SQL-Com-Corp-01\\\\CORPPROD01;Initial Catalog=ComDataCorpProd;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+      },
+      "RowsInserted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileName" : {
+        "type" : "string",
+        "defaultValue" : "'OpenBalanceInvoices.csv'"
+      },
+      "RowsNotWrittenError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsReadError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ForEachDBConnStrList" : {
+        "type" : "string"
+      },
+      "ForEachSourceSystemId" : {
+        "type" : "Integer",
+        "defaultValue" : "1"
+      },
+      "QueryReadFromSourceShp" : {
+        "type" : "string",
+        "defaultValue" : "'--Ver 1.0 Initial\\nSELECT InvoiceNumber=fi.ds_project\\n\t,ShipmentNumber = fish.di_shipment_id\\n\t,ShipmentDate = dd_shipped\\n\t,Note = (\\n\t\tSELECT (CASE WHEN ds_note = '' THEN NULL ELSE ds_note END)\\n\t\tFROM note n WITH (NOLOCK)\\n\t\tWHERE n.di_note_id = osh.di_note_id\\n\t\t)\\nFROM dbo.fin_invoice_shipment fish WITH (NOLOCK)\\nINNER JOIN dbo.ord_shipment osh WITH (NOLOCK) ON osh.di_shipment_id = fish.di_shipment_id\\nJOIN fin_invoice fi on fish.di_invoice_id=fi.di_invoice_id'"
+      },
+      "RowsUpdated" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SFTPConfig" : {
+        "type" : "string",
+        "defaultValue" : "'3.221.4.54|candb-sftp-prod|4vvHEFy79Tu8|ssh-rsa 1024 RIQVgug24Kz3HU00egyfFPEtCp9VbHy+GIyO7uuyM34='"
+      },
+      "RowsDeleted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "DestinationTableShp" : {
+        "type" : "string",
+        "defaultValue" : "'[Stg].[EcomShippingDetail]'"
+      },
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsDiscarded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileLocationARPdf" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Landing\\\\Invoice_DAL00087250-001.pdf'"
+      },
+      "QueryReadFromSourceInv" : {
+        "type" : "string",
+        "defaultValue" : "'--Ver 1.0 Initial\\n SELECT [InvoiceId] = FI.di_invoice_id\\n\t,ProjectOrSales = OSO.ds_trans_type\\n\t,[DivisionCode] = ds_division\\n\t,[DivisionAddress] = CAST((\\n\t\t\tSELECT (ISNULL(ds_address_po, '') + CHAR(13) + CHAR(10) + ISNULL(ds_city_po, '') + ',' + ISNULL(ds_provstate, '') + '-' + ISNULL(ds_postcode_po, '') + CHAR(13) + CHAR(10) + ISNULL('Tel:' + ds_phone_po, '') + isnull(' Fax:' + ds_fax_po, ''))\\n\t\t\tFROM division_master dm WITH (NOLOCK)\\n\t\t\tWHERE dm.ds_division = oso.ds_division\\n\t\t\t) AS VARCHAR(1000))\\n\t,[CustomerAddress] = CAST((\\n\t\t\tSELECT (ds_name + CHAR(13) + CHAR(10) + ds_address + CHAR(13) + CHAR(10) + ds_city + ',' + ds_provstate + ' ' + ds_postcode)\\n\t\t\tFROM customer_master cm WITH (NOLOCK)\\n\t\t\tWHERE ds_code = ds_customer\\n\t\t\t) AS VARCHAR(1000))\\n\t,CustomerShiptoAddress = CAST((\\n\t\t\tSELECT (ds_name + CHAR(13) + CHAR(10) + ds_address + CHAR(13) + CHAR(10) + ds_city + ',' + ds_provstate + ' ' + ds_postcode + isnull(CHAR(13) + CHAR(10) + 'Tel:' + csh.ds_phone, '')) --+ ' Contact:'+ds_contact)\\n\t\t\tFROM customer_shipto csh WITH (NOLOCK)\\n\t\t\tWHERE csh.di_customer_shipto_id = fi.di_customer_shipto_id\\n\t\t\t) AS VARCHAR(1000))\\n\t,AccountNumber = fi.ds_customer\\n\t,QuoteNumber = di_sales_order_id_quote\\n\t,Terms = (\\n\t\tSELECT ds_name\\n\t\tFROM dbo.terms t WITH (NOLOCK)\\n\t\tWHERE t.di_terms_id = oso.di_terms_id\\n\t\t)\\n\t,PurchaseOrderNumber =  CAST( REPLACE(REPLACE(REPLACE(oso.ds_customer_po_number,CHAR(10),''),CHAR(13),''),CHAR(9),'') as varchar(20))\\n\t,CustomerJobNumber = ds_customer_job_number\\n\t,ShippedVia = (\\n\t\tSELECT Ds_name\\n\t\tFROM dbo.delivery DL WITH (NOLOCK)\\n\t\tWHERE DL.ds_delivery = OSO.ds_delivery\\n\t\t)\\n\t,SalesPerson = (\\n\t\tSELECT ds_name\\n\t\tFROM dbo.[userstats] WITH (NOLOCK)\\n\t\tWHERE ds_usercode = ISNULL(ds_outside_sales, ds_inside_sales)\\n\t\t)\\n\t,Contact = (\\n\t\tSELECT ISNULL(c.ds_name, u.ds_name)\\n\t\tFROM dbo.[userstats] u WITH (NOLOCK)\\n\t\tLEFT JOIN [dbo].[contact] c WITH (NOLOCK)\\n\t\t\tON u.di_contact_id = c.di_contact_id\\n\t\tWHERE ds_usercode = ds_inside_sales\\n\t\t)\\n\t,OrderName = (\\n\t\tSELECT ds_name\\n\t\tFROM dbo.projectname p WITH (NOLOCK)\\n\t\tWHERE p.ds_project = oso.ds_project AND p.ds_trans_type = oso.ds_trans_type\\n\t\t)\\n\t,InvoiceNote = (\\n\t\tSELECT (CASE WHEN ds_note = '' THEN NULL ELSE ds_note END)\\n\t\tFROM note n WITH (NOLOCK)\\n\t\tWHERE n.di_note_id = fi.di_note_id\\n\t\t)\\n\t,Invoiced = PRDDTL.di_qty_invoiced\\n\t,Shipped = PRDDTL.di_qty_shipped\\n\t,ProdDesc = PRDDTL.ds_description\\n\t,ProdLineNumber = PRDDTL.di_line_number\\n\t,ProdDetailId = PRDDTL.di_sales_order_dtl_id\\n\t,ChangeOrder = di_Order\\n\t,MiscDescription = ds_misc_desc\\n\t,InvoiceNumber = fi.ds_project\\n\t,ProjectNumber = oso.ds_project\\n\t,InvoiceDate = Convert(VARCHAR(12), dd_invoice, 107)\\n\t,InvoiceDatetime = dd_invoice\\n\t,PreTaxTotal = dn_pretax_total\\n\t,TaxTotal = fi.dn_tax_total\\n\t,IsProd = SUM(ISNULL(Prod, 0)) OVER (PARTITION BY fi.di_invoice_id)\\n\t,IsMisc = SUM(ISNULL(Misc, 0)) OVER (PARTITION BY fi.di_invoice_id)\\n\t,[InvoiceCreatedDate] =  FI.dd_created \\n \t,[AmountDue] = CAST([dn_pretax_total] + fi.[dn_tax_total] - ISNULL([CustomerPayment], 0) as decimal(14,4))\\n\t,InvoicedAmount = CAST([dn_pretax_total] + fi.[dn_tax_total] as decimal(14,4))\\n\t,[CustomerPayment] =CAST([CustomerPayment] as decimal(14,4))\\nFROM dbo.fin_invoice FI WITH (NOLOCK)\\nLEFT JOIN dbo.ord_sales_order OSO WITH (NOLOCK)\\n\tON OSO.di_sales_order_id = FI.di_sales_order_id\\nLEFT JOIN (\\n\tSELECT di_invoice_id\\n\t\t,ds_description = ds_description COLLATE DATABASE_DEFAULT\\n\t\t,di_line_number\\n\t\t,fisod.di_sales_order_dtl_id\\n\t\t,di_qty_invoiced = SUM(di_qty)\\n\t\t,di_qty_shipped = SUM(di_qty - di_qty_stored)\\n\t\t,di_Order = NULL\\n\t\t,ds_misc_desc = NULL\\n\t\t,Prod = 1\\n\t\t,Misc = 0\\n\tFROM fin_invoice_sales_order_dtl fisod WITH (NOLOCK)\\n\tINNER JOIN dbo.ord_sales_order_dtl osod WITH (NOLOCK)\\n\t\tON osod.di_sales_order_dtl_id = fisod.di_sales_order_dtl_id\\n\tINNER JOIN fin_invoice_sales_order_dtl_opening fisodo WITH (NOLOCK)\\n\t\tON fisodo.di_invoice_sales_order_dtl_id = fisod.di_invoice_sales_order_dtl_id\\n\t--WHERE di_invoice_id IN (737244, 775884, 882022, 917474, 922396)\\n\tGROUP BY di_invoice_id\\n\t\t,ds_description\\n\t\t,di_line_number\\n\t\t, fisod.di_sales_order_dtl_id\\n\\n\tUNION ALL\\n\t\\n\tSELECT di_invoice_id\\n\t\t,ds_description = NULL\\n\t\t,di_line_number = -1\\n\t\t,fimc.di_sales_order_miscellaneous_cost_id\\n\t\t,di_qty_invoiced = NULL\\n\t\t,di_qty_shipped = NULL\\n\t\t,di_Order = (CASE WHEN di_order = 0 THEN NULL ELSE di_order END)\\n\t\t,ds_misc_desc = ds_note COLLATE DATABASE_DEFAULT\\n\t\t,Prod = 0\\n\t\t,Misc = 1\\n\tFROM DBO.fin_invoice_miscellaneous_cost FIMC WITH (NOLOCK)\\n\tINNER JOIN dbo.ord_sales_order_miscellaneous_cost OSOMC WITH (NOLOCK)\\n\t\tON OSOMC.di_sales_order_miscellaneous_cost_id = FIMC.di_sales_order_miscellaneous_cost_id\\n\tINNER JOIN dbo.note N\\n\t\tON N.di_note_id = OSOMC.di_note_id\\n\t\t\t--WHERE di_invoice_id IN (737244, 775884, 882022, 917474, 922396)\\n\t) PRDDTL\\n\tON FI.di_invoice_id = PRDDTL.di_invoice_id\\n\tLEFT JOIN (\\n\tSELECT di_invoice_id\\n\t\t,[CustomerPayment] = SUM(ISNULL(dn_deposit_applied + dn_discount + dn_payment + dn_writeoff, 0))\\n\tFROM [dbo].[fin_customer_payment_dtl_invoice] ficpdi WITH (NOLOCK)\\n\tINNER JOIN [dbo].[fin_customer_payment_dtl] ficpd WITH (NOLOCK) ON ficpd.di_customer_payment_dtl_id = ficpdi.di_customer_payment_dtl_id\\n\tGROUP BY di_invoice_id\\n\t) ficpd ON ficpd.di_invoice_id = fi.di_invoice_id'"
+      },
+      "QueryReadFromSourceTax" : {
+        "type" : "string",
+        "defaultValue" : "'--Ver 1.0 Initial\\n\\n--Ver 1.0 Initial\\nSELECT InvoiceNumber = fi.ds_project\\n\t,InvoiceId = Fi.di_invoice_id\\n\t,[PreTaxTotal] = [dn_pretax_total]\\n\t,[TaxDesc] = TM.[ds_tax_desc]\\n\t,[Tax] = CAST(cast([dn_amount] * [dn_taxable_amount] AS DECIMAL(7, 2)) AS VARCHAR(10))\\n\t,[InvoiceTotal] = [dn_pretax_total] + fi.[dn_tax_total]\\n\t,[LessPaymentsDeposits] = [CustomerPayment]\\n\t,[AmountDue] = [dn_pretax_total] + fi.[dn_tax_total] - ISNULL([CustomerPayment], 0)\\n\t,MaxLen = MAX(LEN([ds_tax_desc])) OVER (PARTITION BY Fi.di_invoice_id)\\n\t,InvoiceDate = fi.dd_created\t,DivisionCode = ds_division\\nFROM [dbo].[fin_invoice] fi WITH (NOLOCK)\\nLEFT JOIN [dbo].[ord_sales_order] OSO WITH (NOLOCK)\\n\tON OSO.di_sales_order_id = FI.di_sales_order_id\\nLEFT JOIN [dbo].[fin_invoice_tax] FIT WITH (NOLOCK)\\n\tON FIT.di_invoice_id = fi.di_invoice_id\\nLEFT JOIN [dbo].[tax_master] TM WITH (NOLOCK)\\n\tON TM.ds_tax_code = ISNULL(FIT.ds_tax_code, - 1)\\nLEFT JOIN (\\n\tSELECT di_invoice_id\\n\t\t,[CustomerPayment] = SUM(ISNULL(dn_deposit_applied + dn_discount + dn_payment + dn_writeoff, 0))\\n\tFROM [dbo].[fin_customer_payment_dtl_invoice] ficpdi WITH (NOLOCK)\\n\tINNER JOIN [dbo].[fin_customer_payment_dtl] ficpd WITH (NOLOCK)\\n\t\tON ficpd.di_customer_payment_dtl_id = ficpdi.di_customer_payment_dtl_id\\n\tGROUP BY di_invoice_id\\n\t) ficpd\\n\tON ficpd.di_invoice_id = fi.di_invoice_id'"
+      },
+      "DestinationTableInv" : {
+        "type" : "string",
+        "defaultValue" : "'[Stg].[EcomInvoiceDetail]'"
+      },
+      "FileLocalDir" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\OutboundFeeds\\\\Ecom'"
+      }
+    }
+  }
+}

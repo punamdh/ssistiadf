@@ -1,0 +1,45 @@
+{
+  "name" : "load_target_table_-_nav_elite_door240_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ReadfromSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ReadfromSourceERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowsReadNoError"
+      }, {
+        "name" : "ReadfromSourceErrorReformat"
+      }, {
+        "name" : "DerivedAuditandOtherColumns"
+      }, {
+        "name" : "ReadfromSource0"
+      }, {
+        "name" : "DerivedSKs"
+      } ],
+      "script" : "parameters{\n\tParentPackageExecutionId as integer (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tProductId as integer,\n\t\tDivisionCode as integer,\n\t\tShipmentId as string,\n\t\tShippedDate as timestamp,\n\t\tQuantityShipped as integer,\n\t\tCost as integer,\n\t\tJobNumber as string,\n\t\tShipmentLineNumber as integer,\n\t\tNotes as string,\n\t\tShipmentCreatedBy as string,\n\t\tCustomerId as integer,\n\t\tCustomerShipToId as integer,\n\t\tInsideSalesUserCode as string,\n\t\tShipmentNumber as string,\n\t\tBCDivisionSK as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \t SM.[ShipmentNumber] \t,ShipmentId  = G.[ShipmentId]      ,[ShippedDate] = SM.[ShippedDate]       ,[QuantityShipped] =SM.[ShippedQuantity]       ,[Cost]= SM.[Cost]       ,[ProductId] = NAV.[ProductId]       ,[JobNumber]       ,[ShipmentLineNumber]       ,[Notes]       ,[ShipmentCreatedBy] \t  ,DivisionCode = \\'381\\' \t  ,PSO.[CustomerId] \t  ,PSO.CustomerShipToId \t  ,PSO.InsideSalesUserCode \t  ,BCD.[DivisionSK] as BCDivisionSK \t  \t  \t  \t    FROM [CBGDM].[Stg].[GenericShipment] SM   LEFT JOIN Stg.GenProductIdsNAV NAV ON NAV.[ProductNumber] = SM.[ProductNumber]  and SM.SourceSystemId=16   LEFT JOIN dbo.[ProjectSalesOrder] PSO ON Sm.[JobNumber] = PSO.ProjectSalesOrderNumber and PSO.SourceSystemId =16   LEFT JOIN [Stg].[GenShipmentIdsNAV] G ON G.[Spmt_Key]  = (cast(LTRIM(RTRIM(SM.[ShipmentNumber])) as varchar) + LTRIM(RTRIM(\\'-\\')) + CAST(LTRIM(RTRIM(SM.[ShipmentLineNumber]))as varchar))    LEFT JOIN [dbo].BCDivision BCD ON BCD.[DivisionCode] = \\'381\\'   where SM.SourceSystemId=16',\n\tformat: 'query',\n\tstaged:false) ~> ReadfromSource\nReadfromSource derive(ProductId = ProductId) ~> PlaceHolderRowsReadNoError\nReadfromSource derive() ~> ReadfromSourceErrorReformat\nPlaceHolderRowsReadNoError derive(SourceSystemId = $SourceSystemId,\n\t\tETLCreateDate = $startTime,\n\t\tETLExecutionID = $PackageExecutionID) ~> DerivedAuditandOtherColumns\nReadfromSourceErrorReformat derive() ~> ReadfromSource0\nDerivedAuditandOtherColumns derive(ProductSK = $SourceSystemId * 10000000000L + ProductId,\n\t\tInsideSalesPersonSK = toString((toString($SourceSystemId) + '|' + InsideSalesUserCode)),\n\t\tCustomerShiptoSK = $SourceSystemId * 10000000000L + CustomerShipToId,\n\t\tCustomerSK = $SourceSystemId * 10000000000L + CustomerId,\n\t\tProjectSalesOrderSK = toString((toString($SourceSystemId) + '|' + JobNumber))) ~> DerivedSKs\nReadfromSource0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> ReadfromSourceERROROUTPUTFILE\nDerivedSKs sink(input(\n\t\tETLCreateDate as timestamp 'dd-MM-yyyy',\n\t\tShipmentId as integer,\n\t\tShipmentDetailId as integer,\n\t\tInsideSalesPersonCode as string,\n\t\tCustomerSK as long,\n\t\tQuantityShipped as integer,\n\t\tShippedDate as timestamp 'dd-MM-yyyy',\n\t\tProductSK as long,\n\t\tProductId as integer,\n\t\tCustomerId as integer,\n\t\tCustomerShiptoSK as long,\n\t\tBCDivisionSK as long,\n\t\tDivisionCode as string,\n\t\tSourceSystemId as long,\n\t\tProjectSalesOrderSK as string,\n\t\tCost as integer,\n\t\tCustomerShiptoId as integer,\n\t\tETLExecutionID as long,\n\t\tInsideSalesPersonSK as string,\n\t\tProjectSalesOrderNumber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tETLCreateDate,\n\t\tShipmentId,\n\t\tShipmentDetailId = ShipmentLineNumber,\n\t\tInsideSalesPersonCode = InsideSalesUserCode,\n\t\tCustomerSK,\n\t\tQuantityShipped,\n\t\tShippedDate,\n\t\tProductSK,\n\t\tProductId,\n\t\tCustomerId,\n\t\tCustomerShiptoSK,\n\t\tBCDivisionSK,\n\t\tDivisionCode,\n\t\tSourceSystemId,\n\t\tProjectSalesOrderSK,\n\t\tCost,\n\t\tCustomerShiptoId = CustomerShipToId,\n\t\tETLExecutionID,\n\t\tInsideSalesPersonSK,\n\t\tProjectSalesOrderNumber = JobNumber)) ~> OLEDBDestination"
+    }
+  }
+}

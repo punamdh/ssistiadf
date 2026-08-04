@@ -1,0 +1,37 @@
+{
+  "name" : "stage0700_step02_42069_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Selectfuzzyoutputfieldsfortranformation",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Accepttable"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Rejecttable"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderpostprocessallsetswithlowrowscore"
+      } ],
+      "script" : "parameters{\n\tvar_fzg_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fn_row_score as decimal(10,0) (),\n\tvar_fzl_ln_row_score as decimal(10,0) (),\n\tVar_log_path as string ()\n}\n\nsource(output(\n\t\trow_id as string,\n\t\tphn_clean as string,\n\t\tgender as string,\n\t\tdupe_count as short,\n\t\tname_last as string,\n\t\tname_first_middle as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT row_id, phn_clean, gender, dupe_count, name_last_clean, name_first_middle_clean FROM [ecms].[tmp_patient_fz_output2] where batch_nbr=? order by  dupe_count,phn_clean,  row_id;',\n\tformat: 'query',\n\tstaged:false) ~> Selectfuzzyoutputfieldsfortranformation\nSelectfuzzyoutputfieldsfortranformation derive(row_id = row_id) ~> PlaceHolderpostprocessallsetswithlowrowscore\nPlaceHolderpostprocessallsetswithlowrowscore sink(input(\n\t\tname_last_clean as string,\n\t\tname_first_middle_clean as string,\n\t\tgender as string,\n\t\tdupe_count as short,\n\t\tphn_clean as string,\n\t\trow_id as string,\n\t\taccept_cd as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tname_last_clean,\n\t\tname_first_middle_clean,\n\t\tgender,\n\t\tdupe_count,\n\t\tphn_clean,\n\t\trow_id,\n\t\taccept_cd)) ~> Accepttable\nPlaceHolderpostprocessallsetswithlowrowscore sink(input(\n\t\tname_last_clean as string,\n\t\tname_first_middle_clean as string,\n\t\tgender as string,\n\t\tdupe_count as short,\n\t\tphn_clean as string,\n\t\trow_id as string,\n\t\taccept_cd as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tname_last_clean,\n\t\tname_first_middle_clean,\n\t\tgender,\n\t\tdupe_count,\n\t\tphn_clean,\n\t\trow_id,\n\t\taccept_cd)) ~> Rejecttable"
+    }
+  }
+}

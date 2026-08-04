@@ -1,0 +1,312 @@
+{
+  "name" : "ppl_domo finance production 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "First_Business_Day_Check666__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @RunDate DATETIME = CONCAT (YEAR(GETDATE()), '-', MONTH(GETDATE()), '-02')\nDECLARE @Count INT = 0\nDECLARE @CountOffset INT = 1\n\nIF DATEPART(WEEKDAY, @RunDate - 1) NOT IN (1,7)\nBEGIN\n\tSET @Count = @Count + 1\nEND\n\nWHILE DATEPART(WEEKDAY, @RunDate) IN (1, 7)\nBEGIN\n\tSET @RunDate = DATEADD(DAY, 1, @RunDate)\nEND\n\nWHILE @Count < @CountOffset\nBEGIN\n\tSET @RunDate = DATEADD(DAY, 1, @RunDate)\n\tSET @Count = @Count + 1\nEND\n\n--SET @RunDate = DATEADD(DAY, 1, @RunDate)\n\nSELECT CASE WHEN @RunDate = CAST(GETDATE() AS DATE)\n\t\tTHEN 1\n\t\tELSE 0\n\t\tEND"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_First_Business_Day_Check666__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "First_Business_Day_Check666__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RunProdReport",
+        "value" : "@activity('First_Business_Day_Check666__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Populate_Client_Audit_Record670__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_First_Business_Day_Check666__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Populate_Client_Audit_Record670__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXECUTE [rpt].[PopulateClientAuditRecord] "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Populate_Job_Audit_Record671__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Populate_Client_Audit_Record670__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE [rpt].[PopulateJobAuditRecord]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Run_Stage_Prod_Report674__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Populate_Job_Audit_Record671__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE [rpt].[PopulateRGProduction_Production] "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Run_FTE_Report673__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Run_Stage_Prod_Report674__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE rpt.PopulateFTEDetails"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Populate_Billing_Realization_RT669__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Run_FTE_Report673__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE [rpt].[PopulateBillingRealizationRT] '01', '2017'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Populate_Billing_Realization_Historical667__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Populate_Billing_Realization_RT669__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE [rpt].[PopulateBillingRealization_Historical] NULL "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Populate_Billing_Realization_Historical_RT668__SCR",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Populate_Billing_Realization_Historical667__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE [rpt].[PopulateBillingRealization_HistoricalRT] NULL, NULL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Populate_Production_Data672__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Populate_Billing_Realization_Historical_RT668__SCR",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXECUTE rpt.Finance_ProductionReport"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Execute_Production_Monthly_Stage_into_DOMO665_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Populate_Production_Data672__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "wb.exe run-job --server rehmann.domo.com --jobid 358",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Execute_Production_Monthly_into_DOMO664_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_Production_Monthly_Stage_into_DOMO665_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "wb.exe run-job --server rehmann.domo.com --jobid 362",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RunProdReport" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

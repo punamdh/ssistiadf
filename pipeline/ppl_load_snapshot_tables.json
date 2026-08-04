@@ -1,0 +1,70 @@
+{
+  "name" : "ppl_load_snapshot_tables",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "sql_truncate_tables1425__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "/*\nNote: once snapshot is loaded at go-live, tables should not be truncated\n*/\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_encounter;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_seclusion;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_asivsv;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_honos;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].bcmha_med_rec;\nGO\n\nTRUNCATE TABLE [bcmhsus_src].hcw_encounter;\nGO\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "seqc_build_snapshot_tables1412_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "sql_truncate_tables1425__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "seqc_build_snapshot_tables1412__sql_create_table_h",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DROP TABLE IF EXISTS [bcmhsus_src].[hcw_encounter]\nGO\n\nCREATE TABLE [bcmhsus_src].[hcw_encounter](\n\t[client_nbr] [int] NULL,\n\t[cw_encntr_id] [int] NULL,\n\t[name_first] [varchar](50) NULL,\n\t[name_last] [varchar](50) NULL,\n\t[name_full] [varchar](50) NULL,\n\t[bc_phn] [varchar](10) NULL,\n\t[referring_health_authority] [varchar](4) NULL,\n\t[fnha_referral_flg] [varchar](3) NULL,\n\t[fnha_discharge_flg] [varchar](4) NULL,\n\t[indigenous_flg] [varchar](3) NULL,\n\t[prioritization_criteria] [varchar](50) NULL,\n\t[referring_agency] [varchar](50) NULL,\n\t[birth_date] [datetime2](0) NULL,\n\t[age_time_of_referral] [int] NULL,\n\t[gender] [varchar](20) NULL,\n\t[patient_city] [varchar](50) NULL,\n\t[discharge_to_city] [varchar](50) NULL,\n\t[patient_postal_code] [varchar](7) NULL,\n\t[discharge_to_postal_code] [varchar](7) NULL,\n\t[referral_received_dt_tm] [datetime2](0) NULL,\n\t[acc_first_review_dt_tm] [datetime2](0) NULL,\n\t[acc_first_review_outcome] [varchar](35) NULL,\n\t[acc_second_review_dt_tm] [datetime2](0) NULL,\n\t[acc_second_review_outcome] [varchar](35) NULL,\n\t[decline_reason] [varchar](50) NULL,\n\t[appeal_meeting_dt_tm] [datetime2](0) NULL,\n\t[appeal_meeting_outcome] [varchar](10) NULL,\n\t[referral_final_outcome] [varchar](20) NULL,\n\t[file_closed_dt_tm] [datetime2](0) NULL,\n\t[info_request_dt_tm] [datetime2](0) NULL,\n\t[referral_completed_dt_tm] [datetime2](0) NULL,\n\t[acc_accept_dt_tm] [datetime2](0) NULL,\n\t[waitlist_dt_tm] [datetime2](0) NULL,\n\t[admission_dt_tm] [datetime2](0) NULL,\n\t[los_days] [int] NULL,\n\t[honos_admission] [varchar](3) NULL,\n\t[honos_discharge] [varchar](3) NULL,\n\t[asi_admission] [varchar](15) NULL,\n\t[asi_discharge] [varchar](15) NULL,\n\t[ptsd_admission] [varchar](30) NULL,\n\t[ptsd_discharge] [varchar](10) NULL,\n\t[ptsd_change] [varchar](10) NULL,\n\t[discharge_dt_tm] [datetime2](0) NULL,\n\t[discharge_summary_status] [varchar](50) NULL,\n\t[discharge_reason] [varchar](10) NULL,\n\t[status] [varchar](50) NULL,\n\t[completed_star_flg] [varchar](10) NULL,\n\t[treatment_completed_flg] [varchar](3) NULL,\n\t[abstinent_from_etoh_at_discharge_flg] [varchar](7) NULL,\n\t[abstinent_from_illicit_drugs_at_discharge_flg] [varchar](7) NULL,\n\t[early_exit_mode_of_transport] [varchar](50) NULL,\n\t[planned_discharge_mode_of_transport] [varchar](50) NULL,\n\t[housing] [varchar](50) NULL,\n\t[stable_housing] [varchar](50) NULL,\n\t[community_support_flg] [varchar](10) NULL,\n\t[data_dt_tm] [datetime2](0) NULL\n) ON [Warehouse]\nGO\n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

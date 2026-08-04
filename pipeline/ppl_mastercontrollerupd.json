@@ -1,0 +1,642 @@
+{
+  "name" : "ppl_mastercontrollerupd",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Begin_Batch1577__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_BeginBatch @BatchInstanceID,@Schedule,@RegionID,@BatchRunType"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Begin_Batch1577__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1577__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varBatchID",
+        "value" : "@activity('Begin_Batch1577__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_Begin_Batch1577__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1577__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varBusinessMarker",
+        "value" : "@activity('Begin_Batch1577__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "2_1_0_Begin_Batch1577__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1577__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varSplunkConnectionString",
+        "value" : "@activity('Begin_Batch1577__SCRIPT').output.resultSets[0].rows[2][2]"
+      }
+    }, {
+      "name" : "3_2_1_0_Begin_Batch1577__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1577__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varSplunkProtocol",
+        "value" : "@activity('Begin_Batch1577__SCRIPT').output.resultSets[0].rows[3][3]"
+      }
+    }, {
+      "name" : "Splunk_Batch_Json1592_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "3_2_1_0_Begin_Batch1577__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Begin_Batch1577__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "1_0_Begin_Batch1577__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "2_1_0_Begin_Batch1577__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Splunk_Batch_Json1592_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "0_Get_Interfaces1591_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Splunk_Batch_Json1592_",
+        "dependencyConditions" : [ "Completed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "usp_SelectInterfaceControllersUPD ?,?,?",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Default_Table_Connection",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Delete_File_If_Exists1582_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_Interfaces1591_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_File_If_Exists1582_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Interface_Controller1585_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_File_If_Exists1582_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Interfaces1591_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Interface_Controller1585__Execute_Interface_Controller1586_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Foreach_Interface_Controller1585__Get_Interface_Em",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Interface_Controller1585__Execute_Interface_Controller1586_",
+            "dependencyConditions" : [ "Completed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "[dbo].[usp_SelectInterfaceEmail] ?,?",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Default_Table_Connection",
+              "type" : "DatasetReference"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Foreach_Interface_Controller1585__Foreach_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Interface_Controller1585__Get_Interface_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Foreach_Interface_Controller1585__Get_Interface_Em').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Foreach_Interface_Controller1585__Foreach_Interface_Email_Report1587__Emails1588_",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Foreach_Interface_Controller1585__Foreach_Interface_Email_Report1587__Emails1588_",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "0_Get_Batch_Emails1590_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Interface_Controller1585_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "[dbo].[usp_SelectBatchEmail] ?",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Default_Table_Connection",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Batch_Email_Report1583_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Batch_Emails1590_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Batch_Emails1590_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Batch_Email_Report1583__Emails1584_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Foreach_Batch_Email_Report1583__Emails1584_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Check_For_Failed_Packages1578__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Batch_Email_Report1583_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_SelectBatchFailures @BatchID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_For_Failed_Packages1578__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_For_Failed_Packages1578__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varErrorCt",
+        "value" : "@activity('Check_For_Failed_Packages1578__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Success_File1581_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_For_Failed_Packages1578__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('varErrorCt'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Success_File1581_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Create_Success_File1581_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Close_Batch1579__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_For_Failed_Packages1578__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('varErrorCt') >= 1",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Close_Batch1579__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "usp_CloseBatch @varBatchID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Splunk_Batch_Json_Close1593_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Check_For_Failed_Packages1578__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Splunk_Batch_Json_Close1593_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Close_Batch1580__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Success_File1581_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_CloseBatch @varBatchID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varJson" : {
+        "type" : "string"
+      },
+      "varBusinessMarker" : {
+        "type" : "string"
+      },
+      "varSplunkProtocol" : {
+        "type" : "string"
+      },
+      "varSplunkConnectionString" : {
+        "type" : "string"
+      },
+      "varPackages" : {
+        "type" : "string"
+      },
+      "varErrorCt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varBatchID" : {
+        "type" : "Integer",
+        "defaultValue" : "6"
+      },
+      "varSSISOps_DisableBIxAuditing" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_GroupNames" : {
+        "type" : "string"
+      },
+      "varEmails" : {
+        "type" : "string"
+      },
+      "varSubject" : {
+        "type" : "string",
+        "defaultValue" : "'SUCCESS - FuturMaster Integration SUCCESS - FuturMaster Integration'"
+      },
+      "varExtractPackages" : {
+        "type" : "string"
+      },
+      "varFromAddress" : {
+        "type" : "string",
+        "defaultValue" : "'FuturMaster@royalcanin.com'"
+      },
+      "varControllerPackage" : {
+        "type" : "string",
+        "defaultValue" : "'InterfaceController.dtsx'"
+      },
+      "varToAddress" : {
+        "type" : "string",
+        "defaultValue" : "'Tim.Britt1@royalcanin.com'"
+      },
+      "varInterfaceID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varBatchEmails" : {
+        "type" : "string"
+      },
+      "varStoredProcedure" : {
+        "type" : "string"
+      },
+      "varEmail" : {
+        "type" : "string"
+      },
+      "varEmailError" : {
+        "type" : "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "name" : "ppl_stage_factnominal 2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "MaxRowsSet1",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MaxRowsSet1",
+        "value" : {
+          "value" : "@concat(variables('IncrementRows'),variables('MinRowsSet1'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Execute_SQL_Task_11909__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "MaxRowsSet1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE stg.FactNominal"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Set_variables1912__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_11909__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT MAX(NomID) FROM star.tblNominal"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Set_variables1912__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Set_variables1912__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CurMaxID",
+        "value" : "@activity('Set_variables1912__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Execute_SQL_Task1908__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Set_variables1912__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT ISNULL(MAX(NomID),0) FROM stg.FactNominal"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Execute_SQL_Task1908__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task1908__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "MaxID",
+        "value" : "@activity('Execute_SQL_Task1908__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "For_Loop_Container1910__UNTIL",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Execute_SQL_Task1908__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "IncrementRows" : {
+        "type" : "Integer",
+        "defaultValue" : "500000"
+      },
+      "CurMaxID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MinRowsSet2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MinRowsSet1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MinRowsSet4" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MinRowsSet3" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Variable3" : {
+        "type" : "string",
+        "defaultValue" : "'STAR_tblWIP'"
+      },
+      "Variable2" : {
+        "type" : "string",
+        "defaultValue" : "'LoopTable'"
+      },
+      "Variable1" : {
+        "type" : "string"
+      },
+      "TempCounter" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "MaxID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "LoopTable" : {
+        "type" : "string"
+      },
+      "MaxRowsSet1" : {
+        "type" : "Integer",
+        "defaultValue" : "500000"
+      },
+      "Variable5" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "Variable4" : {
+        "type" : "string"
+      }
+    }
+  }
+}

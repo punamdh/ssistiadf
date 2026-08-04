@@ -1,0 +1,183 @@
+{
+  "name" : "ppl_retailanalytics_td_sf_cube_fullbuild_process_backup",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SSISLogFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SSISLogFileName",
+        "value" : {
+          "value" : "@concat(pipeline().PipelineName,'_SSISLog')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_Current_Year1798__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SSISLogFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT CAST(FISCAL_YR_ID AS VARCHAR(4)) AS CURRENTYEAR\nFROM GDW_VIEWS.CUB_FISCAL_YEAR\nWHERE FISCAL_YR_NM = 'THISYEAR'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Current_Year1798__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Current_Year1798__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vCurrentYear",
+        "value" : "@activity('Get_Current_Year1798__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Send_Start_Mail1799_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Current_Year1798__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Backup_Retail_Analytics_TD_BLD_Cube1797_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Send_Start_Mail1799_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "Send_Success_Mail1800_",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Backup_Retail_Analytics_TD_BLD_Cube1797_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'merissa.gumbs@officedepot.com'"
+      },
+      "ESP_Job_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'BINWRA07'"
+      },
+      "vCurrentYear" : {
+        "type" : "string"
+      },
+      "SSISLogFileName" : {
+        "type" : "string",
+        "defaultValue" : "'RetailAnalytics_TD_SF_Cube_FullBuild_Process_Backup_SSISLog'"
+      },
+      "EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'SSASAdmin@officedepot.com'"
+      },
+      "SourceDBServerName" : {
+        "type" : "string",
+        "defaultValue" : "'USCHSPDSQL01\\\\DEV_MSSSAS01'"
+      },
+      "ESP_Event_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'BIRTLWF'"
+      },
+      "SSISLogFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\RetailAnalytics_Cube_FullBuild_Process\\\\SSISLogs\\\\'"
+      },
+      "DestinationDatabaseName" : {
+        "type" : "string",
+        "defaultValue" : "'Retail_Analytics_TD'"
+      },
+      "vFZIndentifier" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "SourceDatabaseName" : {
+        "type" : "string",
+        "defaultValue" : "'Retail_Analytics_TD_BLD'"
+      },
+      "DestinationFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\USCHSPDSQL01\\\\DEV_MSSSAS01\\\\OLAP\\\\Backup\\\\'"
+      },
+      "vFiscal_Yr_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'THISYEAR'"
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "name" : "ppl_inventtransaxto_staging",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'AX_to_Staging1332_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'AX_to_Staging1332_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'AX_to_Staging1332_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'AX_to_Staging1332_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_AX_to_Staging1332__source_SchemaName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'OLE_DB_Destination_AX_to_Staging1332_') AS OLE_DB_Destination_AX_to_Staging1332__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_AX_to_Staging1332__source_TableName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'OLE_DB_Destination_AX_to_Staging1332_') AS OLE_DB_Destination_AX_to_Staging1332__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_AX_to_Staging1332__sink_SchemaName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'OLE_DB_Destination_AX_to_Staging1332_') AS OLE_DB_Destination_AX_to_Staging1332__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_AX_to_Staging1332__sink_TableName' AND PIPELINE_NAME = 'INVENTTRANSAXto_Staging' AND DATAFLOW_NAME = 'OLE_DB_Destination_AX_to_Staging1332_') AS OLE_DB_Destination_AX_to_Staging1332__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "AX_to_Staging1332_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "AX_to_Staging1332_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "AX_to_Staging1332_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlsource",
+          "sqlReaderQuery" : "SELECT * FROM dbo.INVENTTRANS"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging1332__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging1332__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging1332__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging1332__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

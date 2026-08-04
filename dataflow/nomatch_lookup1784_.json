@@ -1,0 +1,65 @@
+{
+  "name" : "nomatch_lookup1784_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "Lookup1LKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NoMatch"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "NoMatch1"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup1"
+      }, {
+        "name" : "LookupSelect"
+      }, {
+        "name" : "Lookup1Select"
+      }, {
+        "name" : "FilterLookup"
+      }, {
+        "name" : "FilterLookup1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tRECID as long,\n\t\tRECVERSION as integer,\n\t\tPARTITION as long,\n\t\tDATAAREAID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SET NOCOUNT ON; SET TRANSACTION ISOLATION LEVEL READ COMMITTED; SET DEADLOCK_PRIORITY LOW;  SELECT [RECID], [RECVERSION], [PARTITION], [DATAAREAID] FROM [dbo].[REQPO] WITH (NOLOCK);',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tRECID as long,\n\t\tRECVERSION as integer,\n\t\tPARTITION as long,\n\t\tDATAAREAID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SET NOCOUNT ON; SET TRANSACTION ISOLATION LEVEL READ COMMITTED; SET DEADLOCK_PRIORITY LOW;  SELECT [RECID], [RECVERSION], [PARTITION], [DATAAREAID] FROM [ax].[REQPO] WITH (NOLOCK);',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource1\tsource(output(\n\t\tRECID as long,\n\t\tRECVERSION as integer,\n\t\tPARTITION as long,\n\t\tDATAAREAID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RECID, RECVERSION, PARTITION, DATAAREAID FROM ax.REQPO WITH (NOLOCK);',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\tsource(output(\n\t\tRECID as long,\n\t\tRECVERSION as integer,\n\t\tPARTITION as long,\n\t\tDATAAREAID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RECID, RECVERSION, PARTITION, DATAAREAID FROM dbo.REQPO WITH (NOLOCK);',\n\tformat: 'query',\n\tstaged:false) ~> Lookup1LKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(OLEDBSource@RECID == LookupLKPTABLE@RECID && OLEDBSource@DATAAREAID == LookupLKPTABLE@DATAAREAID && OLEDBSource@PARTITION == LookupLKPTABLE@PARTITION && OLEDBSource@RECVERSION == LookupLKPTABLE@RECVERSION,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nOLEDBSource1,Lookup1LKPTABLE lookup(OLEDBSource1@RECID == Lookup1LKPTABLE@RECID && OLEDBSource1@DATAAREAID == Lookup1LKPTABLE@DATAAREAID && OLEDBSource1@PARTITION == Lookup1LKPTABLE@PARTITION && OLEDBSource1@RECVERSION == Lookup1LKPTABLE@RECVERSION,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup1\nLookup select(mapColumn(\n\t\tRECID = OLEDBSource@RECID,\n\t\tRECVERSION = OLEDBSource@RECVERSION,\n\t\tPARTITION = OLEDBSource@PARTITION,\n\t\tDATAAREAID = OLEDBSource@DATAAREAID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupSelect\nLookup1 select(mapColumn(\n\t\tRECID = OLEDBSource1@RECID,\n\t\tRECVERSION = OLEDBSource1@RECVERSION,\n\t\tPARTITION = OLEDBSource1@PARTITION,\n\t\tDATAAREAID = OLEDBSource1@DATAAREAID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup1Select\nLookupSelect filter(!isMatch()) ~> FilterLookup\nLookup1Select filter(!isMatch()) ~> FilterLookup1\nFilterLookup sink(input(\n\t\tRECID as long,\n\t\tDATAAREAID as string,\n\t\tPARTITION as long,\n\t\tRECVERSION as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRECID,\n\t\tDATAAREAID,\n\t\tPARTITION,\n\t\tRECVERSION)) ~> NoMatch\nFilterLookup1 sink(input(\n\t\tRECID as long,\n\t\tDATAAREAID as string,\n\t\tPARTITION as long,\n\t\tRECVERSION as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRECID,\n\t\tDATAAREAID,\n\t\tPARTITION,\n\t\tRECVERSION)) ~> NoMatch1"
+    }
+  }
+}

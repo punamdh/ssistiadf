@@ -1,0 +1,35 @@
+{
+  "name" : "data_flow_task1753_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderSRCFlatFileSource"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "PlaceHolderDESTOLEDBDestination"
+      } ],
+      "script" : "parameters{\n\tpkgParamBatchID as integer (),\n\tpkgParamDestinationConnectionString as string (),\n\tpkgParamInterfaceID as integer (),\n\tpkgParamPackageID as integer (),\n\tpkgParamSMTP as string (),\n\tpkgParamSourceConnectionString as string (),\n\tpkgParamSourceStoredProcedure as string ()\n}\n\nsource(output(\n\t\t{Product Key} as string,\n\t\tForecast as float,\n\t\tPeriod as string,\n\t\t{Site key} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive({Product Key} = {Product Key}) ~> PlaceHolderSRCFlatFileSource\nPlaceHolderSRCFlatFileSource derive(InterfaceID = $pkgParamInterfaceID) ~> DerivedColumn\nDerivedColumn derive(InterfaceID = InterfaceID) ~> PlaceHolderDESTOLEDBDestination\nPlaceHolderDESTOLEDBDestination sink(input(\n\t\tForecast as double,\n\t\tPeriod as string,\n\t\tSite_key as string,\n\t\tProduct_Key as string,\n\t\tInterfaceID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tForecast,\n\t\tPeriod,\n\t\tSite_key = {Site key},\n\t\tProduct_Key = {Product Key},\n\t\tInterfaceID)) ~> OLEDBDestination"
+    }
+  }
+}

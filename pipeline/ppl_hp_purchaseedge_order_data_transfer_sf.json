@@ -1,0 +1,476 @@
+{
+  "name" : "ppl_hp_purchaseedge_order_data_transfer_sf",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Extract_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Extract_Filename",
+        "value" : {
+          "value" : "@concat(variables('Extract_FileRefName'),'.xml')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Extract_FileRefName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Extract_FileRefName",
+        "value" : {
+          "value" : "@concat('ODExtract',notConvertedectfunctiondatedatepart('yyyy', pipeline().TriggerTime),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('month', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('day', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hour', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('minute', pipeline().TriggerTime)), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('second', pipeline().TriggerTime)), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "GlobalVarFile",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "GlobalVarFile",
+        "value" : {
+          "value" : "@concat(variables('SSISPackageFolder'),'VarFiles\\\\ReplaceVars.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Outbound_Filname",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Outbound_Filname",
+        "value" : {
+          "value" : "@concat(variables('Hp_PurchaseEdge_Main_Folder'),variables('Hp_PurchaseEdge_Processing_Folder'),'\\\\',variables('Extract_Filename'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SSISLogFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SSISLogFileName",
+        "value" : {
+          "value" : "@concat(pipeline().PipelineName,'_SSISLog')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SSISLogFolderPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SSISLogFolderPath",
+        "value" : {
+          "value" : "@concat(variables('SSISPackageFolder'),'SSISLogs\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMove_File_to_Archive1115__source_SchemaName' AND PIPELINE_NAME = 'Hp_PurchaseEdge_Order_Data_Transfer_SF' AND DATAFLOW_NAME = '_COPYDATAMove_File_to_Archive1115_') AS _COPYDATAMove_File_to_Archive1115__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMove_File_to_Archive1115__source_TableName' AND PIPELINE_NAME = 'Hp_PurchaseEdge_Order_Data_Transfer_SF' AND DATAFLOW_NAME = '_COPYDATAMove_File_to_Archive1115_') AS _COPYDATAMove_File_to_Archive1115__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMove_File_to_Archive1115__sink_ContainerName' AND PIPELINE_NAME = 'Hp_PurchaseEdge_Order_Data_Transfer_SF' AND DATAFLOW_NAME = '_COPYDATAMove_File_to_Archive1115_') AS _COPYDATAMove_File_to_Archive1115__sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMove_File_to_Archive1115__sink_FileName' AND PIPELINE_NAME = 'Hp_PurchaseEdge_Order_Data_Transfer_SF' AND DATAFLOW_NAME = '_COPYDATAMove_File_to_Archive1115_') AS _COPYDATAMove_File_to_Archive1115__sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAMove_File_to_Archive1115__sink_FilePath' AND PIPELINE_NAME = 'Hp_PurchaseEdge_Order_Data_Transfer_SF' AND DATAFLOW_NAME = '_COPYDATAMove_File_to_Archive1115_') AS _COPYDATAMove_File_to_Archive1115__sink_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Exec_SnowSQL_Via_SSIS_Batch_With_Args_Path1113_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SSISLogFolderPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Extract_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Extract_FileRefName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "GlobalVarFile",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Outbound_Filname",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SSISLogFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\SSDT2014\\RunSnowSQLViaSSIS\\BatchFiles\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd \"LOAD_HP_PE_ORDER_DATA.snow|SVC_BSD_SF_DEV|\\\\USCHVSQLD52\\SSIS\\Packages\\BI\\Hp_PurchaseEdge_Dataload\\|\\\\USCHVSQLD52\\SSIS\\Packages\\BI\\Hp_PurchaseEdge_Dataload\\VarFiles\\GlobalSnowSQLVarFile.ReplaceVars.txt|Y\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Get_Order_Data1114__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Exec_SnowSQL_Via_SSIS_Batch_With_Args_Path1113_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT  \n   TRIM(INVOICE_NO) AS INVOICE_NO\n  ,TRIM(CUSTOMER_ID) AS CUSTOMER_ID\n  ,TRIM(SHIP_TO) AS SHIP_TO\n  ,INVOICE_DATE AS INVOICE_DATE\n  ,TRIM(VENDOR_PRODUCT_CD) AS VENDOR_PRODUCT_CD\n  ,SUM(QUANTITY) AS QUANTITY\n  ,TRIM(UNIT_PRICE) AS UNIT_PRICE\nFROM GDW_VIEWS.HP_PE_ORDER_DATA WHERE  QUANTITY>0\n   AND  UNIT_PRICE>0\n  GROUP BY  1,2,3,4,5,7\n ORDER BY 1,2,5;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_Order_Data1114__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_Order_Data1114__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gResults",
+        "value" : "@activity('Get_Order_Data1114__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Create_XML_File1112_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_Order_Data1114__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Create_XML_File1112_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Post_To_URL1116_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Create_XML_File1112_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Post_To_URL1116_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "_COPYDATAMove_File_to_Archive1115_",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Post_To_URL1116_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMove_File_to_Archive1115__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAMove_File_to_Archive1115__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ ]
+    }, {
+      "name" : "Move_File_to_Archive1115__DELETE",
+      "type" : "Delete",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "_COPYDATAMove_File_to_Archive1115_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        },
+        "enableLogging" : false,
+        "storeSettings" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "LoadMasterSnowSQLScriptName" : {
+        "type" : "string",
+        "defaultValue" : "'LOAD_HP_PE_ORDER_DATA.snow'"
+      },
+      "GlobalVarFile" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\USCHVSQLD52\\\\SSIS\\\\Packages\\\\BI\\\\Hp_PurchaseEdge_Dataload\\\\VarFiles\\\\GlobalSnowSQLVarFile.ReplaceVars.txt'"
+      },
+      "Extract_FileRefName" : {
+        "type" : "string",
+        "defaultValue" : "'ODExtract20251016194535'"
+      },
+      "EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'SSISAdmin@officedepot.com'"
+      },
+      "HPPwd" : {
+        "type" : "string",
+        "defaultValue" : "'odeis2'"
+      },
+      "ESP_Event_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'BIHPPEDG'"
+      },
+      "SSISLogFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\USCHVSQLD52\\\\SSIS\\\\Packages\\\\BI\\\\Hp_PurchaseEdge_Dataload\\\\SSISLogs\\\\'"
+      },
+      "vSubjPage" : {
+        "type" : "string"
+      },
+      "Outbound_Filname" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\unity1154\\\\BIDW_devFS$\\\\Hp_Purchase_Edge\\\\Outbound\\\\ODExtract20251016194535.xml'"
+      },
+      "HPUrl" : {
+        "type" : "string",
+        "defaultValue" : "'https://www.hpbusinessrewards.com/EisSubmitPost'"
+      },
+      "Snowflake_MASTER_Table_Name" : {
+        "type" : "string",
+        "defaultValue" : "'HP_PE_ORDER_DATA'"
+      },
+      "Exec_SnowSQL_Via_SSIS_Batch_With_Args_Path" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\SSDT2014\\\\RunSnowSQLViaSSIS\\\\BatchFiles\\\\Exec_SnowSQL_Via_SSIS_Batch_With_Args.cmd'"
+      },
+      "Hp_PurchaseEdge_Processing_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'Outbound'"
+      },
+      "ESP_Job_Nm" : {
+        "type" : "string",
+        "defaultValue" : "'AIHPPE06'"
+      },
+      "SSISLogFileName" : {
+        "type" : "string",
+        "defaultValue" : "'Hp_PurchaseEdge_Order_Data_Transfer_SF_SSISLog'"
+      },
+      "EmailOnCall" : {
+        "type" : "string",
+        "defaultValue" : "'rajesh.deore@officedepot.com'"
+      },
+      "Hp_PurchaseEdge_Main_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\unity1154\\\\BIDW_devFS$\\\\Hp_Purchase_Edge\\\\'"
+      },
+      "Snowflake_DB_Source" : {
+        "type" : "string",
+        "defaultValue" : "'GDW_VIEWS'"
+      },
+      "SSISPackageFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\USCHVSQLD52\\\\SSIS\\\\Packages\\\\BI\\\\Hp_PurchaseEdge_Dataload\\\\'"
+      },
+      "gResults" : {
+        "type" : "string"
+      },
+      "CreateLogFile" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "Extract_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'ODExtract20251016194535.xml'"
+      },
+      "Archive_Folder" : {
+        "type" : "string",
+        "defaultValue" : "'Archive'"
+      },
+      "HPUname" : {
+        "type" : "string",
+        "defaultValue" : "'905189'"
+      },
+      "SnowflakeConnectionName" : {
+        "type" : "string",
+        "defaultValue" : "'SVC_BSD_SF_DEV'"
+      }
+    }
+  }
+}

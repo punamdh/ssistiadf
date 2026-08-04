@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task_11436_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn1"
+      }, {
+        "name" : "DataConversion2"
+      } ],
+      "script" : "parameters{\n\tuserName as string ()\n}\n\nsource(output(\n\t\tJobID as integer,\n\t\tNotes as string,\n\t\tTimeStampField as string,\n\t\tETLHashKey as string,\n\t\tETLDateCreated as timestamp,\n\t\tETLCreatedBy as string,\n\t\tStageID as integer,\n\t\tSortOrder as short,\n\t\tStageRef as string,\n\t\tStageDescription as string,\n\t\tStartDate as timestamp,\n\t\tTargetDate as timestamp,\n\t\tDateComplete as timestamp,\n\t\tMilestone as boolean,\n\t\tStaffID as integer,\n\t\tPrecedingStageID as integer,\n\t\tIgnore as boolean,\n\t\tTimeCheck as long,\n\t\tTimeCheckDone as boolean,\n\t\tEstHoursToFinish as decimal(19,19),\n\t\tStageTypeID as integer,\n\t\tStageType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT s.*, tmp.ETLDateCreated, tmp.ETLCreatedBy  FROM  stg.StageDimension s  INNER JOIN rpt.StageDimension r  ON r.StageID = s.StageID INNER JOIN ##tmpCurrentUpdateIDs tmp ON s.StageID = tmp.TableID WHERE s.StageID IN (SELECT TableID FROM ##tmpCurrentUpdateIDs)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(ETLUpdatedBy = toString($userName),\n\t\tIsCurrent = 'Y',\n\t\tETLDateUpdated = currentTimestamp()) ~> DerivedColumn1\nDerivedColumn1 derive(IsCurrent = toString(IsCurrent)) ~> DataConversion2\nDataConversion2 sink(input(\n\t\tIsCurrent as string,\n\t\tIgnore as boolean,\n\t\tStaffID as integer,\n\t\tETLLastUpdate as timestamp 'dd-MM-yyyy',\n\t\tETLUpdatedBy as string,\n\t\tEstHoursToFinish as decimal(0,0),\n\t\tTimeCheck as long,\n\t\tETLHashKey as string,\n\t\tStartDate as timestamp 'dd-MM-yyyy',\n\t\tStageDescription as string,\n\t\tPrecedingStageID as integer,\n\t\tStageType as string,\n\t\tDateComplete as timestamp 'dd-MM-yyyy',\n\t\tTimeCheckDone as boolean,\n\t\tNotes as string,\n\t\tStageRef as string,\n\t\tMilestone as boolean,\n\t\tStageID as integer,\n\t\tSortOrder as short,\n\t\tETLDateCreated as timestamp 'dd-MM-yyyy',\n\t\tStageTypeID as integer,\n\t\tTimeStampField as string,\n\t\tETLCreatedBy as string,\n\t\tTargetDate as timestamp 'dd-MM-yyyy',\n\t\tJobID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tIsCurrent,\n\t\tIgnore,\n\t\tStaffID,\n\t\tETLLastUpdate = ETLDateUpdated,\n\t\tETLUpdatedBy,\n\t\tEstHoursToFinish,\n\t\tTimeCheck,\n\t\tETLHashKey,\n\t\tStartDate,\n\t\tStageDescription,\n\t\tPrecedingStageID,\n\t\tStageType,\n\t\tDateComplete,\n\t\tTimeCheckDone,\n\t\tNotes,\n\t\tStageRef,\n\t\tMilestone,\n\t\tStageID,\n\t\tSortOrder,\n\t\tETLDateCreated,\n\t\tStageTypeID,\n\t\tTimeStampField,\n\t\tETLCreatedBy,\n\t\tTargetDate,\n\t\tJobID)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name" : "load_target_table550_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ReadFromSourceFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "InserttoTarget"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ReadFromSourceFileERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowsReadNoError"
+      }, {
+        "name" : "ReadFromSourceFileErrorReformat"
+      }, {
+        "name" : "Unpivot"
+      }, {
+        "name" : "ReadFromSourceFile0"
+      }, {
+        "name" : "DeriveAuditandOtherColumns"
+      } ],
+      "script" : "parameters{\n\tArchiveFileFolder as string (),\n\tFilePattern as string (),\n\tParentPackageExecutionID as integer (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tBudgetType as string,\n\t\tEmployeeID as string,\n\t\tDivision as string,\n\t\tJan as string,\n\t\tFeb as string,\n\t\tMar as string,\n\t\tApr as string,\n\t\tMay as string,\n\t\tJun as string,\n\t\tJul as string,\n\t\tAug as string,\n\t\tSep as string,\n\t\tOct as string,\n\t\tNov as string,\n\t\tDec as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ReadFromSourceFile\nReadFromSourceFile derive(BudgetType = BudgetType) ~> PlaceHolderRowsReadNoError\nReadFromSourceFile derive() ~> ReadFromSourceFileErrorReformat\nPlaceHolderRowsReadNoError unpivot(output(\n\t\tBudgetMonth as string,\n\t\tBudgetAmount as string\n\t),\n\tungroupBy(BudgetType,\n\t\tDivision,\n\t\tEmployeeID\n\t),\n\tlateral: false,\n\tignoreNullPivots: false) ~> Unpivot\nReadFromSourceFileErrorReformat derive() ~> ReadFromSourceFile0\nUnpivot derive(FileName = toString((replace($FileLocation, toString($FileDropFolder + '\\\\UserTbl\\\\'), toString('')))),\n\t\tETLCreateDate = $startTime,\n\t\tETLExecutionID = $PackageExecutionID,\n\t\tBudgetAmount = (iif(BudgetAmount == '', '0', BudgetAmount))) ~> DeriveAuditandOtherColumns\nReadFromSourceFile0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> ReadFromSourceFileERROROUTPUTFILE\nDeriveAuditandOtherColumns sink(input(\n\t\tETLCreateDate as timestamp 'dd-MM-yyyy',\n\t\tFileName as string,\n\t\tETLExecutionID as long,\n\t\tBudgetMonth as string,\n\t\tDivision as string,\n\t\tEmployeeID as string,\n\t\tBudgetType as string,\n\t\tBudgetAmount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tETLCreateDate,\n\t\tFileName,\n\t\tETLExecutionID,\n\t\tBudgetMonth,\n\t\tDivision,\n\t\tEmployeeID,\n\t\tBudgetType,\n\t\tBudgetAmount)) ~> InserttoTarget"
+    }
+  }
+}

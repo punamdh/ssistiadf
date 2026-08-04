@@ -1,0 +1,292 @@
+{
+  "name" : "ppl_salesorders_core_load",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OData_Source_SchemaName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'Data_Flow_Task1880_') AS OData_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OData_Source_TableName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'Data_Flow_Task1880_') AS OData_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'Data_Flow_Task1880_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'Data_Flow_Task1880_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task1880__source_SchemaName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task1880_') AS OLE_DB_Destination_Data_Flow_Task1880__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task1880__source_TableName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task1880_') AS OLE_DB_Destination_Data_Flow_Task1880__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task1880__sink_SchemaName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task1880_') AS OLE_DB_Destination_Data_Flow_Task1880__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_Data_Flow_Task1880__sink_TableName' AND PIPELINE_NAME = 'SalesOrders_CORE_Load' AND DATAFLOW_NAME = 'OLE_DB_Destination_Data_Flow_Task1880_') AS OLE_DB_Destination_Data_Flow_Task1880__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Begin_Batch_Interface_Package1878__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_BeginBatchInterfacePackage] @pkgParamBatchID,@pkgParamInterfaceID,@pkgParamPackageID,@ExecutionInstanceGUID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Script_Task1881_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch_Interface_Package1878__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Script_Task1881_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task1880_0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Script_Task1881_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task1880_",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1880_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task1880_",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "pkgParamInterfaceID" : {
+              "type" : "Expression",
+              "value" : "171"
+            },
+            "pkgParamPackageID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "pkgParamSourceResourcePath" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "pkgParamSourceStoredProcedure" : {
+              "type" : "Expression",
+              "value" : "'Company('PROD%20-%20RC%20Russia%20DISTRIB')/SalesLinesItemQty'"
+            },
+            "pkgParamBatchID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "pkgParamSourceConnectionString" : {
+              "type" : "Expression",
+              "value" : "'Service Document Url=https://1NAVRUSAPP.MARS-AD.NET:7136/ODT_RUS_PRD_01/OData/;Include Atom Elements=Auto;Include Expanded Entities=False;Integrated Security=SSPI;Persist Security Info=False;Time Out=600;Schema Sample Size=25;Retry Count=5;Retry Sleep=100;Keep Alive=False;Max Received Message Size=4398046511104'"
+            },
+            "pkgParamDestinationConnectionString" : {
+              "type" : "Expression",
+              "value" : "'Data Source=AZR-WEW5086.MARS-AD.NET\\\\MI0506D;Initial Catalog=FuturMasterCoreRUS;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;'"
+            }
+          },
+          "datasetParameters" : {
+            "ODataSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OData Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "OLE_DB_Destination_Data_Flow_Task1880_",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task1880_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : { },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task1880__source_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task1880__source_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic11",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task1880__sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_Data_Flow_Task1880__sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Close_Batch_Interface_Package1879__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "OLE_DB_Destination_Data_Flow_Task1880_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "[dbo].[usp_CloseBatchInterfacePackage] @pkgParamBatchID,@pkgParamInterfaceID,@pkgParamPackageID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varSSISOps_0FF63745B5EA43FD9D222B8065AB2FA1_RowCount_1" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varSSISOps_0FF63745B5EA43FD9D222B8065AB2FA1_RowCount_2" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varSSISOps_DisableBIxAuditing" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_GroupNames" : {
+        "type" : "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,583 @@
+{
+  "name" : "ppl_ingest_redcap_bcc",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "archive_extract_file_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "archive_extract_file_path",
+        "value" : {
+          "value" : "@concat(variables('shared_folder_path'),'redcap_bcc\\\\p579\\\\archive\\\\redcap_extraction_',notConvertedectfunctionstringleft(replace(replace(replace(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'),'-',''),' ',''),':',''), 14),'.csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "source_extract_file_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "source_extract_file_path",
+        "value" : {
+          "value" : "@concat(variables('shared_folder_path'),'redcap_bcc\\\\p579\\\\source\\\\csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'dft_stg_p5791206_') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'dft_stg_p5791206_') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'dft_stg_p5791206_') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'dft_stg_p5791206_') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'dft_stg_p5791206_') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_SchemaName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext') AS _COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_TableName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext') AS _COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext_sink_SchemaName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext') AS _COPYDATAseqc_p579_src_tables1205__fst_archive_ext_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext_sink_TableName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = '_COPYDATAseqc_p579_src_tables1205__fst_archive_ext') AS _COPYDATAseqc_p579_src_tables1205__fst_archive_ext_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_dft_stg_p5791206__source_SchemaName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'OLE_DB_Destination_dft_stg_p5791206_') AS OLE_DB_Destination_dft_stg_p5791206__source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_dft_stg_p5791206__source_TableName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'OLE_DB_Destination_dft_stg_p5791206_') AS OLE_DB_Destination_dft_stg_p5791206__source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_dft_stg_p5791206__sink_SchemaName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'OLE_DB_Destination_dft_stg_p5791206_') AS OLE_DB_Destination_dft_stg_p5791206__sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_dft_stg_p5791206__sink_TableName' AND PIPELINE_NAME = 'ingest_redcap_bcc' AND DATAFLOW_NAME = 'OLE_DB_Destination_dft_stg_p5791206_') AS OLE_DB_Destination_dft_stg_p5791206__sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "seqc_p579_src_tables1205_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "source_extract_file_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "archive_extract_file_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "seqc_p579_src_tables1205__sql_get_key1210__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT \nusername\n , cast(uri_3 as varchar(2000)) uri_3 \nFROM  dss_metadata.services_passport\nWHERE  domain = 'redcap_bcc'  "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_seqc_p579_src_tables1205__sql_get_key1210__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_get_key1210__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_uri_username",
+            "value" : "@activity('seqc_p579_src_tables1205__sql_get_key1210__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_seqc_p579_src_tables1205__sql_get_key1210__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_get_key1210__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_uri_3",
+            "value" : "@activity('seqc_p579_src_tables1205__sql_get_key1210__SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sc_decrypt_key1209_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "1_0_seqc_p579_src_tables1205__sql_get_key1210__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_seqc_p579_src_tables1205__sql_get_key1210__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "seqc_p579_src_tables1205__sc_decrypt_key1209_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__HTTP_p579_extract_csv1208_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sc_decrypt_key1209_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_trunc_stg_p5791217__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__HTTP_p579_extract_csv1208_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "truncate table redcap_bcc_temp.stg_p579"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "dft_stg_p5791206_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_trunc_stg_p5791217__",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "dft_stg_p5791206_",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "dft_stg_p5791206_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_stg_p5791206_",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "OLE_DB_Destination_dft_stg_p5791206_",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "dft_stg_p5791206_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : { },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_dft_stg_p5791206__source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_dft_stg_p5791206__source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic11",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_dft_stg_p5791206__sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLE_DB_Destination_dft_stg_p5791206__sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_truncate_L0_tables12",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_dft_stg_p5791206_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "truncate table [redcap_bcc].[p579_main];\n\ntruncate table [redcap_bcc].[p579_travel_form_consult_ct_sim];\n\ntruncate table [redcap_bcc].[p579_travel_form_treatments];\n\ntruncate table [redcap_bcc].[p579_verify_us_invoice];\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_p579_main_tables1211",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_truncate_L0_tables12",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO redcap_bcc.p579_main \n(\n[record_id]\n,[bc_phn]\n,[name_last]\n,[name_first]\n,[assign_us_centre_8eb417_complete]\n,[weeks_since_surg_assign_centre]\n,[weeks_since_chemo_assign_centre]\n,[assigned_centre]\n,[assign_centre_date]\n,[week_of_assign_centre]\n,[assign_centre_by]\n,[cancelled_referral_complete]\n,[referral_cancelled]\n,[cancellation_local_notice]\n,[returned_to_waitlist]\n,[cancellation_notice_us]\n,[cancelled_confirm_consult]\n,[cancellation_contact_required]\n,[cancellation_redcords_required]\n,[cancelled_by]\n,[cancelled_by_other]\n,[cancellation_reason]\n,[cancellation_other_reason]\n,[cancellation_notes]\n,[cancellation_verified]\n,[cash_advance_complete]\n,[cash_advance_date_required]\n,[cash_advance_amount]\n,[cash_advance_submit_date]\n,[cash_adv_requisition]\n,[cash_advance_cheque_number]\n,[cash_advance_paid_date]\n,[cash_advance_verified_by]\n,[consent_complete]\n,[consent_dob]\n,[consent_phn]\n,[consent_signature]\n,[consent_sign_name]\n,[consent_sign_date]\n,[consent_witness_signature]\n,[consent_witness_name]\n,[consent_witness_date]\n,[create_sftp_folder_complete]\n,[sftp_folder_name]\n,[sftp_created_by]\n,[expense_documentation_complete]\n,[expense_notes]\n,[airfare_patient]\n,[hotel_patient]\n,[direct_travel_patient]\n,[mileage_patient]\n,[perdiem_patient]\n,[car_rental_patient]\n,[cell_roaming_patient]\n,[expense_other_patient]\n,[expense_other_detail_patient]\n,[airfare_companion]\n,[hotel_companion]\n,[direct_travel_companion]\n,[mileage_companion]\n,[perdiem_companion]\n,[car_rental_companion]\n,[cell_roaming_companion]\n,[expense_other_companion]\n,[expense_other_detail_companion]\n,[expenses_patient_total]\n,[reimbursement_patient]\n,[expenses_companion_total]\n,[reimbursement_companion]\n,[expenses_grand_total]\n,[reimbursement_total]\n,[patient_notified_reimbursement]\n,[expenses_claim_number]\n,[expense_submitted_ap]\n,[ap_expense_submission_date]\n,[expense_paid_date]\n,[expense_cheque_number]\n,[expense_verified_by]\n,[final_patient_contact_complete]\n,[final_contact_patient_comments]\n,[final_re_contact_required]\n,[final_re_contact_date]\n,[final_re_contact_time]\n,[final_contact_receipts]\n,[final_contact_reimburse_name]\n,[final_contact_reimburse_method]\n,[final_contact_reimburse_comments]\n,[final_contact_survey_sent]\n,[final_contact_verified_by]\n,[first_patient_contact_complete]\n,[rtt_future_followup]\n,[weeks_since_surg_first_contact]\n,[weeks_since_chemo_first_contact]\n,[first_patient_contact_start]\n,[first_contact_notes]\n,[re_contact_future_rtt]\n,[future_rtt_centre_confirm]\n,[re_contact_required]\n,[re_contact_date]\n,[re_contact_time]\n,[interested]\n,[email_contact_consent]\n,[email]\n,[eligible]\n,[non_eligible_reason]\n,[non_eligible_other]\n,[first_contact_travel_info]\n,[first_contact_emergency_info]\n,[cash_advance_required]\n,[cash_advance_name]\n,[cash_advance_method]\n,[consent_type]\n,[pt_info_package_sent]\n,[pt_info_courier_date]\n,[pt_info_courier_details]\n,[first_patient_contact_finish]\n,[informed_regional_centre]\n,[first_contact_by]\n,[import_treatment_records_into_aria_complete]\n,[import_aria_by]\n,[main_form_complete]\n,[display_eligibility]\n,[referral_type]\n,[internal_purpose]\n,[regional_centre]\n,[tumour_group]\n,[technique_breast]\n,[sabr]\n,[prostate_adt]\n,[rt_intent]\n,[rtt_dt_tm]\n,[rtt_week]\n,[future_rtt_reason]\n,[rtt_future_reason_other]\n,[future_rtt_notes]\n,[adt_mtb_date]\n,[proposed_fractions]\n,[surg_dt_tm]\n,[surgery_week]\n,[chemotherapy]\n,[chem_dt_tm]\n,[chemotherapy_week]\n,[treatment_considerations]\n,[admissible]\n,[contraindications]\n,[able_travel]\n,[interpreter_required]\n,[interpreter_type]\n,[interpreter_other]\n,[mobility_aids]\n,[mobility_aids_notes]\n,[submission_comments]\n,[medically_appropriate]\n,[mrp_bcca]\n,[submission_dt_tm]\n,[legacy_record_id]\n,[alt_contact_name]\n,[agency_id]\n,[mrn]\n,[birth_date]\n,[street_address_1]\n,[street_address_2]\n,[city]\n,[province]\n,[postal_code]\n,[phone]\n,[phone_2]\n,[main_form_emergency_info]\n,[bc_consult_dt_tm]\n,[submission_eligible]\n,[ct_sim]\n,[local_ctsim_date]\n,[submission_ineligible_reason]\n,[submission_ineligible_other]\n,[submission_confirmed]\n,[submission_notes]\n,[submission_verified_date]\n,[submission_verified_by]\n,[medical_information_received_complete]\n,[medical_info_uploaded]\n,[medical_info_upload_notes]\n,[medical_info_upload_by]\n,[medical_info_upload_verified]\n,[medical_images_uploaded]\n,[medical_info_received_date]\n,[medical_info_upload_verified_by]\n,[medical_information_request_complete]\n,[imaging_requested]\n,[pathology_requested]\n,[or_reports_requested]\n,[bc_consult_requested]\n,[allergies_meds_requested]\n,[medical_info_requested]\n,[medical_info_request_done]\n,[medical_info_request_date]\n,[medical_info_request_by]\n,[referral_to_us_complete]\n,[emergency_contact]\n,[notify_us_notes_cautions]\n,[notify_us_special_considerations]\n,[notify_us_travel_plans]\n,[demographics_uploaded]\n,[notify_us_centre]\n,[us_referral_date]\n,[referral_week]\n,[notify_us_centre_by]\n,[sabr_prostate_victoria_procedures_complete]\n,[sabr_must_treat_by]\n,[sabr_victoria_procedure_date]\n,[sabr_victoria_mri_date]\n,[sabr_victoria_verified_by]\n,[verify_consent_complete]\n,[consent_verified]\n,[consent_verified_date]\n,[consent_resent]\n,[update_decline]\n,[consent_file_saved]\n,[consent_verified_by]\n,[verify_followup_booked_complete]\n,[regional_followup_date]\n,[followup_verified_by]\n,[verify_treatment_documentation_complete]\n,[treatment_records_downloaded]\n,[treatment_records_faxed]\n,[treatment_plan_downloaded]\n,[treatment_records_physics_notified]\n,[sftp_folder_removed]\n,[treatment_record_verified_by]\n,[verify_us_consult_and_ct_sim_complete]\n,[us_radonc_name]\n,[us_consult_date]\n,[week_of_us_consult]\n,[us_consult_time]\n,[us_ctsim_date]\n,[us_ctsim_time]\n,[travel_form_required_us_consult]\n,[patient_notified_us_consult]\n,[consult_ct_date_contacted]\n,[consult_ct_recontact]\n,[consult_ct_notes]\n,[us_consult_verified_by]\n,[verify_us_treatment_dates_complete]\n,[first_us_treatment_date]\n,[week_of_start]\n,[first_us_treatment_time]\n,[last_us_treatment_date]\n,[week_of_finish]\n,[last_us_treatment_time]\n,[treatment_fractions]\n,[travel_form_required_treatments]\n,[patient_notified_us_treatment]\n,[tx_date_of_notification]\n,[recontact_patient_treatment]\n,[tx_dates_notes]\n,[us_treatment_regional_centre_notified]\n,[us_treatment_verified_by]\n,[load_dt_tm] \n)\nSELECT [record_id]\n      ,[bc_phn]\n      ,[name_last]\n      ,[name_first]\n      ,[assign_us_centre_8eb417_complete]\n      ,[weeks_since_surg_assign_centre]\n      ,[weeks_since_chemo_assign_centre]\n      ,[assigned_centre]\n      ,[assign_centre_date]\n      ,[week_of_assign_centre]\n      ,[assign_centre_by]\n      ,[cancelled_referral_complete]\n      ,[referral_cancelled]\n      ,[cancellation_local_notice]\n      ,[returned_to_waitlist]\n      ,[cancellation_notice_us]\n      ,[cancelled_confirm_consult]\n      ,[cancellation_contact_required]\n      ,[cancellation_redcords_required]\n      ,[cancelled_by]\n      ,[cancelled_by_other]\n      ,[cancellation_reason]\n      ,[cancellation_other_reason]\n      ,[cancellation_notes]\n      ,[cancellation_verified]\n      ,[cash_advance_complete]\n      ,[cash_advance_date_required]\n      ,[cash_advance_amount]\n      ,[cash_advance_submit_date]\n      ,[cash_adv_requisition]\n      ,[cash_advance_cheque_number]\n      ,[cash_advance_paid_date]\n      ,[cash_advance_verified_by]\n      ,[consent_complete]\n      ,[consent_dob]\n      ,[consent_phn]\n      ,[consent_signature]\n      ,[consent_sign_name]\n      ,[consent_sign_date]\n      ,[consent_witness_signature]\n      ,[consent_witness_name]\n      ,[consent_witness_date]\n      ,[create_sftp_folder_complete]\n      ,[sftp_folder_name]\n      ,[sftp_created_by]\n      ,[expense_documentation_complete]\n      ,[expense_notes]\n      ,[airfare_patient]\n      ,[hotel_patient]\n      ,[direct_travel_patient]\n      ,[mileage_patient]\n      ,[perdiem_patient]\n      ,[car_rental_patient]\n      ,[cell_roaming_patient]\n      ,[expense_other_patient]\n      ,[expense_other_detail_patient]\n      ,[airfare_companion]\n      ,[hotel_companion]\n      ,[direct_travel_companion]\n      ,[mileage_companion]\n      ,[perdiem_companion]\n      ,[car_rental_companion]\n      ,[cell_roaming_companion]\n      ,[expense_other_companion]\n      ,[expense_other_detail_companion]\n      ,[expenses_patient_total]\n      ,[reimbursement_patient]\n      ,[expenses_companion_total]\n      ,[reimbursement_companion]\n      ,[expenses_grand_total]\n      ,[reimbursement_total]\n      ,[patient_notified_reimbursement]\n      ,[expenses_claim_number]\n      ,[expense_submitted_ap]\n      ,[ap_expense_submission_date]\n      ,[expense_paid_date]\n      ,[expense_cheque_number]\n      ,[expense_verified_by]\n      ,[final_patient_contact_complete]\n      ,[final_contact_patient_comments]\n      ,[final_re_contact_required]\n      ,[final_re_contact_date]\n      ,[final_re_contact_time]\n      ,[final_contact_receipts]\n      ,[final_contact_reimburse_name]\n      ,[final_contact_reimburse_method]\n      ,[final_contact_reimburse_comments]\n      ,[final_contact_survey_sent]\n      ,[final_contact_verified_by]\n      ,[first_patient_contact_complete]\n      ,[rtt_future_followup]\n      ,[weeks_since_surg_first_contact]\n      ,[weeks_since_chemo_first_contact]\n      ,[first_patient_contact_start]\n      ,[first_contact_notes]\n      ,[re_contact_future_rtt]\n      ,[future_rtt_centre_confirm]\n      ,[re_contact_required]\n      ,[re_contact_date]\n      ,[re_contact_time]\n      ,[interested]\n      ,[email_contact_consent]\n      ,[email]\n      ,[eligible]\n      ,[non_eligible_reason]\n      ,[non_eligible_other]\n      ,[first_contact_travel_info]\n      ,[first_contact_emergency_info]\n      ,[cash_advance_required]\n      ,[cash_advance_name]\n      ,[cash_advance_method]\n      ,[consent_type]\n      ,[pt_info_package_sent]\n      ,[pt_info_courier_date]\n      ,[pt_info_courier_details]\n      ,[first_patient_contact_finish]\n      ,[informed_regional_centre]\n      ,[first_contact_by]\n      ,[import_treatment_records_into_aria_complete]\n      ,[import_aria_by]\n      ,[main_form_complete]\n      ,[display_eligibility]\n      ,[referral_type]\n      ,[internal_purpose]\n      ,[regional_centre]\n      ,[tumour_group]\n      ,[technique_breast]\n      ,[sabr]\n      ,[prostate_adt]\n      ,[rt_intent]\n      ,[rtt_dt_tm]\n      ,[rtt_week]\n      ,[future_rtt_reason]\n      ,[rtt_future_reason_other]\n      ,[future_rtt_notes]\n      ,[adt_mtb_date]\n      ,[proposed_fractions]\n      ,[surg_dt_tm]\n      ,[surgery_week]\n      ,[chemotherapy]\n      ,[chem_dt_tm]\n      ,[chemotherapy_week]\n      ,[treatment_considerations]\n      ,[admissible]\n      ,[contraindications]\n      ,[able_travel]\n      ,[interpreter_required]\n      ,[interpreter_type]\n      ,[interpreter_other]\n      ,[mobility_aids]\n      ,[mobility_aids_notes]\n      ,[submission_comments]\n      ,[medically_appropriate]\n      ,[mrp_bcca]\n      ,[submission_dt_tm]\n      ,[legacy_record_id]\n      ,[alt_contact_name]\n      ,[agency_id]\n      ,[mrn]\n      ,[birth_date]\n      ,[street_address_1]\n      ,[street_address_2]\n      ,[city]\n      ,[province]\n      ,[postal_code]\n      ,[phone]\n      ,[phone_2]\n      ,[main_form_emergency_info]\n      ,[bc_consult_dt_tm]\n      ,[submission_eligible]\n      ,[ct_sim]\n      ,[local_ctsim_date]\n      ,[submission_ineligible_reason]\n      ,[submission_ineligible_other]\n      ,[submission_confirmed]\n      ,[submission_notes]\n      ,[submission_verified_date]\n      ,[submission_verified_by]     \n      ,[medical_information_received_complete]\n      ,[medical_info_uploaded]\n      ,[medical_info_upload_notes]\n      ,[medical_info_upload_by]\n      ,[medical_info_upload_verified]\n      ,[medical_images_uploaded]\n      ,[medical_info_received_date]\n      ,[medical_info_upload_verified_by]\n      ,[medical_information_request_complete]\n      ,[imaging_requested]\n      ,[pathology_requested]\n      ,[or_reports_requested]\n      ,[bc_consult_requested]\n      ,[allergies_meds_requested]\n      ,[medical_info_requested]\n      ,[medical_info_request_done]\n      ,[medical_info_request_date]\n      ,[medical_info_request_by]\n      ,[referral_to_us_complete]\n      ,[emergency_contact]\n      ,[notify_us_notes_cautions]\n      ,[notify_us_special_considerations]\n      ,[notify_us_travel_plans]\n      ,[demographics_uploaded]\n      ,[notify_us_centre]\n      ,[us_referral_date]\n      ,[referral_week]\n      ,[notify_us_centre_by]\n      ,[sabr_prostate_victoria_procedures_complete]\n      ,[sabr_must_treat_by]\n      ,[sabr_victoria_procedure_date]\n      ,[sabr_victoria_mri_date]\n      ,[sabr_victoria_verified_by]\n      ,[verify_consent_complete]\n      ,[consent_verified]\n      ,[consent_verified_date]\n      ,[consent_resent]\n      ,[update_decline]\n      ,[consent_file_saved]\n      ,[consent_verified_by]\n      ,[verify_followup_booked_complete]\n      ,[regional_followup_date]\n      ,[followup_verified_by]\n      ,[verify_treatment_documentation_complete]\n      ,[treatment_records_downloaded]\n      ,[treatment_records_faxed]\n      ,[treatment_plan_downloaded]\n      ,[treatment_records_physics_notified]\n      ,[sftp_folder_removed]\n      ,[treatment_record_verified_by]\n      ,[verify_us_consult_and_ct_sim_complete]\n      ,[us_radonc_name]\n      ,[us_consult_date]\n      ,[week_of_us_consult]\n      ,[us_consult_time]\n      ,[us_ctsim_date]\n      ,[us_ctsim_time]\n      ,[travel_form_required_us_consult]\n      ,[patient_notified_us_consult]\n      ,[consult_ct_date_contacted]\n      ,[consult_ct_recontact]\n      ,[consult_ct_notes]\n      ,[us_consult_verified_by]\n      ,[verify_us_treatment_dates_complete]\n      ,[first_us_treatment_date]\n      ,[week_of_start]\n      ,[first_us_treatment_time]\n      ,[last_us_treatment_date]\n      ,[week_of_finish]\n      ,[last_us_treatment_time]\n      ,[treatment_fractions]\n      ,[travel_form_required_treatments]\n      ,[patient_notified_us_treatment]\n      ,[tx_date_of_notification]\n      ,[recontact_patient_treatment]\n      ,[tx_dates_notes]\n      ,[us_treatment_regional_centre_notified]\n      ,[us_treatment_verified_by]\n\t  ,GETDATE() as load_dt_tm\n  FROM [redcap_bcc_temp].[stg_p579]\n  where [redcap_repeat_instrument] is null\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_p579_travel_form_con",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_truncate_L0_tables12",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [redcap_bcc].[p579_travel_form_consult_ct_sim] \n(\n[record_id], \n[redcap_repeat_instance], \n[redcap_repeat_instrument], \n[travel_form_consult_ct_sim_complete], \n[travel_companion_consult], \n[companion_lastname_consult], \n[companion_firstname_consult], \n[travel_from_consult], \n[travel_to_consult], \n[outbound_date_consult], \n[return_date_consult], \n[accommodation_consult], \n[accommodation_notes_consult], \n[car_rental_consult], \n[car_rental_detail_consult], \n[travel_comments_consult], \n[travel_completed_consult], \n[travel_completed_by_consult], \n[load_dt_tm]\n)\nSELECT [record_id]\n      ,[redcap_repeat_instance]\n      ,[redcap_repeat_instrument]\n      ,[travel_form_consult_ct_sim_complete]\n      ,[travel_companion_consult]\n      ,[companion_lastname_consult]\n      ,[companion_firstname_consult]\n      ,[travel_from_consult]\n      ,[travel_to_consult]\n      ,[outbound_date_consult]\n      ,[return_date_consult]\n      ,[accommodation_consult]\n      ,[accommodation_notes_consult]\n      ,[car_rental_consult]\n      ,[car_rental_detail_consult]\n      ,[travel_comments_consult]\n      ,[travel_completed_consult]\n      ,[travel_completed_by_consult]      \n      ,GETDATE() as load_dt_tm\n  FROM [redcap_bcc_temp].[stg_p579]\n  where [redcap_repeat_instrument] = 'travel_form_consult_ct_sim'\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_p579_travel_form_tre",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_truncate_L0_tables12",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [redcap_bcc].[p579_travel_form_treatments]\n(\n[record_id], \n[redcap_repeat_instance], \n[redcap_repeat_instrument], \n[travel_form_treatments_complete], \n[companion_lastname_treatment], \n[travel_companion_treatment], \n[companion_firstname_treatment], \n[travel_from_treatment], \n[travel_to_treatment], \n[us_treatment_date_first], \n[us_treatment_time_first], \n[us_treatment_date_last], \n[us_treatment_time_last], \n[outbound_date_treatment], \n[return_date_treatment], \n[accommodation_treatment], \n[accommodation_notes_treatment], \n[car_rental_treatment], \n[car_rental_detail_treatment], \n[travel_comments_treatment], \n[travel_completed_by_treatment], \n[load_dt_tm]\n)\nSELECT [record_id]\n      ,[redcap_repeat_instance]\n      ,[redcap_repeat_instrument]\n      ,[travel_form_treatments_complete]\n      ,[companion_lastname_treatment]\n      ,[travel_companion_treatment]\n      ,[companion_firstname_treatment]\n      ,[travel_from_treatment]\n      ,[travel_to_treatment]\n      ,[us_treatment_date_first]\n      ,[us_treatment_time_first]\n      ,[us_treatment_date_last]\n      ,[us_treatment_time_last]\n      ,[outbound_date_treatment]\n      ,[return_date_treatment]\n      ,[accommodation_treatment]\n      ,[accommodation_notes_treatment]\n      ,[car_rental_treatment]\n      ,[car_rental_detail_treatment]\n      ,[travel_comments_treatment]\n      ,[travel_completed_by_treatment]    \n      ,GETDATE() as load_dt_tm\n  FROM [redcap_bcc_temp].[stg_p579]\n  where [redcap_repeat_instrument] = 'travel_form_treatments'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_p579_verify_us_invoi",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_truncate_L0_tables12",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [redcap_bcc].[p579_verify_us_invoice]\n(\n[record_id], \n[redcap_repeat_instance], \n[redcap_repeat_instrument], \n[verify_us_invoice_complete], \n[invoice_notes], \n[invoice_number], \n[invoice_date], \n[invoice_type], \n[invoice_type_other], \n[invoice_amount], \n[invoice_saved], \n[invoice_approval_sent_date], \n[invoice_paid_date], \n[invoice_cheque_number], \n[invoice_verified_by],\n[load_dt_tm]\n)\nSELECT [record_id]\n      ,[redcap_repeat_instance]\n      ,[redcap_repeat_instrument]\n      ,[verify_us_invoice_complete]\n      ,[invoice_notes]\n      ,[invoice_number]\n      ,[invoice_date]\n      ,[invoice_type]\n      ,[invoice_type_other]\n      ,[invoice_amount]\n      ,[invoice_saved]\n      ,[invoice_approval_sent_date]\n      ,[invoice_paid_date]\n      ,[invoice_cheque_number]\n      ,[invoice_verified_by]\n\t  ,GETDATE() as load_dt_tm\nFROM [redcap_bcc_temp].[stg_p579]\nwhere [redcap_repeat_instrument] = 'verify_us_invoice'\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "_COPYDATAseqc_p579_src_tables1205__fst_archive_ext",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__sql_p579_main_tables1211",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "seqc_p579_src_tables1205__sql_p579_travel_form_con",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "seqc_p579_src_tables1205__sql_p579_travel_form_tre",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "seqc_p579_src_tables1205__sql_p579_verify_us_invoi",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow._COPYDATAseqc_p579_src_tables1205__fst_archive_ext_source_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ ]
+        }, {
+          "name" : "seqc_p579_src_tables1205__fst_archive_extract_file",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "_COPYDATAseqc_p579_src_tables1205__fst_archive_ext",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference"
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "seqc_p579_src_tables1205__sql_truncate_stg_p579121",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "seqc_p579_src_tables1205__fst_archive_extract_file",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "truncate table [redcap_bcc_temp].[stg_p579]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "var_uri_username" : {
+        "type" : "string"
+      },
+      "archive_extract_file_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\snpdbsbi001\\\\dss_admin$\\\\nd\\\\ssis\\\\redcap_bcc\\\\p579\\\\archive\\\\redcap_extraction_20250121110015.csv'"
+      },
+      "var_uri_3" : {
+        "type" : "string"
+      },
+      "access_key" : {
+        "type" : "string"
+      },
+      "source_extract_file_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\snpdbsbi001\\\\dss_admin$\\\\nd\\\\ssis\\\\redcap_bcc\\\\p579\\\\source\\\\redcap_extraction.csv'"
+      }
+    }
+  }
+}

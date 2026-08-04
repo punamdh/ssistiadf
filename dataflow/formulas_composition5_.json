@@ -1,0 +1,61 @@
+{
+  "name" : "formulas_composition5_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceOLEDB",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "RechercheLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "Recherche1LKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CommandeOLEDB"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "CommandeOLEDB1"
+      } ],
+      "transformations" : [ {
+        "name" : "Colonnedrive"
+      }, {
+        "name" : "Recherche"
+      }, {
+        "name" : "FilterRecherche"
+      }, {
+        "name" : "PlaceHolderScriptComponent"
+      }, {
+        "name" : "Recherche1"
+      }, {
+        "name" : "Recherche1IsMatch"
+      }, {
+        "name" : "Colonnedrive1"
+      } ],
+      "script" : "parameters{\n\tpDestination as string (),\n\tpExtFactoryCode as integer (),\n\tpSource as string (),\n\tpStage as string ()\n}\n\nsource(output(\n\t\tCOFRML as string,\n\t\tCOETAB as integer,\n\t\tNUMORDRE as string,\n\t\tNUMOPTIM as string,\n\t\t{Code Raw Material} as string,\n\t\t{Quantity Rate} as float,\n\t\tCOMP_epu as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '/* SELECT DISTINCT q1.[COFRML], q1.[COETAB], q1.[NUMORDRE], q1.[NUMOPTIM], q1.[Code Raw Material], q1.[Quantity Rate], q2.COMP_epu  FROM [dbo].ARDM_FORMULA_RAW_MATERIAL q1 INNER JOIN (SELECT CASE WHEN CHARINDEX(\\'.\\', [Code Raw Material])>0 THEN SUBSTRING([Code Raw Material], 0, CHARINDEX(\\'.\\',[Code Raw Material]))             WHEN CHARINDEX(\\',\\', [Code Raw Material])>0 THEN SUBSTRING([Code Raw Material], 0, CHARINDEX(\\',\\',[Code Raw Material])) \t\t\tELSE [Code Raw Material] END as COMP_epu,  \t\t\tMAX([Code Raw Material]) as [Code Raw Material] FROM [dbo].[ARDM_FORMULA_RAW_MATERIAL] group by CASE WHEN CHARINDEX(\\'.\\', [Code Raw Material])>0 THEN SUBSTRING([Code Raw Material], 0, CHARINDEX(\\'.\\',[Code Raw Material]))             WHEN CHARINDEX(\\',\\', [Code Raw Material])>0 THEN SUBSTRING([Code Raw Material], 0, CHARINDEX(\\',\\',[Code Raw Material])) \t\t\tELSE [Code Raw Material] END) q2 on q1.[Code Raw Material]=q2.[Code Raw Material]   ORDER BY q1.[COFRML] */ SELECT DISTINCT q1.[COFRML], q1.[COETAB], q1.[NUMORDRE], q1.[NUMOPTIM], q1.[COMP] as [Code Raw Material], q1.[Quantity Rate], q2.COMP_epu  FROM [dbo].ARDM_FORMULA_RAW_MATERIAL q1 INNER JOIN (SELECT CASE WHEN CHARINDEX(\\'.\\', [COMP])>0 THEN SUBSTRING([COMP], 0, CHARINDEX(\\'.\\',[COMP]))             WHEN CHARINDEX(\\',\\', [COMP])>0 THEN SUBSTRING([COMP], 0, CHARINDEX(\\',\\',[COMP])) \t\t\tELSE [COMP] END as COMP_epu,  \t\t\tMAX([COMP]) as [Code Raw Material] FROM [dbo].[ARDM_FORMULA_RAW_MATERIAL] group by CASE WHEN CHARINDEX(\\'.\\', [COMP])>0 THEN SUBSTRING([COMP], 0, CHARINDEX(\\'.\\',[COMP]))             WHEN CHARINDEX(\\',\\', [COMP])>0 THEN SUBSTRING([COMP], 0, CHARINDEX(\\',\\',[COMP])) \t\t\tELSE [COMP] END) q2 on q1.[COMP]=q2.[Code Raw Material]   ORDER BY q1.[COFRML]',\n\tformat: 'query',\n\tstaged:false) ~> SourceOLEDB\tsource(output(\n\t\tUID as integer,\n\t\tFormulaCode as string,\n\t\tVersionCode as string,\n\t\tRevisionCode as string,\n\t\tUIDFactory as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT UID       ,FormulaCode       ,VersionCode       ,RevisionCode       ,UIDFactory   FROM dbo.ProcessCardFormulasVersions',\n\tformat: 'query',\n\tstaged:false) ~> RechercheLKPTABLE\tsource(output(\n\t\tFormulaVersionUID as integer,\n\t\tCodeRawMaterial as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT FormulaVersionUID, CodeRawMaterial FROM ProcessCardFormulasComposition',\n\tformat: 'query',\n\tstaged:false) ~> Recherche1LKPTABLE\nSourceOLEDB derive(UserName = $ProfilSSIS) ~> Colonnedrive\nColonnedrive,RechercheLKPTABLE lookup(NUMOPTIM == RevisionCode && COETAB == UIDFactory && COFRML == FormulaCode && NUMORDRE == VersionCode,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Recherche\nRecherche filter(!isMatch()) ~> FilterRecherche\nFilterRecherche derive(UID = UID) ~> PlaceHolderScriptComponent\nPlaceHolderScriptComponent,Recherche1LKPTABLE lookup(UID == FormulaVersionUID && MD5CodeRawMaterial == CodeRawMaterial,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Recherche1\nRecherche1 split(isMatch(), disjoint: true) ~> Recherche1IsMatch@(Match,NotMatch)\nRecherche1IsMatch@NotMatch derive(QuantityRate_crit = {Quantity Rate}) ~> Colonnedrive1\nRecherche1IsMatch@NotMatch sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> CommandeOLEDB1\nColonnedrive1 sink(input(\n\t\t{} as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> CommandeOLEDB"
+    }
+  }
+}

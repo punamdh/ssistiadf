@@ -1,0 +1,699 @@
+{
+  "name" : "ppl_cbgdm_process_cube 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Process_CBGAnalysis_Cube366_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "Process_Dims_and_Facts367_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Process_CBGAnalysis_Cube366_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Process_Dims_and_Facts367__Get_Disabled368__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @CurrDate DATETIME = GETDATE();\nBEGIN\n\tIF NOT EXISTS (\n\t\t\tSELECT TOP 1 1\n\t\t\tFROM [ETLAudit].[CubeExecution]\n\t\t\tWHERE [ExecutionStatus] IN ('UnProcessed', 'Failed')\n\t\t\t)\n\tBEGIN\n\t\tTRUNCATE TABLE [ETLAudit].[CubeExecution];\n\t\tINSERT INTO [ETLAudit].[CubeExecution] (\n\t\t\t[CubeTableGroupName]\n\t\t\t,[CubeTablePartitionName]\n\t\t\t,[StartTime]\n\t\t\t,[ExecutionStatus]\n\t\t\t,[ETLCreateDate]\n\t\t\t)\n\t\tSELECT [CubeTableGroupName]\n\t\t\t,[CubeTablePartitionName]\n\t\t\t,[StartTime] = @CurrDate\n\t\t\t,[ExecutionStatus] = 'UnProcessed'\n\t\t\t,[ETLCreateDate] = @CurrDate\n\t\tFROM [ETLAudit].[CubeExecutionDetail];\n\tEND\n\tSELECT Dims\n\t\t,Ecom\n\t\t,Expense = 0\n\tFROM (\n\t\tSELECT [CubeTableGroupName]\n\t\t\t,Isdisabled = (CASE WHEN [ExecutionStatus] = 'Processed' THEN 1 ELSE 0 END)\n\t\tFROM ETLAudit.CubeExecution\n\t\tWHERE CubeTablePartitionName = ''\n\t\t) SRC\n\tPIVOT(MAX(Isdisabled) FOR [CubeTableGroupName] IN (Dims, Ecom, Expense)) PVT\nEND"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_Process_Dims_and_Facts367__Get_Disabled368__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Get_Disabled368__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "IsDimsDisabled",
+            "value" : "@activity('Process_Dims_and_Facts367__Get_Disabled368__SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "1_0_Process_Dims_and_Facts367__Get_Disabled368__VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Get_Disabled368__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "IsEcomDisabled",
+            "value" : "@activity('Process_Dims_and_Facts367__Get_Disabled368__SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "2_1_0_Process_Dims_and_Facts367__Get_Disabled368__",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Get_Disabled368__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "IsExpenseDisabled",
+            "value" : "@activity('Process_Dims_and_Facts367__Get_Disabled368__SCRIPT').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "2_1_0_Process_Dims_and_Facts367__Get_Disabled368__",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "0_Process_Dims_and_Facts367__Get_Disabled368__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "1_0_Process_Dims_and_Facts367__Get_Disabled368__VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set1370_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set2371_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set3372_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set4373_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set1370_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set2371_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set3372_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Dims_Unpart369_",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369__Process_Dims_Set4373_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN\n\n  UPDATE [ETLAudit].[CubeExecution]\n  SET [ExecutionStatus] =  'Processed'  ,EndTime= GETDATE(), ETLUpdateDate = GETDATE()\n  WHERE CubeTableGroupName='Dims';\n\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Process_Ecom_Dims_and_Facts376_",
+              "type" : "Wait",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "waitTimeInSeconds" : 10
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Upd_Ecom_IsDisabled_Flag378_",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Process_Ecom_Dims_and_Facts376_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Expression Task",
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "IsEcomDisabled",
+                "value" : {
+                  "value" : "1",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Upd_Ecom_IsDisabled_Fail377_",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Process_Ecom_Dims_and_Facts376_",
+                "dependencyConditions" : [ "Failed" ]
+              } ],
+              "state" : null,
+              "description" : "Expression Task",
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "IsEcomDisabled",
+                "value" : {
+                  "value" : "2",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Fact",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Upd_Ecom_IsDisabled_Fail377_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Process_Dims_and_Facts367__Process_Ecom_Dim_n_Facts375__Upd_Ecom_IsDisabled_Flag378_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN \n\n   UPDATE [ETLAudit].[CubeExecution]\n  SET [ExecutionStatus] = (CASE  @IsEcomDisabled  WHEN 1 THEN 'Processed' WHEN 2 THEN 'Failed' ELSE 'UnProcessed' END) ,EndTime= GETDATE(), ETLUpdateDate = GETDATE()\n  WHERE CubeTableGroupName='Ecom';\n\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381_",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381__Process_Expense_Dims382_",
+                  "type" : "Wait",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "waitTimeInSeconds" : 10
+                  }
+                }, {
+                  "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381__Process_Expense_Facts383_",
+                  "type" : "Wait",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381__Process_Expense_Dims382_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "waitTimeInSeconds" : 10
+                  }
+                } ]
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Upd_Expense_IsDisabled_Flag385_",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Expression Task",
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "IsExpenseDisabled",
+                "value" : {
+                  "value" : "1",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Upd_Expense_IsDisabled_fail384_",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Sequence_Container381_",
+                "dependencyConditions" : [ "Failed" ]
+              } ],
+              "state" : null,
+              "description" : "Expression Task",
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "IsEcomDisabled",
+                "value" : {
+                  "value" : "2",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_F",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Upd_Expense_IsDisabled_Flag385_",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Process_Dims_and_Facts367__Process_Expense_Dim_n_Facts380__Upd_Expense_IsDisabled_fail384_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN \n\n    UPDATE [ETLAudit].[CubeExecution]\n  SET [ExecutionStatus] = (CASE  @IsExpenseDisabled  WHEN 1 THEN 'Processed' WHEN 2 THEN 'Failed' ELSE 'UnProcessed' END) ,EndTime= GETDATE(), ETLUpdateDate = GETDATE()\n  WHERE CubeTableGroupName='Expense';\n\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Process_Dims_and_Facts367__Process_Dims_Unpart369_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims",
+              "type" : "Lookup",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "AzureSqlSource",
+                  "sqlReaderStoredProcedureName" : null,
+                  "sqlReaderQuery" : "SELECT [CubeTableGroupName]\n\t,[CubeTablePartitionName]\nFROM [ETLAudit].[CubeExecution]\nWHERE [CubeTablePartitionName] <> ''\n\tAND [ExecutionStatus] IN ('UnProcessed', 'Failed')\n\tand [CubeTablePartitionName] = 'Corp'\n\nORDER BY 1,2",
+                  "storedProcedureParameters" : null,
+                  "queryTimeout" : "02:00:00",
+                  "partitionOption" : "None"
+                },
+                "dataset" : {
+                  "referenceName" : "Default_Table_Connection",
+                  "type" : "DatasetReference"
+                }
+              }
+            }, {
+              "name" : "FOREACH_Process_Dims_and_Facts367__Process_Paritio",
+              "type" : "ForEach",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "items" : {
+                  "value" : "@activity('Process_Dims_and_Facts367__Process_Paritioned_Dims').output.value",
+                  "type" : "Expression"
+                },
+                "activities" : [ {
+                  "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390_",
+                  "type" : "IfCondition",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "expression" : {
+                      "value" : "@equals(1,1)",
+                      "type" : "Expression"
+                    },
+                    "ifFalseActivities" : [ ],
+                    "ifTrueActivities" : [ {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_AR391_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    }, {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Inventory394_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    }, {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_BacklogBooking392_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ {
+                        "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_AR391_",
+                        "dependencyConditions" : [ "Completed" ]
+                      } ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    }, {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Revenue396_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ {
+                        "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Inventory394_",
+                        "dependencyConditions" : [ "Completed" ]
+                      } ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    }, {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Budget393_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ {
+                        "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_BacklogBooking392_",
+                        "dependencyConditions" : [ "Completed" ]
+                      } ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    }, {
+                      "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Proci395_",
+                      "type" : "Wait",
+                      "policy" : null,
+                      "dependsOn" : [ {
+                        "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390__Process_Revenue396_",
+                        "dependencyConditions" : [ "Completed" ]
+                      } ],
+                      "state" : "Inactive",
+                      "description" : null,
+                      "onInactiveMarkAs" : "Succeeded",
+                      "typeProperties" : {
+                        "waitTimeInSeconds" : 10
+                      }
+                    } ]
+                  }
+                }, {
+                  "name" : "Process_Dims_and_Facts367__Process_Paritioned_Dims",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390_",
+                    "dependencyConditions" : [ "Failed" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "BEGIN \n\n   UPDATE [ETLAudit].[CubeExecution]\n  SET [ExecutionStatus] = 'Failed' ,EndTime= GETDATE(), ETLUpdateDate = GETDATE()\n  WHERE CubeTableGroupName=@TableGroup\nAND [CubeTablePartitionName] = @PartitionName;\n\nEND"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                }, {
+                  "name" : "0_Process_Dims_and_Facts367__Process_Paritioned_Di",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Process_Dims_and_Facts367__Process_Paritioned_Dims_Facts387__Foreach_Prod_Partition389__Sequence_Container390_",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "BEGIN \n\n   UPDATE [ETLAudit].[CubeExecution]\n  SET [ExecutionStatus] = 'Processed' ,EndTime= GETDATE(), ETLUpdateDate = GETDATE()\n  WHERE CubeTableGroupName=@TableGroup\nAND [CubeTablePartitionName] = @PartitionName;\n\nEND"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                } ],
+                "isSequential" : true
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PartitionName" : {
+        "type" : "string",
+        "defaultValue" : "'Corp'"
+      },
+      "ConnectionId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TableGroup" : {
+        "type" : "string"
+      },
+      "IsExpenseDisabled" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "IsDimsDisabled" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "IsEcomDisabled" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PartitionList" : {
+        "type" : "string"
+      },
+      "SessionId" : {
+        "type" : "string"
+      },
+      "SPID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

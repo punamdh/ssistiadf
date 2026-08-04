@@ -1,0 +1,153 @@
+{
+  "name" : "ppl_domo agedar and billing analyst 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Aged_AR644_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Aged_AR644__Run_Aged_AR_Job645__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC rpt.PopulateAgedAR"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Execute_SQL_Task649__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Aged_AR644_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [rpt].[PopulateAgedARDetails]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Billing_Analyist646_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task649__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Billing_Analyist646__Run_Billing_Anaylist_Job647__",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [rpt].[PopulateBillingAnaylistInfo]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Execute_DOMO_Workbench_AgedAR_Details648_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task649__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\Program Files\\Domo\\Workbench\\wb.exe run-job --server rehmann.domo.com --jobid 209",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Load_Billing_Anaylist_Inot_DOMO650_",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Billing_Analyist646_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    } ],
+    "folder" : {
+      "name" : "ssisinventory/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}
