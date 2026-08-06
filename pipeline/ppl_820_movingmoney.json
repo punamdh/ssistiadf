@@ -1,0 +1,518 @@
+{
+  "name" : "ppl_820_movingmoney",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Filename",
+        "value" : {
+          "value" : "@concat(variables('gv_820MovingMoneyPath'),variables('gv_Filename_Region'),'_820_MONEYTRANSFER_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_RenameFilename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_RenameFilename",
+        "value" : {
+          "value" : "@concat(variables('gv_820MovingMoneyPath'),variables('gv_Filename_Region'),'_820_MONEYTRANSFER_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mm', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('dd', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctiondatedatepart('yyyy', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt')),'_',notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('hh', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('mi', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),notConvertedectfunctionstringright(concat('0',notConvertedectfunctiondatedatepart('ss', formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'))), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "820CREATE_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_RenameFilename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN\nAGP.PR_820MOVINGMONEY_BATCH;\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SEQ_820_EXTRACT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "820CREATE_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SEQ_820_EXTRACT_820_MONEYMOVING_CALCULATION_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\nAGP.PR_820MOVINGMONEY(@gv_CurrentDate);\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SEQ_820_EXTRACT_820_MONEYMOVING_CALCULATION_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT COUNT(1) from AGP.MM_TRANSFEROUT_TRANFERIN "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_RowCount",
+            "value" : "@activity('SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_SEQ_820_EXTRACT_EMAILFAILURE",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('gv_RowCount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "SEQ_820_EXTRACT_EMAILFAILURE",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_email",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@not(equals(variables('gv_RowCount'),0))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "CREATE TABLE `Sheet1` (\n    `Receipt Code` NVARCHAR(1),\n    `Receipt Reason` NVARCHAR(4),\n     `Payment Method` NVARCHAR(4),\n    `Vendor Reference Id` NVARCHAR(10),\n    `Subscriber Id` NVARCHAR(9),\n    `Group Id` NVARCHAR(8),\n     `Billing Group Id` NVARCHAR(8),\n     `Billing period` NVARCHAR(2),\n    `Amount` NVARCHAR(38),\n    `Check Number` NVARCHAR(7),\n    `Received Date` NVARCHAR(50)\n  \n)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "DFT_820EXCEL_EXTRACT0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "DFT_820EXCEL_EXTRACT",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_820EXCEL_EXTRACT0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_820excel_extract",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DFT_820EXCEL_EXTRACT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_EMAILSUCCESS",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQ_820_EXTRACT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('gv_RowCount'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EMAILSUCCESS",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'pga'"
+      },
+      "gv_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Billing\\\\DEV\\\\820_MovingMoney\\\\DEV_FILES\\\\DEV_820_MONEYTRANSFER_07272026.xlsx'"
+      },
+      "gv_820MovingMoneyPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Billing\\\\DEV\\\\820_MovingMoney\\\\DEV_FILES\\\\'"
+      },
+      "gv_RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_820MovingMoneyEmailFailureMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The Cash Operations 820 MovingMoney excel file has not been created due to no data was found for given day.\\n\\n\\n\\nThank you,\\n\\n\\nGBD Member Finance'"
+      },
+      "gv_820MovingMoneyEmailSuccessMessage" : {
+        "type" : "string",
+        "defaultValue" : "'The Cash Operations 820 MovingMoney excel file have been created successfully.\\nThank you, \\nGBD Member Finance'"
+      },
+      "gv_CurrentDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/4/2019 10:51:31 AM')"
+      },
+      "gv_820MovingMoneyEmailList" : {
+        "type" : "string",
+        "defaultValue" : "'pallavi.yaramada@wellpoint.com;harshad.shirke@anthem.com;gowthaman.seetharaman@anthem.com;mayur.chauhan@anthem.com'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'FAC4d'"
+      },
+      "gv_RenameFilename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Billing\\\\DEV\\\\820_MovingMoney\\\\DEV_FILES\\\\DEV_820_MONEYTRANSFER_07272026_190245.xlsx'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Filename_Region" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      }
+    }
+  }
+}
