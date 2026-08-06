@@ -63,7 +63,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT5_') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT5_') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__ContainerName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE_') AS SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FileName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE_') AS SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FilePath' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE_') AS SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FilePath;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'DFT_820EXCEL_EXTRACT') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath' AND PIPELINE_NAME = '820_MovingMoney' AND DATAFLOW_NAME = 'SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_') AS SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -74,7 +74,7 @@
         }
       }
     }, {
-      "name" : "820CREATE_BATCH1__SCRIPT",
+      "name" : "820CREATE_BATCH_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -102,11 +102,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SEQ_820_EXTRACT3_",
+      "name" : "SEQ_820_EXTRACT",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "820CREATE_BATCH1__SCRIPT",
+        "activity" : "820CREATE_BATCH_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -119,7 +119,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "SEQ_820_EXTRACT3__820_MONEYMOVING_CALCULATION4__SC",
+          "name" : "SEQ_820_EXTRACT_820_MONEYMOVING_CALCULATION_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -138,11 +138,11 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__SCRIPT",
+          "name" : "SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SEQ_820_EXTRACT3__820_MONEYMOVING_CALCULATION4__SC",
+            "activity" : "SEQ_820_EXTRACT_820_MONEYMOVING_CALCULATION_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -160,7 +160,7 @@
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "0_SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__VA",
+          "name" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -170,7 +170,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__SCRIPT",
+            "activity" : "SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -178,14 +178,14 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "variableName" : "gv_RowCount",
-            "value" : "@activity('SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__SCRIPT').output.resultSets[0].rows[0][0]"
+            "value" : "@activity('SEQ_820_EXTRACT_SQL_CHECK_ROWS_SCRIPT').output.resultSets[0].rows[0][0]"
           }
         }, {
-          "name" : "IFACTIVITY_SEQ_820_EXTRACT3__EMAILFAILURE6_",
+          "name" : "IFACTIVITY_SEQ_820_EXTRACT_EMAILFAILURE",
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "0_SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__VA",
+            "activity" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -198,7 +198,7 @@
             },
             "ifFalseActivities" : [ ],
             "ifTrueActivities" : [ {
-              "name" : "SEQ_820_EXTRACT3__EMAILFAILURE6_",
+              "name" : "SEQ_820_EXTRACT_EMAILFAILURE",
               "type" : "ExecutePipeline",
               "policy" : null,
               "dependsOn" : [ ],
@@ -217,11 +217,11 @@
             } ]
           }
         }, {
-          "name" : "IFACTIVITY_SEQ_820_EXTRACT3__SQL_CREATE_EXLS9__SCR",
+          "name" : "IFACTIVITY_SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
           "type" : "IfCondition",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "0_SEQ_820_EXTRACT3__SQL_CHECK_ROWS8__VA",
+            "activity" : "0_SEQ_820_EXTRACT_SQL_CHECK_ROWS_VA",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -234,7 +234,7 @@
             },
             "ifFalseActivities" : [ ],
             "ifTrueActivities" : [ {
-              "name" : "SEQ_820_EXTRACT3__SQL_CREATE_EXLS9__SCRIPT",
+              "name" : "SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
               "type" : "Script",
               "policy" : null,
               "dependsOn" : [ ],
@@ -255,11 +255,11 @@
             } ]
           }
         }, {
-          "name" : "DFT_820EXCEL_EXTRACT5_0",
+          "name" : "DFT_820EXCEL_EXTRACT0",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "IFACTIVITY_SEQ_820_EXTRACT3__SQL_CREATE_EXLS9__SCR",
+            "activity" : "IFACTIVITY_SEQ_820_EXTRACT_SQL_CREATE_EXLS_SCRIPT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : null,
@@ -275,11 +275,11 @@
             "parameters" : { }
           }
         }, {
-          "name" : "DFT_820EXCEL_EXTRACT5_",
+          "name" : "DFT_820EXCEL_EXTRACT",
           "type" : "ExecuteDataFlow",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "DFT_820EXCEL_EXTRACT5_0",
+            "activity" : "DFT_820EXCEL_EXTRACT0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -287,7 +287,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "dataflow" : {
-              "referenceName" : "dft_820excel_extract5_",
+              "referenceName" : "dft_820excel_extract",
               "type" : "DataFlowReference",
               "parameters" : { },
               "datasetParameters" : {
@@ -320,7 +320,7 @@
             "staging" : { }
           }
         }, {
-          "name" : "COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7",
+          "name" : "COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE",
           "type" : "Copy",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -330,7 +330,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "DFT_820EXCEL_EXTRACT5_",
+            "activity" : "DFT_820EXCEL_EXTRACT",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -349,15 +349,15 @@
             "type" : "DatasetReference",
             "parameters" : {
               "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_source_ContainerName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_source_FileName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_FileName",
                 "type" : "Expression"
               },
               "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_source_FilePath",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_source_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -368,26 +368,26 @@
             "type" : "DatasetReference",
             "parameters" : {
               "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_sink_ContainerName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_sink_FileName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_FileName",
                 "type" : "Expression"
               },
               "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_sink_FilePath",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE_sink_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
             }
           } ]
         }, {
-          "name" : "SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE_",
+          "name" : "SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE_",
           "type" : "Delete",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "COPYDATA_SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7",
+            "activity" : "COPYDATA_SEQ_820_EXTRACT_RENAME_DESTINATIONFILE",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : [ ],
@@ -400,15 +400,15 @@
               "type" : "DatasetReference",
               "parameters" : {
                 "Container" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__ContainerName",
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__ContainerName",
                   "type" : "Expression"
                 },
                 "FileName" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FileName",
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FileName",
                   "type" : "Expression"
                 },
                 "Directory" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT3__RENAME_DESTINATIONFILE7_DELETE__FilePath",
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SEQ_820_EXTRACT_RENAME_DESTINATIONFILEDELETE__FilePath",
                   "type" : "Expression"
                 },
                 "ColumnDelimiter" : null
@@ -420,11 +420,11 @@
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_EMAILSUCCESS2_",
+      "name" : "IFACTIVITY_EMAILSUCCESS",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SEQ_820_EXTRACT3_",
+        "activity" : "SEQ_820_EXTRACT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -437,7 +437,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "EMAILSUCCESS2_",
+          "name" : "EMAILSUCCESS",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ ],
