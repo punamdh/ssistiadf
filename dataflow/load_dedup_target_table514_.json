@@ -1,0 +1,45 @@
+{
+  "name" : "load_dedup_target_table514_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "WritetoTarget"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBSourceERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowsReadNoError"
+      }, {
+        "name" : "OLEDBSourceErrorReformat"
+      }, {
+        "name" : "DeriveAuditandOtherColumns"
+      }, {
+        "name" : "OLEDBSource0"
+      }, {
+        "name" : "PlaceHolderGetCheckSum"
+      } ],
+      "script" : "parameters{\n\tFileArchiveDir as string (),\n\tFilePattern as string (),\n\tFileProcessDir as string (),\n\tParentPackageExecutionID as integer (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\t{INVOICE #} as string,\n\t\tInvoiceBK as string,\n\t\t{CUST CODE} as string,\n\t\t{CUST Ship to} as string,\n\t\t{PROJECT NUMBER} as string,\n\t\tBRANCH as string,\n\t\t{SALES AGENT 1} as string,\n\t\t{SALES AGENT 2} as string,\n\t\t{INVOICED BY} as string,\n\t\t{INV DATE} as string,\n\t\t{DUE DATE} as string,\n\t\t{CREATED DATE} as string,\n\t\t{OPEN A R} as string,\n\t\t{CBG CODE} as string,\n\t\t{JOURNAL #} as string,\n\t\treference as string,\n\t\t{ORIGINAL AMOUNT} as string,\n\t\tTAX as string,\n\t\tRETAINAGE as string,\n\t\tFileDate as string,\n\t\tFileName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::QueryReadffromSrcDupe',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive({INVOICE #} = {INVOICE #}) ~> PlaceHolderRowsReadNoError\nOLEDBSource derive() ~> OLEDBSourceErrorReformat\nPlaceHolderRowsReadNoError derive(ETLCreateDate = $startTime,\n\t\tETLExecutionID = $PackageExecutionID) ~> DeriveAuditandOtherColumns\nOLEDBSourceErrorReformat derive() ~> OLEDBSource0\nDeriveAuditandOtherColumns derive(ETLCreateDate = ETLCreateDate) ~> PlaceHolderGetCheckSum\nOLEDBSource0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> OLEDBSourceERROROUTPUTFILE\nPlaceHolderGetCheckSum sink(input(\n\t\tETLCreateDate as timestamp 'dd-MM-yyyy',\n\t\tBRANCH as string,\n\t\tDUE_DATE as string,\n\t\tInvoiceChecksum as string,\n\t\tCREATED_DATE as string,\n\t\tINVOICED_BY as string,\n\t\tRETAINAGE as string,\n\t\tFileName as string,\n\t\tPROJECT_NUMBER as string,\n\t\tCBG_CODE as string,\n\t\tCUST_Ship_to as string,\n\t\tTAX as string,\n\t\tINV_DATE as string,\n\t\tSALES_AGENT_1 as string,\n\t\treference as string,\n\t\tSALES_AGENT_2 as string,\n\t\tFileDate as string,\n\t\tInvoiceBK as string,\n\t\tJOURNAL__ as string,\n\t\tORIGINAL_AMOUNT as string,\n\t\tETLExecutionID as long,\n\t\tCUST_CODE as string,\n\t\tOPEN_A_R as string,\n\t\tINVOICE__ as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tETLCreateDate,\n\t\tBRANCH,\n\t\tDUE_DATE = {DUE DATE},\n\t\tInvoiceChecksum = ETLChecksum,\n\t\tCREATED_DATE = {CREATED DATE},\n\t\tINVOICED_BY = {INVOICED BY},\n\t\tRETAINAGE,\n\t\tFileName,\n\t\tPROJECT_NUMBER = {PROJECT NUMBER},\n\t\tCBG_CODE = {CBG CODE},\n\t\tCUST_Ship_to = {CUST Ship to},\n\t\tTAX,\n\t\tINV_DATE = {INV DATE},\n\t\tSALES_AGENT_1 = {SALES AGENT 1},\n\t\treference,\n\t\tSALES_AGENT_2 = {SALES AGENT 2},\n\t\tFileDate,\n\t\tInvoiceBK,\n\t\tJOURNAL__ = {JOURNAL #},\n\t\tORIGINAL_AMOUNT = {ORIGINAL AMOUNT},\n\t\tETLExecutionID,\n\t\tCUST_CODE = {CUST CODE},\n\t\tOPEN_A_R = {OPEN A R},\n\t\tINVOICE__ = {INVOICE #})) ~> WritetoTarget"
+    }
+  }
+}

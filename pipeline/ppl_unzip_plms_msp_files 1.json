@@ -1,0 +1,457 @@
+{
+  "name" : "ppl_unzip_plms_msp_files 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "var_archive_folder_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_archive_folder_path",
+        "value" : {
+          "value" : "@if('BCCSS', notConvertedectfunctionstringleft(notConvertedectfunctionstringright(variables('var_zip_file_full_path'), 11), 4), 'lookup')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "var_data_folder_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_data_folder_path",
+        "value" : {
+          "value" : "@variables('prm_plis_msp_source_folder_path')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "var_files_to_load_path",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_files_to_load_path",
+        "value" : {
+          "value" : "@variables('prm_plis_msp_load_folder_path')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157_ContainerName' AND PIPELINE_NAME = 'unzip_plms_msp_files 1' AND DATAFLOW_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157') AS Foreach_Loop_Container2156__fs_move_to_archive2157_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157_FileName' AND PIPELINE_NAME = 'unzip_plms_msp_files 1' AND DATAFLOW_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157') AS Foreach_Loop_Container2156__fs_move_to_archive2157_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157_FilePath' AND PIPELINE_NAME = 'unzip_plms_msp_files 1' AND DATAFLOW_NAME = 'Foreach_Loop_Container2156__fs_move_to_archive2157') AS Foreach_Loop_Container2156__fs_move_to_archive2157_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container2156__SchemaName' AND PIPELINE_NAME = 'unzip_plms_msp_files 1' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container2156_') AS GETMETADATA_Foreach_Loop_Container2156__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container2156__TableName' AND PIPELINE_NAME = 'unzip_plms_msp_files 1' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container2156_') AS GETMETADATA_Foreach_Loop_Container2156__TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "sql_get_password_for_zip_file2160__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "var_files_to_load_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "var_archive_folder_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "var_data_folder_path",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  SELECT username, password\n  FROM  [dss_metadata].[services_passport] WHERE username ='PHSA_PLIS_MSP'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_sql_get_password_for_zip_file2160__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "sql_get_password_for_zip_file2160__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_username",
+        "value" : "@activity('sql_get_password_for_zip_file2160__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "1_0_sql_get_password_for_zip_file2160__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "sql_get_password_for_zip_file2160__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "var_password_encrypted",
+        "value" : "@activity('sql_get_password_for_zip_file2160__SCRIPT').output.resultSets[0].rows[1][1]"
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container2156_",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "1_0_sql_get_password_for_zip_file2160__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_sql_get_password_for_zip_file2160__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container2156__TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container2156__SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container2156_",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container2156_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container2156_').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '.zip'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container2156_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container2156_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container2156_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "FileName",
+            "value" : {
+              "value" : "@concat('\\\\SNPDBSBI001\\dss_admin$\\sd\\data\\moh\\PLIS\\msp\\download', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Foreach_Loop_Container2156__unzip_files2159_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Foreach_Loop_Container2156__unzip_files2159_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "Foreach_Loop_Container2156__sql_insert_etl_control",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container2156__unzip_files2159_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DECLARE @output TABLE(moh_plis_msp_extract_etl_control_id int )\n\nINSERT INTO [moh_src].[moh_plis_msp_extract_etl_control]\nOUTPUT inserted.moh_plis_msp_extract_etl_control_id INTO @output\nVALUES(concat(pipeline().parameters.BasePath, '/', @item().name),concat(pipeline().parameters.BasePath, '/', @item().name),0,GETDATE(), SYSTEM_USER)\n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Loop_Container2156__sql_insert_etl_control",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "Foreach_Loop_Container2156__fs_move_to_archive2157",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "COPYDATA_Foreach_Loop_Container2156__fs_move_to_ar",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container2156__fs_move_to_archive2157_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container2156__fs_move_to_archive2157_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Foreach_Loop_Container2156__fs_move_to_archive2157_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "var_username" : {
+        "type" : "string"
+      },
+      "var_data_folder_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\SNPDBSBI001\\\\dss_admin$\\\\sd\\\\data\\\\moh\\\\PLIS\\\\msp\\\\download'"
+      },
+      "var_csv_file_full_path" : {
+        "type" : "string"
+      },
+      "var_archive_folder_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\SNPDBSBI001\\\\dss_admin$\\\\sd\\\\data\\\\moh\\\\PLIS\\\\msp\\\\archive\\\\lookup'"
+      },
+      "var_files_to_load_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\SNPDBSBI001\\\\dss_admin$\\\\sd\\\\data\\\\moh\\\\PLIS\\\\msp\\\\files_to_load'"
+      },
+      "var_zip_file_full_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\SNPDBSBI001\\\\dss_admin$\\\\sd\\\\data\\\\moh\\\\PLIS\\\\msp\\\\download\\\\FACILITY_LOOK_UP_November_2023.zip'"
+      },
+      "var_password_encrypted" : {
+        "type" : "string"
+      }
+    }
+  }
+}

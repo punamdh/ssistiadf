@@ -1,0 +1,35 @@
+{
+  "name" : "data_flow_task165_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ReplacePipesandSpaces"
+      }, {
+        "name" : "TrimLastPipe"
+      } ],
+      "script" : "parameters{\n\tCfg_BaseDirectory as string (),\n\tCfg_RowDelimiter as string ()\n}\n\nsource(output(\n\t\t{Column 0} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(left(Column 0, 6) != 'HEADER' && left(Column 0, 7) != 'TRAILER', disjoint: true) ~> ConditionalSplit@(DataRow,ConditionalSplitDefaultOutput)\nConditionalSplit@DataRow derive({Column 1} = replace(replace({Column 0}, toString('|'), toString(',')), toString(' '), toString(''))) ~> ReplacePipesandSpaces\nReplacePipesandSpaces derive({Column 1} = left({Column 1}, length({Column 1}) - 1)) ~> TrimLastPipe\nTrimLastPipe sink(input(\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_1 = {Column 1})) ~> FlatFileDestination"
+    }
+  }
+}

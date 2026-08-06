@@ -1,0 +1,45 @@
+{
+  "name" : "dft_fmforecast_factloading_productionfact_fr_pl100",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCPRODUCTIONFACTFR",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SRCPRODUCTIONFACTPL",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DESTPRODUCTIONFACTFR"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DESTPRODUCTIONFACTPL"
+      } ],
+      "transformations" : [ {
+        "name" : "filterdatenullFR"
+      }, {
+        "name" : "filterdatenullPL"
+      } ],
+      "script" : "parameters{\n\tpFMForecastDestDB_ConString as string (),\n\tpFMForecastLogDB_ConString as string (),\n\tpFMForecastSrcDB_FR_ConString as string (),\n\tpFMForecastSrcDB_PL_ConString as string ()\n}\n\nsource(output(\n\t\tDATAAREAID as string,\n\t\tQuantity as integer,\n\t\tTonnage as integer,\n\t\t{Prod Item No} as string,\n\t\t{Prod Item Type} as integer,\n\t\tDate as timestamp,\n\t\t{Inventory Posting Group} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [DATAAREAID] ,[Quantity] ,[Tonnage] ,[Prod Item No] ,[Prod Item Type] ,[Date] ,[Inventory Posting Group] FROM dbo.[EDW Production Fact] WHERE [Date] >= ?',\n\tformat: 'query',\n\tstaged:false) ~> SRCPRODUCTIONFACTFR\tsource(output(\n\t\tDATAAREAID as string,\n\t\tQuantity as integer,\n\t\tTonnage as integer,\n\t\t{Prod Item No} as string,\n\t\t{Prod Item Type} as integer,\n\t\tDate as timestamp,\n\t\t{Inventory Posting Group} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [DATAAREAID]       ,[Quantity]       ,[Tonnage]       ,[Prod Item No]       ,[Prod Item Type]       ,[Date]       ,[Inventory Posting Group]   FROM dbo.[EDW Production Fact]  WHERE [Date] >= ?',\n\tformat: 'query',\n\tstaged:false) ~> SRCPRODUCTIONFACTPL\nSRCPRODUCTIONFACTFR split(!(isNull(Date)), disjoint: true) ~> filterdatenullFR@(datenotnull,ConditionalSplitDefaultOutput)\nSRCPRODUCTIONFACTPL split(!(isNull(Date)), disjoint: true) ~> filterdatenullPL@(datenotnull,ConditionalSplitDefaultOutput)\nfilterdatenullFR@datenotnull sink(input(\n\t\tTonnage as integer,\n\t\tProd_Item_Type as integer,\n\t\tQuantity as integer,\n\t\tDATAAREAID as string,\n\t\tProd_Item_No as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tInventory_Posting_Group as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTonnage,\n\t\tProd_Item_Type = {Prod Item Type},\n\t\tQuantity,\n\t\tDATAAREAID,\n\t\tProd_Item_No = {Prod Item No},\n\t\tDate,\n\t\tInventory_Posting_Group = {Inventory Posting Group})) ~> DESTPRODUCTIONFACTFR\nfilterdatenullPL@datenotnull sink(input(\n\t\tTonnage as integer,\n\t\tProd_Item_Type as integer,\n\t\tQuantity as integer,\n\t\tDATAAREAID as string,\n\t\tProd_Item_No as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tInventory_Posting_Group as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTonnage,\n\t\tProd_Item_Type = {Prod Item Type},\n\t\tQuantity,\n\t\tDATAAREAID,\n\t\tProd_Item_No = {Prod Item No},\n\t\tDate,\n\t\tInventory_Posting_Group = {Inventory Posting Group})) ~> DESTPRODUCTIONFACTPL"
+    }
+  }
+}

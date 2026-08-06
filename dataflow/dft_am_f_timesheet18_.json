@@ -1,0 +1,37 @@
+{
+  "name" : "dft_am_f_timesheet18_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCTimeSheet",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDSTAMTimeSheet"
+      } ],
+      "transformations" : [ {
+        "name" : "DERForCheckNullDate"
+      }, {
+        "name" : "DERForConvertintoMonthYear"
+      }, {
+        "name" : "AGGforMonthlyaggregate"
+      }, {
+        "name" : "DERForDWrunkeyKey"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tTimeTaken as integer,\n\t\tTimeSheetProjectSK as integer,\n\t\tTimeSheetTaskCategoryTypeSK as integer,\n\t\tTimeSheetDateSK as timestamp,\n\t\tTimeTakenHR as integer,\n\t\tTimesheetProjectResourceSk as integer,\n\t\tProjectResourcePmPodEnableFlag as string,\n\t\tProjectResourceEnableTimesheetFlag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        TimeSheetSK, TimeSheetID, TimeSheetTitle, TimeSheetDate, TimeTaken, TimeSheetMajorTaskSK, TimeSheetProjectSK, TimeSheetProjectResourceSK,                           TimeSheetTaskCategorySK, TimeSheetTaskCategoryTypeSK, TimeSheetMinorTaskSk, TimeSheetDateSK, DW_Run_Key, DW_Create_Datetime,                           DW_Update_Datetime, TimeTakenHR, TimeSheetDefectSk FROM            dw.F_TimeSheet WHERE        (DATEPART(mm, TimeSheetDate)= ?) AND (DATEPART(yyyy, TimeSheetDate) =                              (SELECT        DATEPART(yyyy, Run_Eff_DT) AS Expr1                                FROM            dbo.Ctrl_Run                                WHERE        (Status_Code = \\'Running\\')))',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCTimeSheet\nOLESRCTimeSheet derive(TimeSheetDateSK = iif(isNull(TimeSheetDateSK), toDate(toString($DW_Run_Eff_dt, 'MM/dd/yyyy'), \"MM/dd/yyyy\"), toDate(toString(TimeSheetDateSK, 'MM/dd/yyyy'), \"MM/dd/yyyy\")),\n\t\tDw_run_key = $DW_Run_Key) ~> DERForCheckNullDate\nDERForCheckNullDate derive(Month_Year_Number = toString(month(TimeSheetDateSK)) + '-' + toString(year(TimeSheetDateSK))) ~> DERForConvertintoMonthYear\nDERForConvertintoMonthYear aggregate(groupBy(TimesheetProjectResourceSk,TimeSheetProjectSK,TimeSheetTaskCategoryTypeSK,Month_Year_Number),\n\tTimeTaken = sum(TimeTaken),\n\t\tTimeTakenHR = sum(TimeTakenHR),\n\t\t{DER For Check Null Date.TimeSheetDateSK} = max(TimeSheetDateSK)) ~> AGGforMonthlyaggregate\nAGGforMonthlyaggregate derive(dw_Run_Key = $DW_Run_Key) ~> DERForDWrunkeyKey\nDERForDWrunkeyKey sink(input(\n\t\tAM_TimeSheetMonthYear as string,\n\t\tAM_TimeSheetTaskCategoryTypeSK as integer,\n\t\tTimeTaken as integer,\n\t\tAM_TimeSheetProjectResourceSK as integer,\n\t\tAM_TimeSheetProjectSK as integer,\n\t\tAM_MAXDateOfMonth as timestamp 'dd-MM-yyyy',\n\t\tDW_Run_Key as integer,\n\t\tTimeTakenHR as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tAM_TimeSheetMonthYear = Month_Year_Number,\n\t\tAM_TimeSheetTaskCategoryTypeSK = TimeSheetTaskCategoryTypeSK,\n\t\tTimeTaken,\n\t\tAM_TimeSheetProjectResourceSK = TimesheetProjectResourceSk,\n\t\tAM_TimeSheetProjectSK = TimeSheetProjectSK,\n\t\tAM_MAXDateOfMonth = {DER For Check Null Date.TimeSheetDateSK},\n\t\tDW_Run_Key = dw_Run_Key,\n\t\tTimeTakenHR)) ~> OLEDSTAMTimeSheet"
+    }
+  }
+}

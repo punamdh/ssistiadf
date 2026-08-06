@@ -1,0 +1,47 @@
+{
+  "name" : "dim_advisor_from_asg1937_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Updatedimadvisor"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "LookupSelect"
+      }, {
+        "name" : "LookupIsMatch"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tname as string,\n\t\templid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT   cast( left((e.first_name + \\' \\' + e.last_name),35) as varchar(35)) AS name, e.emplid FROM         [ps_hcm].[ps_ph_hr_job_req] AS r INNER JOIN                       [ps_hcm].[ps_ph_req_empl_asg] AS c ON r.job_req_nbr = c.job_req_nbr INNER JOIN                       hr.dim_employee AS e ON c.ph_recruit_advisor = e.emplid GROUP BY e.first_name + \\' \\' + e.last_name, e.emplid',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tadvisor_key as short,\n\t\tname as string,\n\t\templid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from hr.dim_advisor',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(OLEDBSource@emplid == LookupLKPTABLE@emplid,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tname = OLEDBSource@name,\n\t\templid = OLEDBSource@emplid,\n\t\tadvisor_key = advisor_key\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupSelect\nLookupSelect split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@Match sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> Updatedimadvisor\nLookupIsMatch@NotMatch sink(input(\n\t\templid as string,\n\t\tname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\templid,\n\t\tname)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name" : "get_fund_details611_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PositionsTransform",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "FundTransform"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror14301"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderScriptComponent"
+      }, {
+        "name" : "Exists"
+      }, {
+        "name" : "Distinct"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "Distinctdistinct"
+      }, {
+        "name" : "Aggregatedistinct"
+      }, {
+        "name" : "DistinctdistinctFilterComponent"
+      }, {
+        "name" : "AggregatedistinctFilterComponent"
+      }, {
+        "name" : "Error14301"
+      } ],
+      "script" : "parameters{\n\tCfg_BypassDailyFundBreakdown as boolean (),\n\tCfg_DefaultErrorLevel as integer (),\n\tCfg_ImportRunId as integer (),\n\tCfg_ServiceHostTcpUri as string (),\n\tChannelName as string ()\n}\n\nsource(output(\n\t\tNamespace as string,\n\t\tClientLocationId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Distinct Namespace, ClientLocationId FROM  Staging.ChannelAssetTransform WHERE (ImportRunId = ?)',\n\tformat: 'query',\n\tstaged:false) ~> PositionsTransform\nPositionsTransform derive(Namespace = Namespace) ~> PlaceHolderScriptComponent\nPlaceHolderScriptComponent split(Exists == true(), disjoint: true) ~> Exists@(Yes,No)\nExists@Yes sort(asc(ImportRunId, false),asc(Name, false),asc(Grouping, false),asc(BagelNamespace, false)) ~> Distinct\nExists@No sort(asc(Namespace, false),asc(ImportRunId, false)) ~> Aggregate\nDistinct window(over(ImportRunId,\n\t\tName,\n\t\tGrouping,\n\t\tBagelNamespace),\n\tasc(ImportRunId, true),\n\tasc(Name, true),\n\tasc(Grouping, true),\n\tasc(BagelNamespace, true),\n\tRank_col = rowNumber()) ~> Distinctdistinct\nAggregate window(over(Namespace,\n\t\tImportRunId),\n\tasc(Namespace, true),\n\tasc(ImportRunId, true),\n\tRank_col = rowNumber()) ~> Aggregatedistinct\nDistinctdistinct filter(Rank_col == 1) ~> DistinctdistinctFilterComponent\nAggregatedistinct filter(Rank_col == 1) ~> AggregatedistinctFilterComponent\nDistinctdistinctFilterComponent sink(input(\n\t\tImportRunId as integer,\n\t\tFundGrouping as string,\n\t\tNamespace as string,\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportRunId,\n\t\tFundGrouping = Grouping,\n\t\tNamespace = BagelNamespace,\n\t\tName)) ~> FundTransform\nAggregatedistinctFilterComponent derive(ErrorLevel = 14301,\n\t\tMessage = left('Namespace not found in Bagel: ' + Namespace, 255)) ~> Error14301\nError14301 sink(input(\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage)) ~> Importerror14301"
+    }
+  }
+}

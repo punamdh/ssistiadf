@@ -1,0 +1,31 @@
+{
+  "name" : "dft_db2_scanout1869_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "db2scanout",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Loaddb2scanout"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tLOC_ID as short,\n\t\tSKU as integer,\n\t\tTYPE_CD as string,\n\t\tDT_ENT as timestamp,\n\t\tTM_ENT as string,\n\t\tSELLABLE_QTY as integer,\n\t\tROOT_CAUSE as string,\n\t\tPUTAWAY_FLG as string,\n\t\tDESCR as string,\n\t\tAISLE_BIN_LOC as string,\n\t\tABC_CLASS as string,\n\t\tREPLEN_TYPE_CD as string,\n\t\tREPLEN_SUB_TYPE_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT S.*, I.descr, A.AISLE_BIN_LOC, A.ABC_CLASS, A.Replen_Type_CD, A.Replen_Sub_Type_CD \tfrom OD.SCANOUT S, OD.ITEM I, OD.ITEMLOC A \tWhere S.dt_ent = CURRENT_DATE - 1 days and \tS.SKU = I.SKU \tAND S.SKU = A.SKU \tAND S.LOC_ID = A.LOC_ID WITH UR',\n\tformat: 'query',\n\tstaged:false) ~> db2scanout\ndb2scanout derive(LOC_ID = LOC_ID) ~> PlaceHolderRowCount\nPlaceHolderRowCount sink(input(\n\t\tABC_CLASS as string,\n\t\tTM_ENT as string,\n\t\tDT_ENT as timestamp 'dd-MM-yyyy',\n\t\tPUTAWAY_FLG as string,\n\t\tAISLE_BIN_LOC as string,\n\t\tREPLEN_SUB_TYPE_CD as string,\n\t\tSELLABLE_QTY as integer,\n\t\tLOC_ID as short,\n\t\tTYPE_CD as string,\n\t\tROOT_CAUSE as string,\n\t\tREPLEN_TYPE_CD as string,\n\t\tSKU as integer,\n\t\tDESCR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tABC_CLASS,\n\t\tTM_ENT,\n\t\tDT_ENT,\n\t\tPUTAWAY_FLG,\n\t\tAISLE_BIN_LOC,\n\t\tREPLEN_SUB_TYPE_CD,\n\t\tSELLABLE_QTY,\n\t\tLOC_ID,\n\t\tTYPE_CD,\n\t\tROOT_CAUSE,\n\t\tREPLEN_TYPE_CD,\n\t\tSKU,\n\t\tDESCR)) ~> Loaddb2scanout"
+    }
+  }
+}

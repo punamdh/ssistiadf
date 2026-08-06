@@ -1,0 +1,646 @@
+{
+  "name" : "ppl_mastercontroller_us",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "varCheckError",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varCheckError",
+        "value" : {
+          "value" : "@concat('/C echo rcad.net;FuturMasterSSIS ',variables('pkgParamRegion'),' ',variables('pkgParamSchedule'),';2;Batch ',variables('varBatchID'),' Job Ran FAILURE | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\exe\\\" -H \\\"mars-net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\cfg\\\" -d ;')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varCheckSuccess",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varCheckSuccess",
+        "value" : {
+          "value" : "@concat('/C echo rcad.net;FuturMasterSSIS ',variables('pkgParamRegion'),' ',variables('pkgParamSchedule'),';0;Batch ',variables('varBatchID'),' is OK | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\exe\\\" -H \\\"mars-net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\cfg\\\" -d ;')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varCheckWarning",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varCheckWarning",
+        "value" : {
+          "value" : "@concat('/C echo rcad.net;FuturMasterSSIS ',variables('pkgParamRegion'),' ',variables('pkgParamSchedule'),';2;Batch ',variables('varBatchID'),' is CRITICAL | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\exe\\\" -H \\\"mars-net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\cfg\\\" -d ;')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Begin_Batch1611__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "varCheckWarning",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varCheckError",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varCheckSuccess",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_BeginBatch @BatchInstanceID,@Schedule,@RegionID,@BatchRunType"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Begin_Batch1611__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1611__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varBatchID",
+        "value" : "@activity('Begin_Batch1611__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "0_Get_Interfaces1625_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Begin_Batch1611__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "usp_SelectInterfaceControllers_EKA ?,?,?",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Delete_File_If_Exists1616_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "0_Get_Interfaces1625_",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "0_Begin_Batch1611__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_File_If_Exists1616_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Interface_Controller1619_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_File_If_Exists1616_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Interfaces1625_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Interface_Controller1619__Execute_Interface_Controller1620_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Foreach_Interface_Controller1619__Get_Interface_Em",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Foreach_Interface_Controller1619__Execute_Interface_Controller1620_",
+            "dependencyConditions" : [ "Completed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "[dbo].[usp_SelectInterfaceEmail] ?,?",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Foreach_Interface_Controller1619__Foreach_",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Foreach_Interface_Controller1619__Get_Interface_Em",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Foreach_Interface_Controller1619__Get_Interface_Em').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Foreach_Interface_Controller1619__Foreach_Interface_Email_Report1621__Emails1622_",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Foreach_Interface_Controller1619__Foreach_Interface_Email_Report1621__Emails1622_",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "0_Get_Batch_Emails1624_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Interface_Controller1619_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "[dbo].[usp_SelectBatchEmail] ?",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Batch_Email_Report1617_",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_Batch_Emails1624_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('0_Get_Batch_Emails1624_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Foreach_Batch_Email_Report1617__Emails1618_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Foreach_Batch_Email_Report1617__Emails1618_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Check_For_Failed_Packages1612__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Batch_Email_Report1617_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_SelectBatchFailures @BatchID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Check_For_Failed_Packages1612__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Check_For_Failed_Packages1612__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varErrorCt",
+        "value" : "@activity('Check_For_Failed_Packages1612__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_Create_Success_File1615_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_For_Failed_Packages1612__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('varErrorCt'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Success_File1615_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Create_Success_File1615_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_Close_Batch1613__SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Check_For_Failed_Packages1612__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('varErrorCt') >= 1",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Close_Batch1613__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "usp_CloseBatch @varBatchID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Close_Batch1614__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Create_Success_File1615_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "usp_CloseBatch @varBatchID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Passive_Check_Warn1627_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_Close_Batch1613__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\Windows\\System32\\cmd.exe /C echo ssql0097.rcad.net;FuturMasterSSIS North America transcode-to be deleted;2;Batch 6 is CRITICAL | \"C:\\Program Files (x86)\\check_mk\\send_nsca\\send_nsca.exe\" -H \"vmwl5951.mars-ad.net\" -p \"5667\" -to \"60\" -c \"C:\\Program Files (x86)\\check_mk\\send_nsca\\send_nsca.cfg\" -d ;",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "Passive_Check_Succeed1626_",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Close_Batch1614__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\Windows\\System32\\cmd.exe /C echo ssql0097.rcad.net;FuturMasterSSIS North America transcode-to be deleted;0;Batch 6 is OK | \"C:\\Program Files (x86)\\check_mk\\send_nsca\\send_nsca.exe\" -H \"vmwl5951.mars-ad.net\" -p \"5667\" -to \"60\" -c \"C:\\Program Files (x86)\\check_mk\\send_nsca\\send_nsca.cfg\" -d ;",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "varCheckWarning" : {
+        "type" : "string",
+        "defaultValue" : "'/C echo ssql0097.rcad.net;FuturMasterSSIS North America transcode-to be deleted;2;Batch 6 is CRITICAL | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.exe\\\" -H \\\"vmwl5951.mars-ad.net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.cfg\\\" -d ;'"
+      },
+      "varPackages" : {
+        "type" : "string"
+      },
+      "varCheckSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'/C echo ssql0097.rcad.net;FuturMasterSSIS North America transcode-to be deleted;0;Batch 6 is OK | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.exe\\\" -H \\\"vmwl5951.mars-ad.net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.cfg\\\" -d ;'"
+      },
+      "varCheckError" : {
+        "type" : "string",
+        "defaultValue" : "'/C echo ssql0097.rcad.net;FuturMasterSSIS North America transcode-to be deleted;2;Batch 6 Job Ran FAILURE | \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.exe\\\" -H \\\"vmwl5951.mars-ad.net\\\" -p \\\"5667\\\" -to \\\"60\\\" -c \\\"C:\\\\Program Files (x86)\\\\check_mk\\\\send_nsca\\\\send_nsca.cfg\\\" -d ;'"
+      },
+      "varErrorCt" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varBatchID" : {
+        "type" : "Integer",
+        "defaultValue" : "6"
+      },
+      "varSSISOps_DisableBIxAuditing" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "varSSISOps_GroupNames" : {
+        "type" : "string"
+      },
+      "varEmails" : {
+        "type" : "string"
+      },
+      "varSubject" : {
+        "type" : "string",
+        "defaultValue" : "'SUCCESS - FuturMaster Integration SUCCESS - FuturMaster Integration'"
+      },
+      "varExtractPackages" : {
+        "type" : "string"
+      },
+      "varFromAddress" : {
+        "type" : "string",
+        "defaultValue" : "'FuturMaster@royalcanin.com'"
+      },
+      "varControllerPackage" : {
+        "type" : "string",
+        "defaultValue" : "'InterfaceController_US.dtsx'"
+      },
+      "varToAddress" : {
+        "type" : "string",
+        "defaultValue" : "'Tim.Britt1@royalcanin.com'"
+      },
+      "varInterfaceID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "varBatchEmails" : {
+        "type" : "string"
+      },
+      "varStoredProcedure" : {
+        "type" : "string"
+      },
+      "varEmail" : {
+        "type" : "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "name" : "ppl_cbgdm_master_budget 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "PackageNameWithRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageNameWithRun",
+        "value" : {
+          "value" : "@concat(pipeline().PipelineName,replace(concat('-',variables('DynamicRun')),'-ALL',''))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ParentPkgExecutionID",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ParentPkgExecutionID",
+        "value" : {
+          "value" : "@0 - variables('SourceSystemId')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionID338__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ParentPkgExecutionID",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "PackageNameWithRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID338__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID338__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID338__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Load_BudgetPerf_Facts339_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID338__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_BudgetDivision343_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_SalesPersonProjectFile346_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_UserADInfo347_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_dbo_FactBudgetDivision340_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_Stg_BudgetDivision343_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_SalesPersonProject345_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_Stg_SalesPersonProjectFile346_",
+            "dependencyConditions" : [ "Completed" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_UserADInfoXref348_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_Stg_UserADInfo347_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_Stg_BudgetSalesPerson344_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_Stg_UserADInfoXref348_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_dbo_FactBudgetSalesPerson342_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_Stg_BudgetSalesPerson344_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        }, {
+          "name" : "Load_BudgetPerf_Facts339__CBGDM_dbo_FactBudgetPerformance341_",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_BudgetPerf_Facts339__CBGDM_dbo_FactBudgetSalesPerson342_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID349__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_BudgetPerf_Facts339_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@StartTime\n  ,@PackageExecutionID=@PackageExecutionID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Success_PackageExecutionID350__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_BudgetPerf_Facts339_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@PackageExecutionID\n "
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "ParentPkgExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "-1"
+      },
+      "PackageNameWithRun" : {
+        "type" : "string",
+        "defaultValue" : "'CBGDM_Master_Budget'"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "stage0600_step03_42060_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tmppatientfzinput",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tmppatientfzoutput"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderPatientfuzzygrouping"
+      } ],
+      "script" : "parameters{\n\tvar_fzg_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fnln_row_score as decimal(10,0) (),\n\tvar_fzl_fn_row_score as decimal(10,0) (),\n\tvar_fzl_ln_row_score as decimal(10,0) (),\n\tVar_log_path as string ()\n}\n\nsource(output(\n\t\trow_id as string,\n\t\tgender as string,\n\t\taka_name as string,\n\t\tdupe_count as short,\n\t\tjulian_month as short,\n\t\tpatient_nbr as integer,\n\t\tphn as string,\n\t\thosp_patient_nbr as string,\n\t\tphn_clean as string,\n\t\tname_first as string,\n\t\tbirth_date as date,\n\t\tstreet_addr1 as string,\n\t\tstreet_addr2 as string,\n\t\tcity as string,\n\t\tprovince as string,\n\t\tpostal_code as string,\n\t\tphone_number as string,\n\t\tdata_source as string,\n\t\tname_first_middle_clean as string,\n\t\tname_last_clean as string,\n\t\tbatch_nbr as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM [ecms].[tmp_patient_fz_input] where batch_nbr=? order by phn_clean, len(name_first_middle_clean+name_last_clean)',\n\tformat: 'query',\n\tstaged:false) ~> tmppatientfzinput\ntmppatientfzinput derive(row_id = row_id) ~> PlaceHolderPatientfuzzygrouping\nPlaceHolderPatientfuzzygrouping sink(input(\n\t\tlast_name_score as integer,\n\t\tgender as string,\n\t\tdupe_count as short,\n\t\tcity as string,\n\t\tjulian_month as short,\n\t\tbirth_date as date 'dd-MM-yyyy',\n\t\tfz_output_match_key as integer,\n\t\tstreet_addr1 as string,\n\t\tstreet_addr2 as string,\n\t\tname_first_middle_clean as string,\n\t\taka_name as string,\n\t\tprovince as string,\n\t\tphn_clean as string,\n\t\tpatient_nbr as integer,\n\t\tname_first as string,\n\t\tname_last_clean as string,\n\t\tfirst_name_score as integer,\n\t\trow_score as integer,\n\t\tdata_source as string,\n\t\thosp_patient_nbr as string,\n\t\tfz_input_key as integer,\n\t\tphn as string,\n\t\tphone_number as string,\n\t\trow_id as string,\n\t\tpostal_code as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tlast_name_score = _Similarity_name_last_clean,\n\t\tgender,\n\t\tdupe_count,\n\t\tcity,\n\t\tjulian_month,\n\t\tbirth_date,\n\t\tfz_output_match_key = _key_out,\n\t\tstreet_addr1,\n\t\tstreet_addr2,\n\t\tname_first_middle_clean,\n\t\taka_name,\n\t\tprovince,\n\t\tphn_clean,\n\t\tpatient_nbr,\n\t\tname_first,\n\t\tname_last_clean,\n\t\tfirst_name_score = _Similarity_name_first_middle_clean,\n\t\trow_score,\n\t\tdata_source,\n\t\thosp_patient_nbr,\n\t\tfz_input_key = _key_in,\n\t\tphn,\n\t\tphone_number,\n\t\trow_id,\n\t\tpostal_code)) ~> tmppatientfzoutput"
+    }
+  }
+}

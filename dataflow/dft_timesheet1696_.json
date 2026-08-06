@@ -1,0 +1,123 @@
+{
+  "name" : "dft_timesheet1696_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCTimeSheet",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPDateLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPDefectLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPDeliverableLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPMajorTaskLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPMinorTaskLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPProjectLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPProjectResourceNameLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPTaskCategoryLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDSTTimesheet"
+      } ],
+      "transformations" : [ {
+        "name" : "LKPDeliverable"
+      }, {
+        "name" : "FilterLKPDeliverable"
+      }, {
+        "name" : "LKPMajorTask"
+      }, {
+        "name" : "FilterLKPMajorTask"
+      }, {
+        "name" : "LKPMinorTask"
+      }, {
+        "name" : "LKPMinorTaskSelect"
+      }, {
+        "name" : "FilterLKPMinorTask"
+      }, {
+        "name" : "LKPProject"
+      }, {
+        "name" : "LKPProjectSelect"
+      }, {
+        "name" : "FilterLKPProject"
+      }, {
+        "name" : "LKPProjectResourceName"
+      }, {
+        "name" : "LKPProjectResourceNameSelect"
+      }, {
+        "name" : "FilterLKPProjectResourceName"
+      }, {
+        "name" : "LKPTaskCategory"
+      }, {
+        "name" : "LKPTaskCategorySelect"
+      }, {
+        "name" : "FilterLKPTaskCategory"
+      }, {
+        "name" : "LKPDate"
+      }, {
+        "name" : "LKPDateSelect"
+      }, {
+        "name" : "FilterLKPDate"
+      }, {
+        "name" : "LKPDefect"
+      }, {
+        "name" : "LKPDefectSelect"
+      }, {
+        "name" : "FilterLKPDefect"
+      }, {
+        "name" : "DERForCheckNullValues"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tDate as date,\n\t\tTimeTaken as integer,\n\t\tDW_Run_Key as integer,\n\t\tMajorTaskID as integer,\n\t\tMinorTaskID as integer,\n\t\tDefectID as integer,\n\t\tDW_Upsert_Flag as string,\n\t\tCategoryID as integer,\n\t\tSubcategoryID as integer,\n\t\tTimeSheetID as integer,\n\t\tModified as timestamp,\n\t\tCategory as string,\n\t\tSubcategory as string,\n\t\tTitle as string,\n\t\tProjectID as integer,\n\t\tLoginName as string,\n\t\tDeliverableID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        TimeSheetID, CONVERT(date, [Date]) AS Date, TimeTaken, DW_Run_Key, ProjectID, MajorTaskID,DeliverableID, MinorTaskID, Category, Subcategory, DefectID, LOWER(RTRIM(LTRIM(ResourceName))) LoginName,                          DW_Upsert_Flag, CategoryID, SubcategoryID, Modified, Title FROM            src.stg_TimeSheet WHERE        (DW_Run_Key = ?)',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCTimeSheet\tsource(output(\n\t\tDateSK as timestamp,\n\t\tDate as date,\n\t\tDateLocal as timestamp,\n\t\tDayName as string,\n\t\tDayNumberInWeek as integer,\n\t\tDayNumberInMonth as integer,\n\t\tDayNumberInYear as integer,\n\t\tWeekNumberInMonth as integer,\n\t\tWeekNumberInYear as integer,\n\t\tMonthNumberInYear as integer,\n\t\tMonthShortName as string,\n\t\tMonthLongName as string,\n\t\tQuarterInYear as string,\n\t\tQuarter as string,\n\t\tHalfYear as string,\n\t\tFullYear as integer,\n\t\tFinancialYear as integer,\n\t\tQuarterInFinancialYear as string,\n\t\tDisplayFinancialYear as string,\n\t\tDisplayFinancialMonth as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from dw.D_Date',\n\tformat: 'query',\n\tstaged:false) ~> LKPDateLKPTABLE\tsource(output(\n\t\tDefectSk as integer,\n\t\tDefectID as integer,\n\t\tDefectProjectID as integer,\n\t\tDefectDeliverableID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DefectSk       ,DefectID             ,(select projectID from dw.D_Projects where ProjectSK=df.DefectProjectSk) as DefectProjectID             ,(select DeliverablesID from dw.d_Deliverables where DeliverableSK=df.DefectDeliverableSK) as DefectDeliverableID   FROM dw.D_Defects as df where DW_Current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPDefectLKPTABLE\tsource(output(\n\t\tDeliverableSK as integer,\n\t\tDeliverablesID as integer,\n\t\tDProjectID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        DeliverableSK, DeliverablesID, (select ProjectID from dw.D_Projects where ProjectSK=DeliverableProjectSk) as DProjectID FROM            dw.D_Deliverables WHERE DW_Current_Flag = 1',\n\tformat: 'query',\n\tstaged:false) ~> LKPDeliverableLKPTABLE\tsource(output(\n\t\tMajorTaskSK as integer,\n\t\tMajorTasksID as integer,\n\t\tMajorTaskProjectID as integer,\n\t\tMajorTaskTaskCategoryTypeSK as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        MajorTaskSK,  MajorTasksID,  (select projectID from dw.D_Projects where ProjectSK=mt.MajorTaskProjectSK) as MajorTaskProjectID, MajorTaskTaskCategoryTypeSK  FROM            dw.D_MajorTasks as mt   where DW_Current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPMajorTaskLKPTABLE\tsource(output(\n\t\tMinorTaskSK as integer,\n\t\tMinorTaskID as integer,\n\t\tMinorTaskProjectID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT MinorTaskSK       ,MinorTaskID       ,(select projectID from dw.D_Projects where ProjectSK=mt.MinorTaskProjectSk) as MinorTaskProjectID      FROM dw.D_MinorTasks as mt where DW_current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPMinorTaskLKPTABLE\tsource(output(\n\t\tProjectSK as integer,\n\t\tProjectID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        ProjectSK, ProjectID  FROM            dw.D_Projects  where DW_Current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPProjectLKPTABLE\tsource(output(\n\t\tProjectResourceSK as integer,\n\t\tLoginName as string,\n\t\tProjectResourceProjectID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select b.ProjectResourceSK,LOWER(LTRIM(RTRIM(LoginName)))LoginName, (select projectid from dw.D_Projects where ProjectSK=b.ProjectResourceProjectSK) as ProjectResourceProjectID  from dw.D_CompanyResources a  join dw.D_ProjectResources b on a.CompanyResourceSk=b.ProjectResourceComponyResourceSK  where b.dw_current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPProjectResourceNameLKPTABLE\tsource(output(\n\t\tCategoryID as integer,\n\t\tCategorySK as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        CategoryID, CategorySK FROM  dw.D_Category  where DW_current_Flag=1',\n\tformat: 'query',\n\tstaged:false) ~> LKPTaskCategoryLKPTABLE\nOLESRCTimeSheet,LKPDeliverableLKPTABLE lookup(ProjectID == DProjectID && DeliverableID == DeliverablesID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPDeliverable\nLKPDeliverable filter(isMatch()) ~> FilterLKPDeliverable\nFilterLKPDeliverable,LKPMajorTaskLKPTABLE lookup(ProjectID == MajorTaskProjectID && MajorTaskID == MajorTasksID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPMajorTask\nLKPMajorTask filter(isMatch()) ~> FilterLKPMajorTask\nFilterLKPMajorTask,LKPMinorTaskLKPTABLE lookup(OLESRCTimeSheet@MinorTaskID == LKPMinorTaskLKPTABLE@MinorTaskID && ProjectID == MinorTaskProjectID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPMinorTask\nLKPMinorTask select(mapColumn(\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMinorTaskID = LKPMinorTaskLKPTABLE@MinorTaskID,\n\t\tMinorTaskProjectID = MinorTaskProjectID,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tDefectID = DefectID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tCategoryID = CategoryID,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tProjectID = ProjectID,\n\t\tLoginName = LoginName,\n\t\tDeliverableID = DeliverableID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPMinorTaskSelect\nLKPMinorTaskSelect filter(isMatch()) ~> FilterLKPMinorTask\nFilterLKPMinorTask,LKPProjectLKPTABLE lookup(LKPMinorTaskSelect@ProjectID == LKPProjectLKPTABLE@ProjectID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPProject\nLKPProject select(mapColumn(\n\t\tProjectSK = ProjectSK,\n\t\tProjectID = LKPProjectLKPTABLE@ProjectID,\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tMinorTaskID = MinorTaskID,\n\t\tDefectID = DefectID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tCategoryID = CategoryID,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tLoginName = LoginName,\n\t\tDeliverableID = DeliverableID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPProjectSelect\nLKPProjectSelect filter(isMatch()) ~> FilterLKPProject\nFilterLKPProject,LKPProjectResourceNameLKPTABLE lookup(LKPProjectSelect@LoginName == LKPProjectResourceNameLKPTABLE@LoginName && ProjectID == ProjectResourceProjectID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPProjectResourceName\nLKPProjectResourceName select(mapColumn(\n\t\tProjectResourceSK = ProjectResourceSK,\n\t\tLoginName = LKPProjectResourceNameLKPTABLE@LoginName,\n\t\tProjectResourceProjectID = ProjectResourceProjectID,\n\t\tProjectSK = ProjectSK,\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tMinorTaskID = MinorTaskID,\n\t\tDefectID = DefectID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tCategoryID = CategoryID,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tProjectID = ProjectID,\n\t\tDeliverableID = DeliverableID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPProjectResourceNameSelect\nLKPProjectResourceNameSelect filter(isMatch()) ~> FilterLKPProjectResourceName\nFilterLKPProjectResourceName,LKPTaskCategoryLKPTABLE lookup(LKPProjectResourceNameSelect@CategoryID == LKPTaskCategoryLKPTABLE@CategoryID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPTaskCategory\nLKPTaskCategory select(mapColumn(\n\t\tCategoryID = LKPTaskCategoryLKPTABLE@CategoryID,\n\t\tCategorySK = CategorySK,\n\t\tProjectResourceSK = ProjectResourceSK,\n\t\tProjectSK = ProjectSK,\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tMinorTaskID = MinorTaskID,\n\t\tDefectID = DefectID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tProjectID = ProjectID,\n\t\tLoginName = LoginName,\n\t\tDeliverableID = DeliverableID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPTaskCategorySelect\nLKPTaskCategorySelect filter(isMatch()) ~> FilterLKPTaskCategory\nFilterLKPTaskCategory,LKPDateLKPTABLE lookup(LKPTaskCategorySelect@Date == LKPDateLKPTABLE@Date,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPDate\nLKPDate select(mapColumn(\n\t\tCategorySK = CategorySK,\n\t\tProjectResourceSK = ProjectResourceSK,\n\t\tProjectSK = ProjectSK,\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = LKPDateLKPTABLE@Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tMinorTaskID = MinorTaskID,\n\t\tDefectID = DefectID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tCategoryID = CategoryID,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tProjectID = ProjectID,\n\t\tLoginName = LoginName,\n\t\tDeliverableID = DeliverableID,\n\t\tDateSK = DateSK,\n\t\tDateLocal = DateLocal,\n\t\tDayName = DayName,\n\t\tDayNumberInWeek = DayNumberInWeek,\n\t\tDayNumberInMonth = DayNumberInMonth,\n\t\tDayNumberInYear = DayNumberInYear,\n\t\tWeekNumberInMonth = WeekNumberInMonth,\n\t\tWeekNumberInYear = WeekNumberInYear,\n\t\tMonthNumberInYear = MonthNumberInYear,\n\t\tMonthShortName = MonthShortName,\n\t\tMonthLongName = MonthLongName,\n\t\tQuarterInYear = QuarterInYear,\n\t\tQuarter = Quarter,\n\t\tHalfYear = HalfYear,\n\t\tFullYear = FullYear,\n\t\tFinancialYear = FinancialYear,\n\t\tQuarterInFinancialYear = QuarterInFinancialYear,\n\t\tDisplayFinancialYear = DisplayFinancialYear,\n\t\tDisplayFinancialMonth = DisplayFinancialMonth\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPDateSelect\nLKPDateSelect filter(isMatch()) ~> FilterLKPDate\nFilterLKPDate,LKPDefectLKPTABLE lookup(ProjectID == DefectProjectID && LKPDateSelect@DefectID == LKPDefectLKPTABLE@DefectID && DeliverableID == DefectDeliverableID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPDefect\nLKPDefect select(mapColumn(\n\t\tDefectSk = DefectSk,\n\t\tDefectID = LKPDefectLKPTABLE@DefectID,\n\t\tDefectProjectID = DefectProjectID,\n\t\tDefectDeliverableID = DefectDeliverableID,\n\t\tDateSK = DateSK,\n\t\tCategorySK = CategorySK,\n\t\tProjectResourceSK = ProjectResourceSK,\n\t\tProjectSK = ProjectSK,\n\t\tMinorTaskSK = MinorTaskSK,\n\t\tMajorTaskSK = MajorTaskSK,\n\t\tMajorTaskTaskCategoryTypeSK = MajorTaskTaskCategoryTypeSK,\n\t\tDeliverableSK = DeliverableSK,\n\t\tDate = Date,\n\t\tTimeTaken = TimeTaken,\n\t\tDW_Run_Key = DW_Run_Key,\n\t\tMajorTaskID = MajorTaskID,\n\t\tMinorTaskID = MinorTaskID,\n\t\tDW_Upsert_Flag = DW_Upsert_Flag,\n\t\tCategoryID = CategoryID,\n\t\tSubcategoryID = SubcategoryID,\n\t\tTimeSheetID = TimeSheetID,\n\t\tModified = Modified,\n\t\tCategory = Category,\n\t\tSubcategory = Subcategory,\n\t\tTitle = Title,\n\t\tProjectID = ProjectID,\n\t\tLoginName = LoginName,\n\t\tDeliverableID = DeliverableID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPDefectSelect\nLKPDefectSelect filter(isMatch()) ~> FilterLKPDefect\nFilterLKPDefect derive(tempMajorTaskSK = iif(isNull(MajorTaskSK), -(3), MajorTaskSK),\n\t\ttempMinorTaskSK = iif(isNull(MinorTaskSK), -(3), MinorTaskSK),\n\t\ttempProjectSK = iif(isNull(ProjectSK), -(3), ProjectSK),\n\t\ttempProjectResourceSK = iif(isNull(ProjectResourceSK), -(3), ProjectResourceSK),\n\t\tTimeTakenHR = (TimeTaken) / 60.0,\n\t\ttempTaskCategoryTypeSK = iif(isNull(MajorTaskTaskCategoryTypeSK), -(3), MajorTaskTaskCategoryTypeSK),\n\t\ttempDefectSK = iif(isNull(DefectSk), -(3), DefectSk),\n\t\ttempTaskCategorySK = toString(iif(isNull(CategorySK), -(3), CategorySK)),\n\t\ttempDeliverableSK = toString(iif(isNull(DeliverableSK), -(3), DeliverableSK))) ~> DERForCheckNullValues\nDERForCheckNullValues sink(input(\n\t\tTimeSheetProjectResourceSK as integer,\n\t\tTimeSheetTaskCategoryTypeSK as integer,\n\t\tTimeTaken as integer,\n\t\tTimeSheetDateSK as timestamp 'dd-MM-yyyy',\n\t\tTimeSheetTitle as string,\n\t\tDW_Run_Key as integer,\n\t\tTimeTakenHR as integer,\n\t\tTimeSheetTaskCategorySK as integer,\n\t\tTimeSheetID as integer,\n\t\tTimesheetDeliverableSK as integer,\n\t\tTimeSheetDate as timestamp 'dd-MM-yyyy',\n\t\tTimeSheetProjectSK as integer,\n\t\tTimeSheetDefectSk as integer,\n\t\tTimeSheetMajorTaskSK as integer,\n\t\tTimeSheetMinorTaskSk as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tTimeSheetProjectResourceSK = tempProjectResourceSK,\n\t\tTimeSheetTaskCategoryTypeSK = tempTaskCategoryTypeSK,\n\t\tTimeTaken,\n\t\tTimeSheetDateSK = DateSK,\n\t\tTimeSheetTitle = Title,\n\t\tDW_Run_Key,\n\t\tTimeTakenHR,\n\t\tTimeSheetTaskCategorySK = tempTaskCategorySK,\n\t\tTimeSheetID,\n\t\tTimesheetDeliverableSK = tempDeliverableSK,\n\t\tTimeSheetDate = Date,\n\t\tTimeSheetProjectSK = tempProjectSK,\n\t\tTimeSheetDefectSk = tempDefectSK,\n\t\tTimeSheetMajorTaskSK = tempMajorTaskSK,\n\t\tTimeSheetMinorTaskSk = tempMinorTaskSK)) ~> OLEDSTTimesheet"
+    }
+  }
+}

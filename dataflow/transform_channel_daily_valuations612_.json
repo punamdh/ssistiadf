@@ -1,0 +1,137 @@
+{
+  "name" : "transform_channel_daily_valuations612_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Positionsextract",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupclientlocationandschemenamesLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupfundnamespacesLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupschemeidLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DVTransform"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "FundTransform"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror10401"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror10410"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror10415"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror10440"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror14220"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Importerror14221"
+      } ],
+      "transformations" : [ {
+        "name" : "Convertcolumnsreplaceimportrunid"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "Error10440"
+      }, {
+        "name" : "Lookupclientlocationandschemenames"
+      }, {
+        "name" : "LookupclientlocationandschemenamesIsMatch"
+      }, {
+        "name" : "Lookupschemeid"
+      }, {
+        "name" : "Error10401"
+      }, {
+        "name" : "LookupschemeidSelect"
+      }, {
+        "name" : "LookupschemeidIsMatch"
+      }, {
+        "name" : "Dailyfeedenabled"
+      }, {
+        "name" : "Error10410"
+      }, {
+        "name" : "IsSchemeFundDVEnabled"
+      }, {
+        "name" : "AggregateClientLocation"
+      }, {
+        "name" : "AggregateClientLocationdistinct"
+      }, {
+        "name" : "Lookupfundnamespaces"
+      }, {
+        "name" : "AggregateClientLocationdistinctFilterComponent"
+      }, {
+        "name" : "Aggregatebyscheme"
+      }, {
+        "name" : "LookupfundnamespacesSelect"
+      }, {
+        "name" : "Error10415"
+      }, {
+        "name" : "LookupfundnamespacesIsMatch"
+      }, {
+        "name" : "Checknamespace"
+      }, {
+        "name" : "Error14220"
+      }, {
+        "name" : "Error14221"
+      }, {
+        "name" : "Aggregate"
+      } ],
+      "script" : "parameters{\n\tCfg_BypassDailyFundBreakdown as boolean (),\n\tCfg_DefaultErrorLevel as integer (),\n\tCfg_ImportRunId as integer (),\n\tCfg_ServiceHostTcpUri as string (),\n\tChannelName as string ()\n}\n\nsource(output(\n\t\tImportRunId as integer,\n\t\tImportFileId as integer,\n\t\tAssetName as string,\n\t\tMarketValue as string,\n\t\tRowNumber as integer,\n\t\tAccountId as string,\n\t\tValuationDate as timestamp,\n\t\tBaseUnits as string,\n\t\tId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT Id, ImportRunId, ImportFileId, RowNumber, ValuationDate, AccountId, AssetName, MarketValue, BaseUnits FROM  Staging.ChannelAssetExtract WHERE (ImportRunId = ?)',\n\tformat: 'query',\n\tstaged:false) ~> Positionsextract\tsource(output(\n\t\tId as integer,\n\t\tChannelName as string,\n\t\tChannelScheme as string,\n\t\tClientName as string,\n\t\tClientLocation as string,\n\t\tSchemeName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        Id, ChannelName, UPPER(ChannelScheme) AS ChannelScheme, ClientName, ClientLocation, SchemeName FROM            Lookup.ChannelScheme',\n\tformat: 'query',\n\tstaged:false) ~> LookupclientlocationandschemenamesLKPTABLE\tsource(output(\n\t\tAssetName as string,\n\t\tChannelName as string,\n\t\tNamespace as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        UPPER(AssetName) AssetName, ChannelName, Namespace FROM            Lookup.ChannelAsset',\n\tformat: 'query',\n\tstaged:false) ~> LookupfundnamespacesLKPTABLE\tsource(output(\n\t\tClientName as string,\n\t\tLocation as string,\n\t\tSchemeName as string,\n\t\tSchemeId as integer,\n\t\tClientLocationId as integer,\n\t\tDailyValuationFeed as boolean,\n\t\tFundDailyValuationEnabled as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT c.ClientName, Clients.Location.Description AS Location, s.SchemeName, s.id AS SchemeId, cl.ID AS ClientLocationId, s.DailyValuationFeed, FundDailyValuationEnabled  FROM  Clients.Client AS c INNER JOIN          Clients.ClientLocation AS cl ON c.ID = cl.ClientId INNER JOIN          Clients.Scheme AS s ON s.ClientLocationID = cl.ID INNER JOIN          Clients.Location ON cl.LocationId = Clients.Location.Id',\n\tformat: 'query',\n\tstaged:false) ~> LookupschemeidLKPTABLE\nPositionsextract derive(AccountIdConverted = upper(left(trim(AccountId), 255)),\n\t\tAssetNameConverted = upper(left(trim(AssetName), 255)),\n\t\tMarketValueConverted = toDouble((trim(MarketValue))),\n\t\tChannelName = $ChannelName,\n\t\tBaseUnitsConverted = toDouble((trim(BaseUnits)))) ~> Convertcolumnsreplaceimportrunid\nConvertcolumnsreplaceimportrunid split((!(isNull(AssetNameConverted)) && length(AssetNameConverted) == 0) && isNull(MarketValueConverted),isNull(MarketValueConverted), disjoint: true) ~> ConditionalSplit@(ThrowAway,NoMV,OK)\nConditionalSplit@NoMV derive(ErrorLevel = $Cfg_DefaultErrorLevel,\n\t\tMessage = left('Invalid market value: ' + trim(MarketValue), 255),\n\t\tOrdering = 10440) ~> Error10440\nConditionalSplit@OK,LookupclientlocationandschemenamesLKPTABLE lookup(ConditionalSplit@OK@ChannelName == ChannelName && AccountIdConverted == ChannelScheme,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookupclientlocationandschemenames\nError10440 sink(input(\n\t\tImportFileId as integer,\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tOrdering as integer,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage,\n\t\tOrdering,\n\t\tErrorLevel)) ~> Importerror10440\nLookupclientlocationandschemenames split(isMatch(), disjoint: true) ~> LookupclientlocationandschemenamesIsMatch@(Match,NotMatch)\nLookupclientlocationandschemenamesIsMatch@Match,LookupschemeidLKPTABLE lookup(LookupclientlocationandschemenamesIsMatch@Match@ClientName == LookupschemeidLKPTABLE@ClientName && ClientLocation == Location && LookupclientlocationandschemenamesIsMatch@Match@SchemeName == LookupschemeidLKPTABLE@SchemeName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookupschemeid\nLookupclientlocationandschemenamesIsMatch@NotMatch derive(ErrorLevel = $Cfg_DefaultErrorLevel,\n\t\tMessage = left('Failed to look up client, location & scheme for Account: ' + AccountNumberConverted, 255),\n\t\tOrdering = 10401) ~> Error10401\nLookupschemeid select(mapColumn(\n\t\tClientName = LookupschemeidLKPTABLE@ClientName,\n\t\tLocation = Location,\n\t\tSchemeName = LookupschemeidLKPTABLE@SchemeName,\n\t\tSchemeId = SchemeId,\n\t\tClientLocationId = ClientLocationId,\n\t\tDailyValuationFeed = DailyValuationFeed,\n\t\tFundDailyValuationEnabled = FundDailyValuationEnabled,\n\t\tClientLocation = ClientLocation,\n\t\t{} = {},\n\t\tAccountIdConverted = AccountIdConverted,\n\t\tAssetNameConverted = AssetNameConverted,\n\t\tMarketValueConverted = MarketValueConverted,\n\t\tChannelName = ChannelName,\n\t\tBaseUnitsConverted = BaseUnitsConverted,\n\t\tImportRunId = ImportRunId,\n\t\tImportFileId = ImportFileId,\n\t\tAssetName = AssetName,\n\t\tMarketValue = MarketValue,\n\t\tRowNumber = RowNumber,\n\t\tAccountId = AccountId,\n\t\tValuationDate = ValuationDate,\n\t\tBaseUnits = BaseUnits,\n\t\tId = Id\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupschemeidSelect\nError10401 sink(input(\n\t\tImportFileId as integer,\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tOrdering as integer,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage,\n\t\tOrdering,\n\t\tErrorLevel)) ~> Importerror10401\nLookupschemeidSelect split(isMatch(), disjoint: true) ~> LookupschemeidIsMatch@(Match,NotMatch)\nLookupschemeidIsMatch@Match split(DailyValuationFeed == true(), disjoint: true) ~> Dailyfeedenabled@(Yes,No)\nLookupschemeidIsMatch@NotMatch derive(ErrorLevel = $Cfg_DefaultErrorLevel,\n\t\tMessage = left('Failed to look up SchemeId from: ' + ClientName + '\\\\' + ClientLocation + '\\\\' + SchemeName, 255),\n\t\tOrdering = 10410) ~> Error10410\nDailyfeedenabled@DailyfeedenabledTOIsSchemeFundDVEnabledLINK split(FundDailyValuationEnabled && !($Cfg_BypassDailyFundBreakdown), disjoint: true) ~> IsSchemeFundDVEnabled@(FundDVEnabled,Ignore)\nDailyfeedenabled@No sort(asc(ClientName, false),asc(ClientLocation, false),asc(ImportRunId, false),asc(ImportFileId, false),asc(SchemeName, false)) ~> AggregateClientLocation\nError10410 sink(input(\n\t\tImportFileId as integer,\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tOrdering as integer,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage,\n\t\tOrdering,\n\t\tErrorLevel)) ~> Importerror10410\nAggregateClientLocation window(over(ClientName,\n\t\tClientLocation,\n\t\tImportRunId,\n\t\tImportFileId,\n\t\tSchemeName),\n\tasc(ClientName, true),\n\tasc(ClientLocation, true),\n\tasc(ImportRunId, true),\n\tasc(ImportFileId, true),\n\tasc(SchemeName, true),\n\tRank_col = rowNumber()) ~> AggregateClientLocationdistinct\nIsSchemeFundDVEnabled@FundDVEnabled,LookupfundnamespacesLKPTABLE lookup(IsSchemeFundDVEnabled@FundDVEnabled@ChannelName == LookupfundnamespacesLKPTABLE@ChannelName && AssetNameConverted == LookupfundnamespacesLKPTABLE@AssetName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookupfundnamespaces\nAggregateClientLocationdistinct filter(Rank_col == 1) ~> AggregateClientLocationdistinctFilterComponent\nDailyfeedenabled@Yes aggregate(groupBy(ValuationDate,SchemeId,ImportRunId,ImportFileId,ClientLocationId),\n\tMarketValueTotal = sum(MarketValueConverted)) ~> Aggregatebyscheme\nLookupfundnamespaces select(mapColumn(\n\t\t{} = {},\n\t\tSchemeId = SchemeId,\n\t\tClientLocationId = ClientLocationId,\n\t\tDailyValuationFeed = DailyValuationFeed,\n\t\tFundDailyValuationEnabled = FundDailyValuationEnabled,\n\t\tClientName = ClientName,\n\t\tClientLocation = ClientLocation,\n\t\tSchemeName = SchemeName,\n\t\tAccountIdConverted = AccountIdConverted,\n\t\tAssetNameConverted = AssetNameConverted,\n\t\tMarketValueConverted = MarketValueConverted,\n\t\tChannelName = LookupfundnamespacesLKPTABLE@ChannelName,\n\t\tBaseUnitsConverted = BaseUnitsConverted,\n\t\tImportRunId = ImportRunId,\n\t\tImportFileId = ImportFileId,\n\t\tAssetName = LookupfundnamespacesLKPTABLE@AssetName,\n\t\tMarketValue = MarketValue,\n\t\tRowNumber = RowNumber,\n\t\tAccountId = AccountId,\n\t\tValuationDate = ValuationDate,\n\t\tBaseUnits = BaseUnits,\n\t\tId = Id,\n\t\tNamespace = Namespace\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupfundnamespacesSelect\nAggregateClientLocationdistinctFilterComponent derive(ErrorLevel = 10415,\n\t\tMessage = left(ClientName + '\\\\' + ClientLocation + '\\\\' + SchemeName + ' is not enabled for daily asset feed (Client.Scheme table in LV)', 255)) ~> Error10415\nAggregatebyscheme sink(input(\n\t\tImportFileId as integer,\n\t\tMarketValue as double,\n\t\tValuationDate as timestamp 'dd-MM-yyyy',\n\t\tImportRunId as integer,\n\t\tSchemeId as integer,\n\t\tClientLocationId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tMarketValue = MarketValueTotal,\n\t\tValuationDate,\n\t\tImportRunId,\n\t\tSchemeId,\n\t\tClientLocationId)) ~> DVTransform\nLookupfundnamespacesSelect split(isMatch(), disjoint: true) ~> LookupfundnamespacesIsMatch@(Match,NotMatch)\nError10415 sink(input(\n\t\tImportFileId as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tImportRunId,\n\t\tMessage,\n\t\tErrorLevel)) ~> Importerror10415\nLookupfundnamespacesIsMatch@Match split(isNull(Namespace), disjoint: true) ~> Checknamespace@(Nonamespace,OK)\nLookupfundnamespacesIsMatch@NotMatch derive(ErrorLevel = 14220,\n\t\tMessage = left('Failed to look up ChannelAsset with asset name: ' + AssetNameConverted, 255)) ~> Error14220\nError14220 sink(input(\n\t\tImportFileId as integer,\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage,\n\t\tErrorLevel)) ~> Importerror14220\nChecknamespace@Nonamespace derive(ErrorLevel = 14221,\n\t\tMessage = left('Channel asset is not mapped to a fund. Asset name: ' + AssetNameConverted, 255)) ~> Error14221\nChecknamespace@OK aggregate(groupBy(ImportRunId,ImportFileId,ValuationDate,Namespace,ClientLocationId,SchemeId),\n\tRowNumber = min(RowNumber),\n\t\tMarketValueConverted = sum(MarketValueConverted),\n\t\tBaseUnitsConverted = sum(BaseUnitsConverted)) ~> Aggregate\nError14221 sink(input(\n\t\tImportFileId as integer,\n\t\tRowNumber as integer,\n\t\tImportRunId as integer,\n\t\tMessage as string,\n\t\tErrorLevel as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tRowNumber,\n\t\tImportRunId,\n\t\tMessage,\n\t\tErrorLevel)) ~> Importerror14221\nAggregate sink(input(\n\t\tImportFileId as integer,\n\t\tBaseUnits as double,\n\t\tMarketValue as double,\n\t\tRowNumber as integer,\n\t\tValuationDate as timestamp 'dd-MM-yyyy',\n\t\tImportRunId as integer,\n\t\tSchemeId as integer,\n\t\tClientLocationId as integer,\n\t\tNamespace as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tImportFileId,\n\t\tBaseUnits = BaseUnitsConverted,\n\t\tMarketValue = MarketValueConverted,\n\t\tRowNumber,\n\t\tValuationDate,\n\t\tImportRunId,\n\t\tSchemeId,\n\t\tClientLocationId,\n\t\tNamespace)) ~> FundTransform"
+    }
+  }
+}

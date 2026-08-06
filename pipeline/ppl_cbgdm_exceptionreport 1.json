@@ -1,0 +1,771 @@
+{
+  "name" : "ppl_cbgdm_exceptionreport 1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FileNameArchiveMFA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNameArchiveMFA",
+        "value" : {
+          "value" : "@replace(replace(variables('FileNameMFA'),variables('FileDropFolder'),variables('FileArchiveFolder')),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileNameArchiveOWA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNameArchiveOWA",
+        "value" : {
+          "value" : "@replace(replace(variables('FileNameOWA'),variables('FileDropFolder'),variables('FileArchiveFolder')),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileNameExceptionReport",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNameExceptionReport",
+        "value" : {
+          "value" : "@concat(variables('FileProcessFolder'),'\\\\csv')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileNameMFA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNameMFA",
+        "value" : {
+          "value" : "@concat(variables('FileDropFolder'),'\\\\ExceptionFiles\\\\',variables('MFAFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FileNameOWA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FileNameOWA",
+        "value" : {
+          "value" : "@concat(variables('FileDropFolder'),'\\\\ExceptionFiles\\\\',variables('OWAFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_MFA_file_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_MFA_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_MFA_file_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_MFA_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_MFA_file_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_MFA_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_OWA_file_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_OWA_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_OWA_file_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_OWA_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Read_from_OWA_file_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Read_from_OWA_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_ExceptionReport_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Write_to_ExceptionReport_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_ExceptionReport_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Write_to_ExceptionReport_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Write_to_ExceptionReport_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Load_Exception_Report_file268_') AS Write_to_ExceptionReport_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep') AS DELETE_Sequence_Container265__Delete_Exception_Rep_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep') AS DELETE_Sequence_Container265__Delete_Exception_Rep_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'DELETE_Sequence_Container265__Delete_Exception_Rep') AS DELETE_Sequence_Container265__Delete_Exception_Rep_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269') AS Sequence_Container265__Move_MFA_File_to_Archive269_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269') AS Sequence_Container265__Move_MFA_File_to_Archive269_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_MFA_File_to_Archive269') AS Sequence_Container265__Move_MFA_File_to_Archive269_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270_ContainerName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270') AS Sequence_Container265__Move_OWA_File_to_Archive270_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270_FileName' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270') AS Sequence_Container265__Move_OWA_File_to_Archive270_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270_FilePath' AND PIPELINE_NAME = 'CBGDM_ExceptionReport 1' AND DATAFLOW_NAME = 'Sequence_Container265__Move_OWA_File_to_Archive270') AS Sequence_Container265__Move_OWA_File_to_Archive270_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_PackageExecutionID264__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FileNameOWA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileNameArchiveMFA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileNameArchiveOWA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileNameExceptionReport",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "FileNameMFA",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='InProgress'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageGuid=@0\n  ,@PackageName=@1\n  ,@PackageStartTime=@2\n  ,@ParentPackagExecutionID=@3\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "0_Get_PackageExecutionID264__VA",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Get_PackageExecutionID264__SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PackageExecutionID",
+        "value" : "@activity('Get_PackageExecutionID264__SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Sequence_Container265_",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "0_Get_PackageExecutionID264__VA",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Sequence_Container265__Check_if_Source_files_exists266_",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Sequence_Container265__Check_if_Source_files_exists266_",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_Load_Exception_Report_file268_",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container265__Check_if_Source_files_exists266_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@variables('FileExists')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_Exception_Report_file268_0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "PPL_Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : { }
+              }
+            }, {
+              "name" : "Load_Exception_Report_file268_",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Exception_Report_file268_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_exception_report_file268_",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "MFAFileName" : {
+                      "type" : "Expression",
+                      "value" : "'UsersMFA_Disabled.csv'"
+                    },
+                    "ParentPackageExecutionID" : {
+                      "type" : "Expression",
+                      "value" : "-99"
+                    },
+                    "OWAFileName" : {
+                      "type" : "Expression",
+                      "value" : "'UsersOWA_Enabled.csv'"
+                    },
+                    "EmailDistribution" : {
+                      "type" : "Expression",
+                      "value" : "'sankar.subramanian@mariner-usa.com'"
+                    },
+                    "EmailProfileName" : {
+                      "type" : "Expression",
+                      "value" : "'CBGDM EMail'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "ReadfromMFAfile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadfromOWAfile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "WritetoExceptionReport" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_0_Sequence_Container265__Send_File_Miss",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container265__Check_if_Source_files_exists266_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@not(variables('FileExists'))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "0_Sequence_Container265__Send_File_Missing_Email27",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN\nDECLARE @EmailDistribution VARCHAR(200) = @EmailDistribution\nDECLARE @EmailProfileName VARCHAR(100) = @EmailProfileName\nDECLARE @SubjectText VARCHAR(100) = 'OWA-MFA Exception Report'\nDECLARE @BodyText VARCHAR(600) \n\nSET @BodyText = 'Hi Group,'+CHAR(13)+'Error: OWA/MFA files were not generated as expected.  Please check the scheduled Powershell task.'+Replicate(CHAR(13),3)+Replicate('-',50)+'This is a system generated E-mail.'+Replicate('-',50)\n\t\t\n \n EXEC msdb.dbo.sp_send_dbmail \n\t@profile_name = @EmailProfileName\n  \t,@recipients = @EmailDistribution\n  \t,@body = @BodyText\n  \t,@subject = @SubjectText\n;\nEND"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "Sequence_Container265__Send_File_Email271__SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_Load_Exception_Report_file268_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\n\tDECLARE @EmailDistribution VARCHAR(200) = @EmailDistribution\n\tDECLARE @EmailProfileName VARCHAR(100) = @EmailProfileName\n\tDECLARE @AttachmentFilename VARCHAR(600) =@FileNameExceptionReport\n\tDECLARE @SubjectText VARCHAR(100) = 'OWA-MFA Exception Report'\n\tDECLARE @BodyText VARCHAR(600) \n\n\tSET @BodyText = 'Hi Group,' + CHAR(13) + 'Please review the spreadsheet, there are users that have OWA enabled and have MFA disabled.' + Replicate(CHAR(13), 3) + Replicate('-', 50) + 'This is a system generated E-mail.' + Replicate('-', 50)\n\n\t\n\tEXEC msdb.dbo.sp_send_dbmail \n\t\t@profile_name = @EmailProfileName\n\t\t,@recipients = @EmailDistribution\n\t\t,@body = @BodyText\n\t\t,@subject = @SubjectText\n\t\t,@file_attachments = @AttachmentFilename;\nEND"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DELETE_Sequence_Container265__Delete_Exception_Rep",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container265__Send_File_Email271__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Sequence_Container265__Delete_Exception_Rep_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Sequence_Container265__Delete_Exception_Rep_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Sequence_Container265__Delete_Exception_Rep_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "COPYDATA_Sequence_Container265__Move_MFA_File_to_A",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container265__Send_File_Email271__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_MFA_File_to_A_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "COPYDATA_Sequence_Container265__Move_OWA_File_to_A",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Sequence_Container265__Send_File_Email271__SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Sequence_Container265__Move_OWA_File_to_A_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "Sequence_Container265__Move_MFA_File_to_Archive269",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "COPYDATA_Sequence_Container265__Move_MFA_File_to_A",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_MFA_File_to_Archive269_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_MFA_File_to_Archive269_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_MFA_File_to_Archive269_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Sequence_Container265__Move_OWA_File_to_Archive270",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "COPYDATA_Sequence_Container265__Move_OWA_File_to_A",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_OWA_File_to_Archive270_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_OWA_File_to_Archive270_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Sequence_Container265__Move_OWA_File_to_Archive270_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Update_Error_PackageExecutionID273__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container265_",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Failure'\n  ,@CurrentDate= @CurrentTime\n  ,@PackageStartTime=@StartTime\n  ,@PackageExecutionID=@PackageExecutionID"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Success_PackageExecutionID274__SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container265_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DECLARE @CurrentTime datetime= GETDATE()\n\nEXECUTE [dbo].[UpdatePackageExecutionID] \n   @ExecutionStatus='Success'\n  ,@CurrentDate=@CurrentTime\n  ,@PackageExecutionID=@PackageExecutionID\n  ,@RowsReadNoError=@RowsReadNoError\n  ,@RowsInserted=@RowsInserted\n  ,@RowsUpdated=@RowsUpdated\n  ,@RowsDeleted=@RowsDeleted\n  ,@RowsReadError=@RowsReadError\n  ,@RowsNotWrittenError=@RowsNotWrittenError\n  ,@RowsDiscarded=@RowsDiscarded\n  ,@RowsLookupError=0"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "parameters" : { },
+    "variables" : {
+      "RowsReadNoError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameExceptionReport" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Landing\\\\ExceptionReport.csv'"
+      },
+      "RowsInserted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameArchiveOWA" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Archive\\\\ExceptionFiles\\\\UsersOWA_Enabled_20190412.csv'"
+      },
+      "RowsNotWrittenError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsReadError" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameOWA" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileShare\\\\ExceptionFiles\\\\UsersOWA_Enabled.csv'"
+      },
+      "RowsUpdated" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsDeleted" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameMFA" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileShare\\\\ExceptionFiles\\\\UsersMFA_Disabled.csv'"
+      },
+      "PackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "RowsDiscarded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FileNameArchiveMFA" : {
+        "type" : "string",
+        "defaultValue" : "'L:\\\\FileProcessing\\\\Archive\\\\ExceptionFiles\\\\UsersMFA_Disabled_20190412.csv'"
+      },
+      "FileExists" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      }
+    }
+  }
+}

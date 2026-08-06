@@ -1,0 +1,47 @@
+{
+  "name" : "dim_location1979_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "LookupSelect"
+      }, {
+        "name" : "LookupIsMatch"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tsetid as string,\n\t\tlocation as string,\n\t\teffdt as date,\n\t\teff_status as string,\n\t\tdescr as string,\n\t\tdescrshort as string,\n\t\tbuilding as string,\n\t\tfloor as string,\n\t\tsector as string,\n\t\taddress1 as string,\n\t\taddress2 as string,\n\t\taddress3 as string,\n\t\taddress4 as string,\n\t\tcity as string,\n\t\tstate as string,\n\t\tpostal as string,\n\t\testabid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [setid]       ,[location]       ,[effdt]       ,[eff_status]       ,[descr]       ,[descrshort]       ,[building]       ,[floor]       ,[sector]       ,[address1]       ,[address2]       ,[address3]       ,[address4]       ,[city]       ,[state]       ,[postal]       ,[estabid]              from    (select  [setid]       ,[location]       ,[effdt]       ,[eff_status]       ,[descr]       ,[descrshort]       ,[building]       ,[floor]       ,[sector]       ,[address1]       ,[address2]       ,[address3]       ,[address4]       ,[city]       ,[state]       ,[postal]       ,[estabid]          ,r=row_number() over (partition by location order by effdt desc,eff_status asc)    FROM [ps_hcm].[ps_location_tbl]) r_location   where r=1',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tlocation_key as integer,\n\t\tsetid as string,\n\t\tlocation as string,\n\t\teffdt as date,\n\t\teff_status as string,\n\t\tdescr as string,\n\t\tdescrshort as string,\n\t\tbuilding as string,\n\t\tfloor as string,\n\t\tsector as string,\n\t\taddress1 as string,\n\t\taddress2 as string,\n\t\taddress3 as string,\n\t\taddress4 as string,\n\t\tcity as string,\n\t\tstate as string,\n\t\tpostal as string,\n\t\testabid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from hr.dim_location',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(OLEDBSource@location == LookupLKPTABLE@location,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tsetid = OLEDBSource@setid,\n\t\tlocation = OLEDBSource@location,\n\t\teffdt = OLEDBSource@effdt,\n\t\teff_status = OLEDBSource@eff_status,\n\t\tdescr = OLEDBSource@descr,\n\t\tdescrshort = OLEDBSource@descrshort,\n\t\tbuilding = OLEDBSource@building,\n\t\tfloor = OLEDBSource@floor,\n\t\tsector = OLEDBSource@sector,\n\t\taddress1 = OLEDBSource@address1,\n\t\taddress2 = OLEDBSource@address2,\n\t\taddress3 = OLEDBSource@address3,\n\t\taddress4 = OLEDBSource@address4,\n\t\tcity = OLEDBSource@city,\n\t\tstate = OLEDBSource@state,\n\t\tpostal = OLEDBSource@postal,\n\t\testabid = OLEDBSource@estabid,\n\t\tlocation_key = location_key\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupSelect\nLookupSelect split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@Match sink(input(\n\t\t{} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_6)) ~> OLEDBCommand\nLookupIsMatch@NotMatch sink(input(\n\t\testabid as string,\n\t\taddress3 as string,\n\t\taddress2 as string,\n\t\tcity as string,\n\t\taddress1 as string,\n\t\teffdt as date 'dd-MM-yyyy',\n\t\tbuilding as string,\n\t\tdescr as string,\n\t\tdescrshort as string,\n\t\tsetid as string,\n\t\tlocation as string,\n\t\taddress4 as string,\n\t\tstate as string,\n\t\tpostal as string,\n\t\tfloor as string,\n\t\tsector as string,\n\t\teff_status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\testabid,\n\t\taddress3,\n\t\taddress2,\n\t\tcity,\n\t\taddress1,\n\t\teffdt,\n\t\tbuilding,\n\t\tdescr,\n\t\tdescrshort,\n\t\tsetid,\n\t\tlocation,\n\t\taddress4,\n\t\tstate,\n\t\tpostal,\n\t\tfloor,\n\t\tsector,\n\t\teff_status)) ~> OLEDBDestination"
+    }
+  }
+}

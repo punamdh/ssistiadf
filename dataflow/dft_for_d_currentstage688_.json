@@ -1,0 +1,49 @@
+{
+  "name" : "dft_for_d_currentstage688_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCCURRENTSTAGE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDSTDCurrentStage"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "CMDtoUpdateChangingAttribute"
+      } ],
+      "transformations" : [ {
+        "name" : "DERCurrentFlag0"
+      }, {
+        "name" : "DERforCurrentFlagRunKey"
+      }, {
+        "name" : "SCDCurrentStageCONNECTEDLOOKUP"
+      }, {
+        "name" : "SCDCurrentStageREFORMATCOMPONENT"
+      }, {
+        "name" : "SCDCurrentStageSELECTCOMPONENT"
+      }, {
+        "name" : "All"
+      }, {
+        "name" : "DERCurrentFlag"
+      } ],
+      "script" : "\n derive(DW_Current_Flag = toInteger(('0'))) ~> DERCurrentFlag0\tsource(output(\n\t\tCurrentStageID as integer,\n\t\tCurrentStage as string,\n\t\tDW_Run_Key as integer,\n\t\tDW_Upsert_Flag as string,\n\t\tModified as timestamp,\n\t\tCreated as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select CurrentStageID,CurrentStage,DW_Run_Key,DW_Upsert_Flag,Modified,Created  from src.stg_CurrentStage where DW_Run_Key=?',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCCURRENTSTAGE\nDERCurrentFlag0 sink(input(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> CMDtoUpdateChangingAttribute\nOLESRCCURRENTSTAGE derive(DW_Current_Flag = toInteger(('1')),\n\t\tD_var_Dw_Effective_End_Date = toDate(toString($var_Dw_Effective_End_Date, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tDW_Update_Run_Key = $var_Dw_Run_Key) ~> DERforCurrentFlagRunKey\nDERforCurrentFlagRunKey lookup(TO_BE_FIXED_LOOKUP_KEYS == TO_BE_FIXED_LOOKUP_KEYS,\n\tmultiple: false,\n\tpickup: 'first',\n\tbroadcast: 'none')~> SCDCurrentStageCONNECTEDLOOKUP\nSCDCurrentStageCONNECTEDLOOKUP derive(SrcDimensionKeys = sha2(256,'')) ~> SCDCurrentStageREFORMATCOMPONENT\nSCDCurrentStageREFORMATCOMPONENT select(mapColumn(\n\t\tSrcDimensionKeys = SrcDimensionKeys\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> SCDCurrentStageSELECTCOMPONENT\nDERCurrentFlag0,SCDCurrentStageSELECTCOMPONENT union(byName: true) ~> All\nAll derive(DW_Current_Flag = toInteger(('1'))) ~> DERCurrentFlag\nDERCurrentFlag sink(input(\n\t\tDW_Current_Flag as integer,\n\t\tDW_Effective_End_Date as timestamp 'dd-MM-yyyy',\n\t\tDW_Upsert_Flag as string,\n\t\tCurrentStageID as integer,\n\t\tDW_Update_Run_Key as integer,\n\t\tCurrentStage as string,\n\t\tDW_Run_Key as integer,\n\t\tDW_Effective_Begin_Date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tDW_Current_Flag,\n\t\tDW_Effective_End_Date = D_var_Dw_Effective_End_Date,\n\t\tDW_Upsert_Flag,\n\t\tCurrentStageID,\n\t\tDW_Update_Run_Key,\n\t\tCurrentStage,\n\t\tDW_Run_Key,\n\t\tDW_Effective_Begin_Date = Created)) ~> OLEDSTDCurrentStage"
+    }
+  }
+}

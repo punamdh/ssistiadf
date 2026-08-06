@@ -1,0 +1,41 @@
+{
+  "name" : "todo_replace_create_version_in_md2151_",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetMDCurveIdsfromstaging",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupVersionLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "CurvesVersion"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupVersion"
+      }, {
+        "name" : "FilterLookupVersion"
+      }, {
+        "name" : "AddVersion1"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tMDCurveId as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT MDCurveId  FROM [Staging].[UserDefinedCurveTransform]  WHERE [Status]=\\'Loaded Curve\\' AND MDCurveId IS NOT NULL AND Error IS NULL GROUP BY MDCurveId',\n\tformat: 'query',\n\tstaged:false) ~> GetMDCurveIdsfromstaging\tsource(output(\n\t\tid as long,\n\t\tcurveId as long,\n\t\tversionNumber as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from Curves.Version',\n\tformat: 'query',\n\tstaged:false) ~> LookupVersionLKPTABLE\nGetMDCurveIdsfromstaging,LookupVersionLKPTABLE lookup(MDCurveId == curveId,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupVersion\nLookupVersion filter(!isMatch()) ~> FilterLookupVersion\nFilterLookupVersion derive(Version = 1) ~> AddVersion1\nAddVersion1 sink(input(\n\t\tcurveId as long,\n\t\tversionNumber as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tcurveId = MDCurveId,\n\t\tversionNumber = Version)) ~> CurvesVersion"
+    }
+  }
+}
