@@ -262,35 +262,72 @@
               "referenceName" : "load_target_table231_",
               "type" : "DataFlowReference",
               "parameters" : {
+                "RowsReadNoError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromRecPurchsOrder" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0 SELECT  \t [ProductId]=POD.di_inventory \t,[WarehouseId]=R.di_warehouse_id \t,[WarehouseLocationId]=RD.[di_warehouse_location_id] \t,[SupplierCode]=PO.ds_supplier \t,[RemittoSupplierCode]=PO.ds_supplier_remitto \t,[TransactionHeaderID]=CAST((CAST(R.di_receiving_id as varchar(10))+':'+PO.ds_project) as varchar(30)) \t,[TransactionDetailID]=CAST((CAST(Rd.di_receiving_dtl_id as varchar(10))+'-'+CAST( POD.[di_purchase_order_dtl_id] as varchar(10))) as varchar(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t(Partition by POD.[di_inventory],R.[di_warehouse_id] \t\t\t\t\t\t\t,R.di_receiving_id  \t\t\t\t\t\t\tORDER BY di_receiving_dtl_id,POD.[di_purchase_order_dtl_id]) \t,[TransactionStatus]=PO.[di_status] \t,[TransactionType]= CAST( 'Receiving-Purchase Order' as VARCHAR(30)) \t,[CreatedDate]=PO.dd_created \t,[ReleasedDate]=PO.dd_released \t,[CompletedDate]=PO.dd_completed \t,[DeleteDate]=PO.dd_deleted \t,[JournalDate]=R.dd_journal \t,[RequiredDate]=PO.dd_required \t,[FilledDate]=CAST(NULL as datetime) \t,[ConfirmedDeliveryDate]=POD.dd_confirmed_delivery \t,[Quantity]=RD.di_qty_received \t,[UnitCost]=CAST((POD.dn_price) as numeric(14,2)) \t,[IsReceivedForStock]=db_stock FROM dbo.pur_receiving_dtl RD WITH (NOLOCK) INNER JOIN dbo.pur_receiving R WITH (NOLOCK) ON R.di_receiving_id=RD.di_receiving_id INNER JOIN dbo.[pur_purchase_order_dtl] POD WITH (NOLOCK) ON RD.di_purchase_order_dtl_id=POD.di_purchase_order_dtl_id INNER JOIN dbo.[pur_purchase_order] PO WITH (NOLOCK) ON PO.di_purchase_order_id = POD.di_purchase_order_id AND R.di_purchase_order_id=PO.di_purchase_order_id  --WHERE   [di_inventory] IN (999817) '"
+                },
+                "QueryReadFromStockReqstion" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0 SELECT \t [ProductId]=SRD.[di_inventory] \t,[WarehouseId]=SR.[di_warehouse_id] \t,[WarehouseLocationId]=SRD.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST([SRD].di_stock_requisition_id as VARCHAR(30)) \t,[TransactionDetailID]=CAST(CAST(SRD.di_stock_requisition_dtl_id as varchar(20)) + '-' + CAST([di_stock_requisition_dtl_stock_id] as VARCHAR(20)) as VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by SRD.[di_inventory],SR.[di_warehouse_id] \t\t\t\t\t\t\t\t,SRD.di_stock_requisition_id \t\t\t\t\t\t\t\tORDER BY SRD.di_stock_requisition_dtl_id,[di_stock_requisition_dtl_stock_id]) \t,[TransactionStatus]=SR.[di_status] \t,[TransactionType]=CAST('Stock Requisition' as VARCHAR(30)) \t,[CreatedDate]=SR.[dd_created] \t,[ReleasedDate]=SR.dd_released \t,[CompletedDate]=SR.dd_completed \t,[DeleteDate]=SR.dd_deleted \t,[JournalDate]=SR.dd_journal \t,[RequiredDate]=SR.dd_required \t,[FilledDate]=SR.dd_filled \t,[ConfirmedDeliveryDate]=CAST(NULL AS datetime) \t,[Quantity]=0-[di_qty] \t,[UnitCost]=CAST([dn_cost] as NUMERIC(14, 2))   FROM   \t(SELECT\t [di_stock_requisition_dtl_stock_id] ,1as id  \t\t,[di_stock_requisition_dtl_id] \t\t,[di_qty] \t\t,[dn_cost] \tFROM [dbo].[ord_stock_requisition_dtl_stock]  WITH (NOLOCK) \tUNION ALL \tSELECT \t [di_stock_requisition_dtl_opening_id], 2 as id \t\t,[di_stock_requisition_dtl_id] \t\t,([di_qty]-di_qty_deleted) as [di_qty] \t\t,[dn_cost_wip] as [dn_cost] \tFROM [dbo].[ord_stock_requisition_dtl_opening] WITH (NOLOCK) \tWHERE   di_stock_requisition_dtl_id NOT IN \t\t(SELECT di_stock_requisition_dtl_id \t\t  FROM [dbo].[ord_stock_requisition_dtl_stock]  WITH (NOLOCK)) ) SRDO INNER JOIN dbo.ord_stock_requisition_dtl SRD WITH (NOLOCK) ON SRDO.di_stock_requisition_dtl_id=SRD.di_stock_requisition_dtl_id INNER JOIN dbo.ord_stock_requisition SR WITH (NOLOCK) ON SRD.di_stock_requisition_id = SR.di_stock_requisition_id  '"
+                },
+                "RowsInserted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsNotWrittenError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsReadError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadfromSourceAG" : {
+                  "type" : "Expression",
+                  "value" : "'--Ver1.0 Initial  --Ver1.0 Initial WITH MXDt as ( SELECT MAX(FILEDATE) MXFiledate FROM [Stg].[AgilityInvtyStockFile]) SELECT \t[ProductId] = CAST([ProductCode] AS int) \t,[Description] = CAST([MetricDescription] AS varchar(1024)) \t,[ProductTypeCategoryCode] = CAST([ProductTypeCategoryCode] AS varchar(30))  \t,[ManufacturerCode] = CAST([ManufacturerCode] AS varchar(50))  \t,[WarehouseId] = CAST([WarehouseId] AS int) \t,[WarehouseLocationId] = CAST([WarehouseId] AS int)  \t,[DivisionCode] = CAST([DivisionCode] AS varchar(8))  \t,[SupplierCode] = CAST('N/A' AS varchar(10)) \t,[TransactionHeaderID] = CAST('Agility Invty' AS varchar(30)) \t,[TransactionDetailID] = CAST('N/A' AS varchar(40)) \t,[TransactionStatus] = CAST(-1 AS int) \t,[TransactionType] = CAST( 'Receiving-Purchase Order AG' AS varchar(30)) \t,[CreatedDate] = CAST([LAST RECEIVE DATE] AS datetime) \t,[ReleasedDate] = CAST(NULL AS datetime) \t,[CompletedDate] = CAST([LAST RECEIVE DATE] AS datetime) \t,[DeleteDate] = CAST(NULL AS datetime) \t\t,[JournalDate] = CAST(ISNULL([LAST RECEIVE DATE],FileDate) AS datetime) ,[RequiredDate] = CAST(NULL AS datetime) \t,[FilledDate] = CAST(NULL AS datetime) \t,[ConfirmedDeliveryDate] = CAST(NULL AS datetime) \t,[IsReceivedForStock] = CAST(1 AS bit) \t,[IsWarehouseStockItem] = CAST(1 AS bit) \t,[IsFifo] = CAST(0 AS bit) \t,[Quantity] = CAST(ISNULL(ROUND(CAST([QTY ON HAND] AS NUMERIC(10,2)),0),0) AS int) \t,[QuantityUsed] = CAST(ISNULL(ROUND(CAST([QTY COMMITTED] AS NUMERIC(10,2)),0),0) AS int) \t,[QuantityRemaining] = CAST((ISNULL(ROUND(CAST([QTY ON HAND] AS NUMERIC(10,2)),0),0)- \t\t\t\t\t\t\t\t ISNULL(ROUND(CAST([QTY COMMITTED] AS NUMERIC(10,2)),0),0))  AS int) \t,[UnitCost] = CAST(ISNULL([Last Received Unit Cost],'0') AS numeric(14,2)) \t,[ExtendedCost] = CAST(ISNULL([EXTENDED COST QOH],'0') AS numeric(14,2)) \t,[ExtendedCostUsed] = CAST(ISNULL([EXTENDED COST QTY COMMITTED],'0') AS numeric(14,2)) \t,[ExtendedCostRemaining] = CAST( CAST(ISNULL([EXTENDED COST QOH],'0') AS decimal(14,2))  \t\t\t\t\t\t\t\t\t\t- CAST(ISNULL([EXTENDED COST QTY COMMITTED],'0') AS decimal(14,2)) AS numeric(14,2))     FROM [Stg].[AgilityInvtyStockFile] F LEFT JOIN DBO.Product P ON P.[Description] = F.Item+'|'+F.[Description] \t\t\t\t\t\t\tAND P.SourceSystemId = 6 LEFT JOIN DBO.Warehouse W ON W.Code = ISNULL(F.[Location],'') \t\t\t\t\t\t\tAND W.SourceSystemId = 6  WHERE FileDate IN (SELECT MXFiledate FROM MXDT)   '"
+                },
+                "RowsUpdated" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromPoolStockInv" : {
+                  "type" : "Expression",
+                  "value" : "'--Ver 1.0 SELECT   \t [ProductId]=PSI.[di_inventory] \t,[WarehouseId]=PWL.[di_warehouse_id] \t,[WarehouseLocationId]=PWL.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST(PS.di_pool_stock_id  as VARCHAR(30)) \t,[TransactionDetailID]=CAST(PSI.di_pool_stock_inventory_id as VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by PSI.[di_inventory],PWL.[di_warehouse_id] \t\t\t\t\t\t\t\t,PS.di_pool_stock_id \t\t\t\t\t\t\t\tORDER BY di_pool_stock_inventory_id) \t,[TransactionStatus]=3 \t,[TransactionType]=CAST('Pool Stock' as VARCHAR(30)) \t,[CreatedDate]=PS.[dd_created] \t,[ReleasedDate]=CAST(NULL AS datetime) \t,[CompletedDate]=CAST(NULL AS datetime) \t,[DeleteDate]=CAST(NULL AS datetime) \t,[JournalDate]=PS.dd_journal \t,[RequiredDate]=CAST(NULL AS datetime) \t,[FilledDate]=CAST(NULL AS datetime) \t,[ConfirmedDeliveryDate]=CAST(NULL AS datetime) \t,[Quantity]=[di_qty] \t,[UnitCost]=CAST([dn_cost] as NUMERIC(14, 2)) FROM [dbo].[pool_stock_inventory] PSI WITH (NOLOCK) JOIN dbo.prd_warehouse_location PWL WITH (NOLOCK) ON PWL.di_warehouse_location_id=PSI.di_warehouse_location_id JOIN [dbo].[pool_stock] PS WITH (NOLOCK) ON PSI.di_pool_stock_id=PS.di_pool_stock_id --WHERE di_inventory IN(999817) '"
+                },
+                "RowsDeleted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromProductCount" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0  SELECT  \t [ProductId]=[di_product_id] \t,[WarehouseId]=PC.[di_warehouse_id] \t,[WarehouseLocationId]=PCSD.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST([PCSD].[di_product_count_id] as varchar(30)) \t,[TransactionDetailID]=CAST((CAST([di_product_count_dtl_id] as varchar(10))+'-'+Src) as  varchar(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by [di_product_id],PC.[di_warehouse_id],[PCSD].[di_product_count_id] \t\t\t\t\t\t\t\tORDER BY [di_product_count_dtl_id]) \t,[TransactionStatus]=[di_status] \t,[TransactionType]=CAST('Product Count' as varchar(30)) \t,[CreatedDate]=[dd_created] \t,[ReleasedDate]=[dd_released] \t,[CompletedDate]=[dd_completed] \t,[DeleteDate]=[dd_deleted] \t,[JournalDate]=[dd_journal] \t,[RequiredDate]=CAST(NULL as datetime) \t,[FilledDate]=CAST(NULL as datetime) \t,[ConfirmedDeliveryDate]=CAST(NULL as datetime) \t,[Quantity]=di_qty \t,[UnitCost]=CAST(PCSD.dn_cost as Numeric(14,2)) FROM ( \tSELECT \t\t 'PCS' as Src  \t\t,di_product_count_id \t\t,di_product_count_stock_id as di_product_count_dtl_id \t\t,di_product_dtl_id   \t\t,0-di_qty as di_qty \t\t,PCS.dn_cost \t\t,-5 di_warehouse_location_id   \tFROM dbo.prd_product_count_stock PCS WITH (NOLOCK) \t \tUNION ALL \t \tSELECT  \t\t'PCD' as Src  \t\t,di_product_count_id \t\t,di_product_count_dtl_id  \t\t,di_product_dtl_id  \t\t,di_qty_counted  -  di_qty_released as di_qty  \t\t,PCD.dn_cost   \t\t,di_warehouse_location_id \tFROM dbo.prd_product_count_dtl PCD WITH (NOLOCK) \tINNER JOIN dbo.prd_product_dtl_warehouse_location PDWL  WITH (NOLOCK) \t\t\t\t ON PDWL.di_product_dtl_warehouse_location_id = PCD.di_product_dtl_warehouse_location_id \tWHERE di_qty_counted  -  di_qty_released >0 \t) PCSD INNER JOIN dbo.prd_product_count PC  WITH (NOLOCK) ON PC.di_product_count_id = PCSD.di_product_count_id INNER JOIN dbo.prd_product_dtl PD  WITH (NOLOCK) ON PD.di_product_dtl_id = PCSD.di_product_dtl_id  WHERE [di_status] <4 AND di_qty <> 0  --AND   [di_product_id] IN (999817) '"
+                },
                 "ParentPackageExecutionID" : {
                   "type" : "Expression",
                   "value" : "-99"
+                },
+                "PackageExecutionID" : {
+                  "type" : "Expression",
+                  "value" : "340"
+                },
+                "DestinationTable" : {
+                  "type" : "Expression",
+                  "value" : "'[dbo].[FactInventoryTransaction]'"
+                },
+                "RowsDiscarded" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromWorkOrder" : {
+                  "type" : "Expression",
+                  "value" : "'-- Version 1.0 SELECT [ProductId] = [di_product_id] \t,[WarehouseId] = WO.[di_warehouse_id] \t,[WarehouseLocationId]=PDWL.[di_warehouse_location_id] \t,[TransactionHeaderID] = CAST(WO.di_work_order_id AS VARCHAR(30)) \t,[TransactionDetailID] = CAST(di_work_order_stock_id AS VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by [di_product_id],WO.[di_warehouse_id] \t\t\t\t\t\t\t\t,WO.di_work_order_id \t\t\t\t\t\t\t\tORDER BY di_work_order_stock_id) \t,[TransactionStatus] = [di_status] \t,[TransactionType] = CAST('Work Order' AS VARCHAR(30)) \t,[CreatedDate] = [dd_created] \t,[ReleasedDate] = [dd_released] \t,[CompletedDate] = [dd_completed] \t,[DeleteDate] = [dd_deleted] \t,[JournalDate] = [dd_journal] \t,[RequiredDate] = CAST(NULL AS DATETIME) \t,[FilledDate] = CAST(NULL AS DATETIME) \t,[ConfirmedDeliveryDate] = CAST(NULL AS DATETIME) \t,[Quantity] = WOS.di_qty \t,[UnitCost] = CAST(WOS.dn_cost AS NUMERIC(14, 2)) FROM [dbo].[ord_work_order] WO   JOIN [dbo].[ord_work_order_stock] WOS ON WOS.di_work_order_id = WO.di_work_order_id   JOIN [dbo].[prd_product_dtl_warehouse_location] PDWL ON PDWL.di_product_dtl_warehouse_location_id = WOS.di_product_dtl_warehouse_location_id   JOIN prd_product_dtl PD ON PD.di_product_dtl_id = PDWL.di_product_dtl_id AND PD.di_warehouse_id = WO.[di_warehouse_id]  --WHERE   [di_product_Id] IN (999817) '"
                 }
               },
               "datasetParameters" : {
-                "LkpComSenseDWProductLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpComSenseDWProductLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpComSenseDWProductLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lkp ComSense DW Product",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "ReadFromRecPurchaseOrderERROROUTPUTFILE" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -304,138 +341,6 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LookupFifoLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lookup Fifo",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromRecPurchaseOrder" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From Rec-PurchaseOrder",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LookupWarehouseStockLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupWarehouseStockLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupWarehouseStockLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lookup Warehouse Stock",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "WritetoTarget" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadfromStockReqstionERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromProductCount" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From ProductCount",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -455,109 +360,6 @@
                   },
                   "FileName" : {
                     "value" : "Read from StockReqstion",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromProductCountERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LookupBCDivisionSKLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionSKLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionSKLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lookup BCDivisionSK",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromPoolStockInventoryERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LkpWarehouseDivisionLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lkp Warehouse Division",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromPoolStockInventory" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From Pool Stock Inventory",
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -589,6 +391,109 @@
                   },
                   "ColumnDelimiter" : ","
                 },
+                "WritetoTarget" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromProductCount" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From ProductCount",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LkpComSenseDWProductLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpComSenseDWProductLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpComSenseDWProductLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lkp ComSense DW Product",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromPoolStockInventoryERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadfromStockReqstionERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "ReadFromWorkOrderERROROUTPUTFILE" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -602,6 +507,161 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LookupBCDivisionSKLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionSKLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionSKLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lookup BCDivisionSK",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LookupWarehouseStockLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupWarehouseStockLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupWarehouseStockLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lookup Warehouse Stock",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromPoolStockInventory" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From Pool Stock Inventory",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromRecPurchaseOrder" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From Rec-PurchaseOrder",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LkpWarehouseDivisionLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lkp Warehouse Division",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LookupFifoLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lookup Fifo",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromProductCountERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -627,12 +687,112 @@
               "referenceName" : "load_target_table_ag232_",
               "type" : "DataFlowReference",
               "parameters" : {
+                "RowsReadNoError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromRecPurchsOrder" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0 SELECT  \t [ProductId]=POD.di_inventory \t,[WarehouseId]=R.di_warehouse_id \t,[WarehouseLocationId]=RD.[di_warehouse_location_id] \t,[SupplierCode]=PO.ds_supplier \t,[RemittoSupplierCode]=PO.ds_supplier_remitto \t,[TransactionHeaderID]=CAST((CAST(R.di_receiving_id as varchar(10))+':'+PO.ds_project) as varchar(30)) \t,[TransactionDetailID]=CAST((CAST(Rd.di_receiving_dtl_id as varchar(10))+'-'+CAST( POD.[di_purchase_order_dtl_id] as varchar(10))) as varchar(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t(Partition by POD.[di_inventory],R.[di_warehouse_id] \t\t\t\t\t\t\t,R.di_receiving_id  \t\t\t\t\t\t\tORDER BY di_receiving_dtl_id,POD.[di_purchase_order_dtl_id]) \t,[TransactionStatus]=PO.[di_status] \t,[TransactionType]= CAST( 'Receiving-Purchase Order' as VARCHAR(30)) \t,[CreatedDate]=PO.dd_created \t,[ReleasedDate]=PO.dd_released \t,[CompletedDate]=PO.dd_completed \t,[DeleteDate]=PO.dd_deleted \t,[JournalDate]=R.dd_journal \t,[RequiredDate]=PO.dd_required \t,[FilledDate]=CAST(NULL as datetime) \t,[ConfirmedDeliveryDate]=POD.dd_confirmed_delivery \t,[Quantity]=RD.di_qty_received \t,[UnitCost]=CAST((POD.dn_price) as numeric(14,2)) \t,[IsReceivedForStock]=db_stock FROM dbo.pur_receiving_dtl RD WITH (NOLOCK) INNER JOIN dbo.pur_receiving R WITH (NOLOCK) ON R.di_receiving_id=RD.di_receiving_id INNER JOIN dbo.[pur_purchase_order_dtl] POD WITH (NOLOCK) ON RD.di_purchase_order_dtl_id=POD.di_purchase_order_dtl_id INNER JOIN dbo.[pur_purchase_order] PO WITH (NOLOCK) ON PO.di_purchase_order_id = POD.di_purchase_order_id AND R.di_purchase_order_id=PO.di_purchase_order_id  --WHERE   [di_inventory] IN (999817) '"
+                },
+                "QueryReadFromStockReqstion" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0 SELECT \t [ProductId]=SRD.[di_inventory] \t,[WarehouseId]=SR.[di_warehouse_id] \t,[WarehouseLocationId]=SRD.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST([SRD].di_stock_requisition_id as VARCHAR(30)) \t,[TransactionDetailID]=CAST(CAST(SRD.di_stock_requisition_dtl_id as varchar(20)) + '-' + CAST([di_stock_requisition_dtl_stock_id] as VARCHAR(20)) as VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by SRD.[di_inventory],SR.[di_warehouse_id] \t\t\t\t\t\t\t\t,SRD.di_stock_requisition_id \t\t\t\t\t\t\t\tORDER BY SRD.di_stock_requisition_dtl_id,[di_stock_requisition_dtl_stock_id]) \t,[TransactionStatus]=SR.[di_status] \t,[TransactionType]=CAST('Stock Requisition' as VARCHAR(30)) \t,[CreatedDate]=SR.[dd_created] \t,[ReleasedDate]=SR.dd_released \t,[CompletedDate]=SR.dd_completed \t,[DeleteDate]=SR.dd_deleted \t,[JournalDate]=SR.dd_journal \t,[RequiredDate]=SR.dd_required \t,[FilledDate]=SR.dd_filled \t,[ConfirmedDeliveryDate]=CAST(NULL AS datetime) \t,[Quantity]=0-[di_qty] \t,[UnitCost]=CAST([dn_cost] as NUMERIC(14, 2))   FROM   \t(SELECT\t [di_stock_requisition_dtl_stock_id] ,1as id  \t\t,[di_stock_requisition_dtl_id] \t\t,[di_qty] \t\t,[dn_cost] \tFROM [dbo].[ord_stock_requisition_dtl_stock]  WITH (NOLOCK) \tUNION ALL \tSELECT \t [di_stock_requisition_dtl_opening_id], 2 as id \t\t,[di_stock_requisition_dtl_id] \t\t,([di_qty]-di_qty_deleted) as [di_qty] \t\t,[dn_cost_wip] as [dn_cost] \tFROM [dbo].[ord_stock_requisition_dtl_opening] WITH (NOLOCK) \tWHERE   di_stock_requisition_dtl_id NOT IN \t\t(SELECT di_stock_requisition_dtl_id \t\t  FROM [dbo].[ord_stock_requisition_dtl_stock]  WITH (NOLOCK)) ) SRDO INNER JOIN dbo.ord_stock_requisition_dtl SRD WITH (NOLOCK) ON SRDO.di_stock_requisition_dtl_id=SRD.di_stock_requisition_dtl_id INNER JOIN dbo.ord_stock_requisition SR WITH (NOLOCK) ON SRD.di_stock_requisition_id = SR.di_stock_requisition_id  '"
+                },
+                "RowsInserted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsNotWrittenError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "RowsReadError" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadfromSourceAG" : {
+                  "type" : "Expression",
+                  "value" : "'--Ver1.0 Initial  --Ver1.0 Initial WITH MXDt as ( SELECT MAX(FILEDATE) MXFiledate FROM [Stg].[AgilityInvtyStockFile]) SELECT \t[ProductId] = CAST([ProductCode] AS int) \t,[Description] = CAST([MetricDescription] AS varchar(1024)) \t,[ProductTypeCategoryCode] = CAST([ProductTypeCategoryCode] AS varchar(30))  \t,[ManufacturerCode] = CAST([ManufacturerCode] AS varchar(50))  \t,[WarehouseId] = CAST([WarehouseId] AS int) \t,[WarehouseLocationId] = CAST([WarehouseId] AS int)  \t,[DivisionCode] = CAST([DivisionCode] AS varchar(8))  \t,[SupplierCode] = CAST('N/A' AS varchar(10)) \t,[TransactionHeaderID] = CAST('Agility Invty' AS varchar(30)) \t,[TransactionDetailID] = CAST('N/A' AS varchar(40)) \t,[TransactionStatus] = CAST(-1 AS int) \t,[TransactionType] = CAST( 'Receiving-Purchase Order AG' AS varchar(30)) \t,[CreatedDate] = CAST([LAST RECEIVE DATE] AS datetime) \t,[ReleasedDate] = CAST(NULL AS datetime) \t,[CompletedDate] = CAST([LAST RECEIVE DATE] AS datetime) \t,[DeleteDate] = CAST(NULL AS datetime) \t\t,[JournalDate] = CAST(ISNULL([LAST RECEIVE DATE],FileDate) AS datetime) ,[RequiredDate] = CAST(NULL AS datetime) \t,[FilledDate] = CAST(NULL AS datetime) \t,[ConfirmedDeliveryDate] = CAST(NULL AS datetime) \t,[IsReceivedForStock] = CAST(1 AS bit) \t,[IsWarehouseStockItem] = CAST(1 AS bit) \t,[IsFifo] = CAST(0 AS bit) \t,[Quantity] = CAST(ISNULL(ROUND(CAST([QTY ON HAND] AS NUMERIC(10,2)),0),0) AS int) \t,[QuantityUsed] = CAST(ISNULL(ROUND(CAST([QTY COMMITTED] AS NUMERIC(10,2)),0),0) AS int) \t,[QuantityRemaining] = CAST((ISNULL(ROUND(CAST([QTY ON HAND] AS NUMERIC(10,2)),0),0)- \t\t\t\t\t\t\t\t ISNULL(ROUND(CAST([QTY COMMITTED] AS NUMERIC(10,2)),0),0))  AS int) \t,[UnitCost] = CAST(ISNULL([Last Received Unit Cost],'0') AS numeric(14,2)) \t,[ExtendedCost] = CAST(ISNULL([EXTENDED COST QOH],'0') AS numeric(14,2)) \t,[ExtendedCostUsed] = CAST(ISNULL([EXTENDED COST QTY COMMITTED],'0') AS numeric(14,2)) \t,[ExtendedCostRemaining] = CAST( CAST(ISNULL([EXTENDED COST QOH],'0') AS decimal(14,2))  \t\t\t\t\t\t\t\t\t\t- CAST(ISNULL([EXTENDED COST QTY COMMITTED],'0') AS decimal(14,2)) AS numeric(14,2))     FROM [Stg].[AgilityInvtyStockFile] F LEFT JOIN DBO.Product P ON P.[Description] = F.Item+'|'+F.[Description] \t\t\t\t\t\t\tAND P.SourceSystemId = 6 LEFT JOIN DBO.Warehouse W ON W.Code = ISNULL(F.[Location],'') \t\t\t\t\t\t\tAND W.SourceSystemId = 6  WHERE FileDate IN (SELECT MXFiledate FROM MXDT)   '"
+                },
+                "RowsUpdated" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromPoolStockInv" : {
+                  "type" : "Expression",
+                  "value" : "'--Ver 1.0 SELECT   \t [ProductId]=PSI.[di_inventory] \t,[WarehouseId]=PWL.[di_warehouse_id] \t,[WarehouseLocationId]=PWL.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST(PS.di_pool_stock_id  as VARCHAR(30)) \t,[TransactionDetailID]=CAST(PSI.di_pool_stock_inventory_id as VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by PSI.[di_inventory],PWL.[di_warehouse_id] \t\t\t\t\t\t\t\t,PS.di_pool_stock_id \t\t\t\t\t\t\t\tORDER BY di_pool_stock_inventory_id) \t,[TransactionStatus]=3 \t,[TransactionType]=CAST('Pool Stock' as VARCHAR(30)) \t,[CreatedDate]=PS.[dd_created] \t,[ReleasedDate]=CAST(NULL AS datetime) \t,[CompletedDate]=CAST(NULL AS datetime) \t,[DeleteDate]=CAST(NULL AS datetime) \t,[JournalDate]=PS.dd_journal \t,[RequiredDate]=CAST(NULL AS datetime) \t,[FilledDate]=CAST(NULL AS datetime) \t,[ConfirmedDeliveryDate]=CAST(NULL AS datetime) \t,[Quantity]=[di_qty] \t,[UnitCost]=CAST([dn_cost] as NUMERIC(14, 2)) FROM [dbo].[pool_stock_inventory] PSI WITH (NOLOCK) JOIN dbo.prd_warehouse_location PWL WITH (NOLOCK) ON PWL.di_warehouse_location_id=PSI.di_warehouse_location_id JOIN [dbo].[pool_stock] PS WITH (NOLOCK) ON PSI.di_pool_stock_id=PS.di_pool_stock_id --WHERE di_inventory IN(999817) '"
+                },
+                "RowsDeleted" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromProductCount" : {
+                  "type" : "Expression",
+                  "value" : "'--Version 1.0  SELECT  \t [ProductId]=[di_product_id] \t,[WarehouseId]=PC.[di_warehouse_id] \t,[WarehouseLocationId]=PCSD.[di_warehouse_location_id] \t,[TransactionHeaderID]=CAST([PCSD].[di_product_count_id] as varchar(30)) \t,[TransactionDetailID]=CAST((CAST([di_product_count_dtl_id] as varchar(10))+'-'+Src) as  varchar(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by [di_product_id],PC.[di_warehouse_id],[PCSD].[di_product_count_id] \t\t\t\t\t\t\t\tORDER BY [di_product_count_dtl_id]) \t,[TransactionStatus]=[di_status] \t,[TransactionType]=CAST('Product Count' as varchar(30)) \t,[CreatedDate]=[dd_created] \t,[ReleasedDate]=[dd_released] \t,[CompletedDate]=[dd_completed] \t,[DeleteDate]=[dd_deleted] \t,[JournalDate]=[dd_journal] \t,[RequiredDate]=CAST(NULL as datetime) \t,[FilledDate]=CAST(NULL as datetime) \t,[ConfirmedDeliveryDate]=CAST(NULL as datetime) \t,[Quantity]=di_qty \t,[UnitCost]=CAST(PCSD.dn_cost as Numeric(14,2)) FROM ( \tSELECT \t\t 'PCS' as Src  \t\t,di_product_count_id \t\t,di_product_count_stock_id as di_product_count_dtl_id \t\t,di_product_dtl_id   \t\t,0-di_qty as di_qty \t\t,PCS.dn_cost \t\t,-5 di_warehouse_location_id   \tFROM dbo.prd_product_count_stock PCS WITH (NOLOCK) \t \tUNION ALL \t \tSELECT  \t\t'PCD' as Src  \t\t,di_product_count_id \t\t,di_product_count_dtl_id  \t\t,di_product_dtl_id  \t\t,di_qty_counted  -  di_qty_released as di_qty  \t\t,PCD.dn_cost   \t\t,di_warehouse_location_id \tFROM dbo.prd_product_count_dtl PCD WITH (NOLOCK) \tINNER JOIN dbo.prd_product_dtl_warehouse_location PDWL  WITH (NOLOCK) \t\t\t\t ON PDWL.di_product_dtl_warehouse_location_id = PCD.di_product_dtl_warehouse_location_id \tWHERE di_qty_counted  -  di_qty_released >0 \t) PCSD INNER JOIN dbo.prd_product_count PC  WITH (NOLOCK) ON PC.di_product_count_id = PCSD.di_product_count_id INNER JOIN dbo.prd_product_dtl PD  WITH (NOLOCK) ON PD.di_product_dtl_id = PCSD.di_product_dtl_id  WHERE [di_status] <4 AND di_qty <> 0  --AND   [di_product_id] IN (999817) '"
+                },
                 "ParentPackageExecutionID" : {
                   "type" : "Expression",
                   "value" : "-99"
+                },
+                "PackageExecutionID" : {
+                  "type" : "Expression",
+                  "value" : "340"
+                },
+                "DestinationTable" : {
+                  "type" : "Expression",
+                  "value" : "'[dbo].[FactInventoryTransaction]'"
+                },
+                "RowsDiscarded" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "QueryReadFromWorkOrder" : {
+                  "type" : "Expression",
+                  "value" : "'-- Version 1.0 SELECT [ProductId] = [di_product_id] \t,[WarehouseId] = WO.[di_warehouse_id] \t,[WarehouseLocationId]=PDWL.[di_warehouse_location_id] \t,[TransactionHeaderID] = CAST(WO.di_work_order_id AS VARCHAR(30)) \t,[TransactionDetailID] = CAST(di_work_order_stock_id AS VARCHAR(40)) \t,[RecordNumber]=ROW_NUMBER() OVER  \t\t\t\t\t(Partition by [di_product_id],WO.[di_warehouse_id] \t\t\t\t\t\t\t\t,WO.di_work_order_id \t\t\t\t\t\t\t\tORDER BY di_work_order_stock_id) \t,[TransactionStatus] = [di_status] \t,[TransactionType] = CAST('Work Order' AS VARCHAR(30)) \t,[CreatedDate] = [dd_created] \t,[ReleasedDate] = [dd_released] \t,[CompletedDate] = [dd_completed] \t,[DeleteDate] = [dd_deleted] \t,[JournalDate] = [dd_journal] \t,[RequiredDate] = CAST(NULL AS DATETIME) \t,[FilledDate] = CAST(NULL AS DATETIME) \t,[ConfirmedDeliveryDate] = CAST(NULL AS DATETIME) \t,[Quantity] = WOS.di_qty \t,[UnitCost] = CAST(WOS.dn_cost AS NUMERIC(14, 2)) FROM [dbo].[ord_work_order] WO   JOIN [dbo].[ord_work_order_stock] WOS ON WOS.di_work_order_id = WO.di_work_order_id   JOIN [dbo].[prd_product_dtl_warehouse_location] PDWL ON PDWL.di_product_dtl_warehouse_location_id = WOS.di_product_dtl_warehouse_location_id   JOIN prd_product_dtl PD ON PD.di_product_dtl_id = PDWL.di_product_dtl_id AND PD.di_warehouse_id = WO.[di_warehouse_id]  --WHERE   [di_product_Id] IN (999817) '"
                 }
               },
               "datasetParameters" : {
+                "ReadfromStockReqstionERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "WritetoTarget" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "LookupBCDivisionSKLKPTABLE" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionSKLKPTABLE_TableName",
@@ -675,46 +835,6 @@
                   },
                   "Directory" : {
                     "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "WritetoTarget" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadfromStockReqstionERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -1056,9 +1176,14 @@
       }
     } ],
     "folder" : {
-      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
     },
-    "parameters" : { },
+    "parameters" : {
+      "ParentPackageExecutionID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    },
     "variables" : {
       "RowsReadNoError" : {
         "type" : "Integer",

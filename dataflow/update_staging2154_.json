@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -27,7 +27,7 @@
       }, {
         "name" : "Status"
       } ],
-      "script" : "\n\nsource(output(\n\t\tSubCategoryId as integer,\n\t\tDate as date,\n\t\tCurveId as integer,\n\t\tNamespace as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT Date  ,[SubCategoryId], CurveId, Namespace,Description  FROM [Staging].[UserDefinedCurveTransform]  WHERE [Status]=\\'Loaded Curve\\'  AND CurveId IS NOT NULL  AND MdCurveId IS NOT NULL AND MdVersionId IS NOT NULL  AND Error IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> Points\nPoints derive(SubCategoryId = SubCategoryId) ~> PlaceHolderScriptComponent\nPlaceHolderScriptComponent derive(Status = 'Loaded') ~> Status\nStatus sink(input(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> Update"
+      "script" : "parameters{\n\thasErrored as boolean (),\n\tWcfErrorMsg as string ()\n}\n\nsource(output(\n\t\tSubCategoryId as integer,\n\t\tDate as date,\n\t\tCurveId as integer,\n\t\tNamespace as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT Date  ,[SubCategoryId], CurveId, Namespace,Description  FROM [Staging].[UserDefinedCurveTransform]  WHERE [Status]=\\'Loaded Curve\\'  AND CurveId IS NOT NULL  AND MdCurveId IS NOT NULL AND MdVersionId IS NOT NULL  AND Error IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> Points\nPoints derive(SubCategoryId = SubCategoryId) ~> PlaceHolderScriptComponent\nPlaceHolderScriptComponent derive(Status = 'Loaded') ~> Status\nStatus sink(input(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> Update"
     }
   }
 }

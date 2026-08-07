@@ -205,7 +205,44 @@
         "dataflow" : {
           "referenceName" : "dft_fact_identification641_",
           "type" : "DataFlowReference",
-          "parameters" : { },
+          "parameters" : {
+            "MailServer" : {
+              "type" : "Expression",
+              "value" : "'192.168.65.225'"
+            },
+            "G_Run_Date" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "G_Run_Eff_DT" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('11/11/2010 11:22:30 AM')"
+            },
+            "MailIDTo" : {
+              "type" : "Expression",
+              "value" : "'BWBI@bitwiseglobal.com'"
+            },
+            "G_Run_End_DT" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('11/11/2010 11:22:22 AM')"
+            },
+            "ConnectString" : {
+              "type" : "Expression",
+              "value" : "'Provider=SQLNCLI11.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=AccessCard-BI;Data Source=glprdsql12'"
+            },
+            "Fact_table" : {
+              "type" : "Expression",
+              "value" : "'Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus='Exit' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus='Entry' then 1 else null end) IOStatus_EnCnt From(        Select a.*,ISNULL(ISNULL(E.IODate,S.IODate),a.IODate) IO_Date       FROM       (                         SELECT *                          FROM  FACT I                             where                          (                         iodate Between '11/11/2010 11:22:30 AM' And  '11/11/2010 11:22:22 AM'                         )                               ) AS A        LEFT OUTER JOIN        (               SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key               FROM OOOIOEntry               WHERE Reason = 'Final Exit'                 and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12       ) AS E              ON A.DW_Holder_Key = E.Holder_Key       AND A.IODate = (e.PrevDate)       LEFT OUTER JOIN       (               SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,                (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key               FROM OOOIOEntry                  WHERE Reason = 'Final Exit'                   and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12       ) AS S       ON A.DW_Holder_Key = s.Holder_Key       AND A.IODate = (S.NextDate) ) as AA Group By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date'"
+            },
+            "Dw_Run_Key" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "MailIDFrom" : {
+              "type" : "Expression",
+              "value" : "'Bhairavnath.Kale@bitwiseglobal.com'"
+            }
+          },
           "datasetParameters" : {
             "CMDAGGFACT" : {
               "TableName" : {
@@ -260,7 +297,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
     },
     "parameters" : { },
     "variables" : {

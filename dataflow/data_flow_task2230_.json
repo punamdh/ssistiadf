@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DataConversion"
       } ],
-      "script" : "\n\nsource(output(\n\t\tEffective_Date as double,\n\t\tLoan_Account_Number as double,\n\t\tFairValue as decimal(19,19),\n\t\tDateOfValue as date 'dd-MM-yyyy',\n\t\tTypeOfValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive({Copy of Effective_Date} = toDecimal(Effective_Date,30,10)) ~> DataConversion\nDataConversion sink(input(\n\t\tEffective_Date as double,\n\t\tFairValue as double,\n\t\tLoan_Account_Number as double,\n\t\tDateOfValue as timestamp 'dd-MM-yyyy',\n\t\tTypeOfValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tEffective_Date = {Copy of Effective_Date},\n\t\tFairValue,\n\t\tLoan_Account_Number,\n\t\tDateOfValue,\n\t\tTypeOfValue)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tArchivePath as string (),\n\tdestination_error_rows as integer (),\n\tErrorLogPath as string (),\n\tErrorLogPathFileName as string (),\n\tFileFound as boolean (),\n\tFrom_email as string (),\n\tFullArchivePathFileName as string (),\n\tFullSourcePathFileName as string (),\n\tMyFileValue as string (),\n\tSMTP as string (),\n\tSourcePath as string (),\n\tsource_error_rows as integer (),\n\tTo_email as string ()\n}\n\nsource(output(\n\t\tEffective_Date as double,\n\t\tLoan_Account_Number as double,\n\t\tFairValue as decimal(19,19),\n\t\tDateOfValue as date 'dd-MM-yyyy',\n\t\tTypeOfValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive({Copy of Effective_Date} = toDecimal(Effective_Date,30,10)) ~> DataConversion\nDataConversion sink(input(\n\t\tEffective_Date as double,\n\t\tFairValue as double,\n\t\tLoan_Account_Number as double,\n\t\tDateOfValue as timestamp 'dd-MM-yyyy',\n\t\tTypeOfValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tEffective_Date = {Copy of Effective_Date},\n\t\tFairValue,\n\t\tLoan_Account_Number,\n\t\tDateOfValue,\n\t\tTypeOfValue)) ~> OLEDBDestination"
     }
   }
 }

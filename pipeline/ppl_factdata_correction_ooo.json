@@ -227,7 +227,60 @@
         "dataflow" : {
           "referenceName" : "dft_factdata_crrection900_",
           "type" : "DataFlowReference",
-          "parameters" : { },
+          "parameters" : {
+            "PackageName" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "Fact_Quey" : {
+              "type" : "Expression",
+              "value" : "'WITH mylead (dw_fact_key, dw_holder_key, dw_gate_key, iodatetime, iotime, iodate,      iostatus, dw_run_key, dw_create_dt, dw_agg_key, validentryflag,      lastupdate_dt, rowvers)      AS (SELECT dw_fact_key,                 dw_holder_key,                 dw_gate_key,                 ( CONVERT(VARCHAR(10), iodate, 120) + ' ' +                   CONVERT(VARCHAR, iotime, 108) ) AS                 iodatetime,                 iotime,                 iodate,                 iostatus,                 dw_run_key,                 dw_create_dt,                 dw_agg_key,                 validentryflag,                 lastupdate_dt,                 Row_number() OVER(PARTITION BY dw_holder_key,DW_AGG_KEY ORDER BY (CONVERT(VARCHAR(10),                 iodate, 120) + ' ' + CONVERT(VARCHAR, iotime, 108)) ASC) rowvers          FROM   [Metadata_BI].[dbo].[FACT]          WHERE  dw_run_key = 100                  AND iostatus <> 'Invalid Door') SELECT rowvers,        employeename,        reason,        b.iodate                            AS o_iodate,        b.iotime                            AS o_iotime,        iodatetime,        end_iodatetime,        b.iostatus,       a.iostatus as basestatus,       a.leadstatus as leadstatus,        dw_fact_key,        a.dw_holder_key,        dw_gate_key,        a.dw_run_key,        a.dw_create_dt,        a.dw_agg_key,        validentryflag,        a.lastupdate_dt,                COUNT(1) OVER(PARTITION BY rowvers) cnt FROM   (SELECT base.dw_fact_key,                           base.dw_holder_key,                           base.dw_gate_key,                           base.iodatetime,                           base.iotime,                           base.iodate,                           base.iostatus,                           lead.iostatus as leadstatus,                           base.dw_run_key,                           base.dw_create_dt,                           base.dw_agg_key,                           base.validentryflag,                           base.lastupdate_dt,                           Coalesce(lead.iodatetime, NULL) AS end_iodatetime,                           base.rowvers                    FROM   mylead base                           LEFT JOIN mylead lead                             ON BASE.DW_RUN_KEY = 100                                                 AND base.dw_holder_key = lead.dw_holder_key                                AND base.dw_agg_key = lead.dw_agg_key                                AND base.rowvers = lead.rowvers - 1                                and BASE.ioSTATUS = LEAD.IOSTATUS                          )a          INNER JOIN dim_holder DH             ON a.dw_holder_key = DH.DW_HOLDER_KEY                    INNER JOIN oooioentry b             on dh.holder_name = b.employeename                 and (CONVERT (datetime, ( CONVERT(VARCHAR(10), b.iodate, 120) + ' ' + CONVERT(VARCHAR, b.iotime, 108)))+1 >= a.iodatetime)                  AND (CONVERT (datetime,( CONVERT(VARCHAR(10), b.iodate, 120) + ' ' + CONVERT(VARCHAR, b.iotime, 108) ))+1< a.end_iodatetime)                     inner JOIN agg_fact af          ON af.dw_agg_key = a.dw_agg_key             AND isvalidentry = 1'"
+            },
+            "FlatFileConnStr" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SwipeCard-BI\\\\Error.txt'"
+            },
+            "MailIDFrom" : {
+              "type" : "Expression",
+              "value" : "'Bhairavnath.Kale@bitwiseglobal.com'"
+            },
+            "MailServer" : {
+              "type" : "Expression",
+              "value" : "'192.168.65.225'"
+            },
+            "TestFilePath" : {
+              "type" : "Expression",
+              "value" : "'C:\\\\SwipeCard-BI\\\\MDB Data\\\\'"
+            },
+            "G_Run_Date" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "G_Run_Eff_DT" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('11/16/2010 7:07:34 PM')"
+            },
+            "MailIDTo" : {
+              "type" : "Expression",
+              "value" : "'BWBI@bitwiseglobal.com'"
+            },
+            "G_Run_End_DT" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('11/16/2010 7:07:00 PM')"
+            },
+            "MDBConn" : {
+              "type" : "Expression",
+              "value" : "'Data Source=C:\\\\SwipeCard-BI\\\\MDB Data\\\\Card.mdb;Provider=Microsoft.Jet.OLEDB.4.0;Persist Security Info=False;'"
+            },
+            "ConnectString" : {
+              "type" : "Expression",
+              "value" : "'Provider=SQLNCLI11.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=AccessCard-BI;Data Source=glprdsql12'"
+            },
+            "Dw_Run_Key" : {
+              "type" : "Expression",
+              "value" : "100"
+            }
+          },
           "datasetParameters" : {
             "OLEDSTFACT11" : {
               "TableName" : {
@@ -282,7 +335,7 @@
       }
     } ],
     "folder" : {
-      "name" : "Nonwellsfargo_0608/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
     },
     "parameters" : { },
     "variables" : {
