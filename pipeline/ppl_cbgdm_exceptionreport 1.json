@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "FileNameArchiveMFA",
         "value" : {
-          "value" : "@replace(replace(variables('FileNameMFA'),variables('FileDropFolder'),variables('FileArchiveFolder')),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
+          "value" : "@replace(replace(pipeline().parameters.FileNameMFA,pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().parameters.System.StartTime,'-',''),'.csv'))",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileNameArchiveOWA",
         "value" : {
-          "value" : "@replace(replace(variables('FileNameOWA'),variables('FileDropFolder'),variables('FileArchiveFolder')),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
+          "value" : "@replace(replace(pipeline().parameters.FileNameOWA,pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().parameters.System.StartTime,'-',''),'.csv'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "FileNameExceptionReport",
         "value" : {
-          "value" : "@concat(variables('FileProcessFolder'),'\\\\csv')",
+          "value" : "@concat(pipeline().parameters.FileProcessFolder,'\\\\ExceptionReport.csv')",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "FileNameMFA",
         "value" : {
-          "value" : "@concat(variables('FileDropFolder'),'\\\\ExceptionFiles\\\\',variables('MFAFileName'))",
+          "value" : "@concat(pipeline().parameters.FileDropFolder,'\\\\ExceptionFiles\\\\',pipeline().parameters.MFAFileName)",
           "type" : "Expression"
         }
       }
@@ -104,7 +104,7 @@
       "typeProperties" : {
         "variableName" : "FileNameOWA",
         "value" : {
-          "value" : "@concat(variables('FileDropFolder'),'\\\\ExceptionFiles\\\\',variables('OWAFileName'))",
+          "value" : "@concat(pipeline().parameters.FileDropFolder,'\\\\ExceptionFiles\\\\',pipeline().parameters.OWAFileName)",
           "type" : "Expression"
         }
       }
@@ -191,7 +191,7 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "PackageExecutionID",
+        "variableName" : "User::PackageExecutionID",
         "value" : "@activity('Get_PackageExecutionID264__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
@@ -250,7 +250,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "expression" : {
-              "value" : "@variables('FileExists')",
+              "value" : "@pipeline().parameters.FileExists",
               "type" : "Expression"
             },
             "ifFalseActivities" : [ ],
@@ -365,19 +365,19 @@
                     }
                   },
                   "datasetParameters" : {
-                    "ReadfromOWAfile" : {
+                    "WritetoExceptionReport" : {
                       "TableName" : null,
                       "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -399,19 +399,19 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "WritetoExceptionReport" : {
+                    "ReadfromOWAfile" : {
                       "TableName" : null,
                       "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoExceptionReport_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromOWAfile_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -436,7 +436,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "expression" : {
-              "value" : "@not(variables('FileExists'))",
+              "value" : "@not(pipeline().parameters.FileExists)",
               "type" : "Expression"
             },
             "ifFalseActivities" : [ ],

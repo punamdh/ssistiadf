@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().parameters.System.PackageName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().parameters.System.PackageName, '_', 3),']')",
           "type" : "Expression"
         }
       }
@@ -46,6 +46,27 @@
         }
       }
     }, {
+      "name" : "QueryReadFromProductCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromProductCount",
+        "value" : {
+          "value" : "@variables('di_product_id')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "QueryReadFromRecPurchsOrder",
       "type" : "SetVariable",
       "policy" : {
@@ -67,6 +88,23 @@
         }
       }
     }, {
+      "name" : "QueryReadfromSourceAG",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadfromSourceAG"
+      }
+    }, {
       "name" : "QueryReadFromStockReqstion",
       "type" : "SetVariable",
       "policy" : {
@@ -84,6 +122,27 @@
         "variableName" : "QueryReadFromStockReqstion",
         "value" : {
           "value" : "@variables('di_inventory')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "QueryReadFromWorkOrder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "QueryReadFromWorkOrder",
+        "value" : {
+          "value" : "@variables('di_product_id')",
           "type" : "Expression"
         }
       }
@@ -120,7 +179,7 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "QueryReadFromStockReqstion",
+        "activity" : "QueryReadFromWorkOrder",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "DestinationTable",
@@ -129,7 +188,16 @@
         "activity" : "QueryReadFromPoolStockInv",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
+        "activity" : "QueryReadFromProductCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
         "activity" : "QueryReadFromRecPurchsOrder",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadfromSourceAG",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "QueryReadFromStockReqstion",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "LKP_Fetch_Param",
@@ -167,7 +235,7 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "PackageExecutionID",
+        "variableName" : "User::PackageExecutionID",
         "value" : "@activity('Get_PackageExecutionID228__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
@@ -328,46 +396,6 @@
                 }
               },
               "datasetParameters" : {
-                "ReadFromRecPurchaseOrderERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadfromStockReqstion" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read from StockReqstion",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "ReadFromWorkOrder" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrder_TableName",
@@ -383,6 +411,69 @@
                   },
                   "FileName" : {
                     "value" : "Read From Work Order",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromWorkOrderERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LkpWarehouseDivisionLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lkp Warehouse Division",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromRecPurchaseOrder" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From Rec-PurchaseOrder",
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -414,29 +505,6 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ReadFromProductCount" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From ProductCount",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "LkpComSenseDWProductLKPTABLE" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpComSenseDWProductLKPTABLE_TableName",
@@ -460,19 +528,88 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ReadFromPoolStockInventoryERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "ReadfromStockReqstion" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_SchemaName",
+                    "type" : "Expression"
+                  },
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_ContainerName",
+                    "value" : "",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FileName",
+                    "value" : "Read from StockReqstion",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FilePath",
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "LookupFifoLKPTABLE" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Lookup Fifo",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromProductCount" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCount_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From ProductCount",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromProductCountERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -494,19 +631,42 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ReadFromWorkOrderERROROUTPUTFILE" : {
+                "ReadFromPoolStockInventoryERROROUTPUTFILE" : {
                   "TableName" : null,
                   "Schema" : null,
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_ContainerName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_FileName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromWorkOrderERROROUTPUTFILE_FilePath",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventoryERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadFromPoolStockInventory" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read From Pool Stock Inventory",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -557,111 +717,19 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ReadFromPoolStockInventory" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromPoolStockInventory_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From Pool Stock Inventory",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromRecPurchaseOrder" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrder_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read From Rec-PurchaseOrder",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LkpWarehouseDivisionLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LkpWarehouseDivisionLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lkp Warehouse Division",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "LookupFifoLKPTABLE" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupFifoLKPTABLE_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Lookup Fifo",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "ReadFromProductCountERROROUTPUTFILE" : {
+                "ReadFromRecPurchaseOrderERROROUTPUTFILE" : {
                   "TableName" : null,
                   "Schema" : null,
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_ContainerName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FileName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromProductCountERROROUTPUTFILE_FilePath",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromRecPurchaseOrderERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -753,19 +821,25 @@
                 }
               },
               "datasetParameters" : {
-                "ReadfromStockReqstionERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "ReadfromStockReqstion" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_SchemaName",
+                    "type" : "Expression"
+                  },
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
+                    "value" : "",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
+                    "value" : "Read from StockReqstion",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -816,25 +890,19 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ReadfromStockReqstion" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstion_SchemaName",
-                    "type" : "Expression"
-                  },
+                "ReadfromStockReqstionERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
                   "Container" : {
-                    "value" : "",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "Read from StockReqstion",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : null,
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStockReqstionERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -1125,7 +1193,7 @@
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "variableName" : "RowsInserted",
+            "variableName" : "User::RowsInserted",
             "value" : "@activity('Sequence_Container229__Get_Rows_Inserted_Updated23').output.resultSets[0].rows[0][0]"
           }
         }, {
