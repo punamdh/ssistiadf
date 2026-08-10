@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "FileNameArchiveMFA",
         "value" : {
-          "value" : "@replace(replace(pipeline().parameters.FileNameMFA,pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().parameters.System.StartTime,'-',''),'.csv'))",
+          "value" : "@replace(replace(variables('FileNameMFA'),pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileNameArchiveOWA",
         "value" : {
-          "value" : "@replace(replace(pipeline().parameters.FileNameOWA,pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().parameters.System.StartTime,'-',''),'.csv'))",
+          "value" : "@replace(replace(variables('FileNameOWA'),pipeline().parameters.FileDropFolder,pipeline().parameters.FileArchiveFolder),'.csv',concat('_',replace(pipeline().TriggerTime,'-',''),'.csv'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "FileNameExceptionReport",
         "value" : {
-          "value" : "@concat(pipeline().parameters.FileProcessFolder,'\\\\ExceptionReport.csv')",
+          "value" : "@concat(pipeline().parameters.FileProcessFolder,'\\\\csv')",
           "type" : "Expression"
         }
       }
@@ -191,7 +191,7 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "User::PackageExecutionID",
+        "variableName" : "PackageExecutionID",
         "value" : "@activity('Get_PackageExecutionID276__SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
@@ -250,7 +250,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "expression" : {
-              "value" : "@pipeline().parameters.FileExists",
+              "value" : "@variables('FileExists')",
               "type" : "Expression"
             },
             "ifFalseActivities" : [ ],
@@ -365,6 +365,23 @@
                     }
                   },
                   "datasetParameters" : {
+                    "ReadfromMFAfile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "ReadfromOWAfile" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -398,23 +415,6 @@
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
-                    },
-                    "ReadfromMFAfile" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromMFAfile_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
                     }
                   }
                 },
@@ -436,7 +436,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "expression" : {
-              "value" : "@not(pipeline().parameters.FileExists)",
+              "value" : "@not(variables('FileExists'))",
               "type" : "Expression"
             },
             "ifFalseActivities" : [ ],
@@ -762,7 +762,7 @@
       }
     } ],
     "folder" : {
-      "name" : "NonWellsfargo_0708/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_1008/SSIS_Inventory_Samples"
     },
     "parameters" : {
       "MFAFileName" : {
