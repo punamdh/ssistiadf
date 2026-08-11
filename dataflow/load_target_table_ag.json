@@ -1,0 +1,57 @@
+{
+  "name" : "load_target_table_ag",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ReadfromStockReqstion",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupBCDivisionSKLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "WritetoTarget"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ReadfromStockReqstionERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowsReadNoError"
+      }, {
+        "name" : "ReadfromStockReqstionErrorReformat"
+      }, {
+        "name" : "DerivedSourceSystemId"
+      }, {
+        "name" : "ReadfromStockReqstion0"
+      }, {
+        "name" : "DeriveAuditandOtherColumns"
+      }, {
+        "name" : "DerivedSKs"
+      }, {
+        "name" : "LookupBCDivisionSK"
+      }, {
+        "name" : "FilterLookupBCDivisionSK"
+      } ],
+      "script" : "parameters{\n\tDestinationTable as string (),\n\tPackageExecutionID as integer (),\n\tQueryReadFromPoolStockInv as string (),\n\tQueryReadFromProductCount as string (),\n\tQueryReadFromRecPurchsOrder as string (),\n\tQueryReadfromSourceAG as string (),\n\tQueryReadFromStockReqstion as string (),\n\tQueryReadFromWorkOrder as string (),\n\tRowsDeleted as integer (),\n\tRowsDiscarded as integer (),\n\tRowsInserted as integer (),\n\tRowsNotWrittenError as integer (),\n\tRowsReadError as integer (),\n\tRowsReadNoError as integer (),\n\tRowsUpdated as integer (),\n\tParentPackageExecutionID as integer (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tWarehouseId as integer,\n\t\tTransactionHeaderID as string,\n\t\tTransactionDetailID as string,\n\t\tTransactionStatus as integer,\n\t\tTransactionType as string,\n\t\tCreatedDate as timestamp,\n\t\tReleasedDate as timestamp,\n\t\tCompletedDate as timestamp,\n\t\tDeleteDate as timestamp,\n\t\tJournalDate as timestamp,\n\t\tRequiredDate as timestamp,\n\t\tFilledDate as timestamp,\n\t\tConfirmedDeliveryDate as timestamp,\n\t\tQuantity as integer,\n\t\tUnitCost as integer,\n\t\tWarehouseLocationId as integer,\n\t\tDescription as string,\n\t\tProductTypeCategoryCode as string,\n\t\tManufacturerCode as string,\n\t\tDivisionCode as string,\n\t\tSupplierCode as string,\n\t\tIsReceivedForStock as boolean,\n\t\tIsWarehouseStockItem as boolean,\n\t\tIsFifo as boolean,\n\t\tQuantityUsed as integer,\n\t\tQuantityRemaining as integer,\n\t\tExtendedCost as integer,\n\t\tExtendedCostUsed as integer,\n\t\tExtendedCostRemaining as integer,\n\t\tProductId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::QueryReadfromSourceAG',\n\tformat: 'query',\n\tstaged:false) ~> ReadfromStockReqstion\tsource(output(\n\t\tBCDivisionSK as long,\n\t\tComsenseDivisionSK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT BCDivisionSK = TargetSK \t,ComsenseDivisionSK = SourceSK FROM Stg.BCDimMappingVEL WHERE Shortcut Dimension Code = \\'DIVISION\\' \tAND SourceSK IS NOT NULL',\n\tformat: 'query',\n\tstaged:false) ~> LookupBCDivisionSKLKPTABLE\nReadfromStockReqstion derive(WarehouseId = WarehouseId) ~> PlaceHolderRowsReadNoError\nReadfromStockReqstion derive() ~> ReadfromStockReqstionErrorReformat\nPlaceHolderRowsReadNoError derive(SourceSystemId = $SourceSystemId) ~> DerivedSourceSystemId\nReadfromStockReqstionErrorReformat derive() ~> ReadfromStockReqstion0\nDerivedSourceSystemId derive(ETLCreateDate = $startTime,\n\t\tETLExecutionID = $PackageExecutionID,\n\t\tIsFifo = iifNull(IsFifo,0),\n\t\tIsReceivedForStock = iifNull(IsReceivedForStock,1),\n\t\tProductTypeCategoryCode = iifNull(ProductTypeCategoryCode,'Unknown'),\n\t\tManufacturerCode = iifNull(ManufacturerCode,'UNK'),\n\t\tIsWarehouseStockItem = iifNull(IsWarehouseStockItem,0),\n\t\tDivisionCode = iifNull(DivisionCode,'-1')) ~> DeriveAuditandOtherColumns\nReadfromStockReqstion0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> ReadfromStockReqstionERROROUTPUTFILE\nDeriveAuditandOtherColumns derive(DivisionSK = toString((toString($SourceSystemId) + '|' + DivisionCode)),\n\t\tProductTypeCategorySK = toString((toString($SourceSystemId) + '|' + ProductTypeCategoryCode)),\n\t\tManufacturerSK = toString((toString($SourceSystemId) + '|' + ManufacturerCode)),\n\t\tProductSK = (SHORT) $SourceSystemId * 10000000000L + toLong(ProductId),\n\t\tWarehouseSK = (SHORT) $SourceSystemId * 10000000000L + toLong(WarehouseId),\n\t\tSupplierSK = toString((toString($SourceSystemId) + '|' + SupplierCode))) ~> DerivedSKs\nDerivedSKs,LookupBCDivisionSKLKPTABLE lookup(DivisionSK == ComsenseDivisionSK,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupBCDivisionSK\nLookupBCDivisionSK filter(isMatch()) ~> FilterLookupBCDivisionSK\nFilterLookupBCDivisionSK sink(input(\n\t\tETLCreateDate as timestamp 'dd-MM-yyyy',\n\t\tExtendedCost as integer,\n\t\tTransactionType as string,\n\t\tDescription as string,\n\t\tProductTypeCategoryCode as string,\n\t\tManufacturerCode as string,\n\t\tTransactionStatus as integer,\n\t\tIsWarehouseStockItem as boolean,\n\t\tProductId as integer,\n\t\tBCDivisionSK as long,\n\t\tDivisionCode as string,\n\t\tSourceSystemId as long,\n\t\tWarehouseSK as long,\n\t\tTransactionDetailID as string,\n\t\tFilledDate as timestamp 'dd-MM-yyyy',\n\t\tConfirmedDeliveryDate as timestamp 'dd-MM-yyyy',\n\t\tSupplierSK as string,\n\t\tTransactionHeaderID as string,\n\t\tDivisionSK as string,\n\t\tRequiredDate as timestamp 'dd-MM-yyyy',\n\t\tManufacturerSK as string,\n\t\tJournalDate as timestamp 'dd-MM-yyyy',\n\t\tIsReceivedForStock as boolean,\n\t\tSupplierCode as string,\n\t\tExtendedCostUsed as integer,\n\t\tProductSK as long,\n\t\tQuantity as integer,\n\t\tWarehouseId as integer,\n\t\tProductTypeCategorySK as string,\n\t\tDeleteDate as timestamp 'dd-MM-yyyy',\n\t\tCompletedDate as timestamp 'dd-MM-yyyy',\n\t\tUnitCost as integer,\n\t\tIsFifo as boolean,\n\t\tExtendedCostRemaining as integer,\n\t\tETLExecutionID as long,\n\t\tCreatedDate as timestamp 'dd-MM-yyyy',\n\t\tQuantityUsed as integer,\n\t\tWarehouseLocationId as integer,\n\t\tQuantityRemaining as integer,\n\t\tReleasedDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tETLCreateDate,\n\t\tExtendedCost,\n\t\tTransactionType,\n\t\tDescription,\n\t\tProductTypeCategoryCode,\n\t\tManufacturerCode,\n\t\tTransactionStatus,\n\t\tIsWarehouseStockItem,\n\t\tProductId,\n\t\tBCDivisionSK,\n\t\tDivisionCode,\n\t\tSourceSystemId,\n\t\tWarehouseSK,\n\t\tTransactionDetailID,\n\t\tFilledDate,\n\t\tConfirmedDeliveryDate,\n\t\tSupplierSK,\n\t\tTransactionHeaderID,\n\t\tDivisionSK,\n\t\tRequiredDate,\n\t\tManufacturerSK,\n\t\tJournalDate,\n\t\tIsReceivedForStock,\n\t\tSupplierCode,\n\t\tExtendedCostUsed,\n\t\tProductSK,\n\t\tQuantity,\n\t\tWarehouseId,\n\t\tProductTypeCategorySK,\n\t\tDeleteDate,\n\t\tCompletedDate,\n\t\tUnitCost,\n\t\tIsFifo,\n\t\tExtendedCostRemaining,\n\t\tETLExecutionID,\n\t\tCreatedDate,\n\t\tQuantityUsed,\n\t\tWarehouseLocationId,\n\t\tQuantityRemaining,\n\t\tReleasedDate)) ~> WritetoTarget"
+    }
+  }
+}

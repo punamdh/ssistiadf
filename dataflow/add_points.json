@@ -1,0 +1,57 @@
+{
+  "name" : "add_points",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Points",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "MDInsertunmatchedvalues"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "MDCheckExists"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "MDUpdateMatchedValues"
+      } ],
+      "transformations" : [ {
+        "name" : "IsYearlyTenor"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "Converttenortoint"
+      }, {
+        "name" : "PointDate"
+      }, {
+        "name" : "NumDays"
+      }, {
+        "name" : "PeriodNumber"
+      }, {
+        "name" : "AddTenorIdDiscretisedDays"
+      }, {
+        "name" : "MDSplitonExists"
+      } ],
+      "script" : "parameters{\n\thasErrored as boolean (),\n\tWcfErrorMsg as string ()\n}\n\nsource(output(\n\t\tTenor as double,\n\t\tValue as double,\n\t\tCurveId as integer,\n\t\tCurveDate as date,\n\t\tMDVersionId as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT Tenor, Value, CurveId, Date AS CurveDate, MDVersionId FROM [Staging].[UserDefinedCurveTransform]  WHERE [Status]=\\'Loaded Curve\\' AND CurveId IS NOT NULL AND MDVersionId IS NOT NULL AND Error IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> Points\nPoints derive(IsYearlyTenorPoint = abs(Tenor - floor(Tenor)) < 0.0001) ~> IsYearlyTenor\nIsYearlyTenor split(IsYearlyTenorPoint == true(), disjoint: true) ~> ConditionalSplit@(Yearly,ConditionalSplitDefaultOutput)\nConditionalSplit@Yearly derive(TenorInt = toInteger(Tenor)) ~> Converttenortoint\nConverttenortoint derive(PointDate = addMonths(CurveDate, 0)) ~> PointDate\nPointDate derive(NumDays = notConvertedectfunctiondatedatediff('day', CurveDate, PointDate)) ~> NumDays\nNumDays derive(PeriodNumber = TenorInt,\n\t\tExistsLV = 0,\n\t\tExistsMD = 0) ~> PeriodNumber\nPeriodNumber derive(TenorId = 5,\n\t\tDiscretisedDays = 365) ~> AddTenorIdDiscretisedDays\nAddTenorIdDiscretisedDays sink(input(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> MDCheckExists\nAddTenorIdDiscretisedDays split(ExistsMD == 0 || isNull(ExistsMD), disjoint: true) ~> MDSplitonExists@(DoesNotExist,Exists)\nMDSplitonExists@DoesNotExist sink(input(\n\t\tdate as date 'dd-MM-yyyy',\n\t\tversionId as long,\n\t\tperiodNumber as integer,\n\t\toffset as integer,\n\t\ttenorId as integer,\n\t\tdiscretisedDays as integer,\n\t\tspotValue as double,\n\t\ttenorValue as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tdate = PointDate,\n\t\tversionId = MDVersionId,\n\t\tperiodNumber = PeriodNumber,\n\t\toffset = NumDays,\n\t\ttenorId = TenorId,\n\t\tdiscretisedDays = DiscretisedDays,\n\t\tspotValue = Value,\n\t\ttenorValue = TenorInt)) ~> MDInsertunmatchedvalues\nMDSplitonExists@Exists sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn()) ~> MDUpdateMatchedValues"
+    }
+  }
+}

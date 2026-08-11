@@ -1,0 +1,31 @@
+{
+  "name" : "dataflow_task",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "AllSalesADJUSTMENTS"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion1"
+      } ],
+      "script" : "parameters{\n\tActionToPerform as string (),\n\tAWSScriptFile as string (),\n\tCount_Incorrect_Adj_Type_Cd as integer (),\n\tCount_Incorrect_Adj_Type_Cd_Teradata as string (),\n\tCreateLogFile as string (),\n\tEmailFrom as string (),\n\tEmailOnCall as string (),\n\tEmailTo as string (),\n\tError_Ck as integer (),\n\tESP_Event_Nm as string (),\n\tESP_Job_Nm as string (),\n\tFileName_AllSales as string (),\n\tFileName_BSD as string (),\n\tFileName_CPD as string (),\n\tFileName_CPD_FIXED as string (),\n\tFileName_Duplicate as string (),\n\tFileName_FastLoad as string (),\n\tFileName_InvalidCustomerAdjts as string (),\n\tFileName_InvalidItems as string (),\n\tFileName_InvalidOrders as string (),\n\tFileName_InvalidRecords as string (),\n\tFileName_Loyalty as string (),\n\tFileName_Main as string (),\n\tFileName_ProgramAdj as string (),\n\tFilePath as string (),\n\tGlobalVarFile as string (),\n\tLoadMasterSnowSQLScriptName as string (),\n\tLoadStageSnowSQLScriptName as string (),\n\tLoadWorkSnowSQLScriptName as string (),\n\tMyDups as string (),\n\tS3_Command_Executable_Path as string (),\n\tSnowflakeConnectionName as string (),\n\tSnowflake_ODBC_Query_Schema_Name as string (),\n\tSnowflake_ODBC_Query_Table_Name as string (),\n\tSnowSQL_Command_Executable_Path as string (),\n\tSourceFileName as string (),\n\tSSISLogFileName as string (),\n\tSSISLogFolderPath as string (),\n\tSSISPackageFolder as string (),\n\tvFrznYear as string (),\n\tvSubjPage as string (),\n\tWorkTableRowCount as integer (),\n\tWorkTableRowCount_DataSet as string ()\n}\n\nsource(output(\n\t\tSource as string,\n\t\tAdjustment_Type_Cd as string,\n\t\tLoc_ID as integer,\n\t\tBusinessDay_Dt as integer,\n\t\tBusinessUnit_CD as string,\n\t\tSale_Type_CD as integer,\n\t\tItemSku_Num as integer,\n\t\tCustomer_Account_ID as integer,\n\t\tOrder_ID as string,\n\t\tSub_Order_ID as integer,\n\t\tFDay_ID as integer,\n\t\tFyear_ID as integer,\n\t\tSales as integer,\n\t\tCost as integer,\n\t\tProgram_USD_AMT as integer,\n\t\tCurrency as string,\n\t\tComments as string,\n\t\tConv_Rebates_CustLvl_Adj as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT \t  Source \t, Adjustment_Type_Cd \t, Loc_ID \t, BusinessDay_Dt \t, Left(RTRIM(BusinessUnit_CD),2) AS BusinessUnit_CD \t, Sale_Type_CD \t, ItemSku_Num \t, Customer_Account_ID \t, Order_ID \t, Sub_Order_ID \t, FDay_ID \t, Fyear_ID \t, Sales \t, Cost \t, Program_USD_AMT \t, Comments \t, Currency               ,Conv_Rebates_CustLvl_Adj FROM Finance_Other_Adj_SalesType where  (Loc_ID is not null) and  (BusinessDay_Dt is not null) and  (BusinessUnit_CD is not null) and  (Sale_Type_CD is not null) and  (ItemSku_Num is not null) and  (Customer_Account_ID is not null) and  (Order_ID is not null) and  (Sub_Order_ID is not null) and  (FDay_ID is not null) and  (Fyear_ID is not null) and  (Sales is not null) and  (Cost is not null) and  (Program_USD_AMT is not null) and  (Comments is not null) and  (Currency is not null)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(Comments = Comments) ~> DataConversion1\nDataConversion1 sink(input(\n\t\tLoc_ID as string,\n\t\tOrder_ID as string,\n\t\tSale_Type_CD as string,\n\t\tAdjustment_Type_Cd as string,\n\t\tItemSku_Num as string,\n\t\tSub_Order_ID as string,\n\t\tComments as string,\n\t\tFDay_ID as string,\n\t\tConv_Rebates_CustLvl_Adj as string,\n\t\tCost as string,\n\t\tSource as string,\n\t\tProgram_USD_AMT as string,\n\t\tBusinessUnit_CD as string,\n\t\tSales as string,\n\t\tBusinessDay_Dt as string,\n\t\tCustomer_Account_ID as string,\n\t\tCurrency as string,\n\t\tFyear_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoc_ID,\n\t\tOrder_ID,\n\t\tSale_Type_CD,\n\t\tAdjustment_Type_Cd,\n\t\tItemSku_Num,\n\t\tSub_Order_ID,\n\t\tComments,\n\t\tFDay_ID,\n\t\tConv_Rebates_CustLvl_Adj,\n\t\tCost,\n\t\tSource,\n\t\tProgram_USD_AMT,\n\t\tBusinessUnit_CD,\n\t\tSales,\n\t\tBusinessDay_Dt,\n\t\tCustomer_Account_ID,\n\t\tCurrency,\n\t\tFyear_ID)) ~> AllSalesADJUSTMENTS"
+    }
+  }
+}

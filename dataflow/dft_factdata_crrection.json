@@ -1,0 +1,35 @@
+{
+  "name" : "dft_factdata_crrection",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCFACTOOIOENTRY",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDSTFACT11"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderSCRINCORRECTDATA"
+      }, {
+        "name" : "CSPLINVALIDFLAG"
+      }, {
+        "name" : "DRVSRCCol"
+      } ],
+      "script" : "parameters{\n\tConnectString as string (),\n\tDw_Run_Key as integer (),\n\tFact_Quey as string (),\n\tFlatFileConnStr as string (),\n\tG_Run_Date as integer (),\n\tG_Run_Eff_DT as timestamp (),\n\tG_Run_End_DT as timestamp (),\n\tMailIDFrom as string (),\n\tMailIDTo as string (),\n\tMailServer as string (),\n\tMDBConn as string (),\n\tPackageName as string (),\n\tTestFilePath as string (),\n\tpackageName as string ()\n}\n\nsource(output(\n\t\trowvers as long,\n\t\temployeename as string,\n\t\treason as string,\n\t\to_iodate as timestamp,\n\t\tiostatus as string,\n\t\tdw_fact_key as integer,\n\t\to_iotime as timestamp,\n\t\tdw_holder_key as integer,\n\t\tdw_gate_key as integer,\n\t\tiodatetime as string,\n\t\tdw_run_key as integer,\n\t\tdw_create_dt as timestamp,\n\t\tdw_agg_key as integer,\n\t\tvalidentryflag as integer,\n\t\tlastupdate_dt as timestamp,\n\t\tcnt as integer,\n\t\tbasestatus as string,\n\t\tleadstatus as string,\n\t\tend_iodatetime as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'WITH mylead (dw_fact_key, dw_holder_key, dw_gate_key, iodatetime, iotime, iodate,      iostatus, dw_run_key, dw_create_dt, dw_agg_key, validentryflag,      lastupdate_dt, IsMainGate,rowvers)      AS (SELECT dw_fact_key,                 dw_holder_key,                 d.dw_gate_key,                 ( CONVERT(VARCHAR(10), iodate, 120) + \\' \\' +                   CONVERT(VARCHAR, iotime, 108) ) AS                 iodatetime,                 iotime,                 iodate,                 iostatus,                 f.dw_run_key,                 f.dw_create_dt,                 dw_agg_key,                 validentryflag,                 f.lastupdate_dt,                 IsMainGate,                 Row_number() OVER(PARTITION BY DW_AGG_KEY ORDER BY (CONVERT(VARCHAR(10),                 iodate, 120) + \\' \\' + CONVERT(VARCHAR, iotime, 108)) ASC) rowvers          FROM   [Metadata_BI].[dbo].[FACT] f          Inner Join Dim_Gate d          On f.dw_Gate_key = d.Dw_Gate_Key          WHERE  f.dw_run_key = 101                  AND iostatus <> \\'Invalid Door\\') SELECT rowvers,        employeename,        reason,        b.iodate                            AS o_iodate,        b.iotime                            AS o_iotime,        iodatetime,        end_iodatetime,        b.iostatus,       a.iostatus as basestatus,       a.leadstatus as leadstatus,        dw_fact_key,        a.dw_holder_key,        dw_gate_key,        a.dw_run_key,        a.dw_create_dt,        a.dw_agg_key,        validentryflag,        a.lastupdate_dt,                COUNT(1) OVER(PARTITION BY rowvers) cnt FROM   (SELECT base.dw_fact_key,                           base.dw_holder_key,                           base.dw_gate_key,                           base.iodatetime,                           base.iotime,                           base.iodate,                           base.iostatus,                           lead.iostatus as leadstatus,                           base.dw_run_key,                           base.dw_create_dt,                           base.dw_agg_key,                           base.validentryflag,                           base.lastupdate_dt,                           Coalesce(lead.iodatetime, NULL) AS end_iodatetime,                           base.rowvers                    FROM   mylead base                           LEFT JOIN mylead lead                             ON BASE.DW_RUN_KEY = 101                                                 AND base.dw_holder_key = lead.dw_holder_key                                AND base.dw_agg_key = lead.dw_agg_key                                AND base.rowvers = lead.rowvers - 1                                and BASE.ioSTATUS = LEAD.IOSTATUS                          WHERE base.IsMainGate = 1                          And Lead.IsMainGate = 1                          )a          INNER JOIN dim_holder DH             ON  a.dw_holder_key = DH.DW_HOLDER_KEY                    INNER JOIN oooioentry b             on dh.holder_name = b.employeename                 and (CONVERT (datetime, ( CONVERT(VARCHAR(10), b.iodate, 120) + \\' \\' + CONVERT(VARCHAR, b.iotime, 108)))>= a.iodatetime)                  AND (CONVERT (datetime,( CONVERT(VARCHAR(10), b.iodate, 120) + \\' \\' + CONVERT(VARCHAR, b.iotime, 108) ))< a.end_iodatetime)                 and b.reason <>\\'Final Exit\\'                     inner JOIN agg_fact af          ON af.dw_agg_key = a.dw_agg_key             AND isvalidentry = 1',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCFACTOOIOENTRY\nOLESRCFACTOOIOENTRY derive(rowvers = rowvers) ~> PlaceHolderSCRINCORRECTDATA\nPlaceHolderSCRINCORRECTDATA split(SplitFlag != true(), disjoint: true) ~> CSPLINVALIDFLAG@(ValidEntries,InvalidEntries)\nCSPLINVALIDFLAG@ValidEntries derive(SRC = toString($packageName)) ~> DRVSRCCol\nDRVSRCCol sink(input(\n\t\t{} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\t{} = Param_0)) ~> OLEDSTFACT11"
+    }
+  }
+}

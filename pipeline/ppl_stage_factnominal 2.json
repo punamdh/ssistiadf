@@ -25,7 +25,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_11909__SCRIPT",
+      "name" : "Execute_SQL_Task_1_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -47,11 +47,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Set_variables1912__SCRIPT",
+      "name" : "Set_variables_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_11909__SCRIPT",
+        "activity" : "Execute_SQL_Task_1_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -69,7 +69,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Set_variables1912__VA",
+      "name" : "Set_variables_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -79,7 +79,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Set_variables1912__SCRIPT",
+        "activity" : "Set_variables_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -87,14 +87,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "CurMaxID",
-        "value" : "@activity('Set_variables1912__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Set_variables_SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "Execute_SQL_Task1908__SCRIPT",
+      "name" : "Execute_SQL_Task_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Set_variables1912__VA",
+        "activity" : "Set_variables_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -112,7 +112,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Execute_SQL_Task1908__VA",
+      "name" : "Execute_SQL_Task_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -122,7 +122,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task1908__SCRIPT",
+        "activity" : "Execute_SQL_Task_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -130,25 +130,121 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "MaxID",
-        "value" : "@activity('Execute_SQL_Task1908__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Execute_SQL_Task_SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "For_Loop_Container1910__UNTIL",
-      "type" : "Wait",
+      "name" : "For_Loop_Container_UNTIL",
+      "type" : "Until",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Execute_SQL_Task1908__VA",
+        "activity" : "Execute_SQL_Task_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "expression" : {
+          "value" : "@variables('MinRowsSet1') <= variables('CurMaxID')",
+          "type" : "Expression"
+        },
+        "timeout" : "0.12:00:00",
+        "activities" : [ {
+          "name" : "For_Loop_Container_Set_MaxRowsSet1",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MaxRowsSet1",
+            "value" : {
+              "value" : "@concat(variables('IncrementRows'),variables('MinRowsSet1'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Stage_FactNominal_1_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "For_Loop_Container_Set_MaxRowsSet1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [stg].[FactNominal] \n(\n      [NomID]\n      ,[IsWIPBill]\n      ,[PeriodID]\n      ,[Ref]\n      ,[Date]\n      ,[DateKey]\n      ,[ClientID]\n      ,[JobID]\n      ,[JobOfficeID]\n      ,[JobServiceLineID]\n      ,[ManagerID]\n      ,[PartnerID]\n      ,[NominalID]\n      ,[ContNominalID]\n      ,[NomTypeID]\n      ,[Total]\n      ,[Allocated]\n      ,[TaxType]\n      ,[Detail]\n      ,[ParentNomID]\n      ,[Tax1]\n      ,[TempBillID]\n      ,[PostedbyID]\n      ,[TaxType1]\n      ,[TaxType2]\n      ,[Tax2]\n      ,[DraftBillID]\n      ,[ApprByStaffID]\n      ,[Interest]\n      ,[BillingPartnerID]\n      ,[Provision]\n      ,[CurrencyID]\n      ,[CurrencyAmount]\n      ,[CurrencyAllocated]\n      ,[CurrencyTax1]\n      ,[UnderQuery]\n      ,[SOID]\n      ,[CurrencyTax2]\n      ,[NomSubTypeID]\n      ,[BRBID]\n      ,[JobLevelAllocation]\n      ,[DraftAllocated]\n      ,[DraftCurrencyAllocated]\n      ,[TimeStampField]\n      ,[MISDB]\n      ,[RCRC#]\n      ,[AdjType]\n      ,[IVINV#]\n      ,[PaymentTypeID]\n      ,[CardPayHistID]\n      ,[InvIdt]\n      ,[NewInclude]\n      ,[MergerCode]\n      ,[AdminFee]\n      ,[AdminFeeID]\n      ,[BillDetailTypeID]\n      ,[DetailPlainText]\n      ,[ReceiptPaymentTypeID]\n      ,[CreditProvision]\n      ,[ReceiptTaxType]\n      ,[ReceiptTax]\n      ,[TaxAllocated]\n      ,[DraftTaxAllocated]\n      ,[RAIAllocated]\n      ,[DraftRAIAllocated]\n      ,[ReceiptLastEditByID]\n      ,[ArchiveBatchID]\n      ,[CreditControlStatusID]\n      ,[CreditControllerID]\n      ,[EscalatedID]\n      ,[LastDeEscalatedDate]\n)\n\t\t\t  \t\t\t  \t\t\tSELECT \n\t\t\t\t [NomID]\n\t\t\t\t,[IsWIPBill]\n\t\t\t\t,[PeriodID]\n\t\t\t\t,[Ref]\n\t\t\t\t,[Date]\n\t\t\t\t,CONVERT(VARCHAR(20), [Date], 112) [DateKey]\n\t\t\t\t,S.[ClientID]\n\t\t\t\t,S.[JobID]\n\t\t\t\t,jd.OfficeID [JobOfficeID]\n\t\t\t\t,jd.ServiceLineID [JobServiceLineID]\n\t\t\t\t,S.[ManagerID]\n\t\t\t\t,S.[PartnerID]\n\t\t\t\t,[NominalID]\n\t\t\t\t,S.[ContNominalID]\n\t\t\t\t,[NomTypeID]\n\t\t\t\t,[Total]\n\t\t\t\t,[Allocated]\n\t\t\t\t,[TaxType]\n\t\t\t\t,[Detail]\n\t\t\t\t,[ParentNomID]\n\t\t\t\t,[Tax1]\n\t\t\t\t,[TempBillID]\n\t\t\t\t,[PostedbyID]\n\t\t\t\t,[TaxType1]\n\t\t\t\t,[TaxType2]\n\t\t\t\t,[Tax2]\n\t\t\t\t,[DraftBillID]\n\t\t\t\t,[ApprByStaffID]\n\t\t\t\t,[Interest]\n\t\t\t\t,[BillingPartnerID]\n\t\t\t\t,[Provision]\n\t\t\t\t,S.[CurrencyID]\n\t\t\t\t,[CurrencyAmount]\n\t\t\t\t,[CurrencyAllocated]\n\t\t\t\t,[CurrencyTax1]\n\t\t\t\t,[UnderQuery]\n\t\t\t\t,[SOID]\n\t\t\t\t,[CurrencyTax2]\n\t\t\t\t,[NomSubTypeID]\n\t\t\t\t,[BRBID]\n\t\t\t\t,[JobLevelAllocation]\n\t\t\t\t,[DraftAllocated]\n\t\t\t\t,[DraftCurrencyAllocated]\n\t\t\t\t,S.[TimeStampField]\n\t\t\t\t,S.[MISDB]\n\t\t\t\t,[RCRC#]\n\t\t\t\t,[AdjType]\n\t\t\t\t,[IVINV#]\n\t\t\t\t,[PaymentTypeID]\n\t\t\t\t,[CardPayHistID]\n\t\t\t\t,[InvIdt]\n\t\t\t\t,[NewInclude]\n\t\t\t\t,[MergerCode]\n\t\t\t\t,[AdminFee]\n\t\t\t\t,[AdminFeeID]\n\t\t\t\t,[BillDetailTypeID]\n\t\t\t\t,[DetailPlainText]\n\t\t\t\t,[ReceiptPaymentTypeID]\n\t\t\t\t,[CreditProvision]\n\t\t\t\t,[ReceiptTaxType]\n\t\t\t\t,[ReceiptTax]\n\t\t\t\t,[TaxAllocated]\n\t\t\t\t,[DraftTaxAllocated]\n\t\t\t\t,[RAIAllocated]\n\t\t\t\t,[DraftRAIAllocated]\n\t\t\t\t,[ReceiptLastEditByID]\n\t\t\t\t,[ArchiveBatchID]\n\t\t\t\t,[CreditControlStatusID]\n\t\t\t\t,[CreditControllerID]\n\t\t\t\t,[EscalatedID]\n\t\t\t\t,[LastDeEscalatedDate]\n\t\t\tFROM \n\t\t\t\t[star].[tblNominal] S\n\t\t\t\t\tLEFT JOIN\n\t\t\t\t\t\tstar.tblJob jd\n\t\t\t\t\t\t\tON\n\t\t\t\t\t\t\t\ts.JobID = jd.JobID WHERE S.NomID BETWEEN @MinRowsSet1 AND @MaxRowsSet1"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "For_Loop_ContainerSet_Temp_Counter",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Stage_FactNominal_1_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TempCounter",
+            "value" : {
+              "value" : "@add((concat(variables('MinRowsSet1'),variables('IncrementRows'))), 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "For_Loop_ContainerUpdate_Counter",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Stage_FactNominal_1_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "MinRowsSet1",
+            "value" : {
+              "value" : "@variables('TempCounter')",
+              "type" : "Expression"
+            }
+          }
+        } ]
       }
     } ],
     "folder" : {
-      "name" : "NonWellsfargo_1008/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
     },
     "parameters" : {
       "ETLStaffKey" : {

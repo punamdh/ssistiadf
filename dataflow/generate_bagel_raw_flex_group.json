@@ -1,0 +1,29 @@
+{
+  "name" : "generate_bagel_raw_flex_group",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Transform",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutputPlaceHolderScriptComponent"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDataTable as string (),\n\tSchemeId as integer (),\n\tValuationDate as timestamp (),\n\tCfg_ImportRunId as integer (),\n\tCfg_ServiceHostTcpUri as string ()\n}\n\nsource(output(\n\t\tSchemeId as integer,\n\t\tValuationDate as timestamp,\n\t\tNamespace as string,\n\t\tMarketValue as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT      a.SchemeId, a.ValuationDate, f.Namespace,  a.MarketValue FROM            Staging.ChannelAssetTransform AS a INNER JOIN                          Staging.FundDetail AS f ON a.ImportRunId = f.ImportRunId AND a.Namespace = f.Namespace WHERE a.ImportRunId= ? AND a.SchemeId =? AND a.ValuationDate =?',\n\tformat: 'query',\n\tstaged:false) ~> Transform\nTransform sink(input(\n\t\tSchemeId as integer,\n\t\tValuationDate as timestamp 'ect.format.datetime.hypen.4year2month2day2hour24mmnute2secondsdot6nanoseconds',\n\t\tNamespace as string,\n\t\tMarketValue as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tSchemeId,\n\t\tValuationDate,\n\t\tNamespace,\n\t\tMarketValue)) ~> OutputPlaceHolderScriptComponent"
+    }
+  }
+}

@@ -67,7 +67,7 @@
         }
       }
     }, {
-      "name" : "Begin_Batch1611__SCRIPT",
+      "name" : "Begin_Batch_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -95,7 +95,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Begin_Batch1611__VA",
+      "name" : "Begin_Batch_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -105,7 +105,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Begin_Batch1611__SCRIPT",
+        "activity" : "Begin_Batch_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -113,10 +113,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varBatchID",
-        "value" : "@activity('Begin_Batch1611__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Begin_Batch_SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "0_Get_Interfaces1625_",
+      "name" : "Get_Interfaces_0",
       "type" : "Lookup",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -126,7 +126,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Begin_Batch1611__SCRIPT",
+        "activity" : "Begin_Batch_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -147,7 +147,7 @@
         }
       }
     }, {
-      "name" : "Delete_File_If_Exists1616_",
+      "name" : "Delete_File_If_Exists",
       "type" : "AzureFunctionActivity",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -157,10 +157,10 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "0_Get_Interfaces1625_",
+        "activity" : "Get_Interfaces_0",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
-        "activity" : "0_Begin_Batch1611__VA",
+        "activity" : "Begin_Batch_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -172,18 +172,18 @@
       },
       "typeProperties" : {
         "functionName" : {
-          "value" : "Delete_File_If_Exists1616_",
+          "value" : "Delete_File_If_Exists",
           "type" : "Expression"
         },
         "method" : "POST",
         "headers" : { }
       }
     }, {
-      "name" : "FOREACH_Foreach_Interface_Controller1619_",
+      "name" : "FOREACH_Foreach_Interface_Controller",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Delete_File_If_Exists1616_",
+        "activity" : "Delete_File_If_Exists",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -191,11 +191,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('0_Get_Interfaces1625_').output.value",
+          "value" : "@activity('Get_Interfaces_0').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "Foreach_Interface_Controller1619__Execute_Interface_Controller1620_",
+          "name" : "Execute_Interface_Controller",
           "type" : "Wait",
           "policy" : null,
           "dependsOn" : [ ],
@@ -206,7 +206,7 @@
             "waitTimeInSeconds" : 10
           }
         }, {
-          "name" : "Foreach_Interface_Controller1619__Get_Interface_Em",
+          "name" : "Get_Interface_Emails_0",
           "type" : "Lookup",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -216,7 +216,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "Foreach_Interface_Controller1619__Execute_Interface_Controller1620_",
+            "activity" : "Execute_Interface_Controller",
             "dependencyConditions" : [ "Completed" ]
           } ],
           "state" : null,
@@ -237,11 +237,11 @@
             }
           }
         }, {
-          "name" : "FOREACH_Foreach_Interface_Controller1619__Foreach_",
+          "name" : "FOREACH_Foreach_Interface_Email_Report",
           "type" : "ForEach",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Foreach_Interface_Controller1619__Get_Interface_Em",
+            "activity" : "Get_Interface_Emails_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -249,11 +249,11 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "items" : {
-              "value" : "@activity('Foreach_Interface_Controller1619__Get_Interface_Em').output.value",
+              "value" : "@activity('Get_Interface_Emails_0').output.value",
               "type" : "Expression"
             },
             "activities" : [ {
-              "name" : "Foreach_Interface_Controller1619__Foreach_Interface_Email_Report1621__Emails1622_",
+              "name" : "Emails_1",
               "type" : "AzureFunctionActivity",
               "policy" : {
                 "timeout" : "0.12:00:00",
@@ -272,7 +272,7 @@
               },
               "typeProperties" : {
                 "functionName" : {
-                  "value" : "Foreach_Interface_Controller1619__Foreach_Interface_Email_Report1621__Emails1622_",
+                  "value" : "Emails_1",
                   "type" : "Expression"
                 },
                 "method" : "POST",
@@ -285,7 +285,7 @@
         "isSequential" : true
       }
     }, {
-      "name" : "0_Get_Batch_Emails1624_",
+      "name" : "Get_Batch_Emails_0",
       "type" : "Lookup",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -295,7 +295,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "FOREACH_Foreach_Interface_Controller1619_",
+        "activity" : "FOREACH_Foreach_Interface_Controller",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -316,11 +316,11 @@
         }
       }
     }, {
-      "name" : "FOREACH_Foreach_Batch_Email_Report1617_",
+      "name" : "FOREACH_Foreach_Batch_Email_Report",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Get_Batch_Emails1624_",
+        "activity" : "Get_Batch_Emails_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -328,11 +328,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "items" : {
-          "value" : "@activity('0_Get_Batch_Emails1624_').output.value",
+          "value" : "@activity('Get_Batch_Emails_0').output.value",
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "Foreach_Batch_Email_Report1617__Emails1618_",
+          "name" : "Emails",
           "type" : "AzureFunctionActivity",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -351,7 +351,7 @@
           },
           "typeProperties" : {
             "functionName" : {
-              "value" : "Foreach_Batch_Email_Report1617__Emails1618_",
+              "value" : "Emails",
               "type" : "Expression"
             },
             "method" : "POST",
@@ -361,11 +361,11 @@
         "isSequential" : true
       }
     }, {
-      "name" : "Check_For_Failed_Packages1612__SCRIPT",
+      "name" : "Check_For_Failed_Packages_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "FOREACH_Foreach_Batch_Email_Report1617_",
+        "activity" : "FOREACH_Foreach_Batch_Email_Report",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -383,7 +383,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "0_Check_For_Failed_Packages1612__VA",
+      "name" : "Check_For_Failed_Packages_VA_0",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -393,7 +393,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Check_For_Failed_Packages1612__SCRIPT",
+        "activity" : "Check_For_Failed_Packages_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -401,14 +401,14 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "varErrorCt",
-        "value" : "@activity('Check_For_Failed_Packages1612__SCRIPT').output.resultSets[0].rows[0][0]"
+        "value" : "@activity('Check_For_Failed_Packages_SCRIPT').output.resultSets[0].rows[0][0]"
       }
     }, {
-      "name" : "IFACTIVITY_Create_Success_File1615_",
+      "name" : "IFACTIVITY_Create_Success_File",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Check_For_Failed_Packages1612__VA",
+        "activity" : "Check_For_Failed_Packages_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -421,7 +421,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Create_Success_File1615_",
+          "name" : "Create_Success_File",
           "type" : "AzureFunctionActivity",
           "policy" : {
             "timeout" : "0.12:00:00",
@@ -440,7 +440,7 @@
           },
           "typeProperties" : {
             "functionName" : {
-              "value" : "Create_Success_File1615_",
+              "value" : "Create_Success_File",
               "type" : "Expression"
             },
             "method" : "POST",
@@ -449,11 +449,11 @@
         } ]
       }
     }, {
-      "name" : "IFACTIVITY_Close_Batch1613__SCRIPT",
+      "name" : "IFACTIVITY_Close_Batch_SCRIPT",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "0_Check_For_Failed_Packages1612__VA",
+        "activity" : "Check_For_Failed_Packages_VA_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -466,7 +466,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "Close_Batch1613__SCRIPT",
+          "name" : "Close_Batch_SCRIPT",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -487,11 +487,11 @@
         } ]
       }
     }, {
-      "name" : "Close_Batch1614__SCRIPT",
+      "name" : "Close_Batch_1_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Create_Success_File1615_",
+        "activity" : "IFACTIVITY_Create_Success_File",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -509,7 +509,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Passive_Check_Warn1627_",
+      "name" : "Passive_Check_Warn",
       "type" : "Custom",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -519,7 +519,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Close_Batch1613__SCRIPT",
+        "activity" : "IFACTIVITY_Close_Batch_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -540,7 +540,7 @@
         }
       }
     }, {
-      "name" : "Passive_Check_Succeed1626_",
+      "name" : "Passive_Check_Succeed",
       "type" : "Custom",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -550,7 +550,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Close_Batch1614__SCRIPT",
+        "activity" : "Close_Batch_1_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -572,7 +572,7 @@
       }
     } ],
     "folder" : {
-      "name" : "NonWellsfargo_1008/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
     },
     "parameters" : {
       "pkgParamSchedule" : {

@@ -88,8 +88,8 @@
         }
       }
     }, {
-      "name" : "loop_wait_for_patient_matching_to_finish1924__UNTI",
-      "type" : "Wait",
+      "name" : "loop_wait_for_patient_matching_to_finish_UNTIL",
+      "type" : "Until",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "var_recipients",
@@ -108,11 +108,215 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "expression" : {
+          "value" : "@variables('var_loop_cnt') <= variables('var_max_loops') && not(equals(variables('var_status'),'Finished'))",
+          "type" : "Expression"
+        },
+        "timeout" : "0.12:00:00",
+        "activities" : [ {
+          "name" : "check_patient_matching_status_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT \n    CASE \n        WHEN (SELECT COUNT(*) FROM [ecms].[patient_master] WHERE dss_create_dt_tm >= CAST(GETDATE() AS DATE)) > 0\n             AND (SELECT COUNT(*) FROM [ecms].[patient_alternate_set] WHERE dss_create_dt_tm >= CAST(GETDATE() AS DATE)) > 0\n             AND (SELECT COUNT(*) FROM [ecms].[tmp_patient_master]) + (SELECT COUNT(*) FROM [ecms].[tmp_patient_alternate_set]) = 0\n             AND EXISTS (SELECT 1 \n                         FROM [ecms].[brg_patient_level_c_status] \n                         WHERE CAST(last_refresh_dt_tm AS DATE) = CAST(GETDATE() AS DATE) \n                           AND status_description = 'Finished')\n        THEN 'Finished'\n        ELSE 'In Progress'\n    END "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "check_patient_matching_status_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "check_patient_matching_status_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_status",
+            "value" : "@activity('check_patient_matching_status_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_do_nothing_SCRIPT",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "check_patient_matching_status_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(pipeline().parameters.var_status,'Finished')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "do_nothing_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "--- Do nothing\n\nSELECT 1"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_send_email_SCRIPT",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "check_patient_matching_status_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@not(equals(pipeline().parameters.var_status,'Finished'))",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "send_email_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DECLARE @rec as varchar(100)\nDECLARE @copy_rec as varchar(255)\nDECLARE @msg_body as varchar(500)\nDECLARE @msg_subject as varchar(200)\nDECLARE @max_loops as int\nDECLARE @loop_cnt as int\nDECLARE @delay_minutes as int\nDECLARE @impt as varchar(10)\n\nSET @rec=@var_recipients\nSET @copy_rec=@var_copy_recipients\nSET @max_loops =@var_max_loops\nSET @loop_cnt =@var_loop_cnt\nSET @delay_minutes =@var_delay_minutes\n\n\nSET @msg_subject='PHRDW Patient Matching Not Finished, Checked '+ CAST(@loop_cnt as varchar(32))+ ' out of ' +CAST(@max_loops as varchar(32))+' Times'\nIF @max_loops>@loop_cnt \nBEGIN\nSET @msg_body= 'Until the Patient Matching process is finished, other steps of PHRDW ETL cannot continue. Will retry in ' + CAST(@delay_minutes  as varchar(32)) +' minutes...'\nSET @impt='Normal'\nEND\nELSE \nBEGIN\nSET @msg_body= 'Giving up trying, please check the status of Patient Matching process. Other steps of the process will not continue. The package is marked as failed.'\nSET @impt='High'\nEND\nexec msdb.dbo.sp_send_dbmail\n@recipients = @rec,\n@copy_recipients=@copy_rec,\n@body =@msg_body,\n@body_format = 'TEXT' , \n@subject =@msg_subject,\n@importance=@impt"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ]
+          }
+        }, {
+          "name" : "sleep_task",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_send_email_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "sleep_task",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "loop_wait_for_patient_matching_to_finishSet_Temp_C",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_do_nothing_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "sleep_task",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TempCounter",
+            "value" : {
+              "value" : "@add(variables('var_loop_cnt'), 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "loop_wait_for_patient_matching_to_finishUpdate_Cou",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_do_nothing_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "sleep_task",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "var_loop_cnt",
+            "value" : {
+              "value" : "@variables('TempCounter')",
+              "type" : "Expression"
+            }
+          }
+        } ]
       }
     } ],
     "folder" : {
-      "name" : "NonWellsfargo_1008/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
     },
     "parameters" : {
       "Var_check_patient_matching_max_loops" : {

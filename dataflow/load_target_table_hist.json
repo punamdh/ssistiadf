@@ -1,0 +1,43 @@
+{
+  "name" : "load_target_table_hist",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Readfromcsv",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "WritetoStg"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "ReadfromcsvERROROUTPUTFILE"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowsReadNoError"
+      }, {
+        "name" : "ReadfromcsvErrorReformat"
+      }, {
+        "name" : "DeriveAuditandOtherColumns"
+      }, {
+        "name" : "Readfromcsv0"
+      } ],
+      "script" : "parameters{\n\tDestinationTable as string (),\n\tFileDate as string (),\n\tFileName as string (),\n\tFileNamePrev as string (),\n\tPackageExecutionID as integer (),\n\tRowsDeleted as integer (),\n\tRowsDiscarded as integer (),\n\tRowsInserted as integer (),\n\tRowsNotWrittenError as integer (),\n\tRowsReadError as integer (),\n\tRowsReadNoError as integer (),\n\tRowsUpdated as integer (),\n\tVariable as integer (),\n\tFileArchiveDir as string (),\n\tFilePattern as string (),\n\tFileProcessDir as string (),\n\tParentPackageExecutionID as integer (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\t{PROJECT NUMBER} as string,\n\t\t{SO ID} as string,\n\t\tSHIPMENT as string,\n\t\t{JOURNAL NUMBER} as string,\n\t\t{INVOICE NUMBER} as string,\n\t\t{AR TYPE} as string,\n\t\t{AR RECORD CREATED} as string,\n\t\t{ORDER DATE} as string,\n\t\t{SHIP DATE} as string,\n\t\t{INVOICE DATE} as string,\n\t\t{UPDATE DATE} as string,\n\t\t{CUST CODE} as string,\n\t\tSEQ as string,\n\t\t{CUSTOMER NAME} as string,\n\t\t{JOB NAME} as string,\n\t\t{TRAN TYPE} as string,\n\t\t{SALE TYPE} as string,\n\t\t{PAY TERM} as string,\n\t\t{REP 1} as string,\n\t\t{REP 2} as string,\n\t\t{SHIP VIA} as string,\n\t\t{FGT TERMS} as string,\n\t\t{CHARGE TYPE} as string,\n\t\t{CHARGE AMOUNT} as string,\n\t\t{SO-STATUS} as string,\n\t\t{G L JOURNAL DATE} as string,\n\t\t{AR RECORD TIME} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> Readfromcsv\nReadfromcsv derive({PROJECT NUMBER} = {PROJECT NUMBER}) ~> PlaceHolderRowsReadNoError\nReadfromcsv derive() ~> ReadfromcsvErrorReformat\nPlaceHolderRowsReadNoError derive(FileName = toString(replace($FileName, toString($FileProcessDir), toString(''))),\n\t\tETLCreateDate = $startTime,\n\t\tETLExecutionID = $PackageExecutionID,\n\t\tFileDate = toString($FileDate),\n\t\t{CHARGE AMOUNT} = replace({CHARGE AMOUNT}, toString('\\r'), toString(''))) ~> DeriveAuditandOtherColumns\nReadfromcsvErrorReformat derive() ~> Readfromcsv0\nDeriveAuditandOtherColumns sink(input(\n\t\tETLCreateDate as timestamp 'dd-MM-yyyy',\n\t\tCHARGE_AMOUNT as string,\n\t\t{SO-STATUS} as string,\n\t\tSHIPMENT as string,\n\t\tUPDATE_DATE as string,\n\t\tFileName as string,\n\t\tTRAN_TYPE as string,\n\t\tFGT_TERMS as string,\n\t\tREP_1 as string,\n\t\tAR_TYPE as string,\n\t\tSHIP_VIA as string,\n\t\tJOURNAL_NUMBER as string,\n\t\tG_L_JOURNAL_DATE as string,\n\t\tJOB_NAME as string,\n\t\tINVOICE_DATE as string,\n\t\tFileDate as string,\n\t\tREP_2 as string,\n\t\tPAY_TERM as string,\n\t\tSHIP_DATE as string,\n\t\tCUST_CODE as string,\n\t\tCHARGE_TYPE as string,\n\t\tORDER_DATE as string,\n\t\tSALE_TYPE as string,\n\t\tPROJECT_NUMBER as string,\n\t\tSO_ID as string,\n\t\tINVOICE_NUMBER as string,\n\t\tCUSTOMER_NAME as string,\n\t\tETLExecutionID as long,\n\t\tAR_RECORD_CREATED as string,\n\t\tAR_RECORD_TIME as string,\n\t\tSEQ as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tETLCreateDate,\n\t\tCHARGE_AMOUNT = {CHARGE AMOUNT},\n\t\t{SO-STATUS},\n\t\tSHIPMENT,\n\t\tUPDATE_DATE = {UPDATE DATE},\n\t\tFileName,\n\t\tTRAN_TYPE = {TRAN TYPE},\n\t\tFGT_TERMS = {FGT TERMS},\n\t\tREP_1 = {REP 1},\n\t\tAR_TYPE = {AR TYPE},\n\t\tSHIP_VIA = {SHIP VIA},\n\t\tJOURNAL_NUMBER = {JOURNAL NUMBER},\n\t\tG_L_JOURNAL_DATE = {G L JOURNAL DATE},\n\t\tJOB_NAME = {JOB NAME},\n\t\tINVOICE_DATE = {INVOICE DATE},\n\t\tFileDate,\n\t\tREP_2 = {REP 2},\n\t\tPAY_TERM = {PAY TERM},\n\t\tSHIP_DATE = {SHIP DATE},\n\t\tCUST_CODE = {CUST CODE},\n\t\tCHARGE_TYPE = {CHARGE TYPE},\n\t\tORDER_DATE = {ORDER DATE},\n\t\tSALE_TYPE = {SALE TYPE},\n\t\tPROJECT_NUMBER = {PROJECT NUMBER},\n\t\tSO_ID = {SO ID},\n\t\tINVOICE_NUMBER = {INVOICE NUMBER},\n\t\tCUSTOMER_NAME = {CUSTOMER NAME},\n\t\tETLExecutionID,\n\t\tAR_RECORD_CREATED = {AR RECORD CREATED},\n\t\tAR_RECORD_TIME = {AR RECORD TIME},\n\t\tSEQ)) ~> WritetoStg\nReadfromcsv0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> ReadfromcsvERROROUTPUTFILE"
+    }
+  }
+}
