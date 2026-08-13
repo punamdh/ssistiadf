@@ -1,0 +1,622 @@
+{
+  "name" : "ppl_delinquencydowngrade",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExtractFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExtractFileName",
+        "value" : {
+          "value" : "@concat('IMGBDF03_',formatDateTime(variables('gv_BatchDate'), 'yyyy'),substring(concat('0',formatDateTime(variables('gv_BatchDate'), 'MM')), sub(length(concat('0',formatDateTime(variables('gv_BatchDate'), 'MM'))), 2), 2),substring(concat('0',formatDateTime(variables('gv_BatchDate'), 'dd')), sub(length(concat('0',formatDateTime(variables('gv_BatchDate'), 'dd'))), 2), 2),'.OUT')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SQL_POPULATE_EXTRACT01_source_ContainerName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT01') AS SQL_POPULATE_EXTRACT01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SQL_POPULATE_EXTRACT01_source_FileName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT01') AS SQL_POPULATE_EXTRACT01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SQL_POPULATE_EXTRACT01_source_FilePath' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT01') AS SQL_POPULATE_EXTRACT01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SQL_POPULATE_EXTRACT01_sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT01') AS SQL_POPULATE_EXTRACT01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SQL_POPULATE_EXTRACT01_sink_TableName' AND PIPELINE_NAME = 'DelinquencyDowngrade' AND DATAFLOW_NAME = 'SQL_POPULATE_EXTRACT01') AS SQL_POPULATE_EXTRACT01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_CHECK_BATCH_DATE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ExtractFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC Downgrade.Pr_Validate_BatchDate @gv_BatchDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CHECK_BATCH_DATE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [Downgrade].[Pr_CreateBatch] @BatchDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BatchId",
+        "value" : "@activity('SQL_CREATE_BATCH_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_SET_BATCH_LOADING_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] 'Downgrade.Batch',@BatchId,'Loading'\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_POPULATE_DOWNGRADE_TABLE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SET_BATCH_LOADING_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [Downgrade].[pr_Populate_Delinquency60DaysDowngrade] @gv_BatchDate,@BatchId"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_SET_BATCH_PROCESSING_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_POPULATE_DOWNGRADE_TABLE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] 'Downgrade.Batch',@BatchId,'Processing'\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_POPULATE_EXTRACT0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SET_BATCH_PROCESSING_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "SQL_POPULATE_EXTRACT"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "SQL_POPULATE_EXTRACT",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_POPULATE_EXTRACT0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "sql_populate_extract",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "gv_BatchDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('10/1/2017')"
+            },
+            "gv_SQLUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "gv_SQLDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "ExtractFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Delinquency\\\\Medisys'"
+            },
+            "SmtpServer" : {
+              "type" : "Expression",
+              "value" : "'smtpinternal.wellpoint.com'"
+            },
+            "BatchId" : {
+              "type" : "Expression",
+              "value" : "7"
+            },
+            "CntMember" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "SuccessFrom" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdbillingall@anthem.com'"
+            },
+            "SuccessTo" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdbillingall@anthem.com'"
+            },
+            "FailureFrom" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdbillingall@anthem.com'"
+            },
+            "ExtractFileName" : {
+              "type" : "Expression",
+              "value" : "'IMGBDF03_20171001.OUT'"
+            },
+            "FailureTo" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdbillingall@anthem.com'"
+            },
+            "FileNameSuffix" : {
+              "type" : "Expression",
+              "value" : "'DEV_'"
+            },
+            "gv_SQLProvider" : {
+              "type" : "Expression",
+              "value" : "'SQLNCLI11.1'"
+            },
+            "SuccessCCTo" : {
+              "type" : "Expression",
+              "value" : "'dl-gbdbillingall@anthem.com'"
+            },
+            "gv_SQLCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "gv_SQLPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            }
+          },
+          "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SQL_POPULATE_EXTRACT01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_POPULATE_EXTRACT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource",
+          "dataset" : {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_POPULATE_EXTRACT01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_POPULATE_EXTRACT01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_POPULATE_EXTRACT01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_POPULATE_EXTRACT01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQL_POPULATE_EXTRACT01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_SET_BATCH_PROCESSED_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_POPULATE_EXTRACT01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] 'Downgrade.Batch',@BatchId,'Processed'\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_MEM_CNT_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SET_BATCH_PROCESSED_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT COUNT(HCID) FROM DOWNGRADE.DOWNGRADE WHERE BATCHID = @BatchId"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_MEM_CNT_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_MEM_CNT_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CntMember",
+        "value" : "@activity('SQL_GET_MEM_CNT_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQ_UPDATE_MEMBERCNT_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_MEM_CNT_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE Downgrade.Batch SET MemberCnt = @CntMember WHERE BATCHID = @BatchId"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQ_UPDATE_MEMBERCNT_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] 'Downgrade.Batch',@BatchId,'Complete'\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Send_Success_Mail",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_BatchDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('10/1/2017')"
+      },
+      "gv_SQLUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_SQLDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "ExtractFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Delinquency\\\\Medisys'"
+      },
+      "SmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "7"
+      },
+      "CntMember" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "SuccessFrom" : {
+        "type" : "string",
+        "defaultValue" : "'dl-gbdbillingall@anthem.com'"
+      },
+      "SuccessTo" : {
+        "type" : "string",
+        "defaultValue" : "'dl-gbdbillingall@anthem.com'"
+      },
+      "FailureFrom" : {
+        "type" : "string",
+        "defaultValue" : "'dl-gbdbillingall@anthem.com'"
+      },
+      "ExtractFileName" : {
+        "type" : "string",
+        "defaultValue" : "'IMGBDF03_20171001.OUT'"
+      },
+      "FailureTo" : {
+        "type" : "string",
+        "defaultValue" : "'dl-gbdbillingall@anthem.com'"
+      },
+      "FileNameSuffix" : {
+        "type" : "string",
+        "defaultValue" : "'DEV_'"
+      },
+      "gv_SQLProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "SuccessCCTo" : {
+        "type" : "string",
+        "defaultValue" : "'dl-gbdbillingall@anthem.com'"
+      },
+      "gv_SQLCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_SQLPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      }
+    }
+  }
+}

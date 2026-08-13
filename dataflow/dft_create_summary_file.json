@@ -1,0 +1,31 @@
+{
+  "name" : "dft_create_summary_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBREADSUMMARYTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DESTXLSSUMMARYREPORT"
+      } ],
+      "transformations" : [ {
+        "name" : "DCSUMMARYFIELDS"
+      } ],
+      "script" : "parameters{\n\tgv_AppName as string (),\n\tgv_Archive_Detailed_Full_Path as string (),\n\tgv_Archive_Path as string (),\n\tgv_Archive_Summ_Full_Path as string (),\n\tgv_BatchID as integer (),\n\tgv_EmailFrom as string (),\n\tgv_EmailMessage as string (),\n\tgv_EmailSmtpServer as string (),\n\tgv_EmailSubjectFailure as string (),\n\tgv_EmailSubjectSuccess as string (),\n\tgv_EmailTo as string (),\n\tgv_Environment as string (),\n\tgv_Extract_Detailed_Full_Path as string (),\n\tgv_Extract_Path as string (),\n\tgv_Extract_Summ_Full_Path as string (),\n\tgv_File_Detailed as string (),\n\tgv_File_Summary as string (),\n\tgv_FromDate as timestamp (),\n\tgv_FromDateStr as string (),\n\tgv_OracleDS as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_PackageStartDTM as string (),\n\tgv_ProcessDate as timestamp (),\n\tgv_ProcessDateStr as string (),\n\tgv_QRY_SELECT_FACETS_INVOICE as string (),\n\tgv_QRY_SELECT_FIS_INVOICE as string (),\n\tgv_SMTP_Server as string (),\n\tgv_SQLDataSource as string (),\n\tgv_SQLInitialCatalog as string (),\n\tgv_SQLPassword as string (),\n\tgv_SQLProvider as string (),\n\tgv_SQLUserID as string (),\n\tgv_Template_Detailed_Full_Path as string (),\n\tgv_Template_Path as string (),\n\tgv_Template_Summ_Full_Path as string (),\n\tgv_ToDate as timestamp (),\n\tgv_ToDateStr as string ()\n}\n\nsource(output(\n\t\tBATCH_ID as string,\n\t\tINVOICE_FROM_DT as timestamp,\n\t\tINVOICE_TO_DT as timestamp,\n\t\tFACETS_BLEI_CK_COUNT as string,\n\t\tFACETS_INVOICE_COUNT as string,\n\t\tFACETS_BILLED_AMT as integer,\n\t\tFIS_BLEI_CK_COUNT as string,\n\t\tFIS_INVOICE_COUNT as string,\n\t\tFIS_BILLED_AMT as integer,\n\t\tVARIANCE_BILLED_AMT as integer,\n\t\tVARIANCE_BLEI_CK as string,\n\t\tVARIANCE_INVOICE as string,\n\t\tEX_ENTITY_COUNT as string,\n\t\tEX_INVOICE_COUNT as string,\n\t\tEX_BILLED_AMT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \tt.BATCH_ID, \tt.INVOICE_FROM_DT, \tt.INVOICE_TO_DT, \tt.FACETS_BLEI_CK_COUNT, \tt.FACETS_INVOICE_COUNT, \tt.FACETS_BILLED_AMT, \tt.FIS_BLEI_CK_COUNT, \tt.FIS_INVOICE_COUNT, \tt.FIS_BILLED_AMT, \tt.VARIANCE_BILLED_AMT, \tt.VARIANCE_BLEI_CK, \tt.VARIANCE_INVOICE, \tt.EX_ENTITY_COUNT, \tt.EX_INVOICE_COUNT, \tt.EX_BILLED_AMT  FROM AGP.FIST_BAL_SUMMARY t',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBREADSUMMARYTABLE\nSRCOLEDBREADSUMMARYTABLE derive(DC_FIS_BILLED_AMT = toDecimal(FIS_BILLED_AMT,19,19),\n\t\tDC_VARIANCE_BILLED_AMT = toDecimal(VARIANCE_BILLED_AMT,19,19),\n\t\tDC_EX_BILLED_AMT = toDecimal(EX_BILLED_AMT,19,19),\n\t\tDC_FACETS_BILLED_AMT = toDecimal(FACETS_BILLED_AMT,19,19)) ~> DCSUMMARYFIELDS\nDCSUMMARYFIELDS sink(input(\n\t\tDC_VARIANCE_BILLED_AMT as decimal(0,0),\n\t\tVARIANCE_INVOICE as string,\n\t\tVARIANCE_BLEI_CK as string,\n\t\tEX_INVOICE_COUNT as string,\n\t\tEX_ENTITY_COUNT as string,\n\t\tBATCH_ID as string,\n\t\tDC_EX_BILLED_AMT as decimal(0,0),\n\t\tINVOICE_FROM_DT as timestamp 'dd-MM-yyyy',\n\t\tINVOICE_TO_DT as timestamp 'dd-MM-yyyy',\n\t\tFACETS_BLEI_CK_COUNT as string,\n\t\tFACETS_INVOICE_COUNT as string,\n\t\tDC_FACETS_BILLED_AMT as decimal(0,0),\n\t\tFIS_BLEI_CK_COUNT as string,\n\t\tFIS_INVOICE_COUNT as string,\n\t\tDC_FIS_BILLED_AMT as decimal(0,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DESTXLSSUMMARYREPORT\nSRTDETAILEDFIELDS sink(input(\n\t\tDC_GRGR_ID as string,\n\t\tDC_FACETS_BILLED_AMT as decimal(0,0),\n\t\tDC_FIS_BILLED_AMT as decimal(0,0),\n\t\tDC_VARIANCE_BILLED_AMT as decimal(0,0),\n\t\tDC_IS_REVERSAL_INVOICE as string,\n\t\tDC_IS_RECYCLED as string,\n\t\tBATCH_ID as string,\n\t\tBLEI_CK as string,\n\t\tDC_BLIV_ID as string,\n\t\tBLBL_DUE_DT as timestamp 'dd-MM-yyyy',\n\t\tBLSH_INVOICE_DTM as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DESTXLSDETAILEDREPORT"
+    }
+  }
+}

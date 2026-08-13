@@ -1,0 +1,425 @@
+{
+  "name" : "ppl_outbound_mms_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "fileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "fileName",
+        "value" : {
+          "value" : "@concat('MMS_',variables('grgrId'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ADO_NET_Source_SchemaName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS ADO_NET_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ADO_NET_Source_TableName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS ADO_NET_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_source_ContainerName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_source_FileName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_source_FilePath' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_sink_ContainerName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_sink_FileName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Trigger_File_0_sink_FilePath' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Create_Trigger_File_0') AS Create_Trigger_File_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_source_SchemaName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_source_TableName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_sink_SchemaName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_sink_TableName' AND PIPELINE_NAME = 'outbound_MMS_extract' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Get_RunId_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "fileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec Pr_GetRunID_Outbound @fileName, @runId OUTPUT"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Populate_Extract_Data_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_RunId_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN AGP.LOAD_MMS_ELIG_EXTRACT_DATA(:runId, :grgrId,:p_effDate); end;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task_10",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Populate_Extract_Data_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Data_Flow_Task_1"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Data_Flow_Task_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "triggerDir" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\apps\\\\Enrollment\\\\Outbound\\\\Dev\\\\Trigger'"
+            },
+            "effDate" : {
+              "type" : "Expression",
+              "value" : "'00000000'"
+            },
+            "fileName" : {
+              "type" : "Expression",
+              "value" : "'MMS_NJMCR000'"
+            },
+            "logPath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\apps\\\\Enrollment\\\\Logs\\\\Dev\\\\OutboundExtracts'"
+            },
+            "grgrId" : {
+              "type" : "Expression",
+              "value" : "'NJMCR000'"
+            },
+            "runId" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "emptyFile" : {
+              "type" : "Expression",
+              "value" : "'trigger.txt'"
+            }
+          },
+          "datasetParameters" : {
+            "ADONETSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ADONETSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ADONETSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "ADO NET Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Data_Flow_Task_101",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Process_Extract_Data_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_101",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec Pr_Outbound_MMS @runId, @fileName"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Trigger_File_0",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Process_Extract_Data_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource",
+          "dataset" : {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink",
+          "dataset" : {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_File_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_sink_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_sink_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Trigger_File_0_sink_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "triggerDir" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Enrollment\\\\Outbound\\\\Dev\\\\Trigger'"
+      },
+      "effDate" : {
+        "type" : "string",
+        "defaultValue" : "'00000000'"
+      },
+      "fileName" : {
+        "type" : "string",
+        "defaultValue" : "'MMS_NJMCR000'"
+      },
+      "logPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Enrollment\\\\Logs\\\\Dev\\\\OutboundExtracts'"
+      },
+      "grgrId" : {
+        "type" : "string",
+        "defaultValue" : "'NJMCR000'"
+      },
+      "runId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "emptyFile" : {
+        "type" : "string",
+        "defaultValue" : "'trigger.txt'"
+      }
+    }
+  }
+}

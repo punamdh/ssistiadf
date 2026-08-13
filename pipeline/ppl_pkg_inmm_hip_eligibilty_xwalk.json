@@ -1,0 +1,142 @@
+{
+  "name" : "ppl_pkg_inmm_hip_eligibilty_xwalk",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Number_of_records_count_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select COUNT(distinct(cpd.CSPI_ID)) crosswalkcount from FACETS.CMC_GRGR_GROUP gr\ninner join FACETS.CMC_CSPI_CS_PLAN cp on gr.grgr_ck=cp.grgr_ck\ninner join FACETS.CMC_PLDS_PLAN_DESC cpd on cp.cspi_id=cpd.cspi_id\nLeft join AGP.INMM_HIP_ELIG_TYPE_XWALK xw on cpd.cspi_id=xw.cspi_id\nwhere gr.GRGR_ID LIKE '%INMCDWP0' and cp.CSCS_ID LIKE 'CH%'AND xw.CSPI_ID IS NULL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Number_of_records_count_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Number_of_records_count_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "crosswalkcount",
+        "value" : "@activity('Number_of_records_count_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_PKG_INMM_HIP_ELIGIBILTY_XWALK0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Number_of_records_count_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "PKG_INMM_HIP_ELIGIBILTY_XWALK0",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "PKG_INMM_HIP_ELIGIBILTY_XWALK",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "PKG_INMM_HIP_ELIGIBILTY_XWALK0",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'Srinivas.Doodam@anthem.com;mahesh.nallapaneni@anthem.com'"
+      },
+      "OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'pga'"
+      },
+      "SsisDeveloper" : {
+        "type" : "string",
+        "defaultValue" : "'mahesh.nallapaneni@anthem.com'"
+      },
+      "OracleDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'FAC6D'"
+      },
+      "EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'mahesh.nallapaneni@anthem.com'"
+      },
+      "EmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "'HIP Eligibility XWALK - Discrepancy Report'"
+      },
+      "SMTPServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "crosswalkcount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "htmldata" : {
+        "type" : "string"
+      },
+      "OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      }
+    }
+  }
+}

@@ -1,0 +1,439 @@
+{
+  "name" : "ppl_mcd_autorefund_payhub_inbound",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('gv_ArchivePath'),variables('gv_StartTime_YYYY_MM_DD_HHMMSS'),'\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Email_Subject_Error",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Email_Subject_Error",
+        "value" : {
+          "value" : "@concat('INMCD HIP FTE Pay Hub Inbound Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_ORA_DataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Email_Subject_Success",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Email_Subject_Success",
+        "value" : {
+          "value" : "@concat('INMCD HIP FTE Pay Hub Inbound Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_ORA_DataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "value" : {
+          "value" : "@concat(formatDateTime(pipeline().TriggerTime, 'yyyy'),'-',substring(concat('0',formatDateTime(pipeline().TriggerTime, 'MM')), sub(length(concat('0',formatDateTime(pipeline().TriggerTime, 'MM'))), 2), 2),'-',substring(concat('0',dayOfMonth(pipeline().TriggerTime)), sub(length(concat('0',dayOfMonth(pipeline().TriggerTime))), 2), 2),'_',substring(concat('0',formatDateTime(pipeline().TriggerTime, 'HH')), sub(length(concat('0',formatDateTime(pipeline().TriggerTime, 'HH'))), 2), 2),substring(concat('0',formatDateTime(pipeline().TriggerTime, 'mm')), sub(length(concat('0',formatDateTime(pipeline().TriggerTime, 'mm'))), 2), 2),substring(concat('0',formatDateTime(pipeline().TriggerTime, 'ss')), sub(length(concat('0',formatDateTime(pipeline().TriggerTime, 'ss'))), 2), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA_2') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA_2') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA_2') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__ContainerName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__FileName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__FilePath' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath' AND PIPELINE_NAME = 'MCD_AutoRefund_PayHub_Inbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST-PRE_VALIDATION",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Email_Subject_Error",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Email_Subject_Success",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-PRE_VALIDATION",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SC-REBID_INBOUND",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST-PRE_VALIDATION",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource",
+              "dataset" : {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference"
+              }
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink",
+              "dataset" : {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference"
+              }
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "FST-CREATE_ARCHIVE_DIRECTORYDELETE_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "FELC-PROCESS_FILES",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FST-CREATE_ARCHIVE_DIRECTORYDELETE_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "SMT-SUCCESS-EMAIL",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-REBID_INBOUND",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "SMT-SUCCESS-EMAIL",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "ST-FAILURE-EMAIL",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-REBID_INBOUND",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-FAILURE-EMAIL",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_StartTime_YYYY_MM_DD_HHMMSS" : {
+        "type" : "string",
+        "defaultValue" : "'2025-04-15_162342'"
+      },
+      "gv_ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\RefundFTE\\\\PayHubInbound\\\\2025-04-15_162342\\\\'"
+      },
+      "gv_ORA_Username" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_FilesToProcess" : {
+        "type" : "string"
+      },
+      "gv_ORA_Password" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_FileToProcess" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\RefundFTE\\\\PayHubInbound\\\\INMCD_HIP_FTE_PHUB_REFUNDS_RESPONSE_20221024_120700.txt'"
+      },
+      "gv_Batch_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_Email_From" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@elevancehealth.com'"
+      },
+      "gv_InboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\Apps\\\\Billing\\\\DEV\\\\FTP\\\\AWD_PAYMENTS\\\\RESPONSE\\\\'"
+      },
+      "gv_IsFileExist" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "gv_ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\RefundFTE\\\\PayHubInbound\\\\'"
+      },
+      "gv_FileName" : {
+        "type" : "string"
+      },
+      "gv_Email_Subject_Success" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD HIP FTE Pay Hub Inbound Process Completed Successfully in the DEV Environment on GBFAC05L'"
+      },
+      "gv_Email_To" : {
+        "type" : "string",
+        "defaultValue" : "'Nivas.Dharuman@elevancehealth.com'"
+      },
+      "gv_InputFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD_HIP_FTE_PHUB_REFUNDS_RESPONSE*.txt'"
+      },
+      "gv_Email_Smtp_Server" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_ORA_DataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05L'"
+      },
+      "gv_ORA_Provider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Email_Subject_Error" : {
+        "type" : "string",
+        "defaultValue" : "'INMCD HIP FTE Pay Hub Inbound Process Terminated Abnormally in the DEV Environment on GBFAC05L'"
+      }
+    }
+  }
+}

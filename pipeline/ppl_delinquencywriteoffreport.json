@@ -1,0 +1,835 @@
+{
+  "name" : "ppl_delinquencywriteoffreport",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ExtractFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExtractFileName",
+        "value" : {
+          "value" : "@concat(variables('gv_FileSuffix'),'WriteOff_RPT','_',formatDateTime(utcnow(), 'yyyy'),substring(concat('0',formatDateTime(utcnow(), 'MM')), sub(length(concat('0',formatDateTime(utcnow(), 'MM'))), 2), 2),substring(concat('0',formatDateTime(utcnow(), 'dd')), sub(length(concat('0',formatDateTime(utcnow(), 'dd'))), 2), 2),'.xls')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_RCPTBLRCQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_RCPTBLRCQuery",
+        "value" : {
+          "value" : "@and(and(equals(variables('GRGR_CK JOIN CMC_BLEI_ENTY_INFO BLEI ON     SBSB_CK'),variables('BLEI_BILL_LEVEL_CK')), equals(variables('BLEI_BILL_LEVEL'),'I')), not(equals(variables('BLEI_SUSPND_BL_IND'),'D')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_WriteOffBatch_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table') AS Source_WriteOffBatch_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Source_WriteOffBatch_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table') AS Source_WriteOffBatch_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Destination_WriteOffReportTable_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table') AS Destination_WriteOffReportTable_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Destination_WriteOffReportTable_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table') AS Destination_WriteOffReportTable_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'POPULATE_EXCEL_RPT') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'POPULATE_EXCEL_RPT') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_Facets_DB_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE') AS OLE_DB_Source_Facets_DB_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_Facets_DB_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE') AS OLE_DB_Source_Facets_DB_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_BOSS_DB_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE') AS OLE_DB_Destination_BOSS_DB_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_BOSS_DB_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE') AS OLE_DB_Destination_BOSS_DB_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Load_WriteOff_Report_Table01_source_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table01') AS DFT_Load_WriteOff_Report_Table01_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Load_WriteOff_Report_Table01_source_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table01') AS DFT_Load_WriteOff_Report_Table01_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Load_WriteOff_Report_Table01_sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table01') AS DFT_Load_WriteOff_Report_Table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Load_WriteOff_Report_Table01_sink_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_Load_WriteOff_Report_Table01') AS DFT_Load_WriteOff_Report_Table01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01_source_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01') AS DFT_CMC_RCPT_BLRC_STAGE01_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01_source_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01') AS DFT_CMC_RCPT_BLRC_STAGE01_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01_sink_SchemaName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01') AS DFT_CMC_RCPT_BLRC_STAGE01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01_sink_TableName' AND PIPELINE_NAME = 'DelinquencyWriteOffReport' AND DATAFLOW_NAME = 'DFT_CMC_RCPT_BLRC_STAGE01') AS DFT_CMC_RCPT_BLRC_STAGE01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SEQ_Truncate_Populate_RCPT_BLRC_Staging",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_RCPTBLRCQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ExtractFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_TRUNCATE_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE [WriteOff].[CMC_RCPT_BLRC_STAGE]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_CMC_RCPT_BLRC_STAGE0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_TRUNCATE_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_CMC_RCPT_BLRC_STAGE"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_CMC_RCPT_BLRC_STAGE",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_CMC_RCPT_BLRC_STAGE0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "User::gv_RCPTBLRCQuery"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_CMC_RCPT_BLRC_STAGE01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_CMC_RCPT_BLRC_STAGE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource",
+              "dataset" : {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference"
+              }
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "dataset" : {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference"
+              }
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CMC_RCPT_BLRC_STAGE01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SQL_UpdateStageStats_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_CMC_RCPT_BLRC_STAGE01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE STATISTICS  [WriteOff].CMC_RCPT_BLRC_STAGE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SEQ_Load_Stage_Generate_Excel_Report",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQ_Truncate_Populate_RCPT_BLRC_Staging",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_Load_WriteOff_Report_Table0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_Load_WriteOff_Report_Table"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_Load_WriteOff_Report_Table",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_WriteOff_Report_Table0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "User::gv_LoadWriteoffRptTableQuery"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_Load_WriteOff_Report_Table01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_WriteOff_Report_Table",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource",
+              "dataset" : {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference"
+              }
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "dataset" : {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference"
+              }
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Load_WriteOff_Report_Table01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CREATE_DYNAMIC_EXCEL_FOR_RPT_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Load_WriteOff_Report_Table01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "CREATE TABLE DelinquencyWriteOffRpt (`BatchDate` LongText,     \n   `RunDate` LongText,`LastName` LongText, `FirstName` LongText, `MI` LongText, `HCID` LongText, `GroupID` LongText, `ClassID` LongText, `ContractID` LongText, `PBP` LongText, `PlanName` LongText,\n   `PlanType` LongText, `CoverageType` LongText, `OSBIndicator` LongText, `WriteOffReason` LongText, `LastDue` LongText, `PPAInd` LongText, `BillingPeriodDueDate` LongText, `WriteOffAmount` LongText)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "POPULATE_EXCEL_RPT0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CREATE_DYNAMIC_EXCEL_FOR_RPT_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "POPULATE_EXCEL_RPT"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "POPULATE_EXCEL_RPT",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "POPULATE_EXCEL_RPT0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "populate_excel_rpt",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "gv_OraclePassword" : {
+                  "type" : "Expression",
+                  "value" : "'yeL0wp#n'"
+                },
+                "gv_BLBLDueDt" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('1/1/2015')"
+                },
+                "SmtpServer" : {
+                  "type" : "Expression",
+                  "value" : "'smtpinternal.wellpoint.com'"
+                },
+                "AttachmentCCTo" : {
+                  "type" : "Expression",
+                  "value" : "'kumar.sekar@anthem.com'"
+                },
+                "gv_strUserName" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BOSS'"
+                },
+                "AttachmentTo" : {
+                  "type" : "Expression",
+                  "value" : "'ramnath.pantangi@anthem.com'"
+                },
+                "gv_OracleUserID" : {
+                  "type" : "Expression",
+                  "value" : "'AGP'"
+                },
+                "gv_RCPTBLRCQuery" : {
+                  "type" : "Expression",
+                  "value" : "'SELECT DISTINCT RCPT.RCPT_ID, RCPT.BLEI_CK, RCPT.RCPT_INPUT_GRGR_ID, RCPT.RCPT_INPUT_SBSB_ID, RCPT.RCPT_RCPT_CD, RCPT.RCPT_AMT, TRUNC (RCPT.RCPT_RCVD_DT) AS RCPT_RCVD_DT, TO_CHAR (RCPT.RCPT_CREATE_DTM, 'MM/DD/YYYY HH24:MI:SS') AS RCPT_CREATE_DTM, BLRC.BLRC_SEQ_NO, BLRC.BLRC_AMT, TRUNC (BLRC.BLBL_DUE_DT) AS BLBL_DUE_DT, BLRC.BLRC_BLBL_PAID_STS, TO_CHAR (BLRC.BLRC_CREATE_DTM, 'MM/DD/YYYY HH24:MI:SS') AS BLRC_CREATE_DTM FROM FACETS.CMC_GRGR_GROUP GRGR JOIN FACETS.CMC_SBSB_SUBSC SBSB ON GRGR.GRGR_CK = SBSB.GRGR_CK JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' AND BLEI.BLEI_SUSPND_BL_IND <> 'D' JOIN FACETS.CMC_RCPT_RECEIPTS RCPT ON RCPT.BLEI_CK = BLEI.BLEI_CK AND RCPT.RCPT_RCPT_CD = 'W' JOIN FACETS.CMC_BLRC_BILL_RCPT BLRC ON     BLRC.RCPT_ID = RCPT.RCPT_ID AND BLRC.BLEI_CK = RCPT.BLEI_CK AND BLRC.BLRC_SUSPENSE_IND = 'N' AND BLRC.BLBL_DUE_DT >= TO_DATE ('1/1/2015','mm/dd/yyyy') AND BLRC.BLBL_DUE_DT <= TO_DATE ('5/16/2021','mm/dd/yyyy')'"
+                },
+                "gv_LoadWriteoffRptTableQuery" : {
+                  "type" : "Expression",
+                  "value" : "'SELECT DISTINCT BatchId, BatchDate, RunDate, LastName, FirstName, MI, HCID, GroupID, ClassID, ContractID, PBP, PlanName, PlanType, CoverageType, OSBIndicator, WriteOffReason, LastDue,   WRTO.BLEI_CK, (CASE WHEN PPAInd = 1 THEN 'YES' ELSE 'NO' END) AS PPAInd, BLRC.BLBL_DUE_DT AS BillingPeriodDueDate, BLRC.BLRC_AMT AS WriteOffAmount FROM WriteOff.WriteOff WRTO INNER JOIN WriteOff.CMC_RCPT_BLRC_STAGE BLRC ON WRTO.BLEI_CK = BLRC.BLEI_CK WHERE WRTO.BatchId = (SELECT MAX(BatchId) FROM WriteOff.WriteOff ) ORDER BY BatchDate,RunDate,LastName,BLRC.BLBL_DUE_DT'"
+                },
+                "gv_strDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+                },
+                "gv_ExtractFileName" : {
+                  "type" : "Expression",
+                  "value" : "'DEV_WriteOff_RPT_20260727.xls'"
+                },
+                "gv_BatchDate" : {
+                  "type" : "Expression",
+                  "value" : "toTimestamp('5/16/2021')"
+                },
+                "gv_strInitialCatalog" : {
+                  "type" : "Expression",
+                  "value" : "'BOSS'"
+                },
+                "BatchId" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "SuccessFrom" : {
+                  "type" : "Expression",
+                  "value" : "'kumar.sekar@anthem.com'"
+                },
+                "gv_FileSuffix" : {
+                  "type" : "Expression",
+                  "value" : "'DEV_'"
+                },
+                "SuccessTo" : {
+                  "type" : "Expression",
+                  "value" : "'ramnath.pantangi@anthem.com'"
+                },
+                "FailureFrom" : {
+                  "type" : "Expression",
+                  "value" : "'kumar.sekar@anthem.com'"
+                },
+                "FailureTo" : {
+                  "type" : "Expression",
+                  "value" : "'kumar.sekar@anthem.com'"
+                },
+                "gv_strPassword" : {
+                  "type" : "Expression",
+                  "value" : "'0s-dyekDSD40Jg'"
+                },
+                "gv_strSqlServerProvider" : {
+                  "type" : "Expression",
+                  "value" : "'SQLNCLI11.1'"
+                },
+                "gv_ExtractFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Delinquency\\\\WriteOff'"
+                },
+                "AttachmentFrom" : {
+                  "type" : "Expression",
+                  "value" : "'kumar.sekar@anthem.com'"
+                },
+                "gv_strOracleDS" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC06D'"
+                },
+                "gv_OracleProvider" : {
+                  "type" : "Expression",
+                  "value" : "'MSDAORA.1'"
+                },
+                "gv_populatewriteoffrptquery" : {
+                  "type" : "Expression",
+                  "value" : "'SELECT DISTINCT BatchDate, RunDate, LastName, FirstName, MI, HCID, GroupID, ClassID, ContractID, PBP, PlanName, PlanType, CoverageType, OSBIndicator, WriteOffReason, LastDue,PPAInd, BillingPeriodDueDate, WriteOffAmount FROM WriteOff.WriteOff_Report (nolock) WRTR WHERE WRTR.BatchId = (SELECT MAX(BatchId) FROM WriteOff.WriteOff_Report (nolock)) ORDER BY BatchDate,RunDate,LastName,BillingPeriodDueDate'"
+                },
+                "WriteOffReportURL" : {
+                  "type" : "Expression",
+                  "value" : "'http://vadrsf10/Reports/Pages/Report.aspx?ItemPath=%2fDevelopment%2fManaged%2fFinance%2fPrivate%2fBOSS_STAGE%2fDelinquencyWriteOffReport&ViewMode=Detail'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "SEQ_Email_Notification",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQ_Load_Stage_Generate_Excel_Report",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Send_Success_Mail",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "Send_Attachment_Email_to_West_Billing",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Send_Success_Mail",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#n'"
+      },
+      "gv_BLBLDueDt" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('1/1/2015')"
+      },
+      "SmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "AttachmentCCTo" : {
+        "type" : "string",
+        "defaultValue" : "'kumar.sekar@anthem.com'"
+      },
+      "gv_strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "AttachmentTo" : {
+        "type" : "string",
+        "defaultValue" : "'ramnath.pantangi@anthem.com'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_RCPTBLRCQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT RCPT.RCPT_ID, RCPT.BLEI_CK, RCPT.RCPT_INPUT_GRGR_ID, RCPT.RCPT_INPUT_SBSB_ID, RCPT.RCPT_RCPT_CD, RCPT.RCPT_AMT, TRUNC (RCPT.RCPT_RCVD_DT) AS RCPT_RCVD_DT, TO_CHAR (RCPT.RCPT_CREATE_DTM, 'MM/DD/YYYY HH24:MI:SS') AS RCPT_CREATE_DTM, BLRC.BLRC_SEQ_NO, BLRC.BLRC_AMT, TRUNC (BLRC.BLBL_DUE_DT) AS BLBL_DUE_DT, BLRC.BLRC_BLBL_PAID_STS, TO_CHAR (BLRC.BLRC_CREATE_DTM, 'MM/DD/YYYY HH24:MI:SS') AS BLRC_CREATE_DTM FROM FACETS.CMC_GRGR_GROUP GRGR JOIN FACETS.CMC_SBSB_SUBSC SBSB ON GRGR.GRGR_CK = SBSB.GRGR_CK JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' AND BLEI.BLEI_SUSPND_BL_IND <> 'D' JOIN FACETS.CMC_RCPT_RECEIPTS RCPT ON RCPT.BLEI_CK = BLEI.BLEI_CK AND RCPT.RCPT_RCPT_CD = 'W' JOIN FACETS.CMC_BLRC_BILL_RCPT BLRC ON     BLRC.RCPT_ID = RCPT.RCPT_ID AND BLRC.BLEI_CK = RCPT.BLEI_CK AND BLRC.BLRC_SUSPENSE_IND = 'N' AND BLRC.BLBL_DUE_DT >= TO_DATE ('1/1/2015','mm/dd/yyyy') AND BLRC.BLBL_DUE_DT <= TO_DATE ('5/16/2021','mm/dd/yyyy')'"
+      },
+      "gv_LoadWriteoffRptTableQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT BatchId, BatchDate, RunDate, LastName, FirstName, MI, HCID, GroupID, ClassID, ContractID, PBP, PlanName, PlanType, CoverageType, OSBIndicator, WriteOffReason, LastDue,   WRTO.BLEI_CK, (CASE WHEN PPAInd = 1 THEN 'YES' ELSE 'NO' END) AS PPAInd, BLRC.BLBL_DUE_DT AS BillingPeriodDueDate, BLRC.BLRC_AMT AS WriteOffAmount FROM WriteOff.WriteOff WRTO INNER JOIN WriteOff.CMC_RCPT_BLRC_STAGE BLRC ON WRTO.BLEI_CK = BLRC.BLEI_CK WHERE WRTO.BatchId = (SELECT MAX(BatchId) FROM WriteOff.WriteOff ) ORDER BY BatchDate,RunDate,LastName,BLRC.BLBL_DUE_DT'"
+      },
+      "gv_strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "gv_ExtractFileName" : {
+        "type" : "string",
+        "defaultValue" : "'DEV_WriteOff_RPT_20260727.xls'"
+      },
+      "gv_BatchDate" : {
+        "type" : "string",
+        "defaultValue" : "toTimestamp('5/16/2021')"
+      },
+      "gv_strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "SuccessFrom" : {
+        "type" : "string",
+        "defaultValue" : "'kumar.sekar@anthem.com'"
+      },
+      "gv_FileSuffix" : {
+        "type" : "string",
+        "defaultValue" : "'DEV_'"
+      },
+      "SuccessTo" : {
+        "type" : "string",
+        "defaultValue" : "'ramnath.pantangi@anthem.com'"
+      },
+      "gv_strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_strSqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "gv_ExtractFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Delinquency\\\\WriteOff'"
+      },
+      "AttachmentFrom" : {
+        "type" : "string",
+        "defaultValue" : "'kumar.sekar@anthem.com'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'MSDAORA.1'"
+      },
+      "gv_populatewriteoffrptquery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT BatchDate, RunDate, LastName, FirstName, MI, HCID, GroupID, ClassID, ContractID, PBP, PlanName, PlanType, CoverageType, OSBIndicator, WriteOffReason, LastDue,PPAInd, BillingPeriodDueDate, WriteOffAmount FROM WriteOff.WriteOff_Report (nolock) WRTR WHERE WRTR.BatchId = (SELECT MAX(BatchId) FROM WriteOff.WriteOff_Report (nolock)) ORDER BY BatchDate,RunDate,LastName,BillingPeriodDueDate'"
+      },
+      "WriteOffReportURL" : {
+        "type" : "string",
+        "defaultValue" : "'http://vadrsf10/Reports/Pages/Report.aspx?ItemPath=%2fDevelopment%2fManaged%2fFinance%2fPrivate%2fBOSS_STAGE%2fDelinquencyWriteOffReport&ViewMode=Detail'"
+      }
+    }
+  }
+}
