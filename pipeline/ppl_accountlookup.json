@@ -435,11 +435,71 @@
         }
       } ]
     }, {
+      "name" : "Import_Account_Lookup_Non_EGR_Data01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Non_EGR_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Import_Account_Lookup_Data_MCD0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Import_Account_Lookup_Non_EGR_Data",
+        "activity" : "Import_Account_Lookup_Non_EGR_Data01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -522,11 +582,71 @@
         }
       } ]
     }, {
+      "name" : "Import_Account_Lookup_Data_MCD01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Data_MCD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "SEQU_EGR_Account_LKP_LOAD",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Import_Account_Lookup_Data_MCD",
+        "activity" : "Import_Account_Lookup_Data_MCD01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -880,23 +1000,6 @@
             }
           },
           "datasetParameters" : {
-            "AccountLookupOutputFile" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "AcctLkpFileLineBOSS" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSS_TableName",
@@ -916,6 +1019,23 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "AccountLookupOutputFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -1146,6 +1266,23 @@
                 }
               },
               "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "AcctLkpFileLineBOSSCSV" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSSCSV_TableName",
@@ -1165,23 +1302,6 @@
                   },
                   "Directory" : {
                     "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "FlatFileDestination" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
