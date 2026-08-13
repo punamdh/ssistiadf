@@ -1,0 +1,277 @@
+{
+  "name" : "ppl_aciresponseload",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_EmailSubjectFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectFailure",
+        "value" : {
+          "value" : "@concat('Billing Finance ACI Response Inbound Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectSuccess",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectSuccess",
+        "value" : {
+          "value" : "@concat('Billing Finance ACI Response Inbound Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFS_READ_RESPONSE_ContainerName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS FFS_READ_RESPONSE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFS_READ_RESPONSE_FileName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS FFS_READ_RESPONSE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFS_READ_RESPONSE_FilePath' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS FFS_READ_RESPONSE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_DTL_SchemaName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_DTL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_DTL_TableName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_DTL_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_HDR_SchemaName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_HDR_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_HDR_TableName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_HDR_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_TRL_SchemaName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_TRL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_LOAD_RESPONSE_TRL_TableName' AND PIPELINE_NAME = 'ACIResponseLoad' AND DATAFLOW_NAME = 'DFT-LOAD_ACI_RESPONSE') AS OLEDB_DEST_LOAD_RESPONSE_TRL_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SC-ACI_RESPONSE_LOAD",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_EmailSubjectSuccess",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST-PRE_VALIDATION",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST-PRE_VALIDATION",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "FELC-PROCESS_FILES",
+          "type" : "Wait",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST-PRE_VALIDATION",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "waitTimeInSeconds" : 10
+          }
+        } ]
+      }
+    }, {
+      "name" : "SMT-FAILURE",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-ACI_RESPONSE_LOAD",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "ST-SET_SUCCESS_EMAIL_VALUES",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-ACI_RESPONSE_LOAD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-SET_SUCCESS_EMAIL_VALUES",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT-SUCCESS",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST-SET_SUCCESS_EMAIL_VALUES",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string"
+      },
+      "gv_EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@anthem.com'"
+      },
+      "gv_FilesToProcess" : {
+        "type" : "string"
+      },
+      "gv_EmailSmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_FileToProcess" : {
+        "type" : "string"
+      },
+      "gv_EmailSubjectSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance ACI Response Inbound Process Completed Successfully in the DEV Environment on GBFAC06D'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_OracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "gv_EmailMessage" : {
+        "type" : "string"
+      },
+      "gv_InboundPath" : {
+        "type" : "string"
+      },
+      "gv_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_INHIP_BATCH_REIMBURSE_RESP_20170509_1.txt'"
+      },
+      "gv_EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'Nivas.Dharuman@anthem.com'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_BatchID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_EmailSubjectFailure" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance ACI Response Inbound Process Terminated Abnormally in the DEV Environment on GBFAC06D'"
+      }
+    }
+  }
+}
