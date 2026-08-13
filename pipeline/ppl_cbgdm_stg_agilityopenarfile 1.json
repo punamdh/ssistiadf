@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "value" : "@concat('[',split(pipeline().PipelineName,'_')[{3}]),'].[',split(pipeline().PipelineName,'_')[{3}]),']')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileDate",
         "value" : {
-          "value" : "@concat(formatDateTime(variables('FileDateDt'), 'yyyy'),notConvertedectfunctionstringright(concat('00',formatDateTime(variables('FileDateDt'), 'MM')), 2),notConvertedectfunctionstringright(concat('00',dayOfMonth(variables('FileDateDt'))), 2))",
+          "value" : "@concat(formatDateTime(variables('FileDateDt'), 'yyyy'),substring(concat('00',formatDateTime(variables('FileDateDt'), 'MM')), sub(length(concat('00',formatDateTime(variables('FileDateDt'), 'MM'))), 2), 2),substring(concat('00',dayOfMonth(variables('FileDateDt'))), sub(length(concat('00',dayOfMonth(variables('FileDateDt')))), 2), 2))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "FileDateDt",
         "value" : {
-          "value" : "@notConvertedectfunctiondatedateAdd('DAY', -(1), (concat(substring(variables('FileDateStr'), 1, 4),'-',substring(variables('FileDateStr'), 5, 2),'-',substring(variables('FileDateStr'), 7, 2))))",
+          "value" : "@addDays((concat(substring(variables('FileDateStr'), 1, 4),'-',substring(variables('FileDateStr'), 5, 2),'-',substring(variables('FileDateStr'), 7, 2))), -1)",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "FileDateStr",
         "value" : {
-          "value" : "@notConvertedectfunctionstringright(replace(variables('FileName'),'.csv',''), 8)",
+          "value" : "@substring(replace(variables('FileName'),'.csv',''), sub(length(replace(variables('FileName'),'.csv','')), 8), 8)",
           "type" : "Expression"
         }
       }
@@ -343,7 +343,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Target_Table_7"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Target_Table_7",
@@ -435,25 +452,19 @@
                     }
                   },
                   "datasetParameters" : {
-                    "WritetoTarget" : {
-                      "TableName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
+                    "ReadfromAgilityOpenARCSvERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -475,19 +486,25 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "ReadfromAgilityOpenARCSvERROROUTPUTFILE" : {
-                      "TableName" : null,
-                      "Schema" : null,
+                    "WritetoTarget" : {
+                      "TableName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -622,7 +639,24 @@
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Load_Dedup_Target_Table"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
           }
         }, {
           "name" : "Load_Dedup_Target_Table",
@@ -714,6 +748,23 @@
                 }
               },
               "datasetParameters" : {
+                "OLEDBSourceERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "WritetoTarget" : {
                   "TableName" : {
                     "value" : null,
@@ -733,23 +784,6 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBSourceERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","

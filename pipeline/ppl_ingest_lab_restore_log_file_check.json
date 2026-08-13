@@ -313,7 +313,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "expression" : {
-          "value" : "@concat(not(equals(variables('var_loop_cnt'),variables('var_max_loops'))),1) && not(equals(variables('var_status'),'Successful'))",
+          "value" : "@and(concat(not(equals(variables('var_loop_cnt'),variables('var_max_loops'))),1), not(equals(variables('var_status'),'Successful')))",
           "type" : "Expression"
         },
         "timeout" : "0.12:00:00",
@@ -360,7 +360,24 @@
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
-            "parameters" : { }
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "20_set_successf_ul_in_progess_status_1"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
           }
         }, {
           "name" : "20_set_failed_status_and_email_SCRIPT",
@@ -492,23 +509,6 @@
                 }
               },
               "datasetParameters" : {
-                "restorelog" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "evaluateresotredatetime" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -522,6 +522,23 @@
                   },
                   "Directory" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "restorelog" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.restorelog_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","

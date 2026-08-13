@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "value" : "@concat('[',split(pipeline().PipelineName,'_')[{3}]),'].[',split(pipeline().PipelineName,'_')[{3}]),']')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileDate",
         "value" : {
-          "value" : "@if(greater(notConvertedectfunctionstringfindString(variables('FileName'), '1_to_', 1),0), concat(formatDateTime(formatDateTime(utcnow(),'M/d/yyyy hh:mm:ss tt'), 'yyyy'),'0101'), notConvertedectfunctionstringright(replace(variables('FileName'),'.csv',''), 8))",
+          "value" : "@if(greater(notConvertedectfunctionstringfindString(variables('FileName'), '1_to_', 1),0), concat(formatDateTime(utcnow(), 'yyyy'),'0101'), substring(replace(variables('FileName'),'.csv',''), sub(length(replace(variables('FileName'),'.csv','')), 8), 8))",
           "type" : "Expression"
         }
       }
@@ -275,7 +275,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Target_Table_6"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Target_Table_6",
@@ -363,19 +380,25 @@
                     }
                   },
                   "datasetParameters" : {
-                    "ReadfromcsvERROROUTPUTFILE" : {
-                      "TableName" : null,
-                      "Schema" : null,
+                    "WritetoStg" : {
+                      "TableName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -397,25 +420,19 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "WritetoStg" : {
-                      "TableName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
+                    "ReadfromcsvERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromcsvERROROUTPUTFILE_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -649,7 +666,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Target_Table_Prev_1"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Target_Table_Prev_1",
@@ -737,19 +771,25 @@
                     }
                   },
                   "datasetParameters" : {
-                    "Readfromcsv" : {
-                      "TableName" : null,
-                      "Schema" : null,
+                    "WritetoStg" : {
+                      "TableName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -771,25 +811,19 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "WritetoStg" : {
-                      "TableName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
+                    "Readfromcsv" : {
+                      "TableName" : null,
+                      "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStg_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Readfromcsv_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -1023,7 +1057,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Target_Table_Hist_1"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Target_Table_Hist_1",

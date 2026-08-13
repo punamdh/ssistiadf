@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "value" : "@concat('[',split(pipeline().PipelineName,'_')[{3}]),'].[',split(pipeline().PipelineName,'_')[{3}]),']')",
           "type" : "Expression"
         }
       }
@@ -219,7 +219,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Stage_Ecom_Order_OrderLine"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Stage_Ecom_Order_OrderLine",
@@ -303,6 +320,29 @@
                     }
                   },
                   "datasetParameters" : {
+                    "WritetoStgEOrder" : {
+                      "TableName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "ReadfromEcomOrderFile" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -333,29 +373,6 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "WritetoStgEOrder" : {
-                      "TableName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoStgEOrder_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","

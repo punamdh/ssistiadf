@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 2),'].[',notConvertedectfunctionstringtoken(pipeline().PipelineName, '_', 3),']')",
+          "value" : "@concat('[',split(pipeline().PipelineName,'_')[{3}]),'].[',split(pipeline().PipelineName,'_')[{3}]),']')",
           "type" : "Expression"
         }
       }
@@ -275,7 +275,24 @@
                   "type" : "PipelineReference"
                 },
                 "waitOnCompletion" : false,
-                "parameters" : { }
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Target_Table_9"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
               }
             }, {
               "name" : "Load_Target_Table_9",
@@ -351,23 +368,6 @@
                     }
                   },
                   "datasetParameters" : {
-                    "ReadFromSourceFile" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "InserttoTarget" : {
                       "TableName" : {
                         "value" : null,
@@ -404,6 +404,23 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFileERROROUTPUTFILE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadFromSourceFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadFromSourceFile_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","

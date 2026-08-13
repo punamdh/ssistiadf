@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "Fact_Quey",
         "value" : {
-          "value" : "@'+(DT_WSTR, 50) Dw_Run_Key +' && not(equals(variables('iostatus'),'Invalid Door'))",
+          "value" : "@and('+(DT_WSTR, 50) Dw_Run_Key +', not(equals(variables('iostatus'),'Invalid Door')))",
           "type" : "Expression"
         }
       }
@@ -210,7 +210,24 @@
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
-        "parameters" : { }
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_FACTDATA_CRRECTION"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
       }
     }, {
       "name" : "DFT_FACTDATA_CRRECTION",
@@ -282,29 +299,6 @@
             }
           },
           "datasetParameters" : {
-            "OLESRCFACTOOIOENTRY" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACTOOIOENTRY_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACTOOIOENTRY_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OLE_SRC_FACTOOIOENTRY",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDSTFACT11" : {
               "TableName" : {
                 "value" : null,
@@ -324,6 +318,29 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTFACT11_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLESRCFACTOOIOENTRY" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACTOOIOENTRY_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACTOOIOENTRY_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_SRC_FACTOOIOENTRY",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
