@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DataConversion"
       } ],
-      "script" : "parameters{\n\tvar_copy_recipients as string (),\n\tvar_duplicate_pt_row_id as integer (),\n\tvar_pms_input_file_name as string (),\n\tvar_recipients as string ()\n}\n\nsource(output(\n\t\trequest_source as string,\n\t\tpatient_row_id as string,\n\t\tdate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select request_source, patient_row_id, cast( cast(getdate() as date) as varchar(20) ) as date from [ecms].[pms_patient] group by request_source, patient_row_id having count(*) > 1',\n\tformat: 'query',\n\tstaged:false) ~> SRCecmspmspatient\nSRCecmspmspatient derive({Copy of patient_row_id} = toString(patient_row_id),\n\t\t{Copy of date} = toString(date),\n\t\t{Copy of request_source} = toString(request_source)) ~> DataConversion"
+      "script" : "parameters{\n\tvar_copy_recipients as string (),\n\tvar_duplicate_pt_row_id as integer (),\n\tvar_pms_input_file_name as string (),\n\tvar_recipients as string ()\n}\n\nsource(output(\n\t\trequest_source as string,\n\t\tpatient_row_id as string,\n\t\tdate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select request_source, patient_row_id, cast( cast(getdate() as date) as varchar(20) ) as date from [ecms].[pms_patient] group by request_source, patient_row_id having count(*) > 1',\n\tformat: 'query',\n\tstaged:false) ~> SRCecmspmspatient\nSRCecmspmspatient derive({Copy of date} = toString(date),\n\t\t{Copy of patient_row_id} = toString(patient_row_id),\n\t\t{Copy of request_source} = toString(request_source)) ~> DataConversion"
     }
   }
 }
