@@ -1,0 +1,31 @@
+{
+  "name" : "dft_create_ca_report",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBSQL",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DFTCREATECAREPORT"
+      } ],
+      "transformations" : [ {
+        "name" : "DCNVCOMBINEDATA"
+      } ],
+      "script" : "parameters{\n\tBatchId as integer (),\n\teMailEnv as string (),\n\tgv_CA_FileName as string (),\n\tgv_CA_TemplatePath as string (),\n\tgv_CO_Extract_Conn as string (),\n\tgv_CO_FileName as string (),\n\tgv_CO_TemplatePath as string (),\n\tgv_CRMR_Extract_Conn as string (),\n\tgv_CRMR_FileName as string (),\n\tgv_CRMR_TemplatePath as string (),\n\tgv_CT_Extract_Conn as string (),\n\tgv_CT_FileName as string (),\n\tgv_CT_TemplatePath as string (),\n\tgv_ExcelProvider as string (),\n\tgv_Fetch_Cntrct_Mtch_Rec as string (),\n\tgv_FileName as string (),\n\tgv_FilePath as string (),\n\tgv_LOADCO as string (),\n\tgv_LOADCRMR as string (),\n\tgv_LOADCT as string (),\n\tgv_LOADNH as string (),\n\tgv_LOAD_CA as string (),\n\tgv_NH_Extract_Conn as string (),\n\tgv_NH_FileName as string (),\n\tgv_NH_TemplatePath as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_Override_Rec_To_Process as integer (),\n\tgv_RecordsToProcess as integer (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tgv_tbl as string (),\n\tMailFrom as string (),\n\tMailTo as string (),\n\tReportPeriodEndDt as timestamp (),\n\tReportPeriodEndNextDt as timestamp (),\n\tReportPeriodStartDt as timestamp (),\n\tSMTP as string (),\n\tstrDataSource as string (),\n\tstrInitialCatalog as string (),\n\tstrMemEligQuery as string (),\n\tstrPassword as string (),\n\tstrUserName as string (),\n\tstr_Run_Dt as timestamp (),\n\tVarArchive as string (),\n\tVarArchivePath as string (),\n\tVarCreateArchiveMon as string (),\n\tVarDetailReport as string (),\n\tVarEligMem as string (),\n\tVarFileSysMonthPath as string (),\n\tVarFileSysYear as string (),\n\tVarFileSysYearPath as string (),\n\tVarFTP as string (),\n\tVariable as integer (),\n\tVarInputArchivePath as string (),\n\tVarInputFileArcvPath as string (),\n\tVarInputMonthPath as string (),\n\tVarInputSysYearPath as string (),\n\tVarMem as string (),\n\tVarTrigger as string (),\n\tVarVarianceReport as string (),\n\tVar_FileName as string (),\n\tVar_FilePath as string ()\n}\n\nsource(output(\n\t\tPaymentDate as string,\n\t\tGenderCode as string,\n\t\tAgeGroup as string,\n\t\tStateCountyCode as string,\n\t\tHospice as string,\n\t\tESRD as string,\n\t\tInst as string,\n\t\tRiskAdjFacPrtA as string,\n\t\tRiskAdjFacPrtB as string,\n\t\tNoofPayAdjMonthPrtA as string,\n\t\tAdjReasonCode as string,\n\t\tPayAdjStartDate as timestamp,\n\t\tPayAdjEndDate as timestamp,\n\t\tPrtDRAFac as string,\n\t\tPrtDLowIncomeInd as string,\n\t\tNoofPayAdjMonthsPrtD as string,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT  MMR.PAYMENT_DT AS PaymentDate, NH.SBSB_ID AS SBSB_ID, \\' \\' AS AgeGroup, MMR.SRC_MBR_GNDR_CD AS GenderCode, MMR.STATE_COUNTRY_CD AS StateCountyCode, MMR.LOW_INCOME_MI_PART_D AS PrtDLowIncomeInd, MMR.HOSPICE AS Hospice, MMR.ESRD AS ESRD, \\' \\' AS Inst, MMR.ADJ_RISK_FAC_PART_A AS RiskAdjFacPrtA, MMR.ADJ_RISK_FAC_PART_B AS RiskAdjFacPrtB, MMR.RISK_ADJ_FAC_PART_D AS PrtDRAFac, MMR.ADJ_REASON_CD AS AdjReasonCode, MMR.ORIG_MSA_PAY_ADJSTMNT_STRT_DT AS PayAdjStartDate, MMR.ORIG_MSA_PAY_ADJSTMNT_END_DT AS PayAdjEndDate, MMR.NO_OF_PAY_ADJ_PART_A AS NoofPayAdjMonthPrtA, MMR.NO_OF_PAY_ADJ_MON_PART_D AS NoofPayAdjMonthsPrtD FROM  PSGL.CMS_MMR_RAW MMR JOIN PSGL.MMR_CA_LOAD NH  ON NH.MEME_HICN = MMR.CMS_MBR_HIC_NBR_ID AND NH.CMS_CNTRCT_NBR = MMR.CMS_CNTRCT_NBR  AND NH.CMS_PLAN_BNFT_PKG_ID = MMR.CMS_PLAN_BNFT_PKG_ID AND MMR.ORIG_MSA_PAY_ADJSTMNT_STRT_DT BETWEEN NH.MEPE_EFF_DT AND NH.MEPE_TERM_DT AND MMR.ORIG_MSA_PAY_ADJSTMNT_END_DT BETWEEN NH.MEPE_EFF_DT AND NH.MEPE_TERM_DT',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBSQL\nSRCOLEDBSQL derive(GenderCode_DC = toString(GenderCode),\n\t\tPrtDLowIncomeInd_DC = toString(PrtDLowIncomeInd),\n\t\tPrtDRAFac_DC = toString(PrtDRAFac),\n\t\tPayAdjStartDate_DC = toDate(toString(PayAdjStartDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tNoofPayAdjMonthsPrtD_DC = toString(NoofPayAdjMonthsPrtD),\n\t\tSBSB_ID_DC = toString(SBSB_ID),\n\t\tPayAdjEndDate_DC = toDate(toString(PayAdjEndDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tStateCountyCode_DC = toString(StateCountyCode),\n\t\tNoofPayAdjMonthPrtA_DC = toString(NoofPayAdjMonthPrtA),\n\t\tAdjReasonCode_DC = toString(AdjReasonCode),\n\t\tESRD_DC = toString(ESRD),\n\t\tRiskAdjFacPrtA_DC = toString(RiskAdjFacPrtA),\n\t\tHospice_DC = toString(Hospice),\n\t\tAgeGroup_DC = toString(AgeGroup),\n\t\tRiskAdjFacPrtB_DC = toString(RiskAdjFacPrtB),\n\t\tInst_DC = toString(Inst),\n\t\tPaymentDate_DC = toString(PaymentDate)) ~> DCNVCOMBINEDATA"
+    }
+  }
+}

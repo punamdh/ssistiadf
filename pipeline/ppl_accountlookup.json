@@ -1,0 +1,1985 @@
+{
+  "name" : "ppl_accountlookup",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ExcelACLKPFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExcelACLKPFileName",
+        "value" : {
+          "value" : "@concat(variables('OutputFilepath'),variables('GBD_EGR_FLDR'),variables('GBD_EGR_Accounts'),'GBD_EGR_Accounts_',substring(concat('0',formatDateTime(utcNow(), 'MM')), sub(length(concat('0',formatDateTime(utcNow(), 'MM'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'dd')), sub(length(concat('0',formatDateTime(utcNow(), 'dd'))), 2), 2),formatDateTime(utcNow(), 'yyyy'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_ExcelACLKPOutFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExcelACLKPOutFileName",
+        "value" : {
+          "value" : "@concat(variables('OutputFilepath'),variables('GBD_EGR_FLDR'),variables('GBD_EGR_Outbound'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_ExcelACLKPTemplate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExcelACLKPTemplate",
+        "value" : {
+          "value" : "@concat(variables('OutputFilepath'),variables('GBD_EGR_FLDR'),variables('GBD_EGR_Template'),'txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FileLine__BOSS__SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File') AS AcctLkp_FileLine__BOSS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FileLine__BOSS__TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File') AS AcctLkp_FileLine__BOSS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Account_Lookup_Output_File_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File') AS Account_Lookup_Output_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Account_Lookup_Output_File_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File') AS Account_Lookup_Output_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Account_Lookup_Output_File_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File') AS Account_Lookup_Output_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__FACETS__SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD') AS AcctLkp_FacetsStage__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__FACETS__TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD') AS AcctLkp_FacetsStage__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD') AS AcctLkp_FacetsStage__BOSS__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD') AS AcctLkp_FacetsStage__BOSS__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD') AS AcctLkp_FacetsStage__BOSS__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__FACETS__SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data') AS AcctLkp_FacetsStage__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__FACETS__TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data') AS AcctLkp_FacetsStage__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data') AS AcctLkp_FacetsStage__BOSS__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data') AS AcctLkp_FacetsStage__BOSS__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FacetsStage__BOSS__FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data') AS AcctLkp_FacetsStage__BOSS__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FileLine__BOSS__CSV_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File') AS AcctLkp_FileLine__BOSS__CSV_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AcctLkp_FileLine__BOSS__CSV_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File') AS AcctLkp_FileLine__BOSS__CSV_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AC_LKP_BILL_GROUP_EGR_Data_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data') AS AC_LKP_BILL_GROUP_EGR_Data_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AC_LKP_BILL_GROUP_EGR_Data_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data') AS AC_LKP_BILL_GROUP_EGR_Data_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AC_LKP_Subscriber_EGR_DATA__FACETS__SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data') AS AC_LKP_Subscriber_EGR_DATA__FACETS__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'AC_LKP_Subscriber_EGR_DATA__FACETS__TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data') AS AC_LKP_Subscriber_EGR_DATA__FACETS__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EGR_AcctLkp_FacetsStage__BOSS__FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data') AS EGR_AcctLkp_FacetsStage__BOSS__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_sink_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_sink_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0_sink_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Archive_folder_with_date_0') AS FST_-_Copy_to_Archive_folder_with_date_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_sink_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_sink_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_-_Copy_to_Outbound_folder_0_sink_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'FST_-_Copy_to_Outbound_folder_0') AS FST_-_Copy_to_Outbound_folder_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Account_TXT_Lookup_File01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File01') AS Create_Account_TXT_Lookup_File01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Account_TXT_Lookup_File01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File01') AS Create_Account_TXT_Lookup_File01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Account_TXT_Lookup_File01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File01') AS Create_Account_TXT_Lookup_File01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Account_TXT_Lookup_File01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File01') AS Create_Account_TXT_Lookup_File01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Account_TXT_Lookup_File01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Account_TXT_Lookup_File01') AS Create_Account_TXT_Lookup_File01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_-_Delimited_Fixed_Footer_File01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File01') AS DFT_-_Delimited_Fixed_Footer_File01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_-_Delimited_Fixed_Footer_File01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File01') AS DFT_-_Delimited_Fixed_Footer_File01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_-_Delimited_Fixed_Footer_File01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File01') AS DFT_-_Delimited_Fixed_Footer_File01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_-_Delimited_Fixed_Footer_File01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File01') AS DFT_-_Delimited_Fixed_Footer_File01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_-_Delimited_Fixed_Footer_File01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DFT_-_Delimited_Fixed_Footer_File01') AS DFT_-_Delimited_Fixed_Footer_File01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01') AS Import_AC_LKP_BILL_GROUP_EGR_Data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01') AS Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01') AS Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01') AS Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_BILL_GROUP_EGR_Data01') AS Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01') AS Import_AC_LKP_Subscriber_EGR_Data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01') AS Import_AC_LKP_Subscriber_EGR_Data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01') AS Import_AC_LKP_Subscriber_EGR_Data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01') AS Import_AC_LKP_Subscriber_EGR_Data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_AC_LKP_Subscriber_EGR_Data01') AS Import_AC_LKP_Subscriber_EGR_Data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Non_EGR_Account_Lookup_File01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File01') AS Create_Non_EGR_Account_Lookup_File01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Non_EGR_Account_Lookup_File01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File01') AS Create_Non_EGR_Account_Lookup_File01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Non_EGR_Account_Lookup_File01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File01') AS Create_Non_EGR_Account_Lookup_File01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Non_EGR_Account_Lookup_File01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File01') AS Create_Non_EGR_Account_Lookup_File01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_Non_EGR_Account_Lookup_File01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Create_Non_EGR_Account_Lookup_File01') AS Create_Non_EGR_Account_Lookup_File01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Data_MCD01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD01') AS Import_Account_Lookup_Data_MCD01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Data_MCD01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD01') AS Import_Account_Lookup_Data_MCD01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Data_MCD01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD01') AS Import_Account_Lookup_Data_MCD01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Data_MCD01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD01') AS Import_Account_Lookup_Data_MCD01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Data_MCD01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Data_MCD01') AS Import_Account_Lookup_Data_MCD01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Non_EGR_Data01_source_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data01') AS Import_Account_Lookup_Non_EGR_Data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Non_EGR_Data01_source_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data01') AS Import_Account_Lookup_Non_EGR_Data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Non_EGR_Data01_source_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data01') AS Import_Account_Lookup_Non_EGR_Data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Non_EGR_Data01_sink_SchemaName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data01') AS Import_Account_Lookup_Non_EGR_Data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Account_Lookup_Non_EGR_Data01_sink_TableName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'Import_Account_Lookup_Non_EGR_Data01') AS Import_Account_Lookup_Non_EGR_Data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p_ContainerName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p') AS DELETE_To_Delete_Account_Lookup_File_in_Template_p_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p_FileName' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p') AS DELETE_To_Delete_Account_Lookup_File_in_Template_p_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p_FilePath' AND PIPELINE_NAME = 'AccountLookup' AND DATAFLOW_NAME = 'DELETE_To_Delete_Account_Lookup_File_in_Template_p') AS DELETE_To_Delete_Account_Lookup_File_in_Template_p_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Variables",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_ExcelACLKPTemplate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ExcelACLKPFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ExcelACLKPOutFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SET_CriticalEventSeverityID_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventSeverityId \n FROM GENERIC.EventSeverity\n WHERE EventSeverity = 'Critical'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SET_EventTypeID_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventTypeId\n FROM GENERIC.EventType\n WHERE EventType = 'SSIS'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SET_InfoEventSeverityID_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT EventSeverityId \n FROM GENERIC.EventSeverity\n WHERE EventSeverity = 'Informational'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SET_ModuleID_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " SELECT ModuleId\n FROM GENERIC.Module \n WHERE ModuleName = 'AccountLookup'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SET_CriticalEventSeverityID_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_CriticalEventSeverityID_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CriticalEventSeverityID",
+            "value" : "@activity('SET_CriticalEventSeverityID_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "SET_EventTypeID_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_EventTypeID_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "EventTypeID",
+            "value" : "@activity('SET_EventTypeID_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "SET_InfoEventSeverityID_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_InfoEventSeverityID_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "InfoEventSeverityID",
+            "value" : "@activity('SET_InfoEventSeverityID_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "SET_ModuleID_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_ModuleID_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "ModuleID",
+            "value" : "@activity('SET_ModuleID_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        } ]
+      }
+    }, {
+      "name" : "TRUNCATE_AcctLkp_FacetsStage_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Variables",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE [AcctLkp].[FacetsStage]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Account_Lookup_Batch_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "TRUNCATE_AcctLkp_FacetsStage_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [AcctLkp].[Pr_CreateBatch]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Account_Lookup_Batch_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Create_Account_Lookup_Batch_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BatchId",
+        "value" : "@activity('Create_Account_Lookup_Batch_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "Import_Account_Lookup_Non_EGR_Data0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Account_Lookup_Batch_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Import_Account_Lookup_Non_EGR_Data"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Import_Account_Lookup_Non_EGR_Data",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Non_EGR_Data0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "WITH ProcessEligibility AS (      SELECT         MEME_CK,          CSCS_ID,          CSPI_ID,          MEPE_EFF_DT      FROM FACETS.CMC_MEPE_PRCS_ELIG      WHERE SYSDATE BETWEEN ADD_MONTHS(MEPE_EFF_DT, -1) AND ADD_MONTHS (MEPE_TERM_DT, 3)         AND MEPE_ELIG_IND = 'Y'     ),  MemberClassPlan AS (      SELECT         ROW_NUMBER() OVER (              PARTITION BY s.SBSB_ID             ORDER BY pe.MEPE_EFF_DT DESC         ) AS RowNumber,         s.SBSB_CK,          g.GRGR_ID,         pe.CSCS_ID,          pe.CSPI_ID,           s.SBSB_ID,          s.SBSB_FIRST_NAME,          s.SBSB_MID_INIT,          s.SBSB_LAST_NAME,          s.SBAD_TYPE_MAIL     FROM FACETS.CMC_GRGR_GROUP g      INNER JOIN FACETS.CMC_SBSB_SUBSC s          ON g.GRGR_CK = s.GRGR_CK      INNER JOIN FACETS.CMC_MEME_MEMBER m          ON s.SBSB_CK = m.SBSB_CK     INNER JOIN ProcessEligibility pe          ON m.MEME_CK = pe.MEME_CK      WHERE (g.GRGR_ID NOT LIKE '%EGR%' AND g.GRGR_ID NOT LIKE '%GRS%' AND g.GRGR_ID NOT LIKE '%GRX%') )  SELECT      mcp.GRGR_ID,      mcp.CSCS_ID,      mcp.CSPI_ID,      mcp.SBSB_ID,      mcp.SBSB_FIRST_NAME,      mcp.SBSB_MID_INIT,      mcp.SBSB_LAST_NAME,      a.SBAD_ADDR1,      a.SBAD_ADDR2,      a.SBAD_ADDR3,      a.SBAD_CITY,      a.SBAD_STATE,      a.SBAD_ZIP,     ei.BLEI_NET_DUE,      NULL AS BGBG_ID,      NULL AS BGBG_NAME,ei.BLEI_BILL_LEVEL FROM MemberClassPlan mcp  INNER JOIN FACETS.CMC_SBSD_SPLT_DTL sd      ON mcp.SBSB_CK = sd.SBSB_CK  inner join FACETS.CMC_SBSP_SPLT_PREM sp     ON SD.SBSB_CK = SP.SBSB_CK AND SP.SBSP_EFF_DT=SD.SBSP_EFF_DT INNER JOIN FACETS.CMC_BLEI_ENTY_INFO ei      ON mcp.SBSB_CK = ei.BLEI_BILL_LEVEL_CK    INNER JOIN FACETS.CMC_SBAD_ADDR a     ON mcp.SBSB_CK = a.SBSB_CK          AND mcp.SBAD_TYPE_MAIL = a.SBAD_TYPE            WHERE (     mcp.RowNumber = 1          OR (                 mcp.RowNumber > 1                      AND ei.BLEI_NET_DUE > 0.00         )      )      AND sd.SBSD_MCTR_STYP = 'DRCT'     AND ei.BLEI_BILL_LEVEL = 'I'      AND SYSDATE  BETWEEN ADD_MONTHS(SP.SBSP_EFF_DT,-1) AND SP.SBSP_TERM_DT  UNION  SELECT       mcp.GRGR_ID,      mcp.CSCS_ID,      mcp.CSPI_ID,      mcp.SBSB_ID,      mcp.SBSB_FIRST_NAME,      mcp.SBSB_MID_INIT,      mcp.SBSB_LAST_NAME,      a.SBAD_ADDR1,      a.SBAD_ADDR2,      a.SBAD_ADDR3,      a.SBAD_CITY,      a.SBAD_STATE,      a.SBAD_ZIP,     ei.BLEI_NET_DUE,      bg.BGBG_ID,      CASE sd.SBSD_MCTR_STYP         WHEN 'EMPL' THEN bg.BGBG_NAME         ELSE NULL     END AS BGBG_NAME,ei.BLEI_BILL_LEVEL FROM MemberClassPlan mcp  INNER JOIN FACETS.CMC_SBSD_SPLT_DTL sd      ON mcp.SBSB_CK = sd.SBSB_CK  inner join FACETS.CMC_SBSP_SPLT_PREM sp     ON SD.SBSB_CK = SP.SBSB_CK AND SP.SBSP_EFF_DT=SD.SBSP_EFF_DT INNER JOIN FACETS.CMC_BGBG_BIL_GROUP bg      ON sd.BGBG_CK = bg.BGBG_CK     INNER JOIN FACETS.CMC_BLEI_ENTY_INFO ei      ON bg.BGBG_CK = ei.BLEI_BILL_LEVEL_CK    INNER JOIN FACETS.CMC_SBAD_ADDR a     ON mcp.SBSB_CK = a.SBSB_CK          AND mcp.SBAD_TYPE_MAIL = a.SBAD_TYPE            WHERE  (     mcp.RowNumber = 1          OR (                 mcp.RowNumber > 1                      AND ei.BLEI_NET_DUE > 0.00         )      )      AND sd.SBSD_MCTR_STYP IN ('FAML', 'EMPL')     AND ei.BLEI_BILL_LEVEL = 'B'     AND SYSDATE  BETWEEN ADD_MONTHS(SP.SBSP_EFF_DT,-1) AND SP.SBSP_TERM_DT"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Import_Account_Lookup_Non_EGR_Data01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Non_EGR_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Non_EGR_Data01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Import_Account_Lookup_Data_MCD0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Non_EGR_Data01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Import_Account_Lookup_Data_MCD"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Import_Account_Lookup_Data_MCD",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Data_MCD0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT DISTINCT GRGR.GRGR_ID, MEPE.CSCS_ID, MEPE.CSPI_ID, SUB.SBSB_ID, SUB.SBSB_FIRST_NAME, SUB.SBSB_MID_INIT, SUB.SBSB_LAST_NAME, SBAD.SBAD_ADDR1, SBAD.SBAD_ADDR2, SBAD.SBAD_ADDR3, SBAD.SBAD_CITY, SBAD.SBAD_STATE, SBAD.SBAD_ZIP, BLEI.BLEI_NET_DUE, BLEI.BLEI_BILL_LEVEL ,CAST(SBSB_LAST_NAME as VARCHAR) AS {Copy of SBSB_LAST_NAME},CAST(SBAD_ZIP as VARCHAR) AS {Copy of SBAD_ZIP},CAST(CSCS_ID as VARCHAR) AS {Copy of CSCS_ID},CAST(SBAD_CITY as VARCHAR) AS {Copy of SBAD_CITY},CAST(SBSB_MID_INIT as VARCHAR) AS {Copy of SBSB_MID_INIT},CAST(SBAD_ADDR1 as VARCHAR) AS {Copy of SBAD_ADDR1},CAST(SBAD_ADDR2 as VARCHAR) AS {Copy of SBAD_ADDR2},CAST(SBSB_FIRST_NAME as VARCHAR) AS {Copy of SBSB_FIRST_NAME},CAST(GRGR_ID as VARCHAR) AS {Copy of GRGR_ID},CAST(SBAD_ADDR3 as VARCHAR) AS {Copy of SBAD_ADDR3},CAST(SBAD_STATE as VARCHAR) AS {Copy of SBAD_STATE},CAST(SBSB_ID as VARCHAR) AS {Copy of SBSB_ID},CAST(CSPI_ID as VARCHAR) AS {Copy of CSPI_ID} FROM FACETS.CMC_GRGR_GROUP GRGR JOIN FACETS.CMC_SBSB_SUBSC SUB ON GRGR.GRGR_CK = SUB.GRGR_CK AND GRGR_ID = 'INMCDWP0' JOIN FACETS.CMC_BLBP_BILL_PER BLBP ON SUB.SBSB_CK = BLBP.SBSB_CK AND SUB.GRGR_CK = BLBP.GRGR_CK JOIN FACETS.CMC_SBAD_ADDR SBAD ON SUB.SBSB_CK = SBAD.SBSB_CK AND SUB.SBAD_TYPE_MAIL = SBAD.SBAD_TYPE JOIN FACETS.CMC_MEME_MEMBER MEME ON SUB.SBSB_CK = MEME.SBSB_CK JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SUB.SBSB_CK JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON BLEI.BLEI_BILL_LEVEL_CK = BLBP.BLBP_CK AND BLEI_BILL_LEVEL = 'J' JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEME.MEME_CK = MEPE.MEME_CK AND SYSDATE BETWEEN ADD_MONTHS(MEPE.MEPE_EFF_DT, -1) AND ADD_MONTHS(MEPE.MEPE_TERM_DT, 3) AND MEPE.MEPE_ELIG_IND = 'Y' AND EXISTS ( SELECT * FROM FACETS.CMC_MEPE_PRCS_ELIG MEPE2 WHERE MEPE.MEME_CK = MEPE2.MEME_CK AND MEPE.MEPE_ELIG_IND = MEPE2.MEPE_ELIG_IND HAVING MAX(MEPE2.MEPE_EFF_DT) = MEPE.MEPE_EFF_DT ) UNION SELECT DISTINCT GRGR.GRGR_ID, MEPE.CSCS_ID, MEPE.CSPI_ID, SUB.SBSB_ID, SUB.SBSB_FIRST_NAME, SUB.SBSB_MID_INIT, SUB.SBSB_LAST_NAME, SBAD.SBAD_ADDR1, SBAD.SBAD_ADDR2, SBAD.SBAD_ADDR3, SBAD.SBAD_CITY, SBAD.SBAD_STATE, SBAD.SBAD_ZIP, BLEI.BLEI_NET_DUE, BLEI.BLEI_BILL_LEVEL FROM FACETS.CMC_GRGR_GROUP GRGR JOIN FACETS.CMC_SBSB_SUBSC SUB ON GRGR.GRGR_CK = SUB.GRGR_CK AND GRGR_ID = 'INMCDWP0' JOIN FACETS.CMC_SBAD_ADDR SBAD ON SUB.SBSB_CK = SBAD.SBSB_CK AND SUB.SBAD_TYPE_MAIL = SBAD.SBAD_TYPE JOIN FACETS.CMC_MEME_MEMBER MEME ON SUB.SBSB_CK = MEME.SBSB_CK JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SUB.SBSB_CK JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON BLEI.BLEI_BILL_LEVEL_CK = SUB.SBSB_CK AND BLEI_BILL_LEVEL = 'I' JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEME.MEME_CK = MEPE.MEME_CK AND SYSDATE BETWEEN ADD_MONTHS(MEPE.MEPE_EFF_DT, -1) AND ADD_MONTHS(MEPE.MEPE_TERM_DT, 3) AND MEPE.MEPE_ELIG_IND = 'Y' AND EXISTS ( SELECT * FROM FACETS.CMC_MEPE_PRCS_ELIG MEPE2 WHERE MEPE.MEME_CK = MEPE2.MEME_CK AND MEPE.MEPE_ELIG_IND = MEPE2.MEPE_ELIG_IND HAVING MAX(MEPE2.MEPE_EFF_DT) = MEPE.MEPE_EFF_DT ) UNION SELECT DISTINCT GRGR.GRGR_ID, MEPE.CSCS_ID, MEPE.CSPI_ID, SUB.SBSB_ID, SUB.SBSB_FIRST_NAME, SUB.SBSB_MID_INIT, SUB.SBSB_LAST_NAME, SBAD.SBAD_ADDR1, SBAD.SBAD_ADDR2, SBAD.SBAD_ADDR3, SBAD.SBAD_CITY, SBAD.SBAD_STATE, SBAD.SBAD_ZIP, BLEI.BLEI_NET_DUE, BLEI.BLEI_BILL_LEVEL FROM FACETS.CMC_GRGR_GROUP GRGR JOIN FACETS.CMC_SBSB_SUBSC SUB ON GRGR.GRGR_CK = SUB.GRGR_CK AND GRGR.GRGR_ID IN ('KYMCDWP0', 'NYMCD000', 'WIMCDWP0') JOIN FACETS.CMC_SBAD_ADDR SBAD ON SUB.SBSB_CK = SBAD.SBSB_CK AND SUB.SBAD_TYPE_MAIL = SBAD.SBAD_TYPE JOIN FACETS.CMC_MEME_MEMBER MEME ON SUB.SBSB_CK = MEME.SBSB_CK JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON BLEI.BLEI_BILL_LEVEL_CK = SUB.SBSB_CK AND BLEI_BILL_LEVEL = 'I' JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEME.MEME_CK = MEPE.MEME_CK AND SYSDATE BETWEEN ADD_MONTHS(MEPE.MEPE_EFF_DT, -1) AND ADD_MONTHS(MEPE.MEPE_TERM_DT, 3) AND MEPE.MEPE_ELIG_IND = 'Y' AND EXISTS ( SELECT * FROM FACETS.CMC_MEPE_PRCS_ELIG MEPE2 WHERE MEPE.MEME_CK = MEPE2.MEME_CK AND MEPE.MEPE_ELIG_IND = MEPE2.MEPE_ELIG_IND HAVING MAX(MEPE2.MEPE_EFF_DT) = MEPE.MEPE_EFF_DT )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Import_Account_Lookup_Data_MCD01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Data_MCD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Account_Lookup_Data_MCD01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SEQU_EGR_Account_LKP_LOAD",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Import_Account_Lookup_Data_MCD01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Import_AC_LKP_Subscriber_EGR_Data0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Import_AC_LKP_Subscriber_EGR_Data"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Import_AC_LKP_Subscriber_EGR_Data",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_AC_LKP_Subscriber_EGR_Data0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "WITH PROCESSELIGIBILITY AS (      SELECT         MEME_CK,          CSCS_ID,          CSPI_ID,          MEPE_EFF_DT      FROM FACETS.CMC_MEPE_PRCS_ELIG      WHERE SYSDATE BETWEEN ADD_MONTHS(MEPE_EFF_DT,-1) AND ADD_MONTHS(MEPE_TERM_DT, 6)         AND MEPE_ELIG_IND = 'Y'     ),  MEMBERCLASSPLAN AS (      SELECT         ROW_NUMBER() OVER (              PARTITION BY S.SBSB_ID             ORDER BY PE.MEPE_EFF_DT DESC         ) AS ROWNUMBER,         S.SBSB_CK,          G.GRGR_ID,         PE.CSCS_ID,          PE.CSPI_ID,           S.SBSB_ID,          S.SBSB_FIRST_NAME,          S.SBSB_MID_INIT,          S.SBSB_LAST_NAME,          S.SBAD_TYPE_MAIL     FROM FACETS.CMC_GRGR_GROUP G      INNER JOIN FACETS.CMC_SBSB_SUBSC S          ON G.GRGR_CK = S.GRGR_CK      INNER JOIN FACETS.CMC_MEME_MEMBER M          ON S.SBSB_CK = M.SBSB_CK     INNER JOIN PROCESSELIGIBILITY PE          ON M.MEME_CK = PE.MEME_CK      WHERE (G.GRGR_ID LIKE '%EGR%' OR G.GRGR_ID LIKE '%GRS%' OR G.GRGR_ID LIKE '%GRX%') )  SELECT      MCP.GRGR_ID,      MCP.CSCS_ID AS CSCS_ID,     MCP.CSPI_ID AS CSPI_ID,     BLID.BLEI_CK,     BLID.BLIV_ID AS INVOICE,     MCP.SBSB_ID AS MEMBERID,      MCP.SBSB_FIRST_NAME AS FIRST_NAME,      MCP.SBSB_MID_INIT AS MID_INIT,      MCP.SBSB_LAST_NAME AS LAST_NAME,      A.SBAD_ADDR1 AS SBAD_ADDR1,      A.SBAD_ADDR2 AS SBAD_ADDR2,      A.SBAD_ADDR3 AS SBAD_ADDR3,      A.SBAD_CITY AS SBAD_CITY,      A.SBAD_STATE AS SBAD_STATE,      A.SBAD_ZIP AS SBAD_ZIP,     BLID.BLEI_NET_DUE AS BLEI_NET_DUE,      NULL AS BGBG_ID,      decode(MCP.SBSB_FIRST_NAME,'','',MCP.SBSB_FIRST_NAME ||' ') ||     decode(MCP.SBSB_MID_INIT,'','',MCP.SBSB_MID_INIT ||' ') || MCP.SBSB_LAST_NAME            AS BGBG_NAME ,EI.BLEI_BILL_LEVEL AS  BLEI_BILL_LEVEL                           FROM MEMBERCLASSPLAN MCP     INNER JOIN (     SELECT SD.SBSB_CK,SD.SBSD_MCTR_STYP     FROM FACETS.CMC_SBSD_SPLT_DTL SD INNER JOIN FACETS.CMC_SBSP_SPLT_PREM  SP     ON SD.SBSB_CK = SP.SBSB_CK AND SP.SBSP_EFF_DT=SD.SBSP_EFF_DT      WHERE SYSDATE  BETWEEN (SELECT MAX(ADD_MONTHS(SPE.SBSP_EFF_DT,-1)) SBSP_EFF_DT FROM FACETS.CMC_SBSP_SPLT_PREM SPE WHERE SPE.SBSB_CK=SD.SBSB_CK)     AND ( SELECT MAX(SPT.SBSP_TERM_DT) SBSP_EFF_DT FROM FACETS.CMC_SBSP_SPLT_PREM SPT WHERE SPT.SBSB_CK=SD.SBSB_CK)  ) SPN ON SPN.SBSB_CK= MCP.SBSB_CK   INNER JOIN FACETS.CMC_BLEI_ENTY_INFO EI      ON MCP.SBSB_CK = EI.BLEI_BILL_LEVEL_CK  INNER JOIN    (     SELECT DISTINCT BLIV.BLEI_CK, BLEI.BLEI_NET_DUE, MAX(BLIV.BLIV_ID) BLIV_ID, MAX(BLIV.BLIV_CREATE_DTM)      FROM FACETS.CMC_BLEI_ENTY_INFO BLEI INNER JOIN FACETS.CMC_BLIV_INVOICE BLIV ON BLEI.BLEI_CK = BLIV.BLEI_CK       WHERE BLIV.BLIV_CREATE_DTM= (SELECT MAX(BLIV1.BLIV_CREATE_DTM) FROM FACETS.CMC_BLIV_INVOICE BLIV1                                    WHERE BLIV1.BLIV_CREATE_DTM < SYSDATE AND BLIV1.BLEI_CK=BLEI.BLEI_CK)                                    GROUP BY BLIV.BLEI_CK, BLEI.BLEI_NET_DUE   ) BLID ON BLID.BLEI_CK =EI.BLEI_CK INNER JOIN FACETS.CMC_SBAD_ADDR A     ON MCP.SBSB_CK = A.SBSB_CK          AND MCP.SBAD_TYPE_MAIL = A.SBAD_TYPE            WHERE (     MCP.ROWNUMBER = 1          OR (                 MCP.ROWNUMBER > 1                      AND EI.BLEI_NET_DUE > 0.00         )      )      AND SPN.SBSD_MCTR_STYP IN ('EMPL', 'DRCT')     AND EI.BLEI_BILL_LEVEL = 'I'"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_AC_LKP_Subscriber_EGR_Data01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_AC_LKP_Subscriber_EGR_Data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_Subscriber_EGR_Data01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_AC_LKP_BILL_GROUP_EGR_Data0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_AC_LKP_Subscriber_EGR_Data01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Import_AC_LKP_BILL_GROUP_EGR_Data"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Import_AC_LKP_BILL_GROUP_EGR_Data",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_AC_LKP_BILL_GROUP_EGR_Data0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "SELECT DISTINCT   NVL(GRS.GRGR_ID,XWALK.GRGR_ID) AS GRGR_ID,    CS.CSCS_ID AS CSCS_ID,   NULL AS CSPI_ID,    BLID.BLIV_ID AS INVOICE,   BGBG.BGBG_ID  AS MEMBERID,   NULL AS FIRST_NAME,   NULL AS MID_INIT,   NULL AS LAST_NAME,   BGBG.BGBG_ADDR1 AS BG_SBAD_ADDR1,   BGBG.BGBG_ADDR2 AS BG_SBAD_ADDR2,   BGBG.BGBG_ADDR3 AS BG_SBAD_ADDR3,   BGBG.BGBG_CITY  AS BG_SBAD_CITY,   BGBG.BGBG_STATE AS BG_SBAD_STATE,    BGBG.BGBG_ZIP AS BG_SBAD_ZIP,   BLID.BLEI_NET_DUE AS BLEI_NET_DUE,    BGBG.BGBG_ID AS BGBG_ID,   BGBG.BGBG_NAME AS BGBG_NAME ,BLEI.BLEI_BILL_LEVEL AS  BLEI_BILL_LEVEL  FROM FACETS.CMC_BGBG_BIL_GROUP BGBG  INNER JOIN AGP.BILLING_EGR_BGBG_XWALK XWALK       ON XWALK.BGBG_ID = BGBG.BGBG_ID        LEFT JOIN (SELECT DISTINCT GRGR_ID, BGBG_ID FROM AGP.BILLING_EGR_BGBG_XWALK WHERE GRGR_ID LIKE '%GRS%') GRS         ON XWALK.BGBG_ID = GRS.BGBG_ID        INNER JOIN FACETS.CMC_GRGR_GROUP GRGR          ON GRGR.GRGR_ID = NVL(GRS.GRGR_ID,XWALK.GRGR_ID)          AND (GRGR.GRGR_ID LIKE '%EGR%' OR GRGR.GRGR_ID LIKE '%GRS%' OR GRGR.GRGR_ID LIKE '%GRX%')          AND GRGR.GRGR_BILL_LEVEL='B'  INNER JOIN FACETS.CMC_CSCS_CLASS CS         ON CS.GRGR_CK = GRGR.GRGR_CK    INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI     ON BLEI.BLEI_BILL_LEVEL_CK = BGBG.BGBG_CK AND BLEI.BLEI_BILL_LEVEL = 'B'      INNER JOIN    (     SELECT DISTINCT BLIV.BLEI_CK, BLEI.BLEI_NET_DUE, MAX(BLIV.BLIV_ID) BLIV_ID,     MAX(BLIV.BLIV_CREATE_DTM)      FROM FACETS.CMC_BLEI_ENTY_INFO BLEI INNER JOIN FACETS.CMC_BLIV_INVOICE BLIV ON BLEI.BLEI_CK = BLIV.BLEI_CK       WHERE BLIV.BLIV_CREATE_DTM= (SELECT MAX(BLIV1.BLIV_CREATE_DTM) FROM FACETS.CMC_BLIV_INVOICE BLIV1                                    WHERE BLIV1.BLIV_CREATE_DTM < SYSDATE AND  BLIV1.BLEI_CK=BLEI.BLEI_CK)      GROUP BY BLIV.BLEI_CK, BLEI.BLEI_NET_DUE         ) BLID ON BLID.BLEI_CK =BLEI.BLEI_CK    WHERE BLEI.BLEI_NET_DUE > 0  AND SYSDATE BETWEEN BGBG.BGBG_ORIG_EFF_DT AND ADD_MONTHS(BGBG.BGBG_TERM_DT, 6)"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_AC_LKP_BILL_GROUP_EGR_Data01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_AC_LKP_BILL_GROUP_EGR_Data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_AC_LKP_BILL_GROUP_EGR_Data01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "Transform_Account_Lookup_Data_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQU_EGR_Account_LKP_LOAD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC AcctLkp.PR_TransformFileByBatchId @BatchId"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Create_Non_EGR_Account_Lookup_File0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Transform_Account_Lookup_Data_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Create_Non_EGR_Account_Lookup_File"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Create_Non_EGR_Account_Lookup_File",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Non_EGR_Account_Lookup_File0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_non_egr_account_lookup_file",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "FacetsDataSource" : {
+              "type" : "Expression",
+              "value" : "'GBFAC05D'"
+            },
+            "OutputFilepath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\'"
+            },
+            "GBD_EGR_Template" : {
+              "type" : "Expression",
+              "value" : "'Template\\\\'"
+            },
+            "BossDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "BossUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "FacetsUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "gv_ExcelACLKPFileName" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Archive\\\\GBD_EGR_Accounts_07272026.txt'"
+            },
+            "BatchId" : {
+              "type" : "Expression",
+              "value" : "99"
+            },
+            "gv_ExcelACLKPOutFileName" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Outbound\\\\'"
+            },
+            "EventTypeID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "BossInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "GBD_EGR_Accounts" : {
+              "type" : "Expression",
+              "value" : "'Archive\\\\'"
+            },
+            "InfoEventSeverityID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "GBD_EGR_FLDR" : {
+              "type" : "Expression",
+              "value" : "'EGR\\\\'"
+            },
+            "ModuleID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "dtAccLKP" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "FacetsPassword" : {
+              "type" : "Expression",
+              "value" : "'yeL0wp#N'"
+            },
+            "CriticalEventSeverityID" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "OutputFileName" : {
+              "type" : "Expression",
+              "value" : "'testaddr6101.dat'"
+            },
+            "gv_ExcelACLKPTemplate" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Template\\\\GBD_EGR_Accounts.txt'"
+            },
+            "RowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "BossPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "GBD_EGR_Outbound" : {
+              "type" : "Expression",
+              "value" : "'Outbound\\\\'"
+            }
+          },
+          "datasetParameters" : {
+            "AcctLkpFileLineBOSS" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSS_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSS_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "AcctLkp_FileLine (BOSS)",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "AccountLookupOutputFile" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.AccountLookupOutputFile_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Create_Non_EGR_Account_Lookup_File01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Non_EGR_Account_Lookup_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Non_EGR_Account_Lookup_File01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Non_EGR_Account_Lookup_File01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Non_EGR_Account_Lookup_File01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Non_EGR_Account_Lookup_File01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Non_EGR_Account_Lookup_File01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SEQC_-_To_Create_EGR_Account_LKP_txt_File_Delimite",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Create_Non_EGR_Account_Lookup_File01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Account_TXT_Lookup_File0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Create_Account_TXT_Lookup_File"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Create_Account_TXT_Lookup_File",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Account_TXT_Lookup_File0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "create_account_txt_lookup_file",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05D'"
+                },
+                "OutputFilepath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\'"
+                },
+                "GBD_EGR_Template" : {
+                  "type" : "Expression",
+                  "value" : "'Template\\\\'"
+                },
+                "BossDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+                },
+                "BossUserName" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BOSS'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'AGP'"
+                },
+                "gv_ExcelACLKPFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Archive\\\\GBD_EGR_Accounts_07272026.txt'"
+                },
+                "BatchId" : {
+                  "type" : "Expression",
+                  "value" : "99"
+                },
+                "gv_ExcelACLKPOutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Outbound\\\\'"
+                },
+                "EventTypeID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "BossInitialCatalog" : {
+                  "type" : "Expression",
+                  "value" : "'BOSS'"
+                },
+                "GBD_EGR_Accounts" : {
+                  "type" : "Expression",
+                  "value" : "'Archive\\\\'"
+                },
+                "InfoEventSeverityID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "GBD_EGR_FLDR" : {
+                  "type" : "Expression",
+                  "value" : "'EGR\\\\'"
+                },
+                "ModuleID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "dtAccLKP" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'yeL0wp#N'"
+                },
+                "CriticalEventSeverityID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "OutputFileName" : {
+                  "type" : "Expression",
+                  "value" : "'testaddr6101.dat'"
+                },
+                "gv_ExcelACLKPTemplate" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Template\\\\GBD_EGR_Accounts.txt'"
+                },
+                "RowCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "BossPassword" : {
+                  "type" : "Expression",
+                  "value" : "'0s-dyekDSD40Jg'"
+                },
+                "GBD_EGR_Outbound" : {
+                  "type" : "Expression",
+                  "value" : "'Outbound\\\\'"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "AcctLkpFileLineBOSSCSV" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSSCSV_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.AcctLkpFileLineBOSSCSV_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "AcctLkp_FileLine (BOSS) CSV",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Create_Account_TXT_Lookup_File01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Account_TXT_Lookup_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Account_TXT_Lookup_File01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Account_TXT_Lookup_File01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Account_TXT_Lookup_File01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Account_TXT_Lookup_File01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_Account_TXT_Lookup_File01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_-_Delimited_Fixed_Footer_File0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Create_Account_TXT_Lookup_File01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_-_Delimited_Fixed_Footer_File"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_-_Delimited_Fixed_Footer_File",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Delimited_Fixed_Footer_File0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_-_delimited_fixed_footer_file",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05D'"
+                },
+                "OutputFilepath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\'"
+                },
+                "GBD_EGR_Template" : {
+                  "type" : "Expression",
+                  "value" : "'Template\\\\'"
+                },
+                "BossDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+                },
+                "BossUserName" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BOSS'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'AGP'"
+                },
+                "gv_ExcelACLKPFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Archive\\\\GBD_EGR_Accounts_07272026.txt'"
+                },
+                "BatchId" : {
+                  "type" : "Expression",
+                  "value" : "99"
+                },
+                "gv_ExcelACLKPOutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Outbound\\\\'"
+                },
+                "EventTypeID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "BossInitialCatalog" : {
+                  "type" : "Expression",
+                  "value" : "'BOSS'"
+                },
+                "GBD_EGR_Accounts" : {
+                  "type" : "Expression",
+                  "value" : "'Archive\\\\'"
+                },
+                "InfoEventSeverityID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "GBD_EGR_FLDR" : {
+                  "type" : "Expression",
+                  "value" : "'EGR\\\\'"
+                },
+                "ModuleID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "dtAccLKP" : {
+                  "type" : "Expression",
+                  "value" : "''"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'yeL0wp#N'"
+                },
+                "CriticalEventSeverityID" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "OutputFileName" : {
+                  "type" : "Expression",
+                  "value" : "'testaddr6101.dat'"
+                },
+                "gv_ExcelACLKPTemplate" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Template\\\\GBD_EGR_Accounts.txt'"
+                },
+                "RowCount" : {
+                  "type" : "Expression",
+                  "value" : "0"
+                },
+                "BossPassword" : {
+                  "type" : "Expression",
+                  "value" : "'0s-dyekDSD40Jg'"
+                },
+                "GBD_EGR_Outbound" : {
+                  "type" : "Expression",
+                  "value" : "'Outbound\\\\'"
+                }
+              },
+              "datasetParameters" : {
+                "ScriptComponent" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_-_Delimited_Fixed_Footer_File01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Delimited_Fixed_Footer_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_-_Delimited_Fixed_Footer_File01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_-_Delimited_Fixed_Footer_File01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_-_Delimited_Fixed_Footer_File01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_-_Delimited_Fixed_Footer_File01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_-_Delimited_Fixed_Footer_File01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "FST_-_Copy_to_Outbound_folder_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DFT_-_Delimited_Fixed_Footer_File01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Outbound_folder_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "FST_-_Copy_to_Archive_folder_with_date_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FST_-_Copy_to_Outbound_folder_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_-_Copy_to_Archive_folder_with_date_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "DELETE_To_Delete_Account_Lookup_File_in_Template_p",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FST_-_Copy_to_Archive_folder_with_date_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_To_Delete_Account_Lookup_File_in_Template_p_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_To_Delete_Account_Lookup_File_in_Template_p_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_To_Delete_Account_Lookup_File_in_Template_p_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Package_Complete_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQC_-_To_Create_EGR_Account_LKP_txt_File_Delimite",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_UpdateEventLog] \n @EventTypeId,\n @EventSeverityId,\n @ModuleiD,\n 'Account Lookup Package Complete.'\n\n EXEC [GENERIC].[Pr_Update_Batch_Status] \n '[AcctLkp].[Batch]',\n @BatchId,\n 'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FacetsDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05D'"
+      },
+      "OutputFilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\'"
+      },
+      "GBD_EGR_Template" : {
+        "type" : "string",
+        "defaultValue" : "'Template\\\\'"
+      },
+      "BossDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "BossUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "FacetsUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_ExcelACLKPFileName" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Archive\\\\GBD_EGR_Accounts_07272026.txt'"
+      },
+      "BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "99"
+      },
+      "gv_ExcelACLKPOutFileName" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Outbound\\\\'"
+      },
+      "EventTypeID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BossInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "GBD_EGR_Accounts" : {
+        "type" : "string",
+        "defaultValue" : "'Archive\\\\'"
+      },
+      "InfoEventSeverityID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "GBD_EGR_FLDR" : {
+        "type" : "string",
+        "defaultValue" : "'EGR\\\\'"
+      },
+      "ModuleID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "FacetsPassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "CriticalEventSeverityID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "OutputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'testaddr6101.dat'"
+      },
+      "gv_ExcelACLKPTemplate" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Invoicing\\\\AccountLookup\\\\EGR\\\\Template\\\\GBD_EGR_Accounts.txt'"
+      },
+      "RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BossPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "GBD_EGR_Outbound" : {
+        "type" : "string",
+        "defaultValue" : "'Outbound\\\\'"
+      }
+    }
+  }
+}

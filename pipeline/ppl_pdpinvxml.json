@@ -1,0 +1,1229 @@
+{
+  "name" : "ppl_pdpinvxml",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ExtractFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ExtractFileName",
+        "value" : {
+          "value" : "@concat('GBD_WPT071PDPInvoice_GDBBEE02_',(formatDateTime(utcNow(), 'yyyy')),substring(concat('0',(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',(formatDateTime(utcNow(), 'MM')))), 2), 2),substring(concat('0',(dayOfMonth(utcNow()))), sub(length(concat('0',(dayOfMonth(utcNow())))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'HH')), sub(length(concat('0',formatDateTime(utcNow(), 'HH'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'mm')), sub(length(concat('0',formatDateTime(utcNow(), 'mm'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'ss')), sub(length(concat('0',formatDateTime(utcNow(), 'ss'))), 2), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "get_Batch",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "get_Batch",
+        "value" : {
+          "value" : "@concat('\"SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM,'\" \nORDER BY BATCH_ID\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LoadTCDetail",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadTCDetail"
+      }
+    }, {
+      "name" : "LoadTCHeader",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadTCHeader"
+      }
+    }, {
+      "name" : "LoadTCTrailer",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadTCTrailer"
+      }
+    }, {
+      "name" : "LoadXML",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LoadXML"
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_SRC_TC_XML_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS OLEDB_SRC_TC_XML_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_SRC_TC_XML_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS OLEDB_SRC_TC_XML_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS SRC_OLEDB_PSD_CNT_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_PSD_CNT_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS SRC_OLEDB_PSD_CNT_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_DTL_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_DTL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_DTL_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_DTL_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_HDR_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_HDR_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_HDR_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_HDR_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TRL_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_TRL_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_TRL_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS SRC_OLEDB_TRL_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1') AS DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1') AS FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_DTL_DFT_LOAD_XML_DATA') AS DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_HDR_DFT_LOAD_XML_DATA') AS DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_ContainerName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FileName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FilePath' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_SchemaName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_TableName' AND PIPELINE_NAME = 'PDPInvXML' AND DATAFLOW_NAME = 'DST_OLEDB_TRL_DFT_LOAD_XML_DATA') AS DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_ASSIGN_PREV_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LoadXML",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ExtractFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "get_Batch",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LoadTCDetail",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LoadTCHeader",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LoadTCTrailer",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT ISNULL(MAX(BATCH_ID),0) as BatchId  from [Invoice].[PDPTrailer]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_ASSIGN_PREV_BATCH_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_ASSIGN_PREV_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Var_LastBatch",
+        "value" : "@activity('SQL_ASSIGN_PREV_BATCH_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_GET_BATCH_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_ASSIGN_PREV_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "ASTFieldExpression{expression=null, name='get_Batch'}",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_FOR_EACH_LOOP_RUN_MULTIPLE_BATCHES",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_BATCH_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQL_ASSIGN_PREV_BATCH_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('SQL_GET_BATCH_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SQ_POPULATE_EXTRACT",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "SQL_TRUNCATE_STAGE_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "DELETE FROM  [Invoice].[PDP_Detail] WHERE BATCH_ID = @BatchId\nDELETE FROM  [Invoice].[PDPHEADER] WHERE BATCH_ID = @BatchId\nDELETE FROM  [Invoice].[PDPTRAILER] WHERE BATCH_ID = @BatchId\n\n\n\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "DFT_LOAD_XML_DATA0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SQL_TRUNCATE_STAGE_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "DFT_LOAD_XML_DATA"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "DFT_LOAD_XML_DATA",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_LOAD_XML_DATA0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft_load_xml_data",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "gv_OraclePassword" : {
+                      "type" : "Expression",
+                      "value" : "'bills#4vr'"
+                    },
+                    "ExtractFilePath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\VA33DFS001.DEVAD.WELLPOINT.COM\\\\Apps\\\\Billing\\\\DEV\\\\Invoicing\\\\Invoice'"
+                    },
+                    "BatchId" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "BatchListResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "strSqlServerProvider" : {
+                      "type" : "Expression",
+                      "value" : "'SQLNCLI11.1'"
+                    },
+                    "strDataSource" : {
+                      "type" : "Expression",
+                      "value" : "'DBQ_APPS6.devad.wellpoint.com\\\\APPS6Q,40310'"
+                    },
+                    "BLIVCreateDttm" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('7/5/2022')"
+                    },
+                    "strInitialCatalog" : {
+                      "type" : "Expression",
+                      "value" : "'BOSS'"
+                    },
+                    "ExtractFileName" : {
+                      "type" : "Expression",
+                      "value" : "'GBD_WPT071PDPInvoice_GDBBEE02_20260727190403'"
+                    },
+                    "strPassword" : {
+                      "type" : "Expression",
+                      "value" : "'eGiJ_bs8YM'"
+                    },
+                    "gv_OracleUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BILL'"
+                    },
+                    "get_Batch" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM) AS BLIV_CREATE_DTM FROM AGP.PDP_INVOICE_BATCH WHERE BATCH_STATUS IN ( 'Completed','No Data') AND BATCH_ID >0  ORDER BY BATCH_ID'"
+                    },
+                    "LoadTCDetail" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT * FROM AGP.PDP_INVOICE_DETAIL  WHERE BATCH_ID =0'"
+                    },
+                    "LoadTCHeader" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT * FROM AGP.PDP_INVOICE_HEADER  WHERE BATCH_ID =0'"
+                    },
+                    "Var_LastBatch" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "strUserName" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BOSS'"
+                    },
+                    "ExtractFileNameFinal" : {
+                      "type" : "Expression",
+                      "value" : "'GBD_WPT071PDPInvoice_GDBBEE02_20220705011452'"
+                    },
+                    "gv_strOracleDS" : {
+                      "type" : "Expression",
+                      "value" : "'GBFAC04Q'"
+                    },
+                    "LoadXML" : {
+                      "type" : "Expression",
+                      "value" : "'[Invoice].[Pr_GenerateXML_PDPInv_PSD] \t@BATCH_ID = 0'"
+                    },
+                    "gv_OracleProvider" : {
+                      "type" : "Expression",
+                      "value" : "'OraOLEDB.Oracle.1'"
+                    },
+                    "RowCount" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "LoadTCTrailer" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT  * FROM AGP.PDP_INVOICE_TRAILER  WHERE BATCH_ID =0'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "SRCOLEDBDTL" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "SRC_OLEDB_DTL",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTOLEDBHDR" : {
+                      "TableName" : {
+                        "value" : "\"PDPHeader\"",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "SRCOLEDBHDR" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBHDR_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBHDR_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "SRC_OLEDB_HDR",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "SRCOLEDBTRL" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTRL_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTRL_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "SRC_OLEDB_TRL",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTOLEDBTRL" : {
+                      "TableName" : {
+                        "value" : "\"PDPTrailer\"",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBTRL_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBTRL_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBTRL_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTOLEDBDTL" : {
+                      "TableName" : {
+                        "value" : "\"PDP_Detail\"",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBDTL_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBDTL_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBDTL_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "DST_OLEDB_DTL_DFT_LOAD_XML_DATA",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_DTL_DFT_LOAD_XML_DATA_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_DTL_DFT_LOAD_XML_DATA_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "DST_OLEDB_HDR_DFT_LOAD_XML_DATA",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_HDR_DFT_LOAD_XML_DATA_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_HDR_DFT_LOAD_XML_DATA_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "DST_OLEDB_TRL_DFT_LOAD_XML_DATA",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_TRL_DFT_LOAD_XML_DATA_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_OLEDB_TRL_DFT_LOAD_XML_DATA_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "SQL_SET_BATCH_FILENAME_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DST_OLEDB_DTL_DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "DST_OLEDB_HDR_DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "DST_OLEDB_TRL_DFT_LOAD_XML_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE AGP.PDP_INVOICE_BATCH\nSET FILE_NAME = @BatchId\nWHERE BATCH_ID = @ExtractFileName"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "SQL_ARCHIVE_FILENAME_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SQL_SET_BATCH_FILENAME_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "SELECT FILE_NAME FROM AGP.PDP_INVOICE_BATCH\n WHERE BATCH_ID = @BatchId"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "SQL_ARCHIVE_FILENAME_VA_0",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "SQL_ARCHIVE_FILENAME_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "ExtractFileNameFinal",
+                "value" : "@activity('SQL_ARCHIVE_FILENAME_SCRIPT').output.resultSets[0].rows[0][0]"
+              }
+            }, {
+              "name" : "DFT_CREATE_TC_EXTRACT_10",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SQL_ARCHIVE_FILENAME_VA_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "DFT_CREATE_TC_EXTRACT_1"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "DFT_CREATE_TC_EXTRACT_1",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_CREATE_TC_EXTRACT_10",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft_create_tc_extract_1",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "gv_OraclePassword" : {
+                      "type" : "Expression",
+                      "value" : "'bills#4vr'"
+                    },
+                    "ExtractFilePath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\VA33DFS001.DEVAD.WELLPOINT.COM\\\\Apps\\\\Billing\\\\DEV\\\\Invoicing\\\\Invoice'"
+                    },
+                    "BatchId" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "BatchListResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "strSqlServerProvider" : {
+                      "type" : "Expression",
+                      "value" : "'SQLNCLI11.1'"
+                    },
+                    "strDataSource" : {
+                      "type" : "Expression",
+                      "value" : "'DBQ_APPS6.devad.wellpoint.com\\\\APPS6Q,40310'"
+                    },
+                    "BLIVCreateDttm" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('7/5/2022')"
+                    },
+                    "strInitialCatalog" : {
+                      "type" : "Expression",
+                      "value" : "'BOSS'"
+                    },
+                    "ExtractFileName" : {
+                      "type" : "Expression",
+                      "value" : "'GBD_WPT071PDPInvoice_GDBBEE02_20260727190403'"
+                    },
+                    "strPassword" : {
+                      "type" : "Expression",
+                      "value" : "'eGiJ_bs8YM'"
+                    },
+                    "gv_OracleUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BILL'"
+                    },
+                    "get_Batch" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM) AS BLIV_CREATE_DTM FROM AGP.PDP_INVOICE_BATCH WHERE BATCH_STATUS IN ( 'Completed','No Data') AND BATCH_ID >0  ORDER BY BATCH_ID'"
+                    },
+                    "LoadTCDetail" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT * FROM AGP.PDP_INVOICE_DETAIL  WHERE BATCH_ID =0'"
+                    },
+                    "LoadTCHeader" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT * FROM AGP.PDP_INVOICE_HEADER  WHERE BATCH_ID =0'"
+                    },
+                    "Var_LastBatch" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "strUserName" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BOSS'"
+                    },
+                    "ExtractFileNameFinal" : {
+                      "type" : "Expression",
+                      "value" : "'GBD_WPT071PDPInvoice_GDBBEE02_20220705011452'"
+                    },
+                    "gv_strOracleDS" : {
+                      "type" : "Expression",
+                      "value" : "'GBFAC04Q'"
+                    },
+                    "LoadXML" : {
+                      "type" : "Expression",
+                      "value" : "'[Invoice].[Pr_GenerateXML_PDPInv_PSD] \t@BATCH_ID = 0'"
+                    },
+                    "gv_OracleProvider" : {
+                      "type" : "Expression",
+                      "value" : "'OraOLEDB.Oracle.1'"
+                    },
+                    "RowCount" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "LoadTCTrailer" : {
+                      "type" : "Expression",
+                      "value" : "'SELECT  * FROM AGP.PDP_INVOICE_TRAILER  WHERE BATCH_ID =0'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "FFDSTTCXML" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "OLEDBSRCTCXML" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSRCTCXML_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSRCTCXML_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLEDB_SRC_TC_XML",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTFFPSDCNT" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "SRCOLEDBPSDCNT" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "SRC_OLEDB_PSD_CNT",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_CREATE_TC_EXTRACT_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DST_FF_PSD_CNT_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_CREATE_TC_EXTRACT_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FF_DST_TC_XML_DFT_CREATE_TC_EXTRACT_1_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'bills#4vr'"
+      },
+      "ExtractFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA33DFS001.DEVAD.WELLPOINT.COM\\\\Apps\\\\Billing\\\\DEV\\\\Invoicing\\\\Invoice'"
+      },
+      "BatchId" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "BatchListResultSet" : {
+        "type" : "string"
+      },
+      "strSqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBQ_APPS6.devad.wellpoint.com\\\\APPS6Q,40310'"
+      },
+      "BLIVCreateDttm" : {
+        "type" : "string",
+        "defaultValue" : "'7/5/2022'"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "ExtractFileName" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_WPT071PDPInvoice_GDBBEE02_20260727190403'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'eGiJ_bs8YM'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "get_Batch" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM) AS BLIV_CREATE_DTM FROM AGP.PDP_INVOICE_BATCH\\nWHERE BATCH_STATUS IN ( 'Completed','No Data') AND BATCH_ID >0 \\nORDER BY BATCH_ID'"
+      },
+      "LoadTCDetail" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.PDP_INVOICE_DETAIL  WHERE BATCH_ID =0'"
+      },
+      "LoadTCHeader" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.PDP_INVOICE_HEADER  WHERE BATCH_ID =0'"
+      },
+      "Var_LastBatch" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "ExtractFileNameFinal" : {
+        "type" : "string",
+        "defaultValue" : "'GBD_WPT071PDPInvoice_GDBBEE02_20220705011452'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC04Q'"
+      },
+      "LoadXML" : {
+        "type" : "string",
+        "defaultValue" : "'[Invoice].[Pr_GenerateXML_PDPInv_PSD]\\n\t@BATCH_ID = 0'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "LoadTCTrailer" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT  * FROM AGP.PDP_INVOICE_TRAILER  WHERE BATCH_ID =0'"
+      }
+    }
+  }
+}

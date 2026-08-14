@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "NonWellsfargo_1108/SSIS_Inventory_Samples"
+      "name" : "NonWellsfargo_1108/PACKAGES"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,14 +22,8 @@
         },
         "name" : "FlatFileDestination"
       } ],
-      "transformations" : [ {
-        "name" : "ConditionalSplit"
-      }, {
-        "name" : "ReplacePipesandSpaces"
-      }, {
-        "name" : "TrimLastPipe"
-      } ],
-      "script" : "parameters{\n\tArchiveFile as string (),\n\tArchiveFolder as string (),\n\tClientEmailTemplate as string (),\n\tDropFolder as string (),\n\tFileNameWithoutPath as string (),\n\tHasErrored as boolean (),\n\tImportFileId as integer (),\n\tImportRunId as integer (),\n\tIsFileInvalid as boolean (),\n\tIsFileNameValid as boolean (),\n\tOriginalFile as string (),\n\tProcessingFile as string (),\n\tProcessingFolder as string (),\n\tReceptionFile as string (),\n\tReceptionFolder as string (),\n\tRowDelimiter as string (),\n\tSupportEmailTemplate as string (),\n\tCfg_BaseDirectory as string (),\n\tCfg_RowDelimiter as string ()\n}\n\nsource(output(\n\t\t{Column 0} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(left(Column 0, 6) != 'HEADER' && left(Column 0, 7) != 'TRAILER', disjoint: true) ~> ConditionalSplit@(DataRow,ConditionalSplitDefaultOutput)\nConditionalSplit@DataRow derive({Column 1} = replace(replace({Column 0}, toString('|'), toString(',')), toString(' '), toString(''))) ~> ReplacePipesandSpaces\nReplacePipesandSpaces derive({Column 1} = left({Column 1}, length({Column 1}) - 1)) ~> TrimLastPipe\nTrimLastPipe sink(input(\n\t\tColumn_1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_1 = {Column 1})) ~> FlatFileDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBUS_PATH_FINAL as string (),\n\tEmail_CC as string (),\n\tEmail_From as string (),\n\tEmail_To as string (),\n\tfile_name as string (),\n\tfile_name_final as string (),\n\tFile_path as string (),\n\tInstance_Name as string (),\n\tORA_Password as string (),\n\tORA_Server as string (),\n\tORA_Username as string (),\n\tOUT_FILE as string (),\n\tSMTP_Connection as string (),\n\tTable_data_Summary as string (),\n\tV_ERR_EXISTS as integer ()\n}\n\nsource(output(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select  \\'@pRECTYPE=\"SBSB\",\\' ||  (\\'@pSBSB_ID=\"\\' || SBSB_ID || \\'\",\\') || \\'@pSBSB_FAM_UPDATE_CD=\"UP\",\\' || (\\'@pGRGR_ID=\"\\' || GRGR_ID || \\'\"\\') || chr(13) || chr(10) || \\'@pRECTYPE=\"SBSR\",\\' || \\'@pSBSR_UPDATE_CD=\"UP\",\\' || (\\'@pSBSR_TYPE=\"\\' || SBSR_TYPE || \\'\",\\') || (\\'@pPDPD_ID=\"\\' || PDPD_ID || \\'\",\\') || (\\'@pPDBL_ID=\"\\' || PDBL_ID || \\'\",\\') || (\\'@pPDRT_TYPE=\"\\' || PDRT_TYPE || \\'\",\\') || (\\'@pSBSR_EFF_DT=\"\\' || TO_CHAR( SBSR_EFF_DT, \\'MM/DD/YYYY\\') || \\'\",\\') || (\\'@pSBSR_TERM_DT=\"\\' || SBSR_TERM_DT ||\\'\"\\') as data1 from AGP.BFI_LIS_UPD_RECORD_STG where curr_status=\\'I\\' order by SBSB_ID, SBSR_EFF_DT',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATA1)) ~> FlatFileDestination"
     }
   }
 }

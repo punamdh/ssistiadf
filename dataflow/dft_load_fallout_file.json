@@ -1,0 +1,29 @@
+{
+  "name" : "dft_load_fallout_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCFFLOADFALLOUT",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTOLEDBLOADFALLOUT"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBatchDate as timestamp (),\n\tBatchId as integer (),\n\tBlankFilePath as string (),\n\tFallout_Query as string (),\n\tFileName as string (),\n\tgv_HDRdt as string (),\n\tgv_IndPrem as string (),\n\tInputFileName as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserId as string (),\n\tOuputFileName as string (),\n\tOutputPath as string (),\n\tOutput_CA_II as string (),\n\tPsdOutCnt as integer (),\n\tRAD_Fallout as string (),\n\tRad_FalloutTbl as string (),\n\tRad_Fallout_SQLTbl as string (),\n\tRAD_FileName as string (),\n\tSQLCatalog as string (),\n\tSQLDataSource as string (),\n\tSQLPassword as string (),\n\tSQLProvider as string (),\n\tSQLUserName as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tUserPath as string ()\n}\n\nsource(output(\n\t\tError_Message as string,\n\t\tDate as string,\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCFFLOADFALLOUT\nSRCFFLOADFALLOUT sink(input(\n\t\tERROR_MESSAGE as string,\n\t\tFALLOUT_DATE as timestamp 'dd-MM-yyyy',\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tERROR_MESSAGE = Error_Message,\n\t\tFALLOUT_DATE = Date,\n\t\tSBSB_ID)) ~> DSTOLEDBLOADFALLOUT"
+    }
+  }
+}

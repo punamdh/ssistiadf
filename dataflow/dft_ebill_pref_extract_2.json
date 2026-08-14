@@ -1,0 +1,29 @@
+{
+  "name" : "dft_ebill_pref_extract_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBEBILLEXTRACT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFEBILLEXTRACT"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBatchCategoryID as integer (),\n\tBatchID as integer (),\n\tBatchListResultSet as string (),\n\tBLIVCreateDtm as timestamp (),\n\tBossDataSource as string (),\n\tBossInitialCatalog as string (),\n\tBossPassword as string (),\n\tBossUserName as string (),\n\tCAEFTSplit_Day1 as integer (),\n\tCAEFTSplit_Day2 as integer (),\n\tCAEFTSplit_Day3 as integer (),\n\tCNT_Extn as string (),\n\tContinue as boolean (),\n\tCriticalEventSeverityID as integer (),\n\tDeleteFilePath as string (),\n\tEBillPreferenceFileExtractArchievePath as string (),\n\tEBillPreferenceFileExtractFileName as string (),\n\tEBillPreferenceFileExtractPath as string (),\n\tEBillSkippedMembersSQL as string (),\n\tEmailInd as string (),\n\tEventTypeID as integer (),\n\tExtractFileName as string (),\n\tExtractFileNameFinal as string (),\n\tExtractFileNamePrefix as string (),\n\tExtractFilePath as string (),\n\tFacetsDataSource as string (),\n\tFacetsPassword as string (),\n\tFacetsUserID as string (),\n\tFAML_rpt_Query as string (),\n\tFAM_rpt_Conn as string (),\n\tFAM_rpt_NM as string (),\n\tFAM_rpt_Path as string (),\n\tFAM_rpt_Path_Arch as string (),\n\tgv_GetCnt as string (),\n\tIndividualIndiSql as string (),\n\tIndividualInsbSql as string (),\n\tIndividualInvoiceSql as string (),\n\tIndividualPaymentActivitySql as string (),\n\tInfoEventSeverityID as integer (),\n\tMailFrom as string (),\n\tMailTo as string (),\n\tModuleID as integer (),\n\tNoFileEmail as string (),\n\tReadyBatchStatusID as integer (),\n\tSMTP as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tSummaryIndiSql as string (),\n\tSummaryInsbSql as string (),\n\tSummaryInvoiceMemberSql as string (),\n\tSummaryInvoiceSql as string (),\n\tSummaryPaymentActivitySql as string (),\n\tWisconsinMandateSql as string ()\n}\n\nsource(output(\n\t\tCSCS_ID as string,\n\t\tPDPD_ID as string,\n\t\tGRGR_ID as string,\n\t\tPLDS_DESC as string,\n\t\tBilledAmount as decimal(0,0),\n\t\tSBSB_ID as string,\n\t\tCSPI_ID as string,\n\t\tPayDueDate as string,\n\t\tGrpLocCd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select  GRGR_ID ,\tSBSB_ID ,\tEBILL_EFF_DT,\tEBILL_TERM_DT from INVOICE.GBD_EBILL_PREF',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBEBILLEXTRACT\nSRCOLEDBEBILLEXTRACT sink(input(\n\t\tCSCS_ID as string,\n\t\tPDPD_ID as string,\n\t\tGRGR_ID as string,\n\t\tPLDS_DESC as string,\n\t\tBilledAmount as string,\n\t\tSBSB_ID as string,\n\t\tCSPI_ID as string,\n\t\tPAY_DUE_DATE as string,\n\t\tGrp_LocCd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCSCS_ID,\n\t\tPDPD_ID,\n\t\tGRGR_ID,\n\t\tPLDS_DESC,\n\t\tBilledAmount,\n\t\tSBSB_ID,\n\t\tCSPI_ID,\n\t\tPAY_DUE_DATE = PayDueDate,\n\t\tGrp_LocCd = GrpLocCd)) ~> DSTFFEBILLEXTRACT\nDFTDCNVFAML sink(input(\n\t\t{MIN(SUB_EFF)} as timestamp 'dd-MM-yyyy',\n\t\t{Copy of SUBSC_HCID} as string,\n\t\t{Copy of DEP_HCID} as string,\n\t\t{Copy of GRPBILLENTITY} as string,\n\t\t{Copy of SUB_GRGR_ID} as string,\n\t\t{MIN(DEP_EFF)} as timestamp 'dd-MM-yyyy',\n\t\t{MAX(DEP_TERM)} as timestamp 'dd-MM-yyyy',\n\t\t{Copy of DEP_GRGR_ID} as string,\n\t\t{MAX(SUB_TERM)} as timestamp 'dd-MM-yyyy',\n\t\t{Copy of INVOICENBR} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DSTXLSFAMLINACTIVE"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "dataload_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tBUS_FILE_NAME as string (),\n\tBUS_PATH as string (),\n\tBUS_PATH_FINAL as string (),\n\tORA_Password as string (),\n\tORA_Server as string (),\n\tORA_Username as string ()\n}\n\nsource(output(\n\t\tIn_data as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(substring(toString(In_data), toInteger(12), toInteger(4)) == 'SBSB', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1 sink(input(\n\t\tIN_DATA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tIN_DATA = In_data)) ~> OLEDBDestination"
+    }
+  }
+}

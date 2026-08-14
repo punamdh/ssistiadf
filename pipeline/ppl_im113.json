@@ -1,0 +1,920 @@
+{
+  "name" : "ppl_im113",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "OutputFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OutputFileName",
+        "value" : {
+          "value" : "@concat('ACUMEN_GBD_FACETS_',(formatDateTime(utcNow(), 'yyyy')),substring(concat('0',(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',(formatDateTime(utcNow(), 'MM')))), 2), 2),substring(concat('0',(dayOfMonth(utcNow()))), sub(length(concat('0',(dayOfMonth(utcNow())))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'HH')), sub(length(concat('0',formatDateTime(utcNow(), 'HH'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'mm')), sub(length(concat('0',formatDateTime(utcNow(), 'mm'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'ss')), sub(length(concat('0',formatDateTime(utcNow(), 'ss'))), 2), 2),'.dat')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "str_SqlLoadStage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "str_SqlLoadStage",
+        "value" : {
+          "value" : "@variables('GRGR_CK')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_CREATE_FILE_SchemaName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE') AS SRC_OLEDB_CREATE_FILE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_CREATE_FILE_TableName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE') AS SRC_OLEDB_CREATE_FILE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_CREATE_FILE_ContainerName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE') AS DST_FF_CREATE_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_CREATE_FILE_FileName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE') AS DST_FF_CREATE_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_CREATE_FILE_FilePath' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE') AS DST_FF_CREATE_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_LOAD_STAGING_SchemaName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING') AS SRC_OLEDB_LOAD_STAGING_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_LOAD_STAGING_TableName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING') AS SRC_OLEDB_LOAD_STAGING_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_LOAD_STAGING_ContainerName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING') AS DST_OLEDB_LOAD_STAGING_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_LOAD_STAGING_FileName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING') AS DST_OLEDB_LOAD_STAGING_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_LOAD_STAGING_FilePath' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING') AS DST_OLEDB_LOAD_STAGING_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CREATE_FILE01_source_ContainerName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE01') AS DFT_CREATE_FILE01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CREATE_FILE01_source_FileName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE01') AS DFT_CREATE_FILE01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CREATE_FILE01_source_FilePath' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE01') AS DFT_CREATE_FILE01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CREATE_FILE01_sink_SchemaName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE01') AS DFT_CREATE_FILE01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_CREATE_FILE01_sink_TableName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_CREATE_FILE01') AS DFT_CREATE_FILE01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_STAGING01_source_ContainerName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING01') AS DFT_LOAD_STAGING01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_STAGING01_source_FileName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING01') AS DFT_LOAD_STAGING01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_STAGING01_source_FilePath' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING01') AS DFT_LOAD_STAGING01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_STAGING01_sink_SchemaName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING01') AS DFT_LOAD_STAGING01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_LOAD_STAGING01_sink_TableName' AND PIPELINE_NAME = 'IM113' AND DATAFLOW_NAME = 'DFT_LOAD_STAGING01') AS DFT_LOAD_STAGING01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_TRUNCATE_STAGE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "str_SqlLoadStage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OutputFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE [IM113].[IM_Stage]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRUNCATE_STAGE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [IM113].[Pr_CreateBatch]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BatchId",
+        "value" : "@activity('SQL_CREATE_BATCH_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_GET_STARTDATE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [IM113].[Pr_GetStartDate] @GV_ReportingDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_STARTDATE_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_STARTDATE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_StartDate",
+        "value" : "@activity('SQL_GET_STARTDATE_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "DFT_LOAD_STAGING0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_STARTDATE_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_LOAD_STAGING"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_LOAD_STAGING",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_LOAD_STAGING0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT *  FROM FACETS.CDS_INID_INVOICE INIDINVOICE"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_LOAD_STAGING01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_LOAD_STAGING",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_LOAD_STAGING01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_UPDATE_STATISTICS_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_LOAD_STAGING01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "UPDATE STATISTICS [IM113].[IM_Stage]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_TRANSFORM_IM113_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_UPDATE_STATISTICS_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [IM113].[PR_TransformFileByBatchId]  @BatchId,@gv_StartDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_CREATE_FILE0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRANSFORM_IM113_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_CREATE_FILE"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_CREATE_FILE",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CREATE_FILE0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_create_file",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "str_SqlLoadStage" : {
+              "type" : "Expression",
+              "value" : "'WITH MEMCTE      AS (SELECT DISTINCT SBSB.SBSB_LAST_NAME,                          SBSB.SBSB_FIRST_NAME,                          SBSB.SBSB_ID,                          SBSB.SBSB_CK,                          MEME.MEME_CK,                          MEME.MEME_HICN,                          MEPE.CSCS_ID,                          MEPE.CSPI_ID,                          MEMD.BGBG_CK,                          CONTRACT.BGBG_ID,                          MEMD.MEMD_EVENT_CD,                          MEMD.MEMD_HCFA_EFF_DT,                          MEMD.MEMD_HCFA_TERM_DT,                          MEMD.MEMD_MCTR_PBP,                          MEMD.MEMD_SEGMENT_ID,                          SBSR.SBSR_EFF_DT,                          SBSR.SBSR_TERM_DT            FROM FACETS.CMC_GRGR_GROUP  GRGR                 JOIN FACETS.CMC_SBSB_SUBSC SBSB                     ON     SBSB.GRGR_CK = GRGR.GRGR_CK                        AND (GRGR.GRGR_ID LIKE '%MCR%' OR GRGR.GRGR_ID LIKE '%PDP%')                 JOIN FACETS.CMC_MEME_MEMBER MEME                     ON MEME.SBSB_CK = SBSB.SBSB_CK                 JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE                     ON     MEPE.MEME_CK = MEME.MEME_CK                        AND MEPE.MEPE_ELIG_IND = 'Y'                        AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                               FROM DUAL) BETWEEN MEPE.MEPE_EFF_DT                                              AND MEPE.MEPE_TERM_DT                 JOIN FACETS.CMC_MEMD_MECR_DETL MEMD                     ON     MEMD.MEME_CK = MEME.MEME_CK                        AND MEMD.MEMD_EVENT_CD IN ('PBP', 'SCCC')                        AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                               FROM DUAL) BETWEEN MEMD.MEMD_HCFA_EFF_DT                                              AND MEMD.MEMD_HCFA_TERM_DT                 LEFT JOIN FACETS.CMC_BGBG_BIL_GROUP CONTRACT                     ON CONTRACT.BGBG_CK = MEMD.BGBG_CK                 LEFT JOIN FACETS.CMC_SBSR_SB_RATE SBSR                     ON     SBSB.SBSB_CK = SBSR.SBSB_CK                        AND SBSR.PDBL_ID = 'LEP'                        AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                               FROM DUAL) BETWEEN SBSR.SBSR_EFF_DT                                              AND SBSR.SBSR_TERM_DT),      BILLCTE      AS (  SELECT CTE.SBSB_CK,                   BLDF.BLDF_MCTR_STMT,                   'N'              AS SPLIT_TO_IND,                   INSB.PDBL_ID,                   SUM (BLSB_PREM_SB) AS BLSB_PREM_SB              FROM (SELECT DISTINCT SBSB_CK, SBSB_ID                      FROM MEMCTE) CTE                   JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI                       ON     BLEI.BLEI_BILL_LEVEL_CK = CTE.SBSB_CK                          AND BLEI.BLEI_BILL_LEVEL = 'I'                   JOIN CMC_BLDF_BL_DEFINE BLDF                       ON     BLEI.BLEI_CK = BLDF.BLEI_CK                          AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                                 FROM DUAL) BETWEEN BLDF.BLDF_EFF_DT                                                AND BLDF.BLDF_TERM_DT                                                AND BLDF.BLDF_MCTR_STMT  in  ('DRBL','EFT','None')                   JOIN FACETS.CMC_BLBL_BILL_SUMM BLBL                       ON     BLEI.BLEI_CK = BLBL.BLEI_CK                          AND BLBL.BLBL_DUE_DT =                                  TO_DATE ('7/1/2018', 'mm/dd/yyyy')                   JOIN FACETS.CDS_INSB_SB_DETAIL INSB                       ON     BLBL.BLBL_BLIV_ID_LAST = INSB.BLIV_ID                          AND INSB.PDBL_ID IN ('MED',                                               'DENT',                                               'DRUG',                                               'VISN',                                               'LEP',                                               'LIS',                                               'SPAP')   AND INSB.BLSB_DISP_CD='M'        GROUP BY CTE.SBSB_CK, BLDF.BLDF_MCTR_STMT, INSB.PDBL_ID          UNION            SELECT CTE.SBSB_CK,                   BLDF.BLDF_MCTR_STMT,                   'B'              AS SPLIT_TO_IND,                   INSB.PDBL_ID,                   SUM (BLSB_PREM_SB) AS BLSB_PREM_SB              FROM (SELECT DISTINCT SBSB_CK, SBSB_ID                      FROM MEMCTE) CTE                   JOIN FACETS.CMC_SBSP_SPLT_PREM SBSP                       ON     SBSP.SBSB_CK = CTE.SBSB_CK                          AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                                 FROM DUAL) BETWEEN SBSP.SBSP_EFF_DT                                                AND SBSP.SBSP_TERM_DT                   JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD                       ON     SBSD.SBSB_CK = CTE.SBSB_CK                          AND SBSD.SBSP_EFF_DT = SBSP.SBSP_EFF_DT                          AND SBSD.SBSD_SPLT_TO_IND = 'B'                   JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI                       ON     BLEI.BLEI_BILL_LEVEL_CK = SBSD.BGBG_CK                          AND BLEI.BLEI_BILL_LEVEL = 'B'                   JOIN CMC_BLDF_BL_DEFINE BLDF                       ON     BLEI.BLEI_CK = BLDF.BLEI_CK                          AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')                                 FROM DUAL) BETWEEN BLDF.BLDF_EFF_DT                                                AND BLDF.BLDF_TERM_DT                   JOIN FACETS.CMC_BLBL_BILL_SUMM BLBL                       ON     BLEI.BLEI_CK = BLBL.BLEI_CK                          AND BLBL.BLBL_DUE_DT =                                  TO_DATE ('7/1/2018', 'mm/dd/yyyy')                   JOIN FACETS.CDS_INSB_SB_DETAIL INSB                       ON     BLBL.BLBL_BLIV_ID_LAST = INSB.BLIV_ID                          AND INSB.PDBL_ID IN ('MED',                                               'DENT',                                               'DRUG',                                               'VISN',                                               'LEP',                                               'LIS',                                               'SPAP')                          AND INSB.SBSB_CK = CTE.SBSB_CK     AND INSB.BLSB_DISP_CD='M'      GROUP BY CTE.SBSB_CK, BLDF.BLDF_MCTR_STMT, INSB.PDBL_ID) SELECT CTE1.SBSB_LAST_NAME,        CTE1.SBSB_FIRST_NAME,        CTE1.MEME_HICN,        CTE2.BLDF_MCTR_STMT,        CTE1.BGBG_CK,        CTE1.BGBG_ID,        CTE1.MEMD_EVENT_CD,        CTE1.MEMD_HCFA_EFF_DT,        CTE1.MEMD_HCFA_TERM_DT,        CTE1.MEMD_MCTR_PBP,        CTE1.MEMD_SEGMENT_ID,        CTE2.PDBL_ID,        CTE2.BLSB_PREM_SB AS INSB_PREM_SB,        CTE1.CSCS_ID,        CTE1.CSPI_ID,        CTE2.BLSB_PREM_SB,        CTE1.SBSR_EFF_DT,        CTE1.SBSR_TERM_DT,        CTE1.SBSB_CK,        CTE1.MEME_CK,        CTE2.SPLIT_TO_IND SBSD_SPLT_TO_IND,        CTE1.SBSB_ID   FROM MEMCTE CTE1 JOIN BILLCTE CTE2 ON CTE1.SBSB_CK = CTE2.SBSB_CK'"
+            },
+            "gv_OraclePassword" : {
+              "type" : "Expression",
+              "value" : "'yeL0wp#n'"
+            },
+            "FTP_PATH" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\VA01PSTODFS003.CORP.AGP.ADS\\\\apps\\\\SBI_Data\\\\FTP-Bridge-Prod\\\\InvoiceAccuracy\\\\'"
+            },
+            "SmtpServer" : {
+              "type" : "Expression",
+              "value" : "'smtpinternal.wellpoint.com'"
+            },
+            "Count" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "strInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "strPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "gv_OracleUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "GV_ReportingDate" : {
+              "type" : "Expression",
+              "value" : "'10/1/2016'"
+            },
+            "gv_Email_Dt" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "OutputFileName" : {
+              "type" : "Expression",
+              "value" : "'ACUMEN_GBD_FACETS_20260727190333.dat'"
+            },
+            "rowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "CntMembers" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "OutputFilepath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Invoicing\\\\IM113\\\\'"
+            },
+            "SubscriberInvoice" : {
+              "type" : "Expression",
+              "value" : "'SELECT         s.SBSB_LAST_NAME,         s.SBSB_FIRST_NAME,         s.SBSB_ID,         s.SBSB_CK,         b.BLBL_DUE_DT,         b.BLBL_BLIV_ID_LAST,         m.MEME_CK,         d.SBSD_SPLT_TO_IND,         m.MEME_HICN     FROM FACETS.CMC_SBSB_SUBSC s     INNER JOIN FACETS.CMC_MEME_MEMBER m         ON m.SBSB_CK = s.SBSB_CK     INNER JOIN FACETS.CMC_SBSP_SPLT_PREM p         ON p.SBSB_CK = s.SBSB_CK     INNER JOIN FACETS.CMC_SBSD_SPLT_DTL d         ON p.SBSB_CK = d.SBSB_CK             AND p.SBSP_EFF_DT = d.SBSP_EFF_DT     INNER JOIN FACETS.CMC_BLEI_ENTY_INFO i         ON i.BLEI_BILL_LEVEL_CK = d.BGBG_CK     INNER JOIN FACETS.CMC_BLBL_BILL_SUMM b         ON b.BLEI_CK = i.BLEI_CK     WHERE m.MEME_SFX = 0          AND d.SBSD_SPLT_TO_IND = 'B'         AND TO_DATE ('7/1/2018', 'mm/dd/yyyy') BETWEEN p.SBSP_EFF_DT AND p.SBSP_TERM_DT         AND i.BLEI_BILL_LEVEL = 'B'         AND b.BLBL_DUE_DT = TO_DATE ('7/1/2018', 'mm/dd/yyyy')     UNION      SELECT         s.SBSB_LAST_NAME,         s.SBSB_FIRST_NAME,         s.SBSB_ID,         s.SBSB_CK,         b.BLBL_DUE_DT,         b.BLBL_BLIV_ID_LAST,         m.MEME_CK,         d.SBSD_SPLT_TO_IND,         m.MEME_HICN     FROM FACETS.CMC_SBSB_SUBSC s     INNER JOIN FACETS.CMC_MEME_MEMBER m         ON m.SBSB_CK = s.SBSB_CK     INNER JOIN FACETS.CMC_SBSP_SPLT_PREM p         ON p.SBSB_CK = s.SBSB_CK     INNER JOIN FACETS.CMC_SBSD_SPLT_DTL d         ON p.SBSB_CK = d.SBSB_CK             AND p.SBSP_EFF_DT = d.SBSP_EFF_DT     INNER JOIN FACETS.CMC_BLEI_ENTY_INFO i         ON i.BLEI_BILL_LEVEL_CK = s.SBSB_CK     INNER JOIN FACETS.CMC_BLBL_BILL_SUMM b         ON b.BLEI_CK = i.BLEI_CK     WHERE m.MEME_SFX = 0          AND d.SBSD_SPLT_TO_IND = 'N'         AND TO_DATE ('7/1/2018', 'mm/dd/yyyy') BETWEEN p.SBSP_EFF_DT AND p.SBSP_TERM_DT         AND i.BLEI_BILL_LEVEL = 'I'         AND b.BLBL_DUE_DT = TO_DATE ('7/1/2018', 'mm/dd/yyyy')'"
+            },
+            "gv_StartDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('7/1/2018')"
+            },
+            "BatchId" : {
+              "type" : "Expression",
+              "value" : "89"
+            },
+            "SuccessFrom" : {
+              "type" : "Expression",
+              "value" : "'brahmini.challagulla@elevancehealth.com'"
+            },
+            "SuccessTo" : {
+              "type" : "Expression",
+              "value" : "'brahmini.challagulla@elevancehealth.com'"
+            },
+            "strDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "gv_EndDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('7/31/2018')"
+            },
+            "gv_SqlServerProvider" : {
+              "type" : "Expression",
+              "value" : "'SQLNCLI11.1'"
+            },
+            "strUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "gv_rowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "gv_strOracleDS" : {
+              "type" : "Expression",
+              "value" : "'GBFAC06D'"
+            },
+            "gv_OracleProvider" : {
+              "type" : "Expression",
+              "value" : "'OraOLEDB.Oracle.1'"
+            },
+            "gv_LookupTable" : {
+              "type" : "Expression",
+              "value" : "'AGP.BOSS_INVOICE_LOOKUP'"
+            }
+          },
+          "datasetParameters" : {
+            "DSTFFCREATEFILE" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFCREATEFILE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFCREATEFILE_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFCREATEFILE_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "SRCOLEDBCREATEFILE" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBCREATEFILE_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBCREATEFILE_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "SRC_OLEDB_CREATE_FILE",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "DFT_CREATE_FILE01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CREATE_FILE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CREATE_FILE01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CREATE_FILE01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CREATE_FILE01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CREATE_FILE01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_CREATE_FILE01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_CREATE_FILE01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] '[IM113].[Batch]',@BatchId,'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_COUNT_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  SELECT SubscriberCount\n  FROM [BOSS].[IM113].[Batch] where batchid=@BatchId"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_GET_COUNT_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_COUNT_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Count",
+        "value" : "@activity('SQL_GET_COUNT_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQ_GET_STATS",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_GET_COUNT_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_MEMBER_COUNT_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT [SubscriberCount]  \nFROM [BOSS].[IM113].[Batch] WHERE BATCHID = @BatchId"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_MEMBER_COUNT_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_MEMBER_COUNT_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "CntMembers",
+            "value" : "@activity('SQL_MEMBER_COUNT_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "SQL_CONVERT_DATETIME_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_MEMBER_COUNT_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "select datename(month,@StartTime)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_CONVERT_DATETIME_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_CONVERT_DATETIME_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_Email_Dt",
+            "value" : "@activity('SQL_CONVERT_DATETIME_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "EMAIL_SEND_NOTIF",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_CONVERT_DATETIME_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CntMembers" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "OutputFilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003.corp.agp.ads\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Invoicing\\\\IM113\\\\'"
+      },
+      "str_SqlLoadStage" : {
+        "type" : "string",
+        "defaultValue" : "'WITH MEMCTE\\n     AS (SELECT DISTINCT SBSB.SBSB_LAST_NAME,\\n                         SBSB.SBSB_FIRST_NAME,\\n                         SBSB.SBSB_ID,\\n                         SBSB.SBSB_CK,\\n                         MEME.MEME_CK,\\n                         MEME.MEME_HICN,\\n                         MEPE.CSCS_ID,\\n                         MEPE.CSPI_ID,\\n                         MEMD.BGBG_CK,\\n                         CONTRACT.BGBG_ID,\\n                         MEMD.MEMD_EVENT_CD,\\n                         MEMD.MEMD_HCFA_EFF_DT,\\n                         MEMD.MEMD_HCFA_TERM_DT,\\n                         MEMD.MEMD_MCTR_PBP,\\n                         MEMD.MEMD_SEGMENT_ID,\\n                         SBSR.SBSR_EFF_DT,\\n                         SBSR.SBSR_TERM_DT\\n           FROM FACETS.CMC_GRGR_GROUP  GRGR\\n                JOIN FACETS.CMC_SBSB_SUBSC SBSB\\n                    ON     SBSB.GRGR_CK = GRGR.GRGR_CK\\n                       AND (GRGR.GRGR_ID LIKE '%MCR%' OR GRGR.GRGR_ID LIKE '%PDP%')\\n                JOIN FACETS.CMC_MEME_MEMBER MEME\\n                    ON MEME.SBSB_CK = SBSB.SBSB_CK\\n                JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE\\n                    ON     MEPE.MEME_CK = MEME.MEME_CK\\n                       AND MEPE.MEPE_ELIG_IND = 'Y'\\n                       AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                              FROM DUAL) BETWEEN MEPE.MEPE_EFF_DT\\n                                             AND MEPE.MEPE_TERM_DT\\n                JOIN FACETS.CMC_MEMD_MECR_DETL MEMD\\n                    ON     MEMD.MEME_CK = MEME.MEME_CK\\n                       AND MEMD.MEMD_EVENT_CD IN ('PBP', 'SCCC')\\n                       AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                              FROM DUAL) BETWEEN MEMD.MEMD_HCFA_EFF_DT\\n                                             AND MEMD.MEMD_HCFA_TERM_DT\\n                LEFT JOIN FACETS.CMC_BGBG_BIL_GROUP CONTRACT\\n                    ON CONTRACT.BGBG_CK = MEMD.BGBG_CK\\n                LEFT JOIN FACETS.CMC_SBSR_SB_RATE SBSR\\n                    ON     SBSB.SBSB_CK = SBSR.SBSB_CK\\n                       AND SBSR.PDBL_ID = 'LEP'\\n                       AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                              FROM DUAL) BETWEEN SBSR.SBSR_EFF_DT\\n                                             AND SBSR.SBSR_TERM_DT),\\n     BILLCTE\\n     AS (  SELECT CTE.SBSB_CK,\\n                  BLDF.BLDF_MCTR_STMT,\\n                  'N'              AS SPLIT_TO_IND,\\n                  INSB.PDBL_ID,\\n                  SUM (BLSB_PREM_SB) AS BLSB_PREM_SB\\n             FROM (SELECT DISTINCT SBSB_CK, SBSB_ID\\n                     FROM MEMCTE) CTE\\n                  JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI\\n                      ON     BLEI.BLEI_BILL_LEVEL_CK = CTE.SBSB_CK\\n                         AND BLEI.BLEI_BILL_LEVEL = 'I'\\n                  JOIN CMC_BLDF_BL_DEFINE BLDF\\n                      ON     BLEI.BLEI_CK = BLDF.BLEI_CK\\n                         AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                                FROM DUAL) BETWEEN BLDF.BLDF_EFF_DT\\n                                               AND BLDF.BLDF_TERM_DT\\n                                               AND BLDF.BLDF_MCTR_STMT  in  ('DRBL','EFT','None')\\n                  JOIN FACETS.CMC_BLBL_BILL_SUMM BLBL\\n                      ON     BLEI.BLEI_CK = BLBL.BLEI_CK\\n                         AND BLBL.BLBL_DUE_DT =\\n                                 TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                  JOIN FACETS.CDS_INSB_SB_DETAIL INSB\\n                      ON     BLBL.BLBL_BLIV_ID_LAST = INSB.BLIV_ID\\n                         AND INSB.PDBL_ID IN ('MED',\\n                                              'DENT',\\n                                              'DRUG',\\n                                              'VISN',\\n                                              'LEP',\\n                                              'LIS',\\n                                              'SPAP')\\n  AND INSB.BLSB_DISP_CD='M'        GROUP BY CTE.SBSB_CK, BLDF.BLDF_MCTR_STMT, INSB.PDBL_ID\\n         UNION\\n           SELECT CTE.SBSB_CK,\\n                  BLDF.BLDF_MCTR_STMT,\\n                  'B'              AS SPLIT_TO_IND,\\n                  INSB.PDBL_ID,\\n                  SUM (BLSB_PREM_SB) AS BLSB_PREM_SB\\n             FROM (SELECT DISTINCT SBSB_CK, SBSB_ID\\n                     FROM MEMCTE) CTE\\n                  JOIN FACETS.CMC_SBSP_SPLT_PREM SBSP\\n                      ON     SBSP.SBSB_CK = CTE.SBSB_CK\\n                         AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                                FROM DUAL) BETWEEN SBSP.SBSP_EFF_DT\\n                                               AND SBSP.SBSP_TERM_DT\\n                  JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD\\n                      ON     SBSD.SBSB_CK = CTE.SBSB_CK\\n                         AND SBSD.SBSP_EFF_DT = SBSP.SBSP_EFF_DT\\n                         AND SBSD.SBSD_SPLT_TO_IND = 'B'\\n                  JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI\\n                      ON     BLEI.BLEI_BILL_LEVEL_CK = SBSD.BGBG_CK\\n                         AND BLEI.BLEI_BILL_LEVEL = 'B'\\n                  JOIN CMC_BLDF_BL_DEFINE BLDF\\n                      ON     BLEI.BLEI_CK = BLDF.BLEI_CK\\n                         AND (SELECT TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                                FROM DUAL) BETWEEN BLDF.BLDF_EFF_DT\\n                                               AND BLDF.BLDF_TERM_DT\\n                  JOIN FACETS.CMC_BLBL_BILL_SUMM BLBL\\n                      ON     BLEI.BLEI_CK = BLBL.BLEI_CK\\n                         AND BLBL.BLBL_DUE_DT =\\n                                 TO_DATE ('7/1/2018', 'mm/dd/yyyy')\\n                  JOIN FACETS.CDS_INSB_SB_DETAIL INSB\\n                      ON     BLBL.BLBL_BLIV_ID_LAST = INSB.BLIV_ID\\n                         AND INSB.PDBL_ID IN ('MED',\\n                                              'DENT',\\n                                              'DRUG',\\n                                              'VISN',\\n                                              'LEP',\\n                                              'LIS',\\n                                              'SPAP')\\n                         AND INSB.SBSB_CK = CTE.SBSB_CK\\n    AND INSB.BLSB_DISP_CD='M'      GROUP BY CTE.SBSB_CK, BLDF.BLDF_MCTR_STMT, INSB.PDBL_ID)\\nSELECT CTE1.SBSB_LAST_NAME,\\n       CTE1.SBSB_FIRST_NAME,\\n       CTE1.MEME_HICN,\\n       CTE2.BLDF_MCTR_STMT,\\n       CTE1.BGBG_CK,\\n       CTE1.BGBG_ID,\\n       CTE1.MEMD_EVENT_CD,\\n       CTE1.MEMD_HCFA_EFF_DT,\\n       CTE1.MEMD_HCFA_TERM_DT,\\n       CTE1.MEMD_MCTR_PBP,\\n       CTE1.MEMD_SEGMENT_ID,\\n       CTE2.PDBL_ID,\\n       CTE2.BLSB_PREM_SB AS INSB_PREM_SB,\\n       CTE1.CSCS_ID,\\n       CTE1.CSPI_ID,\\n       CTE2.BLSB_PREM_SB,\\n       CTE1.SBSR_EFF_DT,\\n       CTE1.SBSR_TERM_DT,\\n       CTE1.SBSB_CK,\\n       CTE1.MEME_CK,\\n       CTE2.SPLIT_TO_IND SBSD_SPLT_TO_IND,\\n       CTE1.SBSB_ID\\n  FROM MEMCTE CTE1 JOIN BILLCTE CTE2 ON CTE1.SBSB_CK = CTE2.SBSB_CK'"
+      },
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#n'"
+      },
+      "FTP_PATH" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA01PSTODFS003.CORP.AGP.ADS\\\\apps\\\\SBI_Data\\\\FTP-Bridge-Prod\\\\InvoiceAccuracy\\\\'"
+      },
+      "gv_StartDate" : {
+        "type" : "string",
+        "defaultValue" : "'7/1/2018'"
+      },
+      "SmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "89"
+      },
+      "SuccessFrom" : {
+        "type" : "string",
+        "defaultValue" : "'brahmini.challagulla@elevancehealth.com'"
+      },
+      "SuccessTo" : {
+        "type" : "string",
+        "defaultValue" : "'brahmini.challagulla@elevancehealth.com'"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "Count" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "GV_ReportingDate" : {
+        "type" : "string",
+        "defaultValue" : "'10/1/2016'"
+      },
+      "gv_SqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "gv_Email_Dt" : {
+        "type" : "string"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "OutputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'ACUMEN_GBD_FACETS_20260727190333.dat'"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name" : "tableext_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "Extract"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderRowCount1"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit1"
+      } ],
+      "script" : "parameters{\n\tExtactFilePath as string (),\n\tExtractToFile as string (),\n\tLO_REPORT_INFO as string (),\n\tLSQ_ARCH as string (),\n\tLSQ_DELETE as string (),\n\tLSQ_GETREPORT_DETAILS as string (),\n\tLS_FILE as string (),\n\tOLL_BATCHID as integer (),\n\tOLL_REPTID as integer (),\n\tOLL_SCHDID as integer (),\n\tOLS_ARCH as string (),\n\tOLS_OUTA as string (),\n\tOLS_OUTP as string (),\n\tOLS_Query1 as string (),\n\tOLS_Query2 as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserID as string (),\n\tPDT_BATDATE as timestamp (),\n\tPDT_RUNDATE as timestamp (),\n\tPL_BATID as integer (),\n\tPL_REPTID as integer (),\n\tPL_SCHID as integer (),\n\tRLL_RecordCount as integer (),\n\tRunDate as timestamp ()\n}\n\nsource(output(\n\t\tEXRT_INFO as string,\n\t\tEXRT_DET1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select EXRT_INFO, EXRT_DET1  from AGP.MSB_REPORT_EXTRACT where 1=2',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(EXRT_INFO = EXRT_INFO) ~> PlaceHolderRowCount1\nPlaceHolderRowCount1 derive(DR_BATCHID = OLL_BATCHID,\n\t\tDR_REPTID = OLL_REPTID,\n\t\tDR_SCHD_ID = OLL_SCHDID,\n\t\tDR_DTL2 = toString(' ')) ~> DerivedColumn\nDerivedColumn split(ExtractToFile == 'Y', disjoint: true) ~> ConditionalSplit1@(File,ConditionalSplitDefaultOutput)\nConditionalSplit1@File sink(input(\n\t\tSchedule_ID as integer,\n\t\tDTL1 as string,\n\t\tDTL2 as string,\n\t\tBATCH_ID as integer,\n\t\tINFO as string,\n\t\tREPORT_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSchedule_ID = DR_SCHD_ID,\n\t\tDTL1 = EXRT_DET1,\n\t\tDTL2 = DR_DTL2,\n\t\tBATCH_ID = DR_BATCHID,\n\t\tINFO = EXRT_INFO,\n\t\tREPORT_ID = DR_REPTID)) ~> Extract\nConditionalSplit1@ConditionalSplitDefaultOutput sink(input(\n\t\tEXRT_DET1 as string,\n\t\tEXRT_DET2 as string,\n\t\tEXRT_INFO as string,\n\t\tBATCH_ID as integer,\n\t\tSCHD_ID as integer,\n\t\tREPT_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tEXRT_DET1,\n\t\tEXRT_DET2 = DR_DTL2,\n\t\tEXRT_INFO,\n\t\tBATCH_ID = DR_BATCHID,\n\t\tSCHD_ID = DR_SCHD_ID,\n\t\tREPT_ID = DR_REPTID)) ~> OLEDBDestination"
+    }
+  }
+}

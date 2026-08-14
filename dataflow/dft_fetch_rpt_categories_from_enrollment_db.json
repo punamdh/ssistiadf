@@ -1,0 +1,41 @@
+{
+  "name" : "dft_fetch_rpt_categories_from_enrollment_db",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ENROLLIndianaRptCategoryData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "GBDPRFEligibleData",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutputPlaceHolderPRFENROLLMENTRPT"
+      } ],
+      "transformations" : [ {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoinSelect"
+      }, {
+        "name" : "MergeJoinREFORMAT1"
+      } ],
+      "script" : "parameters{\n\tINMCDMigrationDate as timestamp (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserID as string (),\n\tSQLDataSource as string (),\n\tSQLInitialCatalog as string (),\n\tSQLPassword as string (),\n\tSQLProvider as string (),\n\tSQLUserName as string ()\n}\n\nsource(output(\n\t\tRID as string,\n\t\tIMPORT_DATE as string,\n\t\tTAPE_DATE as string,\n\t\tRPT_NAME as string,\n\t\tRPT_REF_IDENTIFIER as string,\n\t\tRPT_CAT_IDENT_CD as string,\n\t\tINSERTED_DT as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT                      IRC.Medicaid_ID AS RID \t , IRC.Rpt_Name AS RPT_NAME \t , IRC.Rpt_REF_Identifier AS RPT_REF_IDENTIFIER \t , IRC.Rpt_Cat_Identifier_Code AS RPT_CAT_IDENT_CD\t \t , CONVERT(VARCHAR(10),CAST(IRC.ImportDate AS DATE),101) AS IMPORT_DATE \t , CONVERT(VARCHAR(10),CAST(IRC.TapeDate AS DATE),101) AS TAPE_DATE      , GETDATE() AS INSERTED_DT FROM dbo.Indiana_Reporting_Categories IRC WITH (NOLOCK)  INNER JOIN dbo.Indiana_Enrollment IE WITH (NOLOCK)                                    ON IE.Medicaid_ID = IRC.Medicaid_ID                                             AND IE.File_Prefix = \\'HIPFE\\'                                    AND IRC.Rpt_Name =\\'ROLLOVERDISCPERCENT\\'  INNER JOIN (SELECT IRC2.MEDICAID_ID,                                       MAX(IRC2.TapeDate) AS TAPEDATE ,                                       MAX(IRC2.Rpt_From_Date) AS Rpt_From_Date   FROM  dbo.Indiana_Reporting_Categories IRC2   INNER JOIN dbo.Indiana_Enrollment IE1   ON IE1.Medicaid_ID = IRC2.Medicaid_ID          AND IE1.File_Prefix = \\'HIPFE\\'          AND IRC2.Rpt_Name =\\'ROLLOVERDISCPERCENT\\' \t\t AND Rpt_Name =\\'ROLLOVERDISCPERCENT\\' AND IE1.MAINTENANCE_TYPE_CODE <> \\'030\\'             AND IE1.MAINTENANCE_REASON_CODE <> \\'XN\\' GROUP BY IRC2.MEDICAID_ID) IEE ON                 IRC.Medicaid_ID = IEE.Medicaid_ID AND IRC.TapeDate = IEE.TAPEDATE AND IRC.Rpt_From_Date=IEE.Rpt_From_Date        WHERE                      CAST(IE.TapeDate AS DATE) = CAST(IRC.TapeDate AS DATE)                       AND                                   IRC.RPT_FROM_DATE BETWEEN IE.Benefit_Period_Begin_Date and IE.Benefit_Period_End_Date  and IRC.Medicaid_ID in  (select RID from dbo.PRF_INCLUSION_STG_ENROLL where 1 = 1)',\n\tformat: 'query',\n\tstaged:false) ~> ENROLLIndianaRptCategoryData\tsource(output(\n\t\tRID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT RID FROM AGP.PRF_ELIG_MEMBERS_STAGING PRFE ORDER BY PRFE.RID',\n\tformat: 'query',\n\tstaged:false) ~> GBDPRFEligibleData\nGBDPRFEligibleData,ENROLLIndianaRptCategoryData join(GBDPRFEligibleData@RID == ENROLLIndianaRptCategoryData@RID,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tRID = ENROLLIndianaRptCategoryData@RID,\n\t\tIMPORT_DATE = IMPORT_DATE,\n\t\tTAPE_DATE = TAPE_DATE,\n\t\tRPT_NAME = RPT_NAME,\n\t\tRPT_REF_IDENTIFIER = RPT_REF_IDENTIFIER,\n\t\tRPT_CAT_IDENT_CD = RPT_CAT_IDENT_CD,\n\t\tINSERTED_DT = INSERTED_DT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoinSelect\nMergeJoinSelect derive(RID = RID,\n\t\tIMPORT_DATE = IMPORT_DATE,\n\t\tTAPE_DATE = TAPE_DATE,\n\t\tRPT_NAME = RPT_NAME,\n\t\tRPT_REF_IDENTIFIER = RPT_REF_IDENTIFIER,\n\t\tRPT_CAT_IDENT_CD = RPT_CAT_IDENT_CD,\n\t\tINSERTED_DT = INSERTED_DT) ~> MergeJoinREFORMAT1\nMergeJoinREFORMAT1 sink(input(\n\t\tRID as string,\n\t\tIMPORT_DATE as string,\n\t\tTAPE_DATE as string,\n\t\tRPT_NAME as string,\n\t\tRPT_REF_IDENTIFIER as string,\n\t\tRPT_CAT_IDENT_CD as string,\n\t\tINSERTED_DT as timestamp 'ect.format.datetime.hypen.4year2month2day2hour24mmnute2secondsdot6nanoseconds'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tRID,\n\t\tIMPORT_DATE,\n\t\tTAPE_DATE,\n\t\tRPT_NAME,\n\t\tRPT_REF_IDENTIFIER,\n\t\tRPT_CAT_IDENT_CD,\n\t\tINSERTED_DT)) ~> OutputPlaceHolderPRFENROLLMENTRPT"
+    }
+  }
+}

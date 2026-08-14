@@ -1,0 +1,33 @@
+{
+  "name" : "dft_facets_to_warpload_both",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLESRCFACETSWARPMEMBERCOUNTS1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDSTWARPLOADWARPMEMBERCOUNTS1"
+      } ],
+      "transformations" : [ {
+        "name" : "DERADDBATCHID1"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tBATCH_ID as integer (),\n\tFAC_COUNT as integer (),\n\tFILE_COUNT as integer (),\n\tgv_CountOracleTable as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_OutputFolder as string (),\n\tgv_strOracleDS as string (),\n\tSQL_DEFAULT_GET_WARP_DATA as string (),\n\tSQL_GET_WARP_DATA as string (),\n\tSQL_PULLED_DATE_GET_WARP_DATA as string (),\n\tSQL_RUN_DATE_GET_WARP_DATA as string (),\n\tstrDataSource as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrSqlServerProvider as string (),\n\tstrUserName as string (),\n\tV_PULLED_DATE as timestamp (),\n\tV_RUN_DATE as timestamp (),\n\tV_SERVICE_DATE as string (),\n\tV_SNPSHT_DATE as string ()\n}\n\nsource(output(\n\t\tGRGR_CK as string,\n\t\tGRGR_ID as string,\n\t\tCSCS_ID as string,\n\t\tCSPI_ID as string,\n\t\tPDPD_ID as string,\n\t\tCOUNT as string,\n\t\tPULLED_DATE as timestamp,\n\t\tDATE_SENT_TO_WARP as timestamp,\n\t\tCOUNT_ID as string,\n\t\tRUN_DATE as timestamp,\n\t\tSALES_COUNT as string,\n\t\tLAPSE_COUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select      COUNT_ID,     GRGR_CK,     GRGR_ID,     CSCS_ID,     CSPI_ID,     PDPD_ID,     \"COUNT\",     PULLED_DATE,     DATE_SENT_TO_WARP,     RUN_DATE FROM AGP.WARP_MEMBER_COUNTS WHERE DATE_SENT_TO_WARP IS NULL',\n\tformat: 'query',\n\tstaged:false) ~> OLESRCFACETSWARPMEMBERCOUNTS1\nOLESRCFACETSWARPMEMBERCOUNTS1 derive(BATCH_ID = BATCH_ID) ~> DERADDBATCHID1\nDERADDBATCHID1 derive({Copy of COUNT_ID} = toString(COUNT_ID),\n\t\t{Copy of CSPI_ID} = CSPI_ID,\n\t\t{Copy of PDPD_ID} = PDPD_ID,\n\t\t{Copy of GRGR_ID} = GRGR_ID,\n\t\t{Copy of CSCS_ID} = CSCS_ID) ~> DataConversion\nDataConversion sink(input(\n\t\tCSCS_ID as string,\n\t\tRUN_DATE as timestamp 'dd-MM-yyyy',\n\t\tGRGR_CK as integer,\n\t\tLAPSECOUNT as integer,\n\t\tBATCH_ID as integer,\n\t\tSALESCOUNT as integer,\n\t\tPDPD_ID as string,\n\t\tCOUNT_ID as string,\n\t\tGRGR_ID as string,\n\t\tCOUNT as integer,\n\t\tDATE_SENT_TO_WARP as timestamp 'dd-MM-yyyy',\n\t\tCSPI_ID as string,\n\t\tPULLED_DATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCSCS_ID = {Copy of CSCS_ID},\n\t\tRUN_DATE,\n\t\tGRGR_CK,\n\t\tLAPSECOUNT = LAPSE_COUNT,\n\t\tBATCH_ID,\n\t\tSALESCOUNT = SALES_COUNT,\n\t\tPDPD_ID = {Copy of PDPD_ID},\n\t\tCOUNT_ID = {Copy of COUNT_ID},\n\t\tGRGR_ID = {Copy of GRGR_ID},\n\t\tCOUNT,\n\t\tDATE_SENT_TO_WARP,\n\t\tCSPI_ID = {Copy of CSPI_ID},\n\t\tPULLED_DATE)) ~> OLEDSTWARPLOADWARPMEMBERCOUNTS1"
+    }
+  }
+}

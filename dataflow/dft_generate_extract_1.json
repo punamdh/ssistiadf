@@ -1,0 +1,29 @@
+{
+  "name" : "dft_generate_extract_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFGENERATEEXTRACT"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tgv_AuditData_Load_Query_B as string (),\n\tgv_AuditData_Load_Query_I as string (),\n\tgv_AuditData_Query_B_Filter as string (),\n\tgv_AuditData_Query_I_Filter as string (),\n\tgv_Batch_ID as integer (),\n\tgv_Bill_Level as string (),\n\tgv_Contract as string (),\n\tgv_Counter as integer (),\n\tgv_Cov_From_Dt as string (),\n\tgv_Cov_To_Dt as string (),\n\tgv_EmailFrom as string (),\n\tgv_EmailSmtpServer as string (),\n\tgv_EmailSubjectFailure as string (),\n\tgv_EmailSubjectSuccess as string (),\n\tgv_EmailTo as string (),\n\tgv_Environment as string (),\n\tgv_Extract_Name as string (),\n\tgv_Extract_Path as string (),\n\tgv_FileRecCount as integer (),\n\tgv_GRGR_ID as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_PBP as string (),\n\tgv_Query_Contract as string (),\n\tgv_Query_Contract_Filter as string (),\n\tgv_strDataSource as string (),\n\tgv_strInitialCatalog as string (),\n\tgv_strOracleDS as string (),\n\tgv_strPassword as string (),\n\tgv_strSqlServerProvider as string (),\n\tgv_strUserName as string (),\n\tgv_TotalRecCount as integer ()\n}\n\nsource(output(\n\t\tBLSB_COV_THRU_DT as timestamp,\n\t\tBLSB_COV_FROM_DT as timestamp,\n\t\tBLBL_DUE_DT as timestamp,\n\t\tBLSB_PREM_SB as integer,\n\t\tCONTRACT as string,\n\t\tSBSB_ID as string,\n\t\tCSCS_ID as string,\n\t\tBLSB_COV_DUE_DT as timestamp,\n\t\tCSPI_ID as string,\n\t\tMEME_HICN as string,\n\t\tBLBL_BILLED_AMT as integer,\n\t\tGRGR_NAME as string,\n\t\tPDBL_ID as string,\n\t\tBLBL_BLIV_ID_LAST as string,\n\t\tGRGR_ID as string,\n\t\tPDPD_ID as string,\n\t\tBGBG_ID as string,\n\t\tBLEI_BILL_LEVEL as string,\n\t\tPBP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT * FROM AGP.AUDIT_DATA WHERE COUNTER=1  ORDER BY CONTRACT, SBSB_ID, BLBL_DUE_DT, BLBL_BLIV_ID_LAST',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCOVERAGE_THRU_DT as string,\n\t\tCOVERAGE_FROM_DT as string,\n\t\tDUE_DT as string,\n\t\tPREMIUM as decimal(0,0),\n\t\tCONTRACT as string,\n\t\tSBSB_ID as string,\n\t\tCLASS as string,\n\t\tCOVERAGE_DUE_DT as string,\n\t\tPLAN as string,\n\t\tHICN as string,\n\t\tTOTAL_BILLED_AMT as decimal(0,0),\n\t\tGROUP_NAME as string,\n\t\tBILL_COMPONENT as string,\n\t\tINVOICE_ID as string,\n\t\tGRGR_ID as string,\n\t\tPRODUCT as string,\n\t\tBGBG_ID as string,\n\t\tBILL_LEVEL as string,\n\t\tPBP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOVERAGE_THRU_DT = BLSB_COV_THRU_DT,\n\t\tCOVERAGE_FROM_DT = BLSB_COV_FROM_DT,\n\t\tDUE_DT = BLBL_DUE_DT,\n\t\tPREMIUM = BLSB_PREM_SB,\n\t\tCONTRACT,\n\t\tSBSB_ID,\n\t\tCLASS = CSCS_ID,\n\t\tCOVERAGE_DUE_DT = BLSB_COV_DUE_DT,\n\t\tPLAN = CSPI_ID,\n\t\tHICN = MEME_HICN,\n\t\tTOTAL_BILLED_AMT = BLBL_BILLED_AMT,\n\t\tGROUP_NAME = GRGR_NAME,\n\t\tBILL_COMPONENT = PDBL_ID,\n\t\tINVOICE_ID = BLBL_BLIV_ID_LAST,\n\t\tGRGR_ID,\n\t\tPRODUCT = PDPD_ID,\n\t\tBGBG_ID,\n\t\tBILL_LEVEL = BLEI_BILL_LEVEL,\n\t\tPBP)) ~> DSTFFGENERATEEXTRACT"
+    }
+  }
+}

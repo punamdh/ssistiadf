@@ -1,0 +1,43 @@
+{
+  "name" : "dft_create_tc_extract_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSRCTCXML",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SRCOLEDBPSDCNT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFPSDCNT"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTTCXML"
+      } ],
+      "transformations" : [ {
+        "name" : "DCTCXML"
+      } ],
+      "script" : "parameters{\n\tBatchId as decimal(0,0) (),\n\tBatchListResultSet as string (),\n\tBLIVCreateDttm as timestamp (),\n\tExtractFileName as string (),\n\tExtractFileNameFinal as string (),\n\tExtractFilePath as string (),\n\tget_Batch as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_strOracleDS as string (),\n\tLoadTCDetail as string (),\n\tLoadTCHeader as string (),\n\tLoadTCTrailer as string (),\n\tLoadXML as string (),\n\tRowCount as integer (),\n\tstrDataSource as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrSqlServerProvider as string (),\n\tstrUserName as string (),\n\tVar_LastBatch as decimal(0,0) ()\n}\n\nsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '[Invoice].[Pr_GenerateXML_PDPInv_PSD] \t@BatchId = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSRCTCXML\tsource(output(\n\t\tCOUNT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT ISNULL(CAST(TOTAL_REC_COUNT AS INT),0)  AS COUNT FROM [BOSS].[INVOICE].[PDPTRAILER] WHERE BATCH_ID= ?',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBPSDCNT\nOLEDBSRCTCXML derive({Copy of COL_XML} = toString(COL_XML)) ~> DCTCXML\nSRCOLEDBPSDCNT sink(input(\n\t\tCOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOUNT)) ~> DSTFFPSDCNT\nDCTCXML sink(input(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOL_XML = {Copy of COL_XML})) ~> FFDSTTCXML"
+    }
+  }
+}

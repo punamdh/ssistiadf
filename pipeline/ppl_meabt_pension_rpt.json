@@ -1,0 +1,717 @@
+{
+  "name" : "ppl_meabt_pension_rpt",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "excel_source",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "excel_source",
+        "value" : {
+          "value" : "@concat(variables('File_path'),'\\\\',variables('File_name_final'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "File_name_final",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_name_final",
+        "value" : {
+          "value" : "@concat(variables('File_name'),'_',notConvertedectfunctionstringrtrim(notConvertedectfunctionstringltrim(variables('File_name_month'))),formatDateTime(utcNow(), 'yyyy'),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Template_final",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "Template_final",
+        "value" : {
+          "value" : "@concat(variables('Template_location'),'\\\\','xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'Excel_Generation_6') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'Excel_Generation_6') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_source_ContainerName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_source_FileName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_source_FilePath' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_sink_ContainerName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_sink_FileName' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'copy_template_0_sink_FilePath' AND PIPELINE_NAME = 'MEABT_PENSION_RPT' AND DATAFLOW_NAME = 'copy_template_0') AS copy_template_0_sink_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GET_Month_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Template_final",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "excel_source",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "File_name_final",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT to_char(BILLFROMDATE, 'Month') AS MON FROM AGP.MEABT_GBD_MAINPERS_BATCH  WHERE BATCH_STS = 'I'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GET_Month_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_Month_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "File_name_month",
+        "value" : "@activity('GET_Month_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "copy_template_0",
+      "type" : "Copy",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GET_Month_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "DelimitedTextSource"
+        },
+        "sink" : {
+          "type" : "DelimitedTextSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "Generic_File_SRC",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_File_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_sink_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_sink_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.copy_template_0_sink_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ]
+    }, {
+      "name" : "Excel_Generation_60",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "copy_template_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Excel_Generation_6"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Excel_Generation_6",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation_60",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "excel_generation_6",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "gv_OraclePassword" : {
+              "type" : "Expression",
+              "value" : "'yeL0wp#N'"
+            },
+            "Email_Sub" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "Email_To" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "SMTP_Connection" : {
+              "type" : "Expression",
+              "value" : "'smtpInternal.wellpoint.com'"
+            },
+            "File_name_final" : {
+              "type" : "Expression",
+              "value" : "'MEABT_SSN_Report_2025.xlsx'"
+            },
+            "Template_final" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\TEMPLATE\\\\MEABT_SSN_Report.xlsx'"
+            },
+            "excel_source" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\REPORTS\\\\PENSION\\\\MEABT_SSN_Report_2025.xlsx'"
+            },
+            "gv_OracleUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "Email_Body" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "Table_data_Summary" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "File_path" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\REPORTS\\\\PENSION'"
+            },
+            "Instance_Name" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "File_name" : {
+              "type" : "Expression",
+              "value" : "'MEABT_SSN_Report'"
+            },
+            "gv_strOracleDS" : {
+              "type" : "Expression",
+              "value" : "'GBFAC06D'"
+            },
+            "Template_location" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\TEMPLATE'"
+            },
+            "gv_OracleProvider" : {
+              "type" : "Expression",
+              "value" : "'OraOLEDB.Oracle.1'"
+            },
+            "Email_CC" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "Email_From" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "File_name_month" : {
+              "type" : "Expression",
+              "value" : "''"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Generate_Email_for_Pension_report",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Excel_Generation_6",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Fetching_Email_Content_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_SUB ,LKP_CD2 AS EMAIL_BODY  FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'MEABT_PENSION_RPT' AND LKP_SUB_CTGRY ='EML_CONTENT'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fetching_Email_List_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT  LKP_CD1 AS Email_From ,LKP_CD2 AS EMAIL_TO ,LKP_CD3 AS EMAIL_CC,sys_context('USERENV','DB_NAME')  AS Instance FROM   AGP.FIB_MSTR_LKP WHERE  LKP_CTGRY = 'MEABT_PENSION_RPT' AND LKP_SUB_CTGRY ='EML_LST'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Get_Summary_Info_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "Select BILLFROMDATE, BILLTODATE, count(1) as cnt, sum(DEDUCTION_AMT) as D_AMT, sum(ACTUAL_AMOUNT) as A_AMT\nfrom AGP.GRS_MEABT_MAINEPERS_IN_STG group by BILLFROMDATE, BILLTODATE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fetching_Email_Content_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_Content_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_Sub",
+            "value" : "@activity('Fetching_Email_Content_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Fetching_Email_Content_VA_0_1",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_Content_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_Body",
+            "value" : "@activity('Fetching_Email_Content_SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "Fetching_Email_List_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_List_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_To",
+            "value" : "@activity('Fetching_Email_List_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Fetching_Email_List_VA_0_1",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_List_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_CC",
+            "value" : "@activity('Fetching_Email_List_SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "Fetching_Email_List_VA_0_1_2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_List_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Instance_Name",
+            "value" : "@activity('Fetching_Email_List_SCRIPT').output.resultSets[0].rows[2][2]"
+          }
+        }, {
+          "name" : "Fetching_Email_List_VA_0_1_2_3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_List_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Email_From",
+            "value" : "@activity('Fetching_Email_List_SCRIPT').output.resultSets[0].rows[3][3]"
+          }
+        }, {
+          "name" : "Get_Summary_Info_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Get_Summary_Info_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Table_data_Summary",
+            "value" : "@activity('Get_Summary_Info_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "Send_email_with_report_information",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Fetching_Email_Content_VA_0_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Fetching_Email_List_VA_0_1_2_3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Get_Summary_Info_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Fetching_Email_Content_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Fetching_Email_List_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Fetching_Email_List_VA_0_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Fetching_Email_List_VA_0_1_2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_email_with_report_information",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "Email_Sub" : {
+        "type" : "string"
+      },
+      "Email_To" : {
+        "type" : "string"
+      },
+      "SMTP_Connection" : {
+        "type" : "string",
+        "defaultValue" : "'smtpInternal.wellpoint.com'"
+      },
+      "File_name_final" : {
+        "type" : "string",
+        "defaultValue" : "'MEABT_SSN_Report_2025.xlsx'"
+      },
+      "Template_final" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\TEMPLATE\\\\MEABT_SSN_Report.xlsx'"
+      },
+      "excel_source" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\REPORTS\\\\PENSION\\\\MEABT_SSN_Report_2025.xlsx'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "Email_Body" : {
+        "type" : "string"
+      },
+      "Table_data_Summary" : {
+        "type" : "string"
+      },
+      "File_path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\REPORTS\\\\PENSION'"
+      },
+      "Instance_Name" : {
+        "type" : "string"
+      },
+      "File_name" : {
+        "type" : "string",
+        "defaultValue" : "'MEABT_SSN_Report'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "Template_location" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\EGR\\\\MEABT\\\\TEMPLATE'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "Email_CC" : {
+        "type" : "string"
+      },
+      "Email_From" : {
+        "type" : "string"
+      },
+      "File_name_month" : {
+        "type" : "string"
+      }
+    }
+  }
+}

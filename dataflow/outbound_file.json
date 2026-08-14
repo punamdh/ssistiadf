@@ -1,0 +1,29 @@
+{
+  "name" : "outbound_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchiveFullPath as string (),\n\tArchivePath as string (),\n\tDB as string (),\n\tFalloutArchivePath as string (),\n\tFallOutFileName as string (),\n\tFallOutQuery as string (),\n\tInboundFileName as string (),\n\tInputFile as string (),\n\tMailFrom as string (),\n\tMailTo as string (),\n\tMessageSource as string (),\n\tOutboundFileName as string (),\n\tOutboundFilePath as string (),\n\tOutputFullPath as string (),\n\tPWD as string (),\n\tRUNID as string (),\n\tTotalRecords as integer (),\n\tUSER as string ()\n}\n\nsource(output(\n\t\tRESP_CODE as string,\n\t\tGROUP_ID as string,\n\t\tTERM_DATE as string,\n\t\tHCID as string,\n\t\tCOB_IND as string,\n\t\tEFF_DATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::OutboundQuery',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tResponse_Code as string,\n\t\tGroup_ID as string,\n\t\tTERM_DATE as string,\n\t\tHCID as string,\n\t\tCOB_IND as string,\n\t\tEFF_DATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tResponse_Code = RESP_CODE,\n\t\tGroup_ID = GROUP_ID,\n\t\tTERM_DATE,\n\t\tHCID,\n\t\tCOB_IND,\n\t\tEFF_DATE)) ~> FlatFileDestination"
+    }
+  }
+}

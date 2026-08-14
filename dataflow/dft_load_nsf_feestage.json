@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_nsf_feestage",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NSFFeeSetUpSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "NSFFEESETUPDEST"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tArchiveFileExe as string (),\n\tArchiveFilePath as string (),\n\tArchiveFileZipNM as string (),\n\tBatchId as integer (),\n\tCntDnGLetters as integer (),\n\tCURR_DT as timestamp (),\n\tFlag as string (),\n\tgv_DelinqDt as timestamp (),\n\tgv_Delinquency_3Party as string (),\n\tgv_Delinquency_EMPL as string (),\n\tgv_Delinquency_FAML as string (),\n\tgv_Delinquency_I as string (),\n\tgv_FileName as string (),\n\tgv_FileOP as string (),\n\tgv_GraceDT as timestamp (),\n\tgv_GRCPD as string (),\n\tgv_GRCPD2 as string (),\n\tgv_LastRunDt as timestamp (),\n\tgv_NSF as string (),\n\tgv_NSFP2 as string (),\n\tgv_NSFP2_R as string (),\n\tgv_NSFS as string (),\n\tgv_NSFS_R as string (),\n\tgv_NSF_R as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_PRDCOUNT as integer (),\n\tgv_RRD as string (),\n\tgv_RRDF as string (),\n\tgv_RRDS as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tgv_VASHT as string (),\n\tNsfFeeSetUp as string (),\n\tNsfStageSelectQ as string (),\n\tOutputFileNM as string (),\n\tOutputFileNM_CNT as string (),\n\tOutputFileNM_Final as string (),\n\tOutputFilePath as string (),\n\tPrdIdFileNM as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tstrDataSource as string (),\n\tstrFilePath as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrUserName as string ()\n}\n\nsource(output(\n\t\t{Fee ID} as double,\n\t\t{Fee Type} as string,\n\t\tGroup as string,\n\t\t{Fee Amount} as decimal(19,19),\n\t\t{Effective Start Date} as date 'dd-MM-yyyy',\n\t\t{Updated By} as string,\n\t\t{Effective En Date} as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> NSFFeeSetUpSource\nNSFFeeSetUpSource derive({Copy of Group} = toString(Group)) ~> DataConversion\nDataConversion sink(input(\n\t\tGROUPID as string,\n\t\tFEETYPE as string,\n\t\tEFFECTIVEENDDATE as timestamp 'dd-MM-yyyy',\n\t\tEFFECTIVESTARTDATE as timestamp 'dd-MM-yyyy',\n\t\tFEEID as integer,\n\t\tUPDATEDBY as string,\n\t\tFEEAMOUNT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tGROUPID = {Copy of Group},\n\t\tFEETYPE = {Copy of Fee Type},\n\t\tEFFECTIVEENDDATE = {Copy of Effective En Date},\n\t\tEFFECTIVESTARTDATE = {Copy of Effective Start Date},\n\t\tFEEID = {Copy of Fee ID},\n\t\tUPDATEDBY = {Copy of Updated By},\n\t\tFEEAMOUNT = {Copy of Fee Amount})) ~> NSFFEESETUPDEST"
+    }
+  }
+}

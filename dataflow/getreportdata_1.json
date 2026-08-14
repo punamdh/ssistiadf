@@ -1,0 +1,23 @@
+{
+  "name" : "getreportdata_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tExtactFilePath as string (),\n\tExtractToFile as string (),\n\tLO_REPORT_INFO as string (),\n\tLSQ_ARCH as string (),\n\tLSQ_DELETE as string (),\n\tLSQ_GETREPORT_DETAILS as string (),\n\tLS_FILE as string (),\n\tOLL_BATCHID as integer (),\n\tOLL_REPTID as integer (),\n\tOLL_SCHDID as integer (),\n\tOLS_ARCH as string (),\n\tOLS_OUTA as string (),\n\tOLS_OUTP as string (),\n\tOLS_Query1 as string (),\n\tOLS_Query2 as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserID as string (),\n\tPDT_BATDATE as timestamp (),\n\tPDT_RUNDATE as timestamp (),\n\tPL_BATID as integer (),\n\tPL_REPTID as integer (),\n\tPL_SCHID as integer (),\n\tRLL_RecordCount as integer (),\n\tRunDate as timestamp ()\n}\n\nsource(output(\n\t\tREPT_ARCH as string,\n\t\tREPT_QUERY1 as string,\n\t\tREPT_QUERY2 as string,\n\t\tBATCH_ID as integer,\n\t\tREPT_OUTP as string,\n\t\tREPT_OUTA as string,\n\t\tSCHD_ID as integer,\n\t\tREPT_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT BAT.BATCH_ID, MAST.REPT_ID, BATDET.SCHD_ID , MAST.REPT_ARCH, OUTP.AMCTR_DESC REPT_OUTP, OUTA.AMCTR_DESC REPT_OUTA, MAST.REPT_QUERY1, MAST.REPT_QUERY2  FROM AGP.MSB_REPORT_BAT BAT INNER JOIN MSB_REPORT_BAT_DET BATDET ON BAT.BATCH_ID = BATDET.BATCH_ID AND BATDET.BAT_DET_STS = 1 and REPT_STS = \\'A\\' and SCHD_STS = \\'A\\' INNER JOIN AGP.MSB_REPORT_MASTER MAST ON MAST.REPT_ID = BATDET.REPT_ID INNER JOIN AGP.MSB_MCTR_LKUP OUTP ON OUTP.AMCTR_ENTITY =\\'REMA\\' and OUTP.AMCTR_TYPE =\\'OUTP\\' and OUTP.AMCTR_VALUE = MAST.REPT_OUTP INNER JOIN AGP.MSB_MCTR_LKUP OUTA ON OUTA.AMCTR_ENTITY =\\'REMA\\' and OUTA.AMCTR_TYPE =\\'OUTA\\' and OUTA.AMCTR_VALUE = MAST.REPT_OUTA WHERE BAT.BATCH_ID = 0 Order by BATDET.SCHD_PRIORITY',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tREPT_ARCH as string,\n\t\tREPT_QUERY1 as string,\n\t\tREPT_QUERY2 as string,\n\t\tBATCH_ID as integer,\n\t\tREPT_OUTP as string,\n\t\tREPT_OUTA as string,\n\t\tSCHD_ID as integer,\n\t\tREPT_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tREPT_ARCH,\n\t\tREPT_QUERY1,\n\t\tREPT_QUERY2,\n\t\tBATCH_ID,\n\t\tREPT_OUTP,\n\t\tREPT_OUTA,\n\t\tSCHD_ID,\n\t\tREPT_ID)) ~> OutputPlaceHolderReportRecordSet"
+    }
+  }
+}

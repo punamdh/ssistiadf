@@ -1,0 +1,1685 @@
+{
+  "name" : "ppl_ebillpreferenceloader",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "EBillReaderFalloutFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EBillReaderFalloutFileName",
+        "value" : {
+          "value" : "@concat(variables('EBillReaderFalloutPath'),'GBD_EBILL_READER_FALLOUT_',substring(concat('0',formatDateTime(utcNow(), 'MM')), sub(length(concat('0',formatDateTime(utcNow(), 'MM'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'dd')), sub(length(concat('0',formatDateTime(utcNow(), 'dd'))), 2), 2),formatDateTime(utcNow(), 'yyyy'),'.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_Date_Overlap_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates') AS InValid_Date_Overlap_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_Date_Overlap_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates') AS InValid_Date_Overlap_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_GroupIDs_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups') AS InValid_GroupIDs_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_GroupIDs_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups') AS InValid_GroupIDs_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_Date_Overlap_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut') AS InValid_Date_Overlap_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_Date_Overlap_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut') AS InValid_Date_Overlap_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_SubscriberIDs_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber') AS InValid_SubscriberIDs_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'InValid_SubscriberIDs_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber') AS InValid_SubscriberIDs_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Eff_Date_Overlap_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members') AS Eff_Date_Overlap_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Eff_Date_Overlap_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members') AS Eff_Date_Overlap_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Dates01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates01') AS Fallout_Invalid_Dates01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Dates01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates01') AS Fallout_Invalid_Dates01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Dates01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates01') AS Fallout_Invalid_Dates01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Dates01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates01') AS Fallout_Invalid_Dates01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Dates01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Dates01') AS Fallout_Invalid_Dates01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Groups01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups01') AS Fallout_Invalid_Groups01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Groups01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups01') AS Fallout_Invalid_Groups01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Groups01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups01') AS Fallout_Invalid_Groups01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Groups01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups01') AS Fallout_Invalid_Groups01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Groups01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Groups01') AS Fallout_Invalid_Groups01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_OptOut01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut01') AS Fallout_Invalid_OptOut01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_OptOut01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut01') AS Fallout_Invalid_OptOut01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_OptOut01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut01') AS Fallout_Invalid_OptOut01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_OptOut01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut01') AS Fallout_Invalid_OptOut01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_OptOut01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_OptOut01') AS Fallout_Invalid_OptOut01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Subscriber01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber01') AS Fallout_Invalid_Subscriber01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Subscriber01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber01') AS Fallout_Invalid_Subscriber01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Subscriber01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber01') AS Fallout_Invalid_Subscriber01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Subscriber01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber01') AS Fallout_Invalid_Subscriber01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_Invalid_Subscriber01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_Invalid_Subscriber01') AS Fallout_Invalid_Subscriber01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_OverLap_Members01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members01') AS Fallout_OverLap_Members01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_OverLap_Members01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members01') AS Fallout_OverLap_Members01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_OverLap_Members01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members01') AS Fallout_OverLap_Members01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_OverLap_Members01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members01') AS Fallout_OverLap_Members01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Fallout_OverLap_Members01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Fallout_OverLap_Members01') AS Fallout_OverLap_Members01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Insert_New_Members01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members01') AS Insert_New_Members01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Insert_New_Members01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members01') AS Insert_New_Members01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Insert_New_Members01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members01') AS Insert_New_Members01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Insert_New_Members01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members01') AS Insert_New_Members01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Insert_New_Members01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Insert_New_Members01') AS Insert_New_Members01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_table01_source_ContainerName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table01') AS Load_Staging_table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_table01_source_FileName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table01') AS Load_Staging_table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_table01_source_FilePath' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table01') AS Load_Staging_table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_table01_sink_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table01') AS Load_Staging_table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_table01_sink_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'Load_Staging_table01') AS Load_Staging_table01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_SchemaName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container') AS GETMETADATA_Foreach_Loop_Container_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Loop_Container_TableName' AND PIPELINE_NAME = 'EBillPreferenceLoader' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Loop_Container') AS GETMETADATA_Foreach_Loop_Container_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "EBillReaderFalloutFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Loop_Container_SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '.txt'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_Container",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "varFilePath",
+            "value" : {
+              "value" : "@concat('\\\\VA33dfs001.devad.wellpoint.com\\apps\\Billing\\DEV\\DataOps\\PMB_CHUB_EBill_Pref\\FTP_Inbound', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Clear_Staging_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM AGP.GBD_EBILL_PREF_STAGE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Load_Staging_table0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Clear_Staging_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Load_Staging_table"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Load_Staging_table",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Staging_table0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_staging_table",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "\"GBD_EBILL_PREF_STAGE\"",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Load_Staging_table01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Staging_table",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_table01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_table01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_table01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_table01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_table01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Fallout_Invalid_Dates0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_Staging_table01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Fallout_Invalid_Dates"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Dates",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Dates0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fallout_invalid_dates",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "InValidDateOverlap" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidDateOverlap_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidDateOverlap_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "InValid Date Overlap",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Dates01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Dates",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Dates01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Dates01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Dates01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Dates01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Dates01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Delete_Invalid_Members_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Dates01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " DELETE \nFROM\n   AGP.GBD_EBILL_PREF_STAGE EPS \nWHERE\n (EPS.EBILL_EFF_DT = '8888-08-08' OR EPS.EBILL_EFF_DT IS NULL OR LENGTH(RTRIM(EPS.EBILL_EFF_DT)) <=8 OR (NOT regexp_like(EBILL_EFF_DT, '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}') )\n OR  (substr(EPS.EBILL_EFF_DT, 1, 4) not between '0000' and '9999' OR\n       substr(EPS.EBILL_EFF_DT, 6, 2) not between '01' and '12' OR\n       substr(EPS.EBILL_EFF_DT, 9, 2) not between '01' and '31'))  OR \n (EPS.EBILL_TERM_DT <> '8888-08-08' AND EPS.EBILL_TERM_DT IS NOT NULL AND EPS.EBILL_TERM_DT <> ' ' AND LENGTH(RTRIM(EPS.EBILL_TERM_DT)) >=8 \n AND ( (NOT regexp_like(EPS.EBILL_TERM_DT, '[[:digit:]]{4}-[[:digit:]]{2}-[[:digit:]]{2}') )\n OR (substr(EPS.EBILL_TERM_DT, 1, 4) not between '0000' and '9999' OR\n       substr(EPS.EBILL_TERM_DT, 6, 2) not between '01' and '12' OR\n       substr(EPS.EBILL_TERM_DT, 9, 2) not between '01' and '31'\n      )\n OR TO_DATE(EPS.EBILL_TERM_DT, 'yyyy-mm-dd') < TO_DATE(EPS.EBILL_EFF_DT, 'yyyy-mm-dd')) )\n "
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Delete_overlapping_Members_SF_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Invalid_Members_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE from AGP.GBD_EBILL_PREF_STAGE PF2\nWHERE EXISTS(\nSelect PF1.GRGR_ID,PF1.SBSB_ID, PF1.EBILL_EFF_DT,PF1.EBILL_TERM_DT from AGP.GBD_EBILL_PREF_STAGE PF1 \nJOIN \n(Select P1.GRGR_ID,P1.SBSB_ID  from AGP.GBD_EBILL_PREF_STAGE P1 \nJOIN AGP.GBD_EBILL_PREF_STAGE P2 ON P1.GRGR_ID = P2.GRGR_ID AND P1.SBSB_ID= P2.SBSB_ID AND\n((P1.EBILL_EFF_DT = P2.EBILL_EFF_DT )\nOR ( to_date(P1.EBILL_EFF_DT, 'yyyy-mm-dd') >to_date(P2.EBILL_EFF_DT, 'yyyy-mm-dd') AND  ( (  (P2.EBILL_TERM_DT = '8888-08-08' \n         OR P2.EBILL_TERM_DT IS NULL \n         OR LENGTH(RTRIM(P2.EBILL_TERM_DT)) <= 8 ) AND to_date(P1.EBILL_EFF_DT, 'yyyy-mm-dd') >= to_date('9999-12-31', 'yyyy-mm-dd')  ) OR ( to_date(P1.EBILL_EFF_DT, 'yyyy-mm-dd') <= to_date(P2.EBILL_TERM_DT, 'yyyy-mm-dd'))))\nOR ( to_date(P2.EBILL_EFF_DT, 'yyyy-mm-dd') >to_date(P1.EBILL_EFF_DT, 'yyyy-mm-dd') AND   ( (  (P1.EBILL_TERM_DT = '8888-08-08' \n         OR P1.EBILL_TERM_DT IS NULL \n         OR LENGTH(RTRIM(P1.EBILL_TERM_DT)) <= 8 ) AND to_date(P2.EBILL_EFF_DT, 'yyyy-mm-dd') >= to_date('9999-12-31', 'yyyy-mm-dd')  ) OR ( to_date(P2.EBILL_EFF_DT, 'yyyy-mm-dd') <= to_date(P1.EBILL_TERM_DT, 'yyyy-mm-dd'))))\n)\nGROUP BY P1.GRGR_ID,P1.SBSB_ID\nHaving COUNT(1)>2)  PT1 ON pt1.GRGR_ID = PF1.GRGR_ID AND  pt1.SBSB_ID = PF1.SBSB_ID\nWHERE PF2.GRGR_ID = PF1.GRGR_ID AND  PF2.SBSB_ID = PF1.SBSB_ID )"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fallout_Invalid_Groups0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_overlapping_Members_SF_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Fallout_Invalid_Groups"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Groups",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Groups0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fallout_invalid_groups",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "InValidGroupIDs" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidGroupIDs_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidGroupIDs_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "InValid GroupIDs",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Groups01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Groups",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Groups01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Groups01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Groups01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Groups01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Groups01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Delete_Invalid_GroupIds_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Groups01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1\nWHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS \n LEFT JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID \nWHERE (GRGR.GRGR_ID IS NULL OR (GRGR.GRGR_ID NOT LIKE '%SUP%' AND GRGR.GRGR_ID NOT LIKE '%MCR%' AND GRGR.GRGR_ID NOT LIKE '%PDP%')) AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT) \n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fallout_Invalid_Subscriber0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Invalid_GroupIds_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Fallout_Invalid_Subscriber"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Subscriber",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Subscriber0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fallout_invalid_subscriber",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "InValidSubscriberIDs" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidSubscriberIDs_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidSubscriberIDs_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "InValid SubscriberIDs",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Fallout_Invalid_Subscriber01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Subscriber",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Subscriber01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Subscriber01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Subscriber01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Subscriber01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_Subscriber01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Delete_Invalid_Subscriber_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_Subscriber01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "MERGE INTO  AGP.GBD_EBILL_PREF_STAGE EPS1 \nUSING (SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL) EPS2\non (EPS2.GRGR_ID= EPS1.GRGR_ID AND EPS2.SBSB_ID  = EPS1.SBSB_ID  AND EPS2.EBILL_EFF_DT = EPS1.EBILL_EFF_DT )\nwhen matched then UPDATE SET EPS1.EBILL_TERM_DT  = EPS2.EBILL_TERM_DT\nDELETE WHERE EPS2.GRGR_ID= EPS1.GRGR_ID AND EPS2.SBSB_ID  = EPS1.SBSB_ID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fallout_Invalid_OptOut0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Invalid_Subscriber_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Fallout_Invalid_OptOut"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Fallout_Invalid_OptOut",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_OptOut0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fallout_invalid_optout",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "InValidDateOverlap" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidDateOverlap_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.InValidDateOverlap_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "InValid Date Overlap",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Fallout_Invalid_OptOut01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_OptOut",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_OptOut01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_OptOut01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_OptOut01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_OptOut01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_Invalid_OptOut01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Delete_Invalid_Optout_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_Invalid_OptOut01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1\nWHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS \n  LEFT JOIN AGP.GBD_EBILL_PREF EP ON EP.GRGR_ID= EPS.GRGR_ID AND EP.SBSB_ID= EPS.SBSB_ID AND EP.EBILL_EFF_DT = to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd') \nWHERE EP.GRGR_ID IS NULL AND LTRIM(RTRIM(EPS.EBILL_TERM_DT)) <> '8888-08-08' AND EPS.EBILL_TERM_DT IS NOT NULL AND LENGTH(RTRIM(EPS.EBILL_TERM_DT)) > 9 AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT) \n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Fallout_OverLap_Members0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Invalid_Optout_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Fallout_OverLap_Members"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Fallout_OverLap_Members",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_OverLap_Members0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "fallout_overlap_members",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FacetsDataSource" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC05Q'"
+                },
+                "varFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+                },
+                "EBillPreferenceArchiveFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Archive'"
+                },
+                "FacetsUserID" : {
+                  "type" : "Expression",
+                  "value" : "'APP_BILL'"
+                },
+                "EBillPreferenceFilePath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+                },
+                "FacetsPassword" : {
+                  "type" : "Expression",
+                  "value" : "'bills#4vr'"
+                },
+                "EBillReaderFalloutFileName" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+                },
+                "EBillReaderFalloutPath" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+                },
+                "TestVaraible" : {
+                  "type" : "Expression",
+                  "value" : "'DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1 WHERE EXISTS ( SELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS   JOIN CMC_GRGR_GROUP GRGR ON EPS.GRGR_ID = GRGR.GRGR_ID  LEFT JOIN CMC_SBSB_SUBSC SBSB ON EPS.SBSB_ID = SBSB.SBSB_ID AND SBSB.GRGR_CK = GRGR.GRGR_CK  WHERE SBSB.SBSB_ID IS NULL AND  EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT = EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT)'"
+                }
+              },
+              "datasetParameters" : {
+                "EffDateOverlap" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.EffDateOverlap_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.EffDateOverlap_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Eff Date Overlap",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Fallout_OverLap_Members01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_OverLap_Members",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_OverLap_Members01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_OverLap_Members01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_OverLap_Members01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_OverLap_Members01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Fallout_OverLap_Members01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Delete_Overlap_Term_DT_Members_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Fallout_OverLap_Members01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1\nWHERE EXISTS (\nSELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS \nJOIN AGP.GBD_EBILL_PREF EP \n      ON EPS.GRGR_ID = EP.GRGR_ID \n      AND EPS.SBSB_ID = EP.SBSB_ID \n      AND  ((EPS.EBILL_TERM_DT = '8888-08-08' \n         OR EPS.EBILL_TERM_DT IS NULL \n         OR LENGTH(RTRIM(EPS.EBILL_TERM_DT)) <= 8 ) AND to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd') <= EP.EBILL_TERM_DT)\nWHERE EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT= EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT) \n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Delete_Overlap_Eff_DT_Members_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Overlap_Term_DT_Members_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS1\nWHERE EXISTS (\nSELECT EPS.*  FROM AGP.GBD_EBILL_PREF_STAGE EPS \nJOIN  AGP.GBD_EBILL_PREF EP ON EPS.GRGR_ID= EP.GRGR_ID AND EPS.SBSB_ID  = EP.SBSB_ID AND  to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd') > EP.EBILL_EFF_DT AND to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd') <=  EP.EBILL_TERM_DT\nWHERE EPS.GRGR_ID= EPS1.GRGR_ID AND EPS.SBSB_ID  = EPS1.SBSB_ID  AND EPS.EBILL_EFF_DT= EPS1.EBILL_EFF_DT AND EPS.EBILL_TERM_DT  = EPS1.EBILL_TERM_DT) \n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Convert_Facets_Term_Date_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Overlap_Eff_DT_Members_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : " UPDATE AGP.GBD_EBILL_PREF_STAGE SET EBILL_TERM_DT = '9999-12-31' WHERE SUBSTR(EBILL_TERM_DT,0,10)  = '8888-08-08'"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Update_Blank_Term_Date_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Convert_Facets_Term_Date_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.GBD_EBILL_PREF_STAGE SET EBILL_TERM_DT = '9999-12-31' WHERE EBILL_TERM_DT IS NULL OR LENGTH(RTRIM(EBILL_TERM_DT)) <=8"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Update_Preference_Members_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Update_Blank_Term_Date_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.GBD_EBILL_PREF EP\nSET EP. EBILL_TERM_DT = (SELECT to_date(EPS.EBILL_TERM_DT, 'yyyy-mm-dd') FROM AGP.GBD_EBILL_PREF_STAGE EPS  WHERE  EPS.GRGR_ID= EP.GRGR_ID AND EPS.SBSB_ID  = EP.SBSB_ID AND EP.EBILL_EFF_DT =to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd'))\nWHERE EXISTS (\nSELECT to_date(EPS.EBILL_TERM_DT, 'yyyy-mm-dd') FROM AGP.GBD_EBILL_PREF_STAGE EPS  WHERE  EPS.GRGR_ID= EP.GRGR_ID AND EPS.SBSB_ID  = EP.SBSB_ID AND EP.EBILL_EFF_DT =to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd')  \n)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Delete_Updated_Members_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Update_Preference_Members_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM  AGP.GBD_EBILL_PREF_STAGE EPS\nWHERE EXISTS (\nSELECT to_date(EPS.EBILL_TERM_DT, 'yyyy-mm-dd') FROM AGP.GBD_EBILL_PREF EP  WHERE  EPS.GRGR_ID= EP.GRGR_ID AND EPS.SBSB_ID  = EP.SBSB_ID AND EP.EBILL_EFF_DT =to_date(EPS.EBILL_EFF_DT, 'yyyy-mm-dd')  \n)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Insert_New_Members0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Delete_Updated_Members_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Insert_New_Members"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Insert_New_Members",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Insert_New_Members0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "SELECT EPS.GRGR_ID,        EPS.SBSB_ID,        TO_DATE (EPS.EBILL_EFF_DT, 'yyyy-mm-dd')  AS EBILL_EFF_DT,        TO_DATE (EPS.EBILL_TERM_DT, 'yyyy-mm-dd') AS EBILL_TERM_DT   FROM AGP.GBD_EBILL_PREF_STAGE EPS  WHERE    EPS.GRGR_ID LIKE ('%SUP%')        OR EPS.GRGR_ID LIKE ('%MCR%')  OR EPS.GRGR_ID LIKE ('%PDP%')"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Members_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Members_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Members_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Members_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Members_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : {
+      "BasePath" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    },
+    "variables" : {
+      "FacetsDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05Q'"
+      },
+      "varFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound\\\\CHUB_EBILL_PREF_20220629.txt'"
+      },
+      "FacetsUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "EBillPreferenceFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FTP_Inbound'"
+      },
+      "FacetsPassword" : {
+        "type" : "string",
+        "defaultValue" : "'bills#4vr'"
+      },
+      "EBillReaderFalloutFileName" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\FalloutGBD_EBILL_READER_FALLOUT_07272026.txt'"
+      },
+      "EBillReaderFalloutPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\VA33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\DataOps\\\\PMB_CHUB_EBill_Pref\\\\Fallout'"
+      }
+    }
+  }
+}

@@ -1,0 +1,772 @@
+{
+  "name" : "ppl_receipts",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_CombineInsert",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_CombineInsert",
+        "value" : {
+          "value" : "'INMCDWP0'",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Delete_BillingGroupIdLkp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Delete_BillingGroupIdLkp",
+        "value" : {
+          "value" : "@concat('delete from ',variables('gv_BillingGroupIdLookup'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_MPWRUpdateQueries",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_MPWRUpdateQueries",
+        "value" : {
+          "value" : "@and(equals(equals(equals(variables('select DISTINCT  meme_record_no from cmc_meme_member mem \nJOIN CMC_MEPE_PRCS_ELIG mepe on meme_ck'),variables('meme_ck\nJOIN CMC_MEMD_MECR_DETL memd on meme_ck')),variables('meme_ck\njoin CMC_GRGR_GROUP GRGR ON GRGR_CK')),variables('GRGR_CK')), (variables('GRGR_ID LIKE'))) || variables('GRGR_ID LIKE')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_oraclelookupfetchNSF",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_oraclelookupfetchNSF",
+        "value" : {
+          "value" : "@and(and(and(and(and(notConvertedectfunctionotherisNull(variables('VendorRefId'), ''), equals(variables('PaymentType'),'P')), not(notConvertedectfunctionotherisNull(variables('FACReceiptId')))), not(notConvertedectfunctionotherisNull(variables('VendorRefId')))), not(equals(variables('BatchId'),variables('BatchId')))), equals(variables('BatchId'),'+(DT_WSTR, 50) BatchId +'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OraclelookupNSF_Pull",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OraclelookupNSF_Pull",
+        "value" : {
+          "value" : "@concat('SELECT * FROM ',variables('gv_ReceiptNSFLookup'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleLookupNSF_truncate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleLookupNSF_truncate",
+        "value" : {
+          "value" : "@concat('DELETE FROM  ',variables('gv_ReceiptNSFLookup'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_oraclelookup_fetch",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_oraclelookup_fetch",
+        "value" : {
+          "value" : "@and(and(and('', not(equals(notConvertedectfunctionotherisNull(notConvertedectfunctionstringltrim(notConvertedectfunctionstringrtrim(variables('SubscriberId'))), ''),''))), equals(notConvertedectfunctionotherisNull(notConvertedectfunctionstringltrim(notConvertedectfunctionstringrtrim(variables('BillingGroupId'))), ''),'')), variables('BatchId'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_oraclelookup_pull",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_oraclelookup_pull",
+        "value" : {
+          "value" : "@concat('SELECT * FROM ',variables('gv_ReceiptLookup'),'  WHERE grgr_id IS NOT NULL')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Oraclelookup_truncate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Oraclelookup_truncate",
+        "value" : {
+          "value" : "@concat('DELETE FROM  ',variables('gv_ReceiptLookup'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleNSF_Stageupdate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleNSF_Stageupdate",
+        "value" : {
+          "value" : "@and(and(and(and(variables('VendorRefId'), equals(variables('PaymentType'),'P')), notConvertedectfunctionotherisNull(variables('FACReceiptId'))), not(equals(variables('BatchId'),variables('BatchId')))), equals(variables('BatchId'),' + (DT_WSTR, 50)BatchId  +'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleUpdatelookupNSF",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleUpdatelookupNSF",
+        "value" : {
+          "value" : "@equals(equals(variables('FACReceiptId\nJOIN CMC_BLRC_BILL_RCPT b on RCPT_ID'),variables('RCPT_ID\nJOIN CMC_RCPT_RECEIPTS c on BLRC_ALLOC_RCPT_ID')),variables('RCPT_ID\nWHERE RCPT_INPUT_GRGR_ID LIKE'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_orcale_Eboxfetch",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_orcale_Eboxfetch"
+      }
+    }, {
+      "name" : "gv_Select_BillingGroupIdLkp",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Select_BillingGroupIdLkp",
+        "value" : {
+          "value" : "@concat('Select * from ',variables('gv_BillingGroupIdLookup'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_INSERT_GRS_BOSS') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_INSERT_GRS_BOSS') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_INSERT_GRS_BOSS') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_INSERT_GRS_BOSS') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_INSERT_GRS_BOSS') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateFacetsNSFStage') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateFacetsNSFStage') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateFacetsNSFStage') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateFacetsNSFStage') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateFacetsNSFStage') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracleLookupNSF') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracleLookupNSF') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracleLookupNSF') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracleLookupNSF') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracleLookupNSF') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Source_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Source_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacatsGroupStage_writeOff') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacatsGroupStage_writeOff') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacatsGroupStage_writeOff') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacatsGroupStage_writeOff') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacatsGroupStage_writeOff') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupStage') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupStage') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupStage') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupStage') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupStage') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'SQL_KY_GroupSBSB_Update') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'SQL_KY_GroupSBSB_Update') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'SQL_KY_GroupSBSB_Update') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'SQL_KY_GroupSBSB_Update') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'SQL_KY_GroupSBSB_Update') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Source_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Source_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_Lookup_WriteOff') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_Lookup_WriteOff') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_Lookup_WriteOff') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_Lookup_WriteOff') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_Lookup_WriteOff') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup_Ebox') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup_Ebox') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup_Ebox') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup_Ebox') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateOracle_Lookup_Ebox') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupEbox') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupEbox') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupEbox') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupEbox') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_FacetsGroupEbox') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Insert_Combine') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Insert_Combine') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Insert_Combine') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Insert_Combine') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Insert_Combine') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkp') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkp') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkp') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkp') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkp') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkpStage') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkpStage') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkpStage') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkpStage') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_PopulateBillingGroupIdLkpStage') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDICert') AS OLE_DB_Source_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDICert') AS OLE_DB_Source_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDICert') AS OLE_DB_Destination_1_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDICert') AS OLE_DB_Destination_1_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDICert') AS OLE_DB_Destination_1_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDIGroup') AS OLE_DB_Source_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDIGroup') AS OLE_DB_Source_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDIGroup') AS OLE_DB_Destination_1_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDIGroup') AS OLE_DB_Destination_1_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_EDIGroup') AS OLE_DB_Destination_1_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_SQL_Combine_Logic') AS OLE_DB_Source_1_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_SQL_Combine_Logic') AS OLE_DB_Source_1_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_SQL_Combine_Logic') AS OLE_DB_Destination_1_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_SQL_Combine_Logic') AS OLE_DB_Destination_1_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_SQL_Combine_Logic') AS OLE_DB_Destination_1_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_BILL_MSUP_EMP') AS OLE_DB_Source_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_BILL_MSUP_EMP') AS OLE_DB_Source_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_BILL_MSUP_EMP') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_BILL_MSUP_EMP') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_BILL_MSUP_EMP') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_LKP') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_LKP') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_LKP') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_LKP') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_LKP') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_MATCH') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_MATCH') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_MATCH') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_MATCH') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_DUAL_GRP_MATCH') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Generate_keyword_file') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Generate_keyword_file') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Keyword_file_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Generate_keyword_file') AS Keyword_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Keyword_file_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Generate_keyword_file') AS Keyword_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Keyword_file_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Generate_keyword_file') AS Keyword_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_PostBack_File') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_PostBack_File') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_Postback_File_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_PostBack_File') AS FFD_Postback_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_Postback_File_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_PostBack_File') AS FFD_Postback_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FFD_Postback_File_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_PostBack_File') AS FFD_Postback_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_Source_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_table_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_table_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_table_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_table_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Excel_table_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_and_populate_excel_table') AS Excel_table_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EX_SRC_INMM_Manual_excel_file_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS EX_SRC_INMM_Manual_excel_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EX_SRC_INMM_Manual_excel_file_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS EX_SRC_INMM_Manual_excel_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EX_SRC_INMM_Manual_excel_file_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS EX_SRC_INMM_Manual_excel_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SS_DST_BOSS_Receipts_ExcelFile_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS SS_DST_BOSS_Receipts_ExcelFile_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SS_DST_BOSS_Receipts_ExcelFile_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS SS_DST_BOSS_Receipts_ExcelFile_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SS_DST_BOSS_Receipts_ExcelFile_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Fetch_Aand_Populate_INMM_Manual_EXL_File') AS SS_DST_BOSS_Receipts_ExcelFile_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileCheck') AS OLE_DB_Source_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileCheck') AS OLE_DB_Source_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileCheck') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileCheck') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileCheck') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_SchemaName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileGroup') AS OLE_DB_Source_1_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_1_TableName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileGroup') AS OLE_DB_Source_1_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileGroup') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileGroup') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DFT_Populate_ExcelFileGroup') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_source_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_source_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_source_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_sink_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_sink_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Copy_to_error_folder_0_sink_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Copy_to_error_folder_0') AS FST_Copy_to_error_folder_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_source_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_source_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_source_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_sink_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_sink_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_Move_Payment_file_to_archive_folder_0_sink_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_Move_Payment_file_to_archive_folder_0') AS FST_Move_Payment_file_to_archive_folder_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_source_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_source_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_source_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_sink_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_sink_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_COPY_TO_ERROR_0_sink_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'FST_COPY_TO_ERROR_0') AS FST_COPY_TO_ERROR_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_del_Paymentfile_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_del_Paymentfile') AS DELETE_FST_del_Paymentfile_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_del_Paymentfile_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_del_Paymentfile') AS DELETE_FST_del_Paymentfile_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_del_Paymentfile_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_del_Paymentfile') AS DELETE_FST_del_Paymentfile_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_Del_Payment_file_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_Del_Payment_file') AS DELETE_FST_Del_Payment_file_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_Del_Payment_file_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_Del_Payment_file') AS DELETE_FST_Del_Payment_file_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_Del_Payment_file_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_Del_Payment_file') AS DELETE_FST_Del_Payment_file_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0_ContainerName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0') AS DELETE_FST_DEL_PAYMENT_FILE_0_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0_FileName' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0') AS DELETE_FST_DEL_PAYMENT_FILE_0_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0_FilePath' AND PIPELINE_NAME = 'Receipts' AND DATAFLOW_NAME = 'DELETE_FST_DEL_PAYMENT_FILE_0') AS DELETE_FST_DEL_PAYMENT_FILE_0_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST_Get_File_Names",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "gv_Select_BillingGroupIdLkp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_CombineInsert",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Delete_BillingGroupIdLkp",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_MPWRUpdateQueries",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_oraclelookupfetchNSF",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OraclelookupNSF_Pull",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleLookupNSF_truncate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_oraclelookup_fetch",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_oraclelookup_pull",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Oraclelookup_truncate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleNSF_Stageupdate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleUpdatelookupNSF",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_orcale_Eboxfetch",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST_Get_File_Names",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Foreach_file_in_location",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Get_File_Names",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
+      "name" : "SQL_EVENT_LOGGING_COMPLETED_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Foreach_file_in_location",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_UpdateEventLog] 2,1,8,'Package for receipting completed'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_controlTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EEDIFileControl]'"
+      },
+      "gv_Trailer" : {
+        "type" : "string"
+      },
+      "gv_Oraclelookup_truncate" : {
+        "type" : "string",
+        "defaultValue" : "'DELETE FROM  AGP.BOSS_RECEIPT_GROUP_LOOKUP'"
+      },
+      "gv_isSourceSSA" : {
+        "type" : "string"
+      },
+      "gv_OracleNSF_Stageupdate" : {
+        "type" : "string",
+        "defaultValue" : "'INSERT INTO [Receipts].[FacetsNSFStage]\\nselect curBatch.BatchId,curBatch.ReceiptId, curBatch.VendorRefId,\\nprvBatch.FACReceiptId , prvBatch.ReceiptId as PrvReceiptID,'S' AS ExcludeInd\\nfrom Receipts.Receipt  curBatch\\nJOIN  Receipts.Receipt prvBatch \\non prvBatch.VendorRefId=curBatch.VendorRefId \\nAND prvBatch.PaymentType='P' \\nAND prvBatch.FACReceiptId IS NULL\\nAND  curBatch.BatchId != prvBatch.BatchId\\nAND  curBatch.BatchId= 6709\\nWHERE EXISTS (SELECT TOP 1 1 FROM Receipts.Receipt R\\n\t\t\t\tWHERE prvBatch.VendorRefId=R.VendorRefId\\nAND prvBatch.PaymentType=R.PaymentType\\n\\nAND R.FACReceiptId IS NULL\\nAND R.BatchId !=6709\\nHaving prvBatch.ReceiptId= Max(R.ReceiptId)\\n\t\t\t)\\nAND NOT EXISTS ( SELECT TOP 1 1 FROM  Receipts.FacetsNSFStage R\\n\t\t\t\tWHERE R.BatchId=curBatch.BatchId\\n\t\t\t\tAND R.ReceiptId=curBatch.ReceiptId)'"
+      },
+      "gv_CombineInsert" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT [EEDIFileDetailId],\\n[BatchId],\\n[RecType],\\nCASE WHEN [ReceiptGroup] = 'INMCDWP0' OR [ReceiptGroup] LIKE '%00000000000000000000%' THEN '' ELSE [ReceiptGroup] END AS [ReceiptGroup],\\n[ReceiptCert],\\n[Payment],\\n[Invoice],\\n[CheckNum],\\n[RoutingNum],\\n[AcctNum],\\n[LOBProduct],\\n[DueDate],\\n[PaymentChannel],\\n[PaymentType],\\n[LegalEntity],\\n[MarketSeg],\\n[SystemCd],\\n[RefNum],\\n[PremPaid] ,\\n[ConvFeePaid],\\n[NSFFeePaid] ,\\n[ReinstateFee],\\n[LateFeePaid],\\n[OtherAmtPaid1],\\n[OtherAmtPaid2],\\n[SecCode],\\n[Frequency],\\n[ReturnReason],\\n[ReturnDesc],\\n[TranType],\\n[VendorDivision],\\n[Filler1],\\n[DepositDt],\\n[PaymentType1] FROM RECEIPTS.EEDIFILEDETAIL  WHERE BATCHID = 6709'"
+      },
+      "gv_PostbackFileName" : {
+        "type" : "string",
+        "defaultValue" : "'PostBack_'"
+      },
+      "BatchSource" : {
+        "type" : "string",
+        "defaultValue" : "'WGS'"
+      },
+      "InputFilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\SAImport\\\\'"
+      },
+      "gv_alreadyProcessed" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_EboxDetailPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,4,30,40,55,77,79,80,95'"
+      },
+      "gv_Delete_BillingGroupIdLkp" : {
+        "type" : "string",
+        "defaultValue" : "'delete from AGP.Receipts_BillingGroupID_Lookup'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'uL1GMHNEoxM#w837Xij9WBtdx'"
+      },
+      "gv_BillingGroupIdLookup" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.Receipts_BillingGroupID_Lookup'"
+      },
+      "gv_headerTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EEDIFileHeader]'"
+      },
+      "gv_LegControl" : {
+        "type" : "string"
+      },
+      "gv_EboxBatchHeader" : {
+        "type" : "string"
+      },
+      "gv_Status" : {
+        "type" : "string",
+        "defaultValue" : "'Match'"
+      },
+      "gv_detailTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EEDIFileDetail]'"
+      },
+      "gv_FileNames" : {
+        "type" : "string"
+      },
+      "gv_EboxControlPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,8,14,22,32,44,56,95'"
+      },
+      "gv_EboxfileHeaderPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,4,14,24,30,34,35,38,40,41,64,87,95'"
+      },
+      "gv_OracleDualGrpLkp" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.BOSS_RCPT_DUAL_GROUP_LKP'"
+      },
+      "gv_oraclelookup_pull_writeOff" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.BOSS_RECEIPT_GROUP_LOOKUP  WHERE IsValid in ('V', 'I')'"
+      },
+      "gv_Header" : {
+        "type" : "string"
+      },
+      "InputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'ebox2gbd.txt.20230712_140000'"
+      },
+      "gv_trailerTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EEDIFileTrailer]'"
+      },
+      "gv_DetailPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,22,42,59,89,99,108,128,134,142,144,146,148,151,153,173,183,189,195,201,207,213,219,222,223,226,261,262,269,301'"
+      },
+      "gv_ReceiptNSFLookup" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.boss_receipt_nsf_lookup'"
+      },
+      "BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "6709"
+      },
+      "gv_trailerType" : {
+        "type" : "string",
+        "defaultValue" : "'9'"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_BSWRP.devad.wellpoint.com\\\\BSWRP1D,54312'"
+      },
+      "gv_OracleLookupNSF_truncate" : {
+        "type" : "string",
+        "defaultValue" : "'DELETE FROM  AGP.boss_receipt_nsf_lookup'"
+      },
+      "gv_EboxTrailerPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,5,11,21,33,45,55,80,88,95'"
+      },
+      "gv_EboxfileHeader" : {
+        "type" : "string"
+      },
+      "gv_LegDetail" : {
+        "type" : "string"
+      },
+      "gv_EboxDetailTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EBOXFileDetail]'"
+      },
+      "gv_orcale_Eboxfetch" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT BatchId,LEFT(LTRIM(RTRIM(ConsumerAccountNumber)),13) AS SBSB_ID, LEFT(LTRIM(RTRIM(ConsumerAccountNumber)),13) as Customer_ACCNUM,BILLERIDNUMBER from Receipts.EBOXFileDetail D\\nWHERE  D.BatchId=6709'"
+      },
+      "gv_Source" : {
+        "type" : "string"
+      },
+      "gv_KeyWordFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\Keyword\\\\'"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_controlType" : {
+        "type" : "string",
+        "defaultValue" : "'C'"
+      },
+      "gv_LegHeaderPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,5,8,18,28,36,40,48,52,61,81,82,84,114,131,151,184,187,195,201'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "gv_EboxDetailType" : {
+        "type" : "string",
+        "defaultValue" : "'6'"
+      },
+      "gv_EboxTrailer" : {
+        "type" : "string"
+      },
+      "gv_LookupTable" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.BOSS_INVOICE_LOOKUP'"
+      },
+      "gv_EboxControl" : {
+        "type" : "string"
+      },
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_LegHeader" : {
+        "type" : "string"
+      },
+      "gv_oraclelookup_fetch" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT BatchId,SubscriberId,ReceivedDate,PaymentType  from Receipts.Receipt r\\nWHERE  ISNULL(LTRIM(RTRIM(r.GroupId)) ,'')='' \\nand ISNULL(LTRIM(RTRIM(r.SubscriberId)) ,'')!=''\\nand ISNULL(LTRIM(RTRIM(r.BillingGroupId)) ,'')='' \\nAND r.BatchId=6709'"
+      },
+      "gv_EboxTrailerType" : {
+        "type" : "string",
+        "defaultValue" : "'8'"
+      },
+      "gv_ControlPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,9,26,301'"
+      },
+      "gv_detailType" : {
+        "type" : "string",
+        "defaultValue" : "'5'"
+      },
+      "gv_Select_BillingGroupIdLkp" : {
+        "type" : "string",
+        "defaultValue" : "'Select * from AGP.Receipts_BillingGroupID_Lookup'"
+      },
+      "gv_EboxBatchHeaderPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,5,21,41,51,54,64,70,76,79,80,88,95'"
+      },
+      "gv_TrailerPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,9,26,301'"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_EboxControlType" : {
+        "type" : "string",
+        "defaultValue" : "'9'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_LegacyDetailTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[LegacyFileDetail]'"
+      },
+      "gv_LegTrailer" : {
+        "type" : "string"
+      },
+      "gv_Detail" : {
+        "type" : "string"
+      },
+      "gv_oraclelookup_pull" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.BOSS_RECEIPT_GROUP_LOOKUP  WHERE grgr_id IS NOT NULL'"
+      },
+      "gv_MPWRDate" : {
+        "type" : "string",
+        "defaultValue" : "'12/31/2014'"
+      },
+      "gv_EboxBatchType" : {
+        "type" : "string",
+        "defaultValue" : "'5'"
+      },
+      "gv_EboxTrailerTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EBOXFileTrailer]'"
+      },
+      "gv_LegacyHeaderTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[LegacyFileHeader]'"
+      },
+      "gv_ArchiveFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Archive\\\\Receipting\\\\'"
+      },
+      "gv_LegacyTrailerTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[LegacyFileTrailer]'"
+      },
+      "gv_HeaderPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,5,8,18,28,36,40,48,52,61,131,151,153,301'"
+      },
+      "gv_headerType" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "gv_LegDetailPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,22,42,59,89,97,117,137,138,178,194,196,201'"
+      },
+      "gv_ReceiptLookup" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.BOSS_RECEIPT_GROUP_LOOKUP'"
+      },
+      "gv_PostbackFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\Keyword\\\\Postback\\\\'"
+      },
+      "gv_EboxControlTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EBOXFileControl]'"
+      },
+      "strSqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "gv_LegControlPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,9,26,201'"
+      },
+      "gv_LegacyControlTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[LegacyFileControl]'"
+      },
+      "gv_EboxfileHeaderTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EBOXFileHeader]'"
+      },
+      "gv_ErrorFolder" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\Error\\\\'"
+      },
+      "gv_ExcelFileCheck" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.BOSS_EXCEL_FILE_CHECK'"
+      },
+      "gv_getFileType" : {
+        "type" : "string",
+        "defaultValue" : "'0'"
+      },
+      "gv_OracleUpdatelookupNSF" : {
+        "type" : "string",
+        "defaultValue" : "'MERGE INTO AGP.boss_receipt_nsf_lookup rnp \\nUSING ( \\nselect  /*+ optimizer_features_enable('11.2.0.3') */ DISTINCT NSF.FACReceiptId\\nfrom AGP.BOSS_RECEIPT_NSF_LOOKUP NSF\\nJOIN FACETS.CMC_RCPT_RECEIPTS a ON a.RCPT_ID=NSF.FACReceiptId\\nJOIN FACETS.CMC_BLRC_BILL_RCPT b on a.RCPT_ID = b.RCPT_ID\\nJOIN FACETS.CMC_RCPT_RECEIPTS c on b.BLRC_ALLOC_RCPT_ID = c.RCPT_ID\\nWHERE A.RCPT_INPUT_GRGR_ID LIKE '%WP0' \\nand a.BLEI_CK = b.BLEI_CK\\nand c.RCPT_RCPT_CD IN ('F', 'O','W','Z','R','N','X')\\n) ta \\nON (ta.FACReceiptId=rnp.FACReceiptId) WHEN MATCHED THEN UPDATE SET rnp.ExcludeInd='F''"
+      },
+      "gv_EboxfileHeaderType" : {
+        "type" : "string",
+        "defaultValue" : "'1'"
+      },
+      "gv_EboxDetail" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT        \\nFROM'"
+      },
+      "gv_oraclelookupfetchNSF" : {
+        "type" : "string",
+        "defaultValue" : "'Select curBatch.BatchId,curBatch.ReceiptId, curBatch.VendorRefId,prvBatch.FACReceiptId, prvBatch.ReceiptId as PrvReceiptID \\nfrom Receipts.Receipt (nolock)  curBatch\\n\\nJOIN  Receipts.Receipt prvBatch (nolock)\\non ISNULL(prvBatch.VendorRefId,'')=ISNULL(curBatch.VendorRefId,'')\\nAND prvBatch.PaymentType='P' \\nAND prvBatch.FACReceiptId IS NOT NULL \\nAND curBatch.VendorRefId IS NOT NULL\\n\\nAND  curBatch.BatchId <> prvBatch.BatchId\\n\\nAND  curBatch.BatchId=  6709\\nWHERE EXISTS (SELECT TOP 1 1 FROM Receipts.Receipt (nolock) R\\n\\nWHERE ISNULL(prvBatch.VendorRefId,'')=ISNULL(R.VendorRefId,'') \\nAND prvBatch.VendorRefId IS NOT NULL\\nAND prvBatch.PaymentType=R.PaymentType\\nAND prvBatch.FACReceiptId=R.FACReceiptId\\nAND R.BatchId <> 6709\\nHaving prvBatch.ReceiptId= Max(R.ReceiptId))'"
+      },
+      "gv_OraclelookupNSF_Pull" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.boss_receipt_nsf_lookup'"
+      },
+      "gv_EboxBatchHeaderTable" : {
+        "type" : "string",
+        "defaultValue" : "'[Receipts].[EBOXBatchHeader]'"
+      },
+      "gv_Control" : {
+        "type" : "string"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_LegTrailerPosition" : {
+        "type" : "string",
+        "defaultValue" : "'1,2,9,26,201'"
+      },
+      "gv_MPWRUpdateQueries" : {
+        "type" : "string",
+        "defaultValue" : "'Begin\\n\\nupdate AGP.Receipts_BillingGroupID_Lookup lkp \\nset lkp.MEME_RECORD_NO =(select DISTINCT  meme_record_no from cmc_meme_member mem \\nJOIN FACETS.CMC_MEPE_PRCS_ELIG mepe on mem.meme_ck = mepe.meme_ck\\nJOIN FACETS.CMC_MEMD_MECR_DETL memd on mepe.meme_ck = memd.meme_ck\\njoin FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK =MEM.GRGR_CK AND (grgr.GRGR_ID LIKE '%MCR%' OR grgr.GRGR_ID LIKE '%PDP%')\\nWHERE memd.MEME_HICN = lkp.acctnum AND memd.MEMD_EVENT_CD = 'HICN' AND lkp.receiveddate between MEPE.MEPE_EFF_DT AND mepe.mepe_term_dt\\nAND MEPE.MEPE_ELIG_IND ='Y' AND meme_record_no <> ' ' and rownum=1);\\n\\nupdate AGP.Receipts_BillingGroupID_Lookup lkp \\nset lkp.MEME_RECORD_NO =(select DISTINCT  meme_record_no from cmc_meme_member mem \\nJOIN FACETS.CMC_MEPE_PRCS_ELIG mepe on mem.meme_ck = mepe.meme_ck\\nJOIN FACETS.CMC_MEMD_MECR_DETL memd on mepe.meme_ck = memd.meme_ck\\njoin FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK =MEM.GRGR_CK AND (grgr.GRGR_ID LIKE '%MCR%' OR grgr.GRGR_ID LIKE '%PDP%')\\nWHERE memd.MEME_HICN = lkp.acctnum\\nAND memd.MEMD_EVENT_CD = 'HICN'\\nAND mepe.mepe_term_dt > TO_DATE('12/31/2014', 'mm/dd/yyyy HH:MI:SS AM')\\nAND mepe.mepe_eff_dt <= lkp.receiveddate\\nAND MEPE.MEPE_ELIG_IND ='Y' AND meme_record_no <> ' ' AND rownum=1)\\nWHERE (lkp.MEME_RECORD_NO is null OR lkp.MEME_RECORD_NO='');\\n\\nupdate AGP.Receipts_BillingGroupID_Lookup lkp \\nset lkp.SBSB_ID =(select DISTINCT  sbsb.sbsb_id from cmc_meme_member mem\\n                          JOIN FACETS.CMC_MEPE_PRCS_ELIG mepe on mem.meme_ck = mepe.meme_ck\\n                          JOIN FACETS.CMC_MEMD_MECR_DETL memd on mepe.meme_ck = memd.meme_ck\\n                          JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = mem.SBSB_CK\\n                          JOIN FACETS.CMC_GRGR_GROUP GRGR ON SBSB.GRGR_CK = GRGR.GRGR_CK AND (grgr.GRGR_ID LIKE '%MCR%' OR grgr.GRGR_ID LIKE '%PDP%')\\n                          Where memd.MEME_HICN = lkp.acctnum  \\n                          AND memd.MEMD_EVENT_CD = 'HICN'\\n                          AND lkp.receiveddate between MEPE.MEPE_EFF_DT AND mepe.mepe_term_dt\\n                          AND MEPE.MEPE_ELIG_IND ='Y' AND GRGR.GRGR_ID LIKE '%MCR%' AND rownum=1)\\n                                                                                                  WHERE lkp.MEME_RECORD_NO is null OR lkp.MEME_RECORD_NO=' ';\\n\\nupdate AGP.Receipts_BillingGroupID_Lookup lkp \\nset lkp.SBSB_ID =(select DISTINCT  sbsb.sbsb_id from cmc_meme_member mem \\n                          JOIN FACETS.CMC_MEPE_PRCS_ELIG mepe ON mem.meme_ck = mepe.meme_ck\\n                          JOIN FACETS.CMC_MEMD_MECR_DETL memd on mepe.meme_ck = memd.meme_ck\\n                          JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = mem.SBSB_CK\\n                          JOIN FACETS.CMC_GRGR_GROUP GRGR ON SBSB.GRGR_CK = GRGR.GRGR_CK AND (grgr.GRGR_ID LIKE '%MCR%' OR grgr.GRGR_ID LIKE '%PDP%')\\n                          Where memd.MEME_HICN = lkp.acctnum\\n                          AND memd.MEMD_EVENT_CD = 'HICN'  \\n                          AND mepe.mepe_term_dt > TO_DATE('12/31/2014', 'mm/dd/yyyy HH:MI:SS AM')\\n                          AND mepe.mepe_eff_dt <= lkp.receiveddate\\n                          AND MEPE.MEPE_ELIG_IND ='Y' AND GRGR.GRGR_ID LIKE '%MCR%' AND rownum=1)\\n                                                                                                  WHERE (lkp.MEME_RECORD_NO is null OR lkp.MEME_RECORD_NO=' ') and (lkp.sbsb_id is null or sbsb_id ='');\\n\\nupdate AGP.Receipts_BillingGroupID_Lookup lkp \\nset lkp.SBSB_ID = substr(lkp.acctnum,1,9), lkp.VendorRefId = lkp.acctnum\\nwhere (lkp.MEME_RECORD_NO is null OR lkp.MEME_RECORD_NO=' ');\\n\\nend;'"
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name" : "dft_xml_cnt_extracts",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "LetterSrc",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "XMLDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Letterconversion"
+      } ],
+      "script" : "parameters{\n\tArchiveFileExe as string (),\n\tArchiveFilePath as string (),\n\tArchiveFileZipNM as string (),\n\tBatchId as integer (),\n\tCntDnGLetters as integer (),\n\tCURR_DT as timestamp (),\n\tFlag as string (),\n\tgv_DelinqDt as timestamp (),\n\tgv_Delinquency_3Party as string (),\n\tgv_Delinquency_EMPL as string (),\n\tgv_Delinquency_FAML as string (),\n\tgv_Delinquency_I as string (),\n\tgv_FileName as string (),\n\tgv_FileOP as string (),\n\tgv_GraceDT as timestamp (),\n\tgv_GRCPD as string (),\n\tgv_GRCPD2 as string (),\n\tgv_LastRunDt as timestamp (),\n\tgv_NSF as string (),\n\tgv_NSFP2 as string (),\n\tgv_NSFP2_R as string (),\n\tgv_NSFS as string (),\n\tgv_NSFS_R as string (),\n\tgv_NSF_R as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_PRDCOUNT as integer (),\n\tgv_RRD as string (),\n\tgv_RRDF as string (),\n\tgv_RRDS as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tgv_VASHT as string (),\n\tNsfFeeSetUp as string (),\n\tNsfStageSelectQ as string (),\n\tOutputFileNM as string (),\n\tOutputFileNM_CNT as string (),\n\tOutputFileNM_Final as string (),\n\tOutputFilePath as string (),\n\tPrdIdFileNM as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tstrDataSource as string (),\n\tstrFilePath as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrUserName as string ()\n}\n\nsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[Pr_GenerateXML_TC_LETTER]',\n\tschemaName: '[Invoice]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> LetterSrc\tsource(output(\n\t\tTOTALRECCOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT [TOTALRECCOUNT] FROM INVOICE.TC_LetterTrailer AS TRAILER WHERE BatchId = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nLetterSrc derive({Copy of COL_XML} = toString(COL_XML)) ~> Letterconversion\nOLEDBSource sink(input(\n\t\tTOTALRECCOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTOTALRECCOUNT)) ~> FlatFileDestination\nLetterconversion sink(input(\n\t\tCopy_of_COL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCopy_of_COL_XML = {Copy of COL_XML})) ~> XMLDestination"
+    }
+  }
+}

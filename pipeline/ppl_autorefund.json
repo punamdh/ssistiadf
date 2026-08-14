@@ -1,0 +1,1054 @@
+{
+  "name" : "ppl_autorefund",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_CurrentDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_CurrentDate",
+        "value" : {
+          "value" : "@concat(substring(concat('0',(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',(formatDateTime(utcNow(), 'MM')))), 2), 2),'/',substring(concat('0',(dayOfMonth(utcNow()))), sub(length(concat('0',(dayOfMonth(utcNow())))), 2), 2),'/',(formatDateTime(utcNow(), 'yyyy')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_ExcelReceiptTemplate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ExcelReceiptTemplate",
+        "value" : {
+          "value" : "@concat(variables('gv_RefundPath'),'xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Filename",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Filename",
+        "value" : {
+          "value" : "@concat(variables('gv_RefundPath'),'RFDReceipts_',formatDateTime(utcNow(), 'yyyy'),substring(concat('0',formatDateTime(utcNow(), 'MM')), sub(length(concat('0',formatDateTime(utcNow(), 'MM'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'dd')), sub(length(concat('0',formatDateTime(utcNow(), 'dd'))), 2), 2),'_',substring(concat('0',formatDateTime(utcNow(), 'HH')), sub(length(concat('0',formatDateTime(utcNow(), 'HH'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'mm')), sub(length(concat('0',formatDateTime(utcNow(), 'mm'))), 2), 2),'.xlsx')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_INMM_RefundQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_INMM_RefundQuery",
+        "value" : {
+          "value" : "\"SELECT * FROM AUTO_REFUND_INMM\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_RefundQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_RefundQuery",
+        "value" : {
+          "value" : "@and(equals(variables('BLEI_CK\nINNER JOIN CMC_SBSB_SUBSC SBSB\n    ON     SBSB_CK'),variables('BLEI_BILL_LEVEL_CK')), equals(variables('BLEI_BILL_LEVEL'),'I'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_FACETS_SchemaName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG') AS SRC_OLEDB_FACETS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_FACETS_TableName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG') AS SRC_OLEDB_FACETS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_INMM_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG') AS DST_OLEDB_BOSS_INMM_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_INMM_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG') AS DST_OLEDB_BOSS_INMM_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_INMM_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG') AS DST_OLEDB_BOSS_INMM_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_FACETS_SchemaName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG') AS SRC_OLEDB_FACETS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_FACETS_TableName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG') AS SRC_OLEDB_FACETS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG') AS DST_OLEDB_BOSS_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG') AS DST_OLEDB_BOSS_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_OLEDB_BOSS_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG') AS DST_OLEDB_BOSS_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_BOSS_SchemaName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_GENERATE_EXCEL') AS SRC_OLEDB_BOSS_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_BOSS_TableName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_GENERATE_EXCEL') AS SRC_OLEDB_BOSS_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_source_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_source_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_source_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_sink_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_sink_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST_CREATE_OP_TEMPLATE_0_sink_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'FST_CREATE_OP_TEMPLATE_0') AS FST_CREATE_OP_TEMPLATE_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_INMM_STG01_source_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG01') AS DFT_AUTOREF_INMM_STG01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_INMM_STG01_source_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG01') AS DFT_AUTOREF_INMM_STG01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_INMM_STG01_source_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG01') AS DFT_AUTOREF_INMM_STG01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_INMM_STG01_sink_SchemaName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG01') AS DFT_AUTOREF_INMM_STG01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_INMM_STG01_sink_TableName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_INMM_STG01') AS DFT_AUTOREF_INMM_STG01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_MS_STG01_source_ContainerName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG01') AS DFT_AUTOREF_MS_STG01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_MS_STG01_source_FileName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG01') AS DFT_AUTOREF_MS_STG01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_MS_STG01_source_FilePath' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG01') AS DFT_AUTOREF_MS_STG01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_MS_STG01_sink_SchemaName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG01') AS DFT_AUTOREF_MS_STG01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_AUTOREF_MS_STG01_sink_TableName' AND PIPELINE_NAME = 'AutoRefund' AND DATAFLOW_NAME = 'DFT_AUTOREF_MS_STG01') AS DFT_AUTOREF_MS_STG01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_RefundQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_CurrentDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ExcelReceiptTemplate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Filename",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_INMM_RefundQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [Refund].[Pr_CreateBatch_Refund] @gv_CurrentDate,@gv_BatchType"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_BatchId",
+        "value" : "@activity('SQL_CREATE_BATCH_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SQL_TRUNCATE_STAGE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "truncate table REFUND.Auto_Refund_Stage"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_DLT_REPRT_STG_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_TRUNCATE_STAGE_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN \nDELETE FROM AGP.Indiana_Report_Cat_Staging;\nDELETE FROM AGP.AUTO_REFUND_INMM;\nDELETE FROM AGP.AUTO_REFUND_RECEIPTS;\nDELETE FROM AGP.INIMRFD;\nDELETE FROM AGP.AUTO_REFUND_MEPE;\nEND;\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_AUTOREF_MS_STG0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_DLT_REPRT_STG_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_AUTOREF_MS_STG"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_AUTOREF_MS_STG",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_MS_STG0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT DISTINCT SBSB.*,BLBL.BLBL_RCVD_AMT, GRGR.GRGR_ID AS {Copy of GRGR_ID},BLBL.BLBL_DUE_DT, 'I'  FROM FACETS.CMC_BLBL_BILL_SUMM BLBL INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON BLEI.BLEI_CK = BLBL.BLEI_CK INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SBSB.SBSB_CK AND SBSD.SBSD_MCTR_STYP = 'DRCT' INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%' AND BLBL_PAID_STS = '1' AND BLBL.BLBL_DUE_DT + (SELECT CASE WHEN (GRGR.GRGR_ID = 'NVSUPWP0'OR GRGR.GRGR_ID = 'NVSUP000') AND TO_CHAR (BLBL.BLBL_DUE_DT, 'DD') >= 20 THEN 36 WHEN GRGR.GRGR_ID = 'WISUPWP0' AND TO_CHAR (BLBL.BLBL_DUE_DT, 'DD') >= 20 THEN 42 ELSE 31 END FROM FACETS.CMC_GRGR_GROUP WHERE GRGR.GRGR_ID = GRGR_ID)+ 1 <= TO_DATE ('08/03/2016', 'MM/DD/YYYY') UNION SELECT DISTINCT SBSB.*,BLEI.BLEI_NET_ALLOC_SUSP, GRGR.GRGR_ID,SYSDATE,'D' FROM FACETS.CMC_BLEI_ENTY_INFO BLEI INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' AND BLEI_NET_ALLOC_SUSP > 0 INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBSB.SBSB_CK INNER JOIN FACETS.CMC_MEEL_ELIG_ENT MEEL ON MEME.MEME_CK = MEEL.MEME_CK AND MEEL.MEEL_ELIG_TYPE = 'TM' AND MEEL.MEEL_MCTR_RSN IN ('090','ME2') INNER JOIN FACETS.CMC_SBEL_ELIG_ENT SBEL ON SBSB.SBSB_CK = SBEL.SBSB_CK AND SBEL.SBEL_ELIG_TYPE = 'TM' AND SBEL_MCTR_RSN = '03' INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SBSB.SBSB_CK AND SBSD.SBSD_MCTR_STYP = 'DRCT' INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%' WHERE TO_DATE ('08/3/2016', 'MM/DD/YYYY') >= CAST (TRUNC (MEEL.MEEL_INSQ_DT) AS DATE) + 4 AND NOT EXISTS (SELECT * FROM FACETS.CMC_RCPT_RECEIPTS RCPT WHERE RCPT_INPUT_SBSB_ID = SBSB.SBSB_ID AND (RCPT_CREATE_DTM >=TO_DATE ('08/03/2016', 'MM/DD/YYYY') - 15) AND RCPT_RCPT_CD = 'F' AND RCPT_MCTR_RSN = 'DTH' )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_AUTOREF_MS_STG01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_MS_STG",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_MS_STG01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_AUTOREF_INMM_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_MS_STG01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN\nAGP.pr_AUTOREFUND_INDIANA ;\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_AUTOREF_INMM_STG0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_AUTOREF_INMM_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_AUTOREF_INMM_STG"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_AUTOREF_INMM_STG",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_INMM_STG0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT DISTINCT SBSB.*,BLBL.BLBL_RCVD_AMT, GRGR.GRGR_ID,BLBL.BLBL_DUE_DT, 'I'  FROM FACETS.CMC_BLBL_BILL_SUMM BLBL INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI ON BLEI.BLEI_CK = BLBL.BLEI_CK INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SBSB.SBSB_CK AND SBSD.SBSD_MCTR_STYP = 'DRCT' INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%' AND BLBL_PAID_STS = '1' AND BLBL.BLBL_DUE_DT + (SELECT CASE WHEN (GRGR.GRGR_ID = 'NVSUPWP0'OR GRGR.GRGR_ID = 'NVSUP000') AND TO_CHAR (BLBL.BLBL_DUE_DT, 'DD') >= 20 THEN 36 WHEN GRGR.GRGR_ID = 'WISUPWP0' AND TO_CHAR (BLBL.BLBL_DUE_DT, 'DD') >= 20 THEN 42 ELSE 31 END FROM FACETS.CMC_GRGR_GROUP WHERE GRGR.GRGR_ID = GRGR_ID)+ 1 <= TO_DATE ('08/03/2016', 'MM/DD/YYYY') UNION SELECT DISTINCT SBSB.*,BLEI.BLEI_NET_ALLOC_SUSP, GRGR.GRGR_ID,SYSDATE,'D' FROM FACETS.CMC_BLEI_ENTY_INFO BLEI INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB ON SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK AND BLEI.BLEI_BILL_LEVEL = 'I' AND BLEI_NET_ALLOC_SUSP > 0 INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBSB.SBSB_CK INNER JOIN FACETS.CMC_MEEL_ELIG_ENT MEEL ON MEME.MEME_CK = MEEL.MEME_CK AND MEEL.MEEL_ELIG_TYPE = 'TM' AND MEEL.MEEL_MCTR_RSN IN ('090','ME2') INNER JOIN FACETS.CMC_SBEL_ELIG_ENT SBEL ON SBSB.SBSB_CK = SBEL.SBSB_CK AND SBEL.SBEL_ELIG_TYPE = 'TM' AND SBEL_MCTR_RSN = '03' INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD ON SBSD.SBSB_CK = SBSB.SBSB_CK AND SBSD.SBSD_MCTR_STYP = 'DRCT' INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%' WHERE TO_DATE ('08/3/2016', 'MM/DD/YYYY') >= CAST (TRUNC (MEEL.MEEL_INSQ_DT) AS DATE) + 4 AND NOT EXISTS (SELECT * FROM FACETS.CMC_RCPT_RECEIPTS RCPT WHERE RCPT_INPUT_SBSB_ID = SBSB.SBSB_ID AND (RCPT_CREATE_DTM >=TO_DATE ('08/03/2016', 'MM/DD/YYYY') - 15) AND RCPT_RCPT_CD = 'F' AND RCPT_MCTR_RSN = 'DTH' )"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DFT_AUTOREF_INMM_STG01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_INMM_STG",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_AUTOREF_INMM_STG01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SQL_LOAD_EXTRACT_TBL_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_AUTOREF_INMM_STG01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Exec [Refund].[Pr_PopulateAutoRefund]  @gv_BatchId,@IsIndianaEnabled,@IsMedSuppEnabled"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_APPLY_BUSINESS_RULES_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_LOAD_EXTRACT_TBL_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "exec [Refund].[Pr_ApplyBusinessRule] @gv_BatchId,@ChkHistory"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CHECK_ROWS_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_APPLY_BUSINESS_RULES_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT COUNT(1)  from Refund.Refund where BatchId=@gv_BatchId  AND (PullInd  IS NULL OR PullInd='')\n\nif not exists(SELECT TOP 1 1  from Refund.Refund where BatchId=@gv_BatchId  AND (PullInd  IS NULL OR PullInd=''))\nbegin\nEXEC [GENERIC].[Pr_UpdateEventLog] 2,3,1,'No records found to generate Auto Batch file.'\nEXEC [GENERIC].[Pr_Update_Batch_Status] \n'[Refund].[Batch]',@gv_BatchId,'Complete'\nEXEC [GENERIC].[Pr_UpdateEventLog] 2,1,11,'Package for Refund completed.'\nend"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CHECK_ROWS_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CHECK_ROWS_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_RowCount",
+        "value" : "@activity('SQL_CHECK_ROWS_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_FST_CREATE_OP_TEMPLATE_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CHECK_ROWS_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('gv_RowCount'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FST_CREATE_OP_TEMPLATE_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST_CREATE_OP_TEMPLATE_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "DFT_GENERATE_EXCEL0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_FST_CREATE_OP_TEMPLATE_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_GENERATE_EXCEL"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_GENERATE_EXCEL",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_GENERATE_EXCEL0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_generate_excel",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "gv_OraclePassword" : {
+              "type" : "Expression",
+              "value" : "'pga'"
+            },
+            "gv_strPasswordEnroll" : {
+              "type" : "Expression",
+              "value" : "'eload'"
+            },
+            "gv_strUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "gv_strDataSourceEnroll" : {
+              "type" : "Expression",
+              "value" : "'DCLSENRL1D.devad.wellpoint.com\\\\ENRL1D,40266'"
+            },
+            "ReceiptWaitDays" : {
+              "type" : "Expression",
+              "value" : "'15'"
+            },
+            "gv_OracleUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "gv_strInitialCatalogEnroll" : {
+              "type" : "Expression",
+              "value" : "'Enroll'"
+            },
+            "gv_CurrentDate" : {
+              "type" : "Expression",
+              "value" : "'07/27/2026'"
+            },
+            "gv_FileToBeCopied" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\SAImport\\\\RFDReceipts_20260727_190251.xlsx'"
+            },
+            "IsIndianaEnabled" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "IsMedSuppEnabled" : {
+              "type" : "Expression",
+              "value" : "'Y'"
+            },
+            "gv_BatchType" : {
+              "type" : "Expression",
+              "value" : "'INMM/MEDSUP'"
+            },
+            "gv_strDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "gv_BatchId" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "gv_INMM_RefundQuery" : {
+              "type" : "Expression",
+              "value" : "'SELECT * FROM AGP.AUTO_REFUND_INMM'"
+            },
+            "gv_strUserNameEnroll" : {
+              "type" : "Expression",
+              "value" : "'eload'"
+            },
+            "gv_strInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "gv_Filename" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\RFDReceipts_20260727_1902.xlsx'"
+            },
+            "gv_RefundPath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\'"
+            },
+            "RetireWaitDays" : {
+              "type" : "Expression",
+              "value" : "'10'"
+            },
+            "gv_RowCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "gv_ExcelReceiptTemplate" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\Receipts_Template.xlsx'"
+            },
+            "gv_strPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "gv_SqlServerProvider" : {
+              "type" : "Expression",
+              "value" : "'SQLNCLI11.1'"
+            },
+            "gv_RefundQuery" : {
+              "type" : "Expression",
+              "value" : "'/*SELECT DISTINCT SBSB.SBSB_ID,BLBL.BLBL_RCVD_AMT, GRGR.GRGR_ID,BLBL.BLBL_DUE_DT, 'I' FROM FACETS.CMC_BLBL_BILL_SUMM BLBL INNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI     ON BLEI.BLEI_CK = BLBL.BLEI_CK INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB     ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK     AND BLEI.BLEI_BILL_LEVEL = 'I' INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD     ON SBSD.SBSB_CK = SBSB.SBSB_CK      AND SBSD.SBSD_MCTR_STYP = 'DRCT' INNER JOIN FACETS.CMC_MEME_MEMBER MEME     ON MEME.SBSB_CK = SBSB.SBSB_CK     AND SBSB.GRGR_CK = MEME.GRGR_CK INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE     ON MEPE.MEME_CK = MEME.MEME_CK      AND MEPE.MEPE_ELIG_IND = 'Y'     AND SYSDATE BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT     INNER JOIN FACETS.CMC_GRGR_GROUP GRGR     ON     GRGR.GRGR_CK = SBSB.GRGR_CK     AND GRGR.GRGR_ID LIKE '%SUP%'     AND BLBL_PAID_STS = '1'     AND   BLBL.BLBL_DUE_DT + (                                    SELECT CASE WHEN     (GRGR.GRGR_ID = 'NVSUPWP0'OR GRGR.GRGR_ID = 'NVSUP000')                                      AND SUBSTR(MEPE.CSPI_ID,3,1) IN ('S','P')                                     THEN 36                                     WHEN  GRGR.GRGR_ID = 'WISUPWP0'                                     AND SUBSTR(MEPE.CSPI_ID,3,1) IN ('W')                                     THEN 42                                     ELSE 31 END                                     FROM FACETS.CMC_GRGR_GROUP WHERE GRGR.GRGR_ID = GRGR_ID)+ 1 <= TO_DATE('07/27/2026' ,'mm/dd/yyyy')  UNION */ SELECT DISTINCT SBSB.SBSB_ID,                 BLEI.BLEI_NET_ALLOC_SUSP,                 GRGR.GRGR_ID,                 SYSDATE,                 'D'   FROM FACETS.CMC_BLEI_ENTY_INFO  BLEI        INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB            ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK               AND BLEI.BLEI_BILL_LEVEL = 'I'               AND BLEI_NET_ALLOC_SUSP > 0        INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBSB.SBSB_CK        INNER JOIN FACETS.CMC_MEEL_ELIG_ENT MEEL            ON     MEME.MEME_CK = MEEL.MEME_CK               AND MEEL.MEEL_ELIG_TYPE = 'TM'     AND MEEL.MEEL_VOID_IND = 'N'      AND MEEL.MEEL_MCTR_RSN IN ('090', 'ME2', 'MS02')        INNER JOIN FACETS.CMC_SBSP_SPLT_PREM SBSP            ON SBSB.SBSB_CK = SBSP.SBSB_CK        INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD            ON     SBSD.SBSB_CK = SBSB.SBSB_CK               AND SBSD.SBSP_EFF_DT = SBSP.SBSP_EFF_DT               AND SYSDATE BETWEEN SBSP.SBSP_EFF_DT AND SBSP.SBSP_TERM_DT               AND SBSD.SBSD_MCTR_STYP = 'DRCT'        INNER JOIN FACETS.CMC_GRGR_GROUP GRGR            ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%' WHERE TO_DATE('07/27/2026' ,'mm/dd/yyyy') >= CAST (TRUNC (MEEL.MEEL_INSQ_DT) AS DATE) +10 AND NOT EXISTS (SELECT * FROM FACETS.CMC_RCPT_RECEIPTS RCPT WHERE RCPT.RCPT_INPUT_SBSB_ID = SBSB.SBSB_ID AND RCPT.RCPT_RCPT_CD = 'F' AND RCPT.RCPT_MCTR_RSN = 'DTH' AND RCPT.RCPT_STS IN ('01','91') AND RCPT.BLEI_CK = BLEI.BLEI_CK /*Added this as part of BFI- 10235 */)'"
+            },
+            "ChkHistory" : {
+              "type" : "Expression",
+              "value" : "'N'"
+            },
+            "gv_strOracleDS" : {
+              "type" : "Expression",
+              "value" : "'GBFAC05D'"
+            },
+            "gv_ExcelReceiptsPath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\SAImport\\\\'"
+            },
+            "gv_OracleProvider" : {
+              "type" : "Expression",
+              "value" : "'OraOLEDB.Oracle.1'"
+            }
+          },
+          "datasetParameters" : {
+            "SRCOLEDBBOSS" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBBOSS_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBBOSS_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "SRC_OLEDB_BOSS",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SQL_SET_BATCH_COMPLETE_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_GENERATE_EXCEL",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [GENERIC].[Pr_Update_Batch_Status] \n'[Refund].[Batch]',@gv_BatchId,'Complete'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "NonWellsfargo_1108/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'pga'"
+      },
+      "gv_strPasswordEnroll" : {
+        "type" : "string",
+        "defaultValue" : "'eload'"
+      },
+      "gv_strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_strDataSourceEnroll" : {
+        "type" : "string",
+        "defaultValue" : "'DCLSENRL1D.devad.wellpoint.com\\\\ENRL1D,40266'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_strInitialCatalogEnroll" : {
+        "type" : "string",
+        "defaultValue" : "'Enroll'"
+      },
+      "gv_CurrentDate" : {
+        "type" : "string",
+        "defaultValue" : "'07/27/2026'"
+      },
+      "IsIndianaEnabled" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "IsMedSuppEnabled" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "gv_BatchType" : {
+        "type" : "string",
+        "defaultValue" : "'INMM/MEDSUP'"
+      },
+      "gv_strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "gv_BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_INMM_RefundQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT * FROM AGP.AUTO_REFUND_INMM'"
+      },
+      "gv_strUserNameEnroll" : {
+        "type" : "string",
+        "defaultValue" : "'eload'"
+      },
+      "gv_strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_Filename" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\RFDReceipts_20260727_1902.xlsx'"
+      },
+      "gv_RefundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\'"
+      },
+      "RetireWaitDays" : {
+        "type" : "string",
+        "defaultValue" : "'10'"
+      },
+      "gv_RowCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_ExcelReceiptTemplate" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Refund\\\\Receipts_Template.xlsx'"
+      },
+      "gv_strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_SqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "gv_RefundQuery" : {
+        "type" : "string",
+        "defaultValue" : "'/*SELECT DISTINCT SBSB.SBSB_ID,BLBL.BLBL_RCVD_AMT, GRGR.GRGR_ID,BLBL.BLBL_DUE_DT, 'I'\\nFROM FACETS.CMC_BLBL_BILL_SUMM BLBL\\nINNER JOIN FACETS.CMC_BLEI_ENTY_INFO BLEI\\n    ON BLEI.BLEI_CK = BLBL.BLEI_CK\\nINNER JOIN FACETS.CMC_SBSB_SUBSC SBSB\\n    ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK\\n    AND BLEI.BLEI_BILL_LEVEL = 'I'\\nINNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD\\n    ON SBSD.SBSB_CK = SBSB.SBSB_CK \\n    AND SBSD.SBSD_MCTR_STYP = 'DRCT'\\nINNER JOIN FACETS.CMC_MEME_MEMBER MEME\\n    ON MEME.SBSB_CK = SBSB.SBSB_CK\\n    AND SBSB.GRGR_CK = MEME.GRGR_CK\\nINNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE\\n    ON MEPE.MEME_CK = MEME.MEME_CK \\n    AND MEPE.MEPE_ELIG_IND = 'Y'\\n    AND SYSDATE BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT    \\nINNER JOIN FACETS.CMC_GRGR_GROUP GRGR\\n    ON     GRGR.GRGR_CK = SBSB.GRGR_CK\\n    AND GRGR.GRGR_ID LIKE '%SUP%'\\n    AND BLBL_PAID_STS = '1'\\n    AND   BLBL.BLBL_DUE_DT + (\\n                                   SELECT CASE WHEN     (GRGR.GRGR_ID = 'NVSUPWP0'OR GRGR.GRGR_ID = 'NVSUP000') \\n                                    AND SUBSTR(MEPE.CSPI_ID,3,1) IN ('S','P')\\n                                    THEN 36\\n                                    WHEN  GRGR.GRGR_ID = 'WISUPWP0'\\n                                    AND SUBSTR(MEPE.CSPI_ID,3,1) IN ('W')\\n                                    THEN 42\\n                                    ELSE 31 END\\n                                    FROM FACETS.CMC_GRGR_GROUP WHERE GRGR.GRGR_ID = GRGR_ID)+ 1 <= TO_DATE('07/27/2026' ,'mm/dd/yyyy')\\n\\nUNION */\\nSELECT DISTINCT SBSB.SBSB_ID,\\n                BLEI.BLEI_NET_ALLOC_SUSP,\\n                GRGR.GRGR_ID,\\n                SYSDATE,\\n                'D'\\n  FROM FACETS.CMC_BLEI_ENTY_INFO  BLEI\\n       INNER JOIN FACETS.CMC_SBSB_SUBSC SBSB\\n           ON     SBSB.SBSB_CK = BLEI.BLEI_BILL_LEVEL_CK\\n              AND BLEI.BLEI_BILL_LEVEL = 'I'\\n              AND BLEI_NET_ALLOC_SUSP > 0\\n       INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBSB.SBSB_CK\\n       INNER JOIN FACETS.CMC_MEEL_ELIG_ENT MEEL\\n           ON     MEME.MEME_CK = MEEL.MEME_CK\\n              AND MEEL.MEEL_ELIG_TYPE = 'TM'\\n    AND MEEL.MEEL_VOID_IND = 'N'      AND MEEL.MEEL_MCTR_RSN IN ('090', 'ME2', 'MS02')\\n       INNER JOIN FACETS.CMC_SBSP_SPLT_PREM SBSP\\n           ON SBSB.SBSB_CK = SBSP.SBSB_CK\\n       INNER JOIN FACETS.CMC_SBSD_SPLT_DTL SBSD\\n           ON     SBSD.SBSB_CK = SBSB.SBSB_CK\\n              AND SBSD.SBSP_EFF_DT = SBSP.SBSP_EFF_DT\\n              AND SYSDATE BETWEEN SBSP.SBSP_EFF_DT AND SBSP.SBSP_TERM_DT\\n              AND SBSD.SBSD_MCTR_STYP = 'DRCT'\\n       INNER JOIN FACETS.CMC_GRGR_GROUP GRGR\\n           ON GRGR.GRGR_CK = SBSB.GRGR_CK AND GRGR.GRGR_ID LIKE '%SUP%'\\nWHERE TO_DATE('07/27/2026' ,'mm/dd/yyyy') >= CAST (TRUNC (MEEL.MEEL_INSQ_DT) AS DATE) +10\\nAND NOT EXISTS (SELECT * FROM FACETS.CMC_RCPT_RECEIPTS RCPT WHERE RCPT.RCPT_INPUT_SBSB_ID = SBSB.SBSB_ID\\nAND RCPT.RCPT_RCPT_CD = 'F' AND RCPT.RCPT_MCTR_RSN = 'DTH' AND RCPT.RCPT_STS IN ('01','91') AND RCPT.BLEI_CK = BLEI.BLEI_CK /*Added this as part of BFI- 10235 */)'"
+      },
+      "ChkHistory" : {
+        "type" : "string",
+        "defaultValue" : "'N'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05D'"
+      },
+      "gv_ExcelReceiptsPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Receipting\\\\SAImport\\\\'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      }
+    }
+  }
+}
