@@ -42,7 +42,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_FilePath;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_28') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_2801_source_ContainerName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_2801') AS Data_Flow_Task_2801_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_2801_source_FileName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_2801') AS Data_Flow_Task_2801_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_2801_source_FilePath' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_2801') AS Data_Flow_Task_2801_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_2801_sink_SchemaName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_2801') AS Data_Flow_Task_2801_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_2801_sink_TableName' AND PIPELINE_NAME = 'FuturMasterTransferOrder_CA_Extract' AND DATAFLOW_NAME = 'Data_Flow_Task_2801') AS Data_Flow_Task_2801_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -135,7 +135,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "referenceName" : "Generic_db_replication_ppl",
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
@@ -265,6 +265,58 @@
             "compute" : null,
             "staging" : { }
           }
+        }, {
+          "name" : "Data_Flow_Task_2801",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Data_Flow_Task_28",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2801_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2801_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2801_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2801_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2801_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
         } ],
         "isSequential" : true
       }

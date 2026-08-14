@@ -149,7 +149,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "pipeline" : {
-              "referenceName" : "PPL_Generic_db_replication_ppl",
+              "referenceName" : "Generic_db_replication_ppl",
               "type" : "PipelineReference"
             },
             "waitOnCompletion" : false,
@@ -186,7 +186,7 @@
           "typeProperties" : {
             "source" : {
               "type" : "Parquetsource",
-              "sqlReaderQuery" : "SELECT *,0 AS fail FROM dbo.W_Process_Reject_Record_Log"
+              "sqlReaderQuery" : "SELECT * ,0 AS fail FROM DBO.W_PROCESS_REJECT_RECORD_LOG"
             },
             "sink" : {
               "type" : "AzureSqlSink",
@@ -198,14 +198,19 @@
             "referenceName" : "genric_parquet",
             "type" : "DatasetReference",
             "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_source_TableName",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_source_ContainerName",
                 "type" : "Expression"
               },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_source_SchemaName",
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_source_FileName",
                 "type" : "Expression"
-              }
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
             }
           } ],
           "outputs" : [ {
@@ -218,6 +223,58 @@
               },
               "Schema" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_6_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Data_Flow_Task_1_601",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Data_Flow_Task_1_6",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_601_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_601_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_601_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_601_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_601_sink_SchemaName",
                 "type" : "Expression"
               }
             }

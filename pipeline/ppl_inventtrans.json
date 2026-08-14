@@ -105,7 +105,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -142,7 +142,7 @@
       "onInactiveMarkAs" : "Succeeded",
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -205,6 +205,29 @@
               },
               "ColumnDelimiter" : ","
             },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE DB Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "LookupLKPTABLE" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_TableName",
@@ -224,6 +247,29 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "NoMatch" : {
+              "TableName" : {
+                "value" : "ztmp_INVENTTRANS_NoMatch",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -251,29 +297,6 @@
               },
               "ColumnDelimiter" : ","
             },
-            "OLEDBSource" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OLE DB Source",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "NoMatch1" : {
               "TableName" : {
                 "value" : "ztmp_INVENTTRANS_NoMatch",
@@ -293,29 +316,6 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch1_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "NoMatch" : {
-              "TableName" : {
-                "value" : "ztmp_INVENTTRANS_NoMatch",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.NoMatch_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -351,14 +351,19 @@
         "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_1_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_1_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_1_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_1_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -480,6 +485,58 @@
         }
       } ]
     }, {
+      "name" : "AX_to_Staging_101",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "AX_to_Staging_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_101_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_101_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_101_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_101_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.AX_to_Staging_101_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Distinct_No_Match_SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -540,7 +597,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -589,14 +646,19 @@
         "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -614,11 +676,63 @@
         }
       } ]
     }, {
+      "name" : "Request_New_Records01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Request_New_Records",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Request_New_Records01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Insert_New_Records0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Request_New_Records",
+        "activity" : "Request_New_Records01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -627,7 +741,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -676,14 +790,19 @@
         "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -701,11 +820,63 @@
         }
       } ]
     }, {
+      "name" : "Insert_New_Records01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_New_Records",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Insert_New_Records01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
       "name" : "Drop_ztmp_Tables",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Insert_New_Records",
+        "activity" : "Insert_New_Records01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,

@@ -83,7 +83,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
-          "referenceName" : "PPL_Generic_db_replication_ppl",
+          "referenceName" : "Generic_db_replication_ppl",
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -132,14 +132,19 @@
         "referenceName" : "genric_parquet",
         "type" : "DatasetReference",
         "parameters" : {
-          "TableName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_source_TableName",
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_source_ContainerName",
             "type" : "Expression"
           },
-          "Schema" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_source_SchemaName",
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_source_FileName",
             "type" : "Expression"
-          }
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
         }
       } ],
       "outputs" : [ {
@@ -152,6 +157,58 @@
           },
           "Schema" : {
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Load_New_or_Updated_Records_101",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_New_or_Updated_Records_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_101_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_101_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_101_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_101_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_New_or_Updated_Records_101_sink_SchemaName",
             "type" : "Expression"
           }
         }
