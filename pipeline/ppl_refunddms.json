@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "gv_HRAEmailMessage",
         "value" : {
-          "value" : "@concat('The HRA DMS Refund process is complete.  There were ',variables('gv_HRARowCount'),'\" records qualified for today's run.  \nThank you\nGBD Member Finance\"')",
+          "value" : "@concat('The HRA DMS Refund process is complete.  There were ',variables('gv_HRARowCount'),'\" records qualified for today''s run.  \nThank you\nGBD Member Finance\"')",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,28 @@
       "typeProperties" : {
         "variableName" : "gv_MLRSelectQuery",
         "value" : {
-          "value" : "@and(variables('SBSB_ID'), equals(variables('RFD_GRPING_KEY'),variables('RFD_GRPING_KEY\nGROUP BY SBSB_ID')))",
+          "value" : "@concat(concat(concat(concat('\"SELECT \nSBSB_LAST_NAME, \nSBSB_FIRST_NAME, \nSBAD_ADDR1,\nSBAD_ADDR2, \nSBAD_CITY, \nSBAD_STATE, \nSBAD_ZIP,\nREFUND_AMT,\n''9999999999'' AS RCPT_ID,\nSYSDATE AS RCPT_CREATE_DTM, \nSBSB_ID,\n ''MLR'' AS rcpt_mctr_rsn,\n GRGR_ID, \n CSCS_ID, \n ''\"',variables('gv_MLRRefundReason')),'\"''  AS ATMM_TEXT, \n ''000'' AS RCPT_CHECK_NO, \nCSPI_ID,\nRFD_GRPING_KEY\n\nFROM (\nSELECT\nROW_NUMBER() OVER(PARTITION BY SBSB_ID,RFD_GRPING_KEY ORDER BY SBSB_ID, OED DESC ) AS RNK,\nSBSB_LAST_NAME, \nSBSB_FIRST_NAME, \nSBAD_ADDR1,\nSBAD_ADDR2, \nSBAD_CITY, \nSBAD_STATE, \nSBAD_ZIP,\n(SELECT SUM(REFUND_AMT) FROM MLR_MEM_MONTHLY_EARNED WHERE SBSB_ID = SBSB_ID AND RFD_GRPING_KEY =RFD_GRPING_KEY\nGROUP BY SBSB_ID,RFD_GRPING_KEY)+.01 AS REFUND_AMT,\nSBSB_ID,\n GRGR_ID, \n CSCS_ID, \nCSPI_ID,\nRFD_GRPING_KEY\nFROM MLR_MEM_MONTHLY_EARNED MLR\nWHERE RFD_GRPING_KEY = ''\"'),variables('gv_MLRGrpKey')),'\"''\n ) MLRSUM\nWHERE RNK=1 \"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_SelectQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_SelectQuery",
+        "value" : {
+          "value" : "@concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat('\"SELECT SBSB_LAST_NAME, SBSB_FIRST_NAME, SBAD_ADDR1,SBAD_ADDR2, SBAD_CITY, SBAD_STATE, SBAD_ZIP,RCPT_AMT,\nRCPT_ID,RCPT_CREATE_DTM, rcpt_input_sbsb_id, rcpt_mctr_rsn, rcpt_input_grgr_id, cscs_id, MEPE_EFF_DT, MEPE_TERM_DT,RCPT_CHECK_NO, CSPI_ID\nFROM CMC_RCPT_RECEIPTS a \nJOIN CMC_SBSB_SUBSC b on sbsb_id = RCPT_INPUT_SBSB_ID\nJOIN CMC_SBAD_ADDR c on sbsb_ck = sbsb_ck AND SBAD_TYPE = sbad_type_mail \nJOIN CMC_GRGR_GROUP GRGR ON GRGR_CK= GRGR_CK AND RCPT_INPUT_GRGR_ID = GRGR_ID \nJOIN CMC_MEME_MEMBER MEME on SBSB_CK = SBSB_CK\nLEFT JOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK = MEME_CK\nAND EXISTS ( SELECT * FROM CMC_MEPE_PRCS_ELIG mepe2\n            where meme_ck=meme_ck\n            HAVING  MIN(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)=(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)\n) \nWHERE  (RCPT_CREATE_DTM >= TO_TIMESTAMP(''\"',variables('gv_FromDate')),'\"''  ,''mm/dd/yyyy HH:MI:SS AM'')\nAND  RCPT_CREATE_DTM <TO_DATE(''\"'),variables('gv_ToDate')),'\"'' ,''mm/dd/yyyy'')+1) \nAND RCPT_RCPT_CD = ''F''\nAND RCPT_STS IN (''01'',''91'')\nAND ((RCPT_MCTR_RSN IN (''DTH'', ''TERM'', ''RGRP'',''RHCK'',''RLIS'',''ROVP'', ''RSSA'', ''RMSS'', ''RCNR'', ''ROTH'',''RLEG'',''REFT'') AND RCPT_INPUT_GRGR_ID LIKE ''%MCR%'')\nOR\n(RCPT_MCTR_RSN IN (''DTH'',''TERM'',''ROTH'',''RTOL'',''ROVP'',''RCNR'',''REFT'',''RNBL'',''RPRG'',''RLCE'',''RCSO'' ) AND RCPT_INPUT_GRGR_ID = ''KYMCDWP0''))\nAND MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"''  ,''mm/dd/yyyy HH:MI:SS AM'')\nAND MEPE_EFF_DT in (select max(MEPE_EFF_DT) from\nCMC_MEPE_PRCS_ELIG mepe3\nwhere  MEME_CK=MEME_CK and MEPE_ELIG_IND=MEPE_ELIG_IND\nand MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"''  ,''mm/dd/yyyy HH:MI:SS AM''))\n\n\nUNION\n\nSELECT SBSB_LAST_NAME, SBSB_FIRST_NAME, SBAD_ADDR1,SBAD_ADDR2, SBAD_CITY, SBAD_STATE, SBAD_ZIP,RCPT_AMT,\nRCPT_ID,RCPT_CREATE_DTM, RCPT_INPUT_SBSB_ID, RCPT_MCTR_RSN, RCPT_INPUT_GRGR_ID, CSCS_ID, MEPE_EFF_DT, MEPE_TERM_DT,RCPT_CHECK_NO, CSPI_ID\nFROM CMC_RCPT_RECEIPTS A \nJOIN CMC_SBSB_SUBSC B ON SBSB_ID = RCPT_INPUT_SBSB_ID AND RCPT_INPUT_GRGR_ID = ''INMCDWP0''\nJOIN CMC_SBAD_ADDR C ON SBSB_CK = SBSB_CK \nAND SBAD_TYPE = SBAD_TYPE_MAIL \nJOIN CMC_GRGR_GROUP GRGR ON GRGR_CK= GRGR_CK AND RCPT_INPUT_GRGR_ID = GRGR_ID \nJOIN CMC_MEME_MEMBER MEME ON SBSB_CK = SBSB_CK\nLEFT JOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK = MEME_CK\nJOIN INMM_HIP_ELIG_TYPE_XWALK XWALK\n           ON CSPI_ID = CSPI_ID\n           AND ELIG_TYPE IN (''HPE'',''FTE'',''HIPCE'',''HIPFE'',''PP'')\n           AND CSCS_ID LIKE ''CH%'' \n           AND GRGR_CK = ''90''\nAND EXISTS ( SELECT * FROM CMC_MEPE_PRCS_ELIG MEPE2\n            WHERE MEME_CK=MEME_CK\n            HAVING  MIN(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)=(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)\n) \nWHERE  (RCPT_CREATE_DTM >= TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"''  ,''mm/dd/yyyy HH:MI:SS AM'')\nAND  RCPT_CREATE_DTM <TO_DATE(''\"'),variables('gv_ToDate')),'\"'' ,''mm/dd/yyyy'')+1) \nAND RCPT_RCPT_CD = ''F''\nAND RCPT_STS IN (''01'',''91'')\nAND RCPT_MCTR_RSN IN (''RNCO'',''RNCU'',''RMNM'',''RFMD'',''RCNR'',''RNCH'',''RBWP'',''RNPR'',''RPNP'',''DTH'',''ROTH'',''ROVP'',''TERM'',''RTOL'') \nAND MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"''  ,''mm/dd/yyyy HH:MI:SS AM'')\nAND MEPE_EFF_DT in (select max(MEPE_EFF_DT) from\nCMC_MEPE_PRCS_ELIG mepe3\nwhere  MEME_CK=MEME_CK and MEPE_ELIG_IND=MEPE_ELIG_IND\nand MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM''))\n\n\nUNION \n\nSELECT SBSB_LAST_NAME, SBSB_FIRST_NAME, SBAD_ADDR1,SBAD_ADDR2, SBAD_CITY, SBAD_STATE, SBAD_ZIP,RCPT_AMT,\nRCPT_ID,RCPT_CREATE_DTM, RCPT_INPUT_SBSB_ID, RCPT_MCTR_RSN, RCPT_INPUT_GRGR_ID, CSCS_ID, MEPE_EFF_DT, MEPE_TERM_DT,RCPT_CHECK_NO, CSPI_ID\nFROM CMC_RCPT_RECEIPTS A \nJOIN CMC_SBSB_SUBSC B ON SBSB_ID = RCPT_INPUT_SBSB_ID  AND RCPT_INPUT_GRGR_ID = ''INMCDWP0''\nJOIN CMC_SBAD_ADDR C ON SBSB_CK = SBSB_CK \nAND SBAD_TYPE = SBAD_TYPE_MAIL \nJOIN CMC_GRGR_GROUP GRGR ON GRGR_CK= GRGR_CK AND RCPT_INPUT_GRGR_ID = GRGR_ID \nJOIN CMC_MEME_MEMBER MEME ON SBSB_CK = SBSB_CK\nJOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK = MEME_CK\nAND (CSCS_ID LIKE ''CD%'' OR CSCS_ID LIKE ''PL%'')  \nAND EXISTS ( SELECT * FROM CMC_MEPE_PRCS_ELIG MEPE2\n            WHERE MEME_CK=MEME_CK\n            HAVING  MIN(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)=(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)\n) \nWHERE  (RCPT_CREATE_DTM >= TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM'')\nAND  RCPT_CREATE_DTM <TO_DATE(''\"'),variables('gv_ToDate')),'\"'' ,''mm/dd/yyyy'')+1) \nAND RCPT_RCPT_CD = ''F''\nAND RCPT_STS IN (''01'',''91'')\nAND RCPT_MCTR_RSN IN (''RNCO'',''RNCU'',''RMNM'',''RFMD'',''RCNR'',''RNCH'',''RBWP'',''RNPR'',''RPNP'',''DTH'',''ROTH'',''ROVP'',''TERM'',''RTOL'') \nAND MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM'')\nAND MEPE_EFF_DT in (select max(MEPE_EFF_DT) from\nCMC_MEPE_PRCS_ELIG mepe3\nwhere  MEME_CK=MEME_CK and MEPE_ELIG_IND=MEPE_ELIG_IND\nand MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM''))\n\nUNION\n\n\n\nSELECT SBSB_LAST_NAME, SBSB_FIRST_NAME, SBAD_ADDR1,SBAD_ADDR2, SBAD_CITY, SBAD_STATE, SBAD_ZIP,RCPT_AMT,\nRCPT_ID,RCPT_CREATE_DTM, RCPT_INPUT_SBSB_ID, RCPT_MCTR_RSN, RCPT_INPUT_GRGR_ID, CSCS_ID, MEPE_EFF_DT, MEPE_TERM_DT,RCPT_CHECK_NO, CSPI_ID\nFROM CMC_RCPT_RECEIPTS A \nJOIN CMC_SBSB_SUBSC B ON SBSB_ID = RCPT_INPUT_SBSB_ID AND RCPT_INPUT_GRGR_ID LIKE ''%EGR%''\nJOIN CMC_SBAD_ADDR C ON SBSB_CK = SBSB_CK AND SBAD_TYPE = SBAD_TYPE_MAIL \nJOIN CMC_GRGR_GROUP GRGR ON GRGR_CK= GRGR_CK AND RCPT_INPUT_GRGR_ID = GRGR_ID \nJOIN CMC_MEME_MEMBER MEME ON SBSB_CK = SBSB_CK\nLEFT JOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK = MEME_CK\nAND EXISTS ( SELECT * FROM CMC_MEPE_PRCS_ELIG MEPE2 \n            WHERE MEME_CK=MEME_CK\n            HAVING  MIN(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)=(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)\n) \nWHERE (RCPT_CREATE_DTM >= TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM'')\nAND  RCPT_CREATE_DTM <TO_DATE(''\"'),variables('gv_ToDate')),'\"'' ,''mm/dd/yyyy'')+1) \nAND RCPT_RCPT_CD = ''F''\nAND RCPT_STS IN (''01'',''91'')\nAND RCPT_MCTR_RSN IN (''RLIS'',''DTH'',''RCNR'',''RGRP'',''ROTH'',''ROVP'',''RTOL'', ''TERM'',''RLEP'') \n\n\nUNION \n\nSELECT DISTINCT SBSB_LAST_NAME, SBSB_FIRST_NAME,SBAD_ADDR1,SBAD_ADDR2, SBAD_CITY, SBAD_STATE, SBAD_ZIP,RCPT_AMT,\nRCPT_ID,RCPT_CREATE_DTM,SBSB_ID,RCPT_MCTR_RSN,GRGR_ID,CSCS_ID, MEPE_EFF_DT, MEPE_TERM_DT,RCPT_CHECK_NO, CSPI_ID\nFROM CMC_RCPT_RECEIPTS A\nJOIN CMC_BGBG_BIL_GROUP BGBG ON RCPT_INPUT_BGBG_ID = BGBG_ID\nJOIN CMC_SBSD_SPLT_DTL SBSD ON BGBG_CK = BGBG_CK\nJOIN CMC_SBSB_SUBSC B ON SBSB_CK = SBSB_CK\nJOIN CMC_SBAD_ADDR C on SBSB_CK = sbsb_ck AND SBAD_TYPE = sbad_type_mail\nJOIN CMC_MEME_MEMBER MEME ON SBSB_CK = SBSB_CK\nJOIN CMC_GRGR_GROUP GRGR ON GRGR_CK = GRGR_CK\nJOIN CMC_SBSP_SPLT_PREM SBSP ON SBSB_CK = SBSB_CK AND SBSP_EFF_DT = SBSP_EFF_DT\nLEFT JOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK = MEME_CK \nAND EXISTS (SELECT * FROM CMC_MEPE_PRCS_ELIG mepe2\n            where meme_ck=meme_ck\n            HAVING  MIN(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)=(CASE WHEN MEPE_ELIG_IND = ''Y'' THEN 1 ELSE 2 END)\n)\nWHERE  (RCPT_CREATE_DTM >= TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'' ,''mm/dd/yyyy HH:MI:SS AM'')\nAND  RCPT_CREATE_DTM <TO_DATE(''\"'),variables('gv_ToDate')),'\"'' ,''mm/dd/yyyy'')+1)\nAND RCPT_RCPT_CD = ''F''\nAND RCPT_STS IN (''01'')\nAND RCPT_MCTR_RSN IN (''DTH'',''RMSS'')\nAND GRGR_ID LIKE ''%MCR%''\nAND MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM'')\nAND MEPE_EFF_DT IN (SELECT MAX(MEPE_EFF_DT) FROM\nCMC_MEPE_PRCS_ELIG MEPE3\nWHERE  MEME_CK=MEME_CK AND MEPE_ELIG_IND=MEPE_ELIG_IND\nAND MEPE_EFF_DT < TO_TIMESTAMP(''\"'),variables('gv_FromDate')),'\"'',''mm/dd/yyyy HH:MI:SS AM''))\nORDER BY RCPT_ID\"')",
           "type" : "Expression"
         }
       }
@@ -104,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "gv_ValidationEmailSubject",
         "value" : {
-          "value" : "@if('HRA', concat(variables('gv_strOracleDS'),' : Urgent : SHBP HRA DMS Refund file failed validation - ',notConvertedectfunctionstringleft(utcNow(), 10)), concat(variables('gv_strOracleDS'),' : Urgent : DMS Refund file failed validation - ',notConvertedectfunctionstringleft(utcNow(), 10)))",
+          "value" : "@if(equals(variables('gv_BatchType'),'HRA'), concat(variables('gv_strOracleDS'),' : Urgent : SHBP HRA DMS Refund file failed validation - ',notConvertedectfunctionstringleft(utcNow(), 10)), concat(variables('gv_strOracleDS'),' : Urgent : DMS Refund file failed validation - ',notConvertedectfunctionstringleft(utcNow(), 10)))",
           "type" : "Expression"
         }
       }
@@ -151,6 +172,9 @@
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_MLRSelectQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_SelectQuery",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_ToDateString",
@@ -1398,13 +1422,13 @@
                 }
               },
               "datasetParameters" : {
-                "SQLSTAGERECEIPTREASON" : {
+                "OLEDBSource" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLSTAGERECEIPTREASON_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLSTAGERECEIPTREASON_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
                     "type" : "Expression"
                   },
                   "Container" : {
@@ -1412,7 +1436,7 @@
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : null,
+                    "value" : "OLE DB Source",
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -1421,13 +1445,13 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "OLEDBCommand" : {
+                "SQLSTAGERECEIPTREASON" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBCommand_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLSTAGERECEIPTREASON_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBCommand_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLSTAGERECEIPTREASON_SchemaName",
                     "type" : "Expression"
                   },
                   "Container" : {
@@ -1467,13 +1491,13 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "OLEDBSource" : {
+                "OLEDBCommand" : {
                   "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBCommand_TableName",
                     "type" : "Expression"
                   },
                   "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBCommand_SchemaName",
                     "type" : "Expression"
                   },
                   "Container" : {
@@ -1481,7 +1505,7 @@
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "OLE DB Source",
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -2401,6 +2425,23 @@
                 }
               },
               "datasetParameters" : {
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "OLEDBSource" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -2420,23 +2461,6 @@
                   },
                   "Directory" : {
                     "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "FlatFileDestination" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -2749,23 +2773,6 @@
                 }
               },
               "datasetParameters" : {
-                "FlatFileDestination" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLEDBSource" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -2785,6 +2792,23 @@
                   },
                   "Directory" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","

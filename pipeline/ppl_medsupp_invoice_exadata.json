@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "EBillSkippedMembersSQL",
         "value" : {
-          "value" : "@and(and(variables('GRGR_ID'), equals(variables('SBSB_ID'),variables('MemberId'))), variables('BillFromDate'))",
+          "value" : "@concat(concat('\"Select DISTINCT GRGR_ID ,\tSBSB_ID ,GrpLocCd,CSCS_ID,CSPI_ID,PLDS_DESC,PDPD_ID, BilledAmount, FORMAT(PayDueDate,''MMddyyyy'','\"  \nUNION\nSelect DISTINCT GRGR_ID ,\tMemberId ,GrpLocCd,CSCS_ID,CSPI_ID,PLDS_DESC,PDPD_ID, BilledAmount,FORMAT(PayDueDate,''MMddyyyy'') AS PayDueDate from GBD_EBILL_PREF EPREF\nJOIN MedSupp_Invoice  MDINV ON GRGR_ID = GRGR_ID  AND SBSB_ID = MemberId AND BillFromDate BETWEEN EBILL_EFF_DT AND EBILL_TERM_DT AND EXCLUDEIND IS NULL \nJOIN MedSupp_CDS_INSB_SB_DETAIL INSD ON BLIV_ID = InvoiceNbr AND SBSB_CK = SBSB_CK AND BLSB_DISP_CD <>''R''\nJOIN MedSupp_Invoice MDINV2 ON BatchId = BatchId AND GRPBillEntity = GRPBillEntity AND EXCLUDEIND IS NULL\nWHERE ActInd=''Y'' AND GRPBillEntity  LIKE(''FL%'')  AND  MemberId NOT LIKE (''FL%'')\nAND ( (FAML_TYPE= ''S'' AND SBSB_ID = MemberId ) OR (FAML_TYPE= ''D'' AND SBSB_ID != MemberId))\n AND  BatchId= \"'),variables('BatchID'))",
           "type" : "Expression"
         }
       }
@@ -84,6 +84,27 @@
         "variableName" : "ExtractFileName",
         "value" : {
           "value" : "@concat('GBD_WPT170MedSuppInvoice_GDBBSE01_',(formatDateTime(utcNow(), 'yyyy')),substring(concat('0',(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',(formatDateTime(utcNow(), 'MM')))), 2), 2),substring(concat('0',(dayOfMonth(utcNow()))), sub(length(concat('0',(dayOfMonth(utcNow())))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'HH')), sub(length(concat('0',formatDateTime(utcNow(), 'HH'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'mm')), sub(length(concat('0',formatDateTime(utcNow(), 'mm'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'ss')), sub(length(concat('0',formatDateTime(utcNow(), 'ss'))), 2), 2),'.XML')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FAML_rpt_Query",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FAML_rpt_Query",
+        "value" : {
+          "value" : "\"WITH CTE AS (\nSELECT INIV.*,SUBSC_HCID,SUB_GRGR_ID,DEP_HCID,DEP_GRGR_ID FROM BILLING_INV_FAML INIV \nINNER JOIN BILLING_MDSUPP_FAMILY SUB \n    ON FAMILYLINK_BGBG_ID = GRPBillEntity\nINNER JOIN BILLING_MDSUPP_FAMILY DEP \n    ON FAMILYLINK_BGBG_ID = GRPBillEntity\n)\nSELECT DISTINCT C.*,MEPE_EFF_DT AS SUB_EFF,MEPE_TERM_DT AS SUB_TERM,MEPE_EFF_DT AS DEP_EFF,MEPE_TERM_DT AS DEP_TERM FROM CTE C\nINNER JOIN CMC_SBSB_SUBSC SBSB ON SBSB_ID = SUBSC_HCID \nINNER JOIN CMC_MEME_MEMBER MEME ON SBSB_CK =SBSB_CK\nINNER JOIN CMC_MEPE_PRCS_ELIG MEPE ON MEME_CK =MEME_CK AND MEPE_ELIG_IND =''Y''\nINNER JOIN CMC_SBSB_SUBSC SBS ON SBSB_ID = DEP_HCID \nINNER JOIN CMC_MEME_MEMBER MEM ON SBSB_CK =SBSB_CK\nINNER JOIN CMC_MEPE_PRCS_ELIG MEP ON MEME_CK =MEME_CK AND MEPE_ELIG_IND =''Y''\"",
           "type" : "Expression"
         }
       }
@@ -123,7 +144,53 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "gv_GetCnt"
+        "variableName" : "gv_GetCnt",
+        "value" : {
+          "value" : "@concat('SELECT CAST(TOTALRECCOUNT AS INT)  AS COUNT FROM [BOSS.[INVOICE.[MEDSUPP_TCFILETRAILER WHERE BATCHID= ',variables('BatchID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "IndividualIndiSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "IndividualIndiSql",
+        "value" : {
+          "value" : "@concat(concat('\"WITH MedSuppInvoice AS ( \n    SELECT DISTINCT BLIV_ID\n    FROM CDS_INID_INVOICE i         \n    INNER JOIN CMC_SBSB_SUBSC s \n        ON SBSB_CK = SBSB_CK\n    INNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK = GRGR_CK\n    INNER JOIN  CMC_MEME_MEMBER m\n        ON SBSB_CK = SBSB_CK \n    INNER JOIN CMC_MEPE_PRCS_ELIG e\n        ON MEME_CK = MEME_CK\n    WHERE ( \n        GRGR_ID LIKE ''%SUP%''\n    )\n        AND BLDF_MCTR_STMT IN (''DRBL'', ''EFT'')\n        AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n        AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n) \nSELECT \n    BLIV_ID\n    ,BLDI_SEQ_NO\n    ,BLDI_PRINT_SEQ\n    ,BLDI_DISP_CD\n    ,BLDI_PREM_FEE_IND\n    ,BLDI_DESC\n    ,PMFA_ID\n    ,PMFA_DESC\n    ,BLDI_FEE_DISC_AMT\n    ,CSPI_ID\n    /*,PLDS_DESC */\n     ,CASE WHEN FACETS_PLAN_ID IS NULL THEN PLDS_DESC ELSE PLAN_NAME_PRINT END AS PLDS_DESC\n    ,PDPD_ID\n    ,PDBL_ID\n    ,BLDI_LVS_SB\n    ,BLDI_LVS_DEP\n    ,BLDI_VOL\n    ,BLDI_PREM_SB\n    ,BLDI_PREM_DEP\n    ,MCRE_CRCR_ID\n    ,MCRE_NAME\n    ,USUS_ID\n    ,USUS_DESC\n    ,BLDI_UPDATE_DTM\n    ,AFCP_PER_NO\n    ,GRGR_CK\n    ,SGSG_CK\n    ,BLDI_ASO_AMT\n    ,BLDI_SSL_AMT\n    ,BLDI_EXTRACONT_AMT\n    ,GRGR_ID\n    ,SGSG_ID\n    ,BLDI_HSA_AMT\n    ,INDI_LOCK_TOKEN\nFROM CDS_INDI_DISCRETN d \nINNER JOIN MedSuppInvoice msi \n    ON d. BLIV_ID = BLIV_ID\n    LEFT JOIN MEMB_IDCP_NAME_XWALK XWALK\nON FACETS_PLAN_ID = CSPI_ID\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "IndividualInsbSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "IndividualInsbSql",
+        "value" : {
+          "value" : "@concat(concat('\"WITH MedSuppInvoice AS ( \n    SELECT DISTINCT BLIV_ID\n    FROM CDS_INID_INVOICE i \n    INNER JOIN CMC_SBSB_SUBSC s \n        ON SBSB_CK = SBSB_CK\n    INNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK = GRGR_CK\n    INNER JOIN  CMC_MEME_MEMBER m\n        ON SBSB_CK = SBSB_CK \n    INNER JOIN CMC_MEPE_PRCS_ELIG e\n        ON MEME_CK = MEME_CK\n    WHERE ( \n        GRGR_ID LIKE ''%SUP%''\n    )\n        AND BLDF_MCTR_STMT IN (''DRBL'', ''EFT'', ''CPN'')\n        AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n        AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n) \nSELECT \n    BLIV_ID\n    ,CSPI_ID\n    ,PDPD_ID\n    ,PDBL_ID\n    ,BLSB_COV_DUE_DT\n    ,BLSB_COV_FROM_DT\n    ,BLSB_PREM_TYPE\n    ,SBSB_CK\n    ,BLSB_CREATE_DTM\n    ,BLSB_DISP_CD\n    ,BLSB_COV_THRU_DT\n    ,BLEI_BILL_LEVEL\n    ,BLCN_ID\n    ,BLSB_LVS_SB\n    ,BLSB_LVS_DEP\n    ,BLSB_VOL\n    ,BLSB_PREM_SB\n    ,BLSB_PREM_DEP\n    ,BLSB_LOAD_AMT_SB\n    ,BLSB_LOAD_AMT_DEP\n    ,BLSB_CONV_PREM_SB\n    ,BLSB_CONV_PREM_DEP\n    ,BLSB_LIAB_LMT_SB\n    ,BLSB_LIAB_LMT_DEP\n    ,BLSB_COL_STRUCT\n    ,BLSB_COUNT_1\n    ,BLSB_COUNT_2\n    ,BLSB_COUNT_3\n    ,BLSB_COUNT_4\n    ,BLSB_COUNT_5\n    ,BLSB_COUNT_6\n    /*,PDDS_DESC AS PLDS_DESC */\n     ,CASE WHEN FACETS_PLAN_ID IS NULL THEN PDDS_DESC ELSE PLAN_NAME_PRINT END AS PLDS_DESC\n    ,GRGR_CK\n    ,GRGR_ID\n    ,GRGR_NAME\n    ,SGSG_CK\n    ,SGSG_ID\n    ,SGSG_NAME\n    ,CSCS_ID\n    ,CSCS_DESC\n    ,MCRE_CRCR_ID\n    ,MCRE_NAME\n    ,BLSB_FI\n    ,BLSB_RT_ST\n    ,BLSB_RT_CNTY\n    ,BLSB_RT_AREA\n    ,BLSB_RT_SIC\n    ,MEME_HICN\n    ,PDDS_MCTR_BCAT\n    ,INSB_LOCK_TOKEN,BLBL_DUE_DT\n    ,BLBL_END_DT\n    ,BLBL_DUE_DT AS DUE_DT \nFROM CDS_INSB_SB_DETAIL d\nINNER JOIN CMC_PDDS_PROD_DESC p \n    ON PDPD_ID = PDPD_ID \nINNER JOIN MedSuppInvoice msi \n    ON BLIV_ID = BLIV_ID INNER JOIN CDS_INID_INVOICE I\n    ON BLIV_ID = d. BLIV_ID  \nLEFT JOIN MEMB_IDCP_NAME_XWALK XWALK\nON FACETS_PLAN_ID = CSPI_ID\"')",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "IndividualInvoiceSql",
@@ -142,7 +209,154 @@
       "typeProperties" : {
         "variableName" : "IndividualInvoiceSql",
         "value" : {
-          "value" : "@and(equals(equals(equals(equals(equals(equals(variables('SBSB_CK\nINNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK'),variables('GRGR_CK\nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK')),variables('SBSB_CK \nLEFT OUTER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK')),variables('BGBG_CK     \nINNER JOIN  CMC_MEME_MEMBER m\n    ON SBSB_CK')),variables('SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e\n    ON MEME_CK')),variables('MEME_CK\nINNER  JOIN CMC_BLEI_ENTY_INFO BLEI \n on SBSB_CK')),variables('BLEI_BILL_LEVEL_CK')), equals(variables('BLEI_BILL_LEVEL'),'I'))",
+          "value" : "@concat(concat('\"SELECT DISTINCT\n    SBSB_CK,\n    MEME_CK,\n    BLIV_ID,\n    GRGR_ID,   \n    BGBG_ID AS CMSCntyCd,\n    SUBSTR(GRGR_ID, 0, 2) AS GrpLocCd, \n    INID_BLEI_ID AS GRPBillEntity, \n    TRUNC(BLIV_CREATE_DTM) AS BIllDate, \n    BLBL_DUE_DT AS PayDueDate, \n    SBSB_ID AS MemberId, \n    SBSB_FIRST_NAME AS FirstName,\n    SBSB_MID_INIT AS MiddleName,\n    SBSB_LAST_NAME AS LastName,\n   Replace(INID_BLEI_ADDR1 ,CHR(10),'' '') AS AddressLine1,  Replace(INID_BLEI_ADDR2,CHR(10),'' '')  AS AddressLine2, Replace(INID_BLEI_ADDR3,CHR(10),'' '')  AS AddressLine3,  \n    INID_BLEI_CITY AS City, \n    INID_BLEI_STATE AS State,\n    SUBSTR(INID_BLEI_ZIP, 0, 5) AS ZIP5,  \n    CASE WHEN LENGTH(INID_BLEI_ZIP) > 6\n        THEN  SUBSTR(INID_BLEI_ZIP, -4, 4)\n        ELSE ''''\n    END AS ZIP4, \n    BLBL_BILLED_AMT AS CurrCharges, \n    BLEI_NET_DUE AS BilledAmount, \n    BLDF_MCTR_STMT, \n    CSCS_ID, \n    CSPI_ID, \n    MEME_RECORD_NO, \n    /*CASE WHEN SBSB_ID IS NOT NULL\n        THEN ''BMIND''\n        ELSE NULL \n    END */NULL AS FileInd, \n   /*CASE WHEN SBSB_ID IS NOT NULL \n        THEN TO_CHAR(BLBL_CREATE_DTM, ''Month'') \n        ELSE NULL\n    END*/NULL AS BillMonth, \n    /*CASE WHEN SBSB_ID IS NOT NULL \n        THEN TO_CHAR(BLBL_BILLED_AMT * 2)\n        ELSE NULL\n    END*/NULL AS BiMonthPayment,\n    BLBL_PRORATE_FCTR as BLBL_PRORATE_FCTR\nFROM CDS_INID_INVOICE i     \nINNER JOIN CMC_SBSB_SUBSC s \n    ON SBSB_CK = SBSB_CK\nINNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nLEFT OUTER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK     \nINNER JOIN  CMC_MEME_MEMBER m\n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e\n    ON MEME_CK = MEME_CK\nINNER  JOIN CMC_BLEI_ENTY_INFO BLEI \n on SBSB_CK = BLEI_BILL_LEVEL_CK \nand BLEI_BILL_LEVEL = ''I''    \nJOIN CMC_BLBL_BILL_SUMM BLBL \non BLEI_CK = BLEI_CK \nAND BLIV_ID = BLBL_BLIV_ID_LAST\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n)\n    AND BLDF_MCTR_STMT IN (''DRBL'', ''EFT'', ''CPN'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "IndividualPaymentActivitySql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "IndividualPaymentActivitySql",
+        "value" : {
+          "value" : "@concat(concat(concat(concat('\"WITH MedSuppInvoice AS ( \n    SELECT DISTINCT BLIV_ID,SBSB_ID,BLEI_CK,BLEI_NET_DUE  \n    FROM CDS_INID_INVOICE i \n    INNER JOIN CMC_SBSB_SUBSC s \n        ON SBSB_CK = SBSB_CK \n    INNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK = GRGR_CK\n    INNER JOIN  CMC_MEME_MEMBER m\n        ON SBSB_CK = SBSB_CK \n    INNER JOIN CMC_MEPE_PRCS_ELIG e\n        ON MEME_CK = MEME_CK\n    WHERE ( \n    GRGR_ID LIKE ''%SUP%''\n    )\n        AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n        AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n)\n,LEAD_BLIV AS (SELECT MAX(BLIV_ID) AS BLIV_ID FROM CDS_INID_INVOICE I JOIN MedSuppInvoice M ON SBSB_ID =SBSB_ID AND TRUNC(BLIV_CREATE_DTM)<=TO_DATE(''\"'),variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'') \nWHERE GRGR_ID LIKE ''%SUP%'' GROUP BY SBSB_ID,BLBL_DUE_DT)\n,CTE AS (\n\nSELECT BLIV_ID,SBSB_ID,LEAD(BLEI_NET_DUE,1,0) OVER (PARTITION BY SBSB_ID ORDER BY BLIV_ID DESC) AS PREV_NET_DUE,\nLEAD(BLEI_NET_DUE,1,0) OVER (PARTITION BY SBSB_ID ORDER BY BLIV_ID DESC) - INID_OUTSTAND_BAL AS AMT_PAID,\nCASE WHEN BLEI_NET_DUE = BLEI_NET_DUE THEN 00 \n     WHEN BLEI_NET_DUE < BLEI_NET_DUE THEN BLEI_NET_DUE - BLEI_NET_DUE \n     ELSE 00 END AS MSD_PAYMENT\n FROM MedSuppInvoice MS \nINNER JOIN CMC_BLEI_ENTY_INFO BLEI ON BLEI_CK = BLEI_CK\nRIGHT OUTER JOIN CDS_INID_INVOICE INID ON SBSB_ID = SBSB_ID AND BLIV_ID = BLIV_ID \nWHERE BLIV_ID IN (SELECT BLIV_ID FROM LEAD_BLIV) \nORDER BY SBSB_ID,BLIV_ID DESC)\nSELECT * FROM CTE WHERE BLIV_ID IS NOT NULL\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SummaryIndiSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SummaryIndiSql",
+        "value" : {
+          "value" : "@concat(concat('\"SELECT DISTINCT\n    BLIV_ID\n    ,BLDI_SEQ_NO\n    ,BLDI_PRINT_SEQ\n    ,BLDI_DISP_CD\n    ,BLDI_PREM_FEE_IND\n    ,BLDI_DESC\n    ,PMFA_ID\n    ,PMFA_DESC\n    ,BLDI_FEE_DISC_AMT\n    ,CSPI_ID\n  /*  ,PLDS_DESC */\n   ,CASE WHEN FACETS_PLAN_ID IS NULL THEN PLDS_DESC ELSE PLAN_NAME_PRINT END AS PLDS_DESC\n    ,PDPD_ID\n    ,PDBL_ID\n    ,BLDI_LVS_SB\n    ,BLDI_LVS_DEP\n    ,BLDI_VOL\n    ,BLDI_PREM_SB\n    ,BLDI_PREM_DEP\n    ,MCRE_CRCR_ID\n    ,MCRE_NAME\n    ,USUS_ID\n    ,USUS_DESC\n    ,BLDI_UPDATE_DTM\n    ,AFCP_PER_NO\n    ,GRGR_CK\n    ,SGSG_CK\n    ,BLDI_ASO_AMT\n    ,BLDI_SSL_AMT\n    ,BLDI_EXTRACONT_AMT\n    ,GRGR_ID\n    ,SGSG_ID\n    ,BLDI_HSA_AMT\n    ,INDI_LOCK_TOKEN\nFROM CMC_GRGR_GROUP g \nINNER JOIN CMC_SBSB_SUBSC s\n    ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_MEME_MEMBER m \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e \n    ON MEME_CK = MEME_CK \nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK \nINNER JOIN CDS_INID_INVOICE i \n    ON BGBG_ID = BGBG_ID\nINNER JOIN CDS_INDI_DISCRETN d\n    ON BLIV_ID = BLIV_ID\nLEFT JOIN MEMB_IDCP_NAME_XWALK XWALK\nON FACETS_PLAN_ID = CSPI_ID\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n) \n    AND BGBG_MCTR_TYPE IN (''FAML'', ''EMPL'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SummaryInsbSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SummaryInsbSql",
+        "value" : {
+          "value" : "@concat(concat('\"SELECT DISTINCT\n    BLIV_ID\n    ,CSPI_ID\n    ,PDPD_ID\n    ,PDBL_ID\n    ,BLSB_COV_DUE_DT\n    ,BLSB_COV_FROM_DT,\n BLBL_DUE_DT AS DUE_DT,\n BLBL_DUE_DT,BLBL_END_DT   ,BLSB_PREM_TYPE\n    ,SBSB_CK\n    ,BLSB_CREATE_DTM\n    ,BLSB_DISP_CD\n    ,BLSB_COV_THRU_DT\n    ,BLEI_BILL_LEVEL\n    ,BLCN_ID\n    ,BLSB_LVS_SB\n    ,BLSB_LVS_DEP\n    ,BLSB_VOL\n    ,BLSB_PREM_SB\n    ,BLSB_PREM_DEP\n    ,BLSB_LOAD_AMT_SB\n    ,BLSB_LOAD_AMT_DEP\n    ,BLSB_CONV_PREM_SB\n    ,BLSB_CONV_PREM_DEP\n    ,BLSB_LIAB_LMT_SB\n    ,BLSB_LIAB_LMT_DEP\n    ,BLSB_COL_STRUCT\n    ,BLSB_COUNT_1\n    ,BLSB_COUNT_2\n    ,BLSB_COUNT_3\n    ,BLSB_COUNT_4\n    ,BLSB_COUNT_5\n    ,BLSB_COUNT_6\n   /* ,PDDS_DESC AS PLDS_DESC */\n    ,CASE WHEN FACETS_PLAN_ID IS NULL THEN PDDS_DESC ELSE PLAN_NAME_PRINT END AS PLDS_DESC\n    ,GRGR_CK\n    ,GRGR_ID\n    ,GRGR_NAME\n    ,SGSG_CK\n    ,SGSG_ID\n    ,SGSG_NAME\n    ,CSCS_ID\n    ,CSCS_DESC\n    ,MCRE_CRCR_ID\n    ,MCRE_NAME\n    ,BLSB_FI\n    ,BLSB_RT_ST\n    ,BLSB_RT_CNTY\n    ,BLSB_RT_AREA\n    ,BLSB_RT_SIC\n    ,MEME_HICN\n    ,PDDS_MCTR_BCAT\n    ,INSB_LOCK_TOKEN\nFROM CMC_GRGR_GROUP g \nINNER JOIN CMC_SBSB_SUBSC s\n    ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_MEME_MEMBER m \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e \n    ON MEME_CK = MEME_CK \nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK  \nINNER JOIN CDS_INID_INVOICE i \n    ON BGBG_ID = BGBG_ID\nINNER JOIN CDS_INSB_SB_DETAIL d\n    ON BLIV_ID = BLIV_ID\nINNER JOIN CMC_PDDS_PROD_DESC p \n    ON PDPD_ID = PDPD_ID\nLEFT JOIN MEMB_IDCP_NAME_XWALK XWALK\nON FACETS_PLAN_ID = CSPI_ID\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n \n) \n    AND BGBG_MCTR_TYPE IN (''FAML'', ''EMPL'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SummaryInvoiceMemberSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SummaryInvoiceMemberSql",
+        "value" : {
+          "value" : "@concat(concat(concat(concat('\"SELECT DISTINCT\n        BLIV_ID,\n        SBSB_ID AS MemberId,\n        SBSB_FIRST_NAME AS FirstName,\n        SBSB_MID_INIT AS MiddleName,\n        SBSB_LAST_NAME AS LastName,\n        BLBL_DUE_DT, \n        BGBG_MCTR_TYPE, \n        BLDF_MCTR_STMT,\n        CSCS_ID, \n        CSPI_ID, \n        CASE \n            WHEN SUBSC_HCID IS NOT NULL THEN ''S''\n            WHEN DEP_HCID IS NOT NULL THEN ''D''\n            ELSE NULL \n        END AS RecType, \n        SBSB_CK\nFROM CMC_GRGR_GROUP g  \nINNER JOIN CMC_SBSB_SUBSC s\n    ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_MEME_MEMBER m \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e \n    ON MEME_CK = MEME_CK \nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_BLEI_ENTY_INFO blei\n    ON BLEI_BILL_LEVEL_CK = SBSB_CK\nINNER JOIN CMC_BLDF_BL_DEFINE BLDF\n    ON BLEI_CK = BLEI_CK    \nINNER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK  \nINNER JOIN CDS_INID_INVOICE i \n    ON BGBG_ID = BGBG_ID\nLEFT OUTER JOIN BILLING_MDSUPP_FAMILY  sub \n    ON SBSB_ID = SUBSC_HCID\nLEFT OUTER JOIN BILLING_MDSUPP_FAMILY  dep \n    ON SBSB_ID = DEP_HCID\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n) \n    AND BGBG_MCTR_TYPE IN (''FAML'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n AND MEPE_ELIG_IND = ''Y''   AND BLBL_DUE_DT BETWEEN BLDF_EFF_DT AND BLDF_TERM_DT\n UNION\n SELECT DISTINCT\n        BLIV_ID,\n        SBSB_ID AS MemberId,\n        SBSB_FIRST_NAME AS FirstName,\n        SBSB_MID_INIT AS MiddleName,\n        SBSB_LAST_NAME AS LastName,\n        BLBL_DUE_DT, \n        BGBG_MCTR_TYPE, \n        BLDF_MCTR_STMT,\n        CSCS_ID, \n        CSPI_ID, \n        NULL AS RecType, \n        SBSB_CK\nFROM CMC_GRGR_GROUP g  \nINNER JOIN CMC_SBSB_SUBSC s\n    ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_MEME_MEMBER m \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_MEPE_PRCS_ELIG e \n    ON MEME_CK = MEME_CK \nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_BLEI_ENTY_INFO blei\n    ON BLEI_BILL_LEVEL_CK = SBSB_CK\nINNER JOIN CMC_BLDF_BL_DEFINE BLDF\n    ON BLEI_CK = BLEI_CK    \nINNER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK  \nINNER JOIN CDS_INID_INVOICE i \n    ON BGBG_ID = BGBG_ID\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n) \n    AND BGBG_MCTR_TYPE IN (''EMPL'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"'),variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n AND ((MEPE_ELIG_IND = ''Y''   AND BLBL_DUE_DT BETWEEN BLDF_EFF_DT AND BLDF_TERM_DT)\n OR (SBSB_CK IN (SELECT DISTINCT SBSB_CK FROM CDS_INSB_SB_DETAIL WHERE BLIV_ID = BLIV_ID  AND BLSB_PREM_SB<>0)))\n  \"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SummaryInvoiceSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SummaryInvoiceSql",
+        "value" : {
+          "value" : "@concat(concat('\"SELECT DISTINCT \n    BGBG_ID,\n    BLIV_ID,\n    GRGR_ID,\n    INID_BLEI_STATE  AS GrpLocCd,\n    INID_BLEI_ID AS GRPBillEntity, \n   TRUNC( BLIV_CREATE_DTM) AS BIllDate, \n    BLBL_DUE_DT AS PayDueDate, \n    BGBG_NAME AS GroupName, Replace(BGBG_ADDR1,CHR(10),'' '') AS AddressLine1,  Replace(BGBG_ADDR2,CHR(10),'' '') AS AddressLine2,  Replace(BGBG_ADDR3,CHR(10),'' '') AS AddressLine3, \n    BGBG_CITY AS City, \n    BGBG_STATE AS State, \n    SUBSTR(BGBG_ZIP, 0, 5) AS ZIP5,  \n    CASE WHEN LENGTH(BGBG_ZIP) > 6\n        THEN  SUBSTR(BGBG_ZIP, -4, 4)\n        ELSE ''''\n    END AS ZIP4, \n    BLBL_BILLED_AMT AS CurrCharges, \n    BLEI_NET_DUE AS BilledAmount,\n    BLDF_MCTR_STMT,  \n    /*CASE WHEN SBSB_ID IS NOT NULL \n        THEN TO_CHAR(BLBL_CREATE_DTM, ''Month'') \n        ELSE NULL\n    END*/NULL AS BillMonth, \n    /*CASE WHEN SBSB_ID IS NOT NULL \n        THEN TO_CHAR(BLBL_BILLED_AMT * 2)\n        ELSE NULL\n    END*/NULL AS BiMonthPayment, \n    BLBL_END_DT\nFROM CMC_GRGR_GROUP g  \nINNER JOIN CMC_SBSB_SUBSC s\n    ON GRGR_CK = GRGR_CK\nINNER JOIN CMC_MEME_MEMBER m \n    ON SBSB_CK = SBSB_CK\nINNER JOIN CMC_MEPE_PRCS_ELIG e \n    ON MEME_CK = MEME_CK \nINNER JOIN CMC_SBSD_SPLT_DTL sd \n    ON SBSB_CK = SBSB_CK \nINNER JOIN CMC_BGBG_BIL_GROUP bg\n    ON BGBG_CK = BGBG_CK  \nINNER JOIN CDS_INID_INVOICE i \n    ON BGBG_ID = BGBG_ID\nWHERE ( \n    GRGR_ID LIKE ''%SUP%''\n) \n    AND BGBG_MCTR_TYPE IN (''FAML'', ''EMPL'')\n    AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n    AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SummaryPaymentActivitySql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SummaryPaymentActivitySql",
+        "value" : {
+          "value" : "@concat(concat(concat(concat('\"WITH MedSuppInvoice AS ( \n    SELECT DISTINCT BLIV_ID,BGBG_ID ,BLEI_CK,BLEI_NET_DUE\n    FROM CDS_INID_INVOICE i \n    INNER JOIN CMC_BGBG_BIL_GROUP bg\n        ON BGBG_ID = BGBG_ID \n    WHERE BGBG_MCTR_TYPE IN (''FAML'', ''EMPL'') \n        AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n)\n,LEAD_BLIV AS (SELECT MAX(BLIV_ID) AS BLIV_ID FROM CDS_INID_INVOICE I JOIN MedSuppInvoice M ON BGBG_ID = BGBG_ID AND TRUNC(BLIV_CREATE_DTM)<=TO_DATE(''\"'),variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'') \nGROUP BY BGBG_ID,BLBL_DUE_DT)\n,CTE AS (\n\nSELECT BLIV_ID,BGBG_ID,LEAD(BLEI_NET_DUE,1,0) OVER (PARTITION BY BGBG_ID ORDER BY BLIV_ID DESC) AS PREV_NET_DUE,\nLEAD(BLEI_NET_DUE,1,0) OVER (PARTITION BY BGBG_ID ORDER BY BLIV_ID DESC) - INID_OUTSTAND_BAL AS AMT_PAID,\nCASE WHEN BLEI_NET_DUE = BLEI_NET_DUE THEN 00 \n     WHEN BLEI_NET_DUE < BLEI_NET_DUE THEN BLEI_NET_DUE - BLEI_NET_DUE \n     ELSE 00 END AS MSD_PAYMENT\nFROM MedSuppInvoice MS \nINNER JOIN CMC_BLEI_ENTY_INFO BLEI ON BLEI_CK = BLEI_CK\nRIGHT OUTER JOIN CDS_INID_INVOICE INID ON BGBG_ID = BGBG_ID AND BLIV_ID = BLIV_ID  \nWHERE BLIV_ID IN (SELECT BLIV_ID FROM LEAD_BLIV) \nORDER BY BGBG_ID,BLIV_ID DESC)\nSELECT * FROM CTE WHERE BLIV_ID IS NOT NULL\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "WisconsinMandateSql",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "WisconsinMandateSql",
+        "value" : {
+          "value" : "@concat(concat('\"WITH CurrentInvoice AS ( \n    SELECT DISTINCT\n        BLIV_ID, \n        GRGR_CK, \n        SBSB_CK\n    FROM CDS_INID_INVOICE i \n    INNER JOIN CMC_SBSB_SUBSC s \n        ON SBSB_CK = SBSB_CK\n    INNER JOIN CMC_GRGR_GROUP G\n        ON GRGR_CK = GRGR_CK\n    INNER JOIN  CMC_MEME_MEMBER m\n        ON SBSB_CK = SBSB_CK \n    INNER JOIN CMC_MEPE_PRCS_ELIG e\n        ON MEME_CK = MEME_CK\n    WHERE ( \n        GRGR_ID LIKE ''%SUP%''\n    ) \n        AND SUBSTR(GRGR_ID, 1, 2) = ''WI''\n        AND TRUNC(BLIV_CREATE_DTM) = TO_DATE(''\"',variables('BLIVCreateDtm')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n        AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n),\nUnpaidInvoice AS (\n    SELECT \n        GRGR_CK,\n        SBSB_CK, \n        BLIV_ID, \n        BLSB_COV_FROM_DT\n    FROM ( \n        SELECT\n            ROW_NUMBER() OVER ( \n                PARTITION BY\n                    GRGR_CK, \n                    SBSB_CK,\n                    BLIV_ID, \n                    BLSB_COV_FROM_DT\n                ORDER BY  \n                    BLBL_PAID_STS DESC\n            ) AS RowNumber,  \n            GRGR_CK, \n            SBSB_CK,\n            BLIV_ID, \n            BLSB_COV_FROM_DT, \n            BLBL_PAID_STS\n        FROM CMC_GRGR_GROUP g  \n        INNER JOIN CMC_SBSB_SUBSC s\n            ON GRGR_CK = GRGR_CK\n        INNER JOIN CMC_MEME_MEMBER m \n            ON SBSB_CK = SBSB_CK\n        INNER JOIN CMC_MEPE_PRCS_ELIG e \n            ON MEME_CK = MEME_CK   \n        INNER JOIN CDS_INID_INVOICE i \n            ON GRGR_CK = GRGR_CK \n                AND SBSB_CK = SBSB_CK \n        INNER JOIN CDS_INSB_SB_DETAIL d\n            ON BLIV_ID = BLIV_ID\n        INNER JOIN CMC_BLBL_BILL_SUMM bs\n            ON BLEI_CK = BLEI_CK\n        WHERE SUBSTR(GRGR_ID, 1, 2) = ''WI''\n            AND  ( \n                GRGR_ID LIKE ''%SUP%''\n            ) \n            AND BLBL_DUE_DT BETWEEN MEPE_EFF_DT AND MEPE_TERM_DT\n    ) x \n    WHERE RowNumber = 1 \n        AND BLBL_PAID_STS IN (''0'', ''1'') \n),\nIndexedUnpaidInvoice AS ( \n    SELECT \n        ROW_NUMBER() OVER ( \n            PARTITION BY SBSB_CK, GRGR_CK\n            ORDER BY BLIV_ID ASC\n        ) AS RowNumber, \n        SBSB_CK, \n        GRGR_CK,\n        BLIV_ID, \n        BLSB_COV_FROM_DT\n    FROM UnpaidInvoice\n) \nSELECT \n    BLIV_ID, \n    BLIV_ID AS Delinquent_BLIV_ID, \n    BLSB_COV_FROM_DT \nFROM IndexedUnpaidInvoice iui \nINNER JOIN CurrentInvoice ci\n    ON SBSB_CK = SBSB_CK\n        AND GRGR_CK = GRGR_CK  \nWHERE RowNumber = 1\"')",
           "type" : "Expression"
         }
       }
@@ -179,7 +393,7 @@
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IndividualInvoiceSql",
+        "activity" : "WisconsinMandateSql",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "CNT_Extn",
@@ -194,10 +408,40 @@
         "activity" : "ExtractFileName",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
+        "activity" : "FAML_rpt_Query",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
         "activity" : "FAM_rpt_NM",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_GetCnt",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IndividualIndiSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IndividualInsbSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IndividualInvoiceSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "IndividualPaymentActivitySql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SummaryIndiSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SummaryInsbSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SummaryInvoiceMemberSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SummaryInvoiceSql",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SummaryPaymentActivitySql",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "LKP_Fetch_Param",
@@ -2525,6 +2769,23 @@
                 }
               },
               "datasetParameters" : {
+                "DSTFFEBILLEXTRACT" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "SRCOLEDBEBILLEXTRACT" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBEBILLEXTRACT_TableName",
@@ -2544,23 +2805,6 @@
                   },
                   "Directory" : {
                     "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "DSTFFEBILLEXTRACT" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFEBILLEXTRACT_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -4794,6 +5038,29 @@
                         }
                       },
                       "datasetParameters" : {
+                        "SRCOLEDBTCFileDataBOSS" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "SRC_OLEDB_TC File Data (BOSS)",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
                         "DSTFFTCFileXML" : {
                           "TableName" : null,
                           "Schema" : null,
@@ -4807,23 +5074,6 @@
                           },
                           "Directory" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFTCFileXML_FilePath",
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
-                        "FlatFileDestination" : {
-                          "TableName" : null,
-                          "Schema" : null,
-                          "Container" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","
@@ -4851,25 +5101,19 @@
                           },
                           "ColumnDelimiter" : ","
                         },
-                        "SRCOLEDBTCFileDataBOSS" : {
-                          "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_TableName",
-                            "type" : "Expression"
-                          },
-                          "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_SchemaName",
-                            "type" : "Expression"
-                          },
+                        "FlatFileDestination" : {
+                          "TableName" : null,
+                          "Schema" : null,
                           "Container" : {
-                            "value" : "",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
                             "type" : "Expression"
                           },
                           "FileName" : {
-                            "value" : "SRC_OLEDB_TC File Data (BOSS)",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
                             "type" : "Expression"
                           },
                           "Directory" : {
-                            "value" : null,
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","

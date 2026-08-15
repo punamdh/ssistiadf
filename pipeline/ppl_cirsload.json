@@ -46,6 +46,27 @@
         }
       }
     }, {
+      "name" : "ConfOBQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ConfOBQuery",
+        "value" : {
+          "value" : "@concat('select * from CIRS_CONFIDENTIAL_COMM_DATA WHERE RUNID = ',variables('RUNID'),' AND TRIM(ERROR_CODE) IS NULL AND FileType IN (''CONF'', ''CONF_TERM'')')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "RestOBFileName",
       "type" : "SetVariable",
       "policy" : {
@@ -63,6 +84,27 @@
         "variableName" : "RestOBFileName",
         "value" : {
           "value" : "@replace(variables('RestFileName'),'CIRS_Restrict_','CIRS_Restrict_OB_')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "RestOBQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RestOBQuery",
+        "value" : {
+          "value" : "@concat('select * from CIRS_RESTRICT_DATA WHERE RUNID = ',variables('RUNID'),' AND TRIM(ERROR_CODE) IS NULL AND FileType IN (''REST'', ''REST_TERM'')')",
           "type" : "Expression"
         }
       }
@@ -99,13 +141,19 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "RestOBFileName",
+        "activity" : "RestOBQuery",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "AuthOBFileName",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "ConfOBFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ConfOBQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "RestOBFileName",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "LKP_Fetch_Param",
@@ -936,23 +984,6 @@
                 }
               },
               "datasetParameters" : {
-                "FlatFileSource" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OracleDestination" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -966,6 +997,23 @@
                   },
                   "Directory" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -1483,23 +1531,6 @@
                 }
               },
               "datasetParameters" : {
-                "OracleDestination" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "FlatFileSource" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -1513,6 +1544,23 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OracleDestination" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -1636,23 +1684,6 @@
                 }
               },
               "datasetParameters" : {
-                "FlatFileSource" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLEDBDestination" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_TableName",
@@ -1672,6 +1703,23 @@
                   },
                   "Directory" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -2078,6 +2126,23 @@
             }
           },
           "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -2097,23 +2162,6 @@
               },
               "Directory" : {
                 "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -2237,23 +2285,6 @@
             }
           },
           "datasetParameters" : {
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -2273,6 +2304,23 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","

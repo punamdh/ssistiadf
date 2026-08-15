@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "AttachmentDetail",
         "value" : {
-          "value" : "\"+(DT_WSTR,40)BatchId +\"",
+          "value" : "@concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat(concat('Please see attached delinquency downgrade fallout file for the downgrade batch generated on  ',utcNow(,'\"\n\n\"'),'BatchId =  '),variables('BatchId')),'\"\n\"'),'BatchDate = '),variables('gv_BtchDate')),'\"\n\"'),'DowngradeFalloutMemberCount =  '),variables('CntMembers')),'\"\n\"'),'FilePath = '),variables('gv_ExtractFilePath')),'\"\n\"'),'FileName =  '),variables('gv_ExtractFileName')),'\"\n\"'),'ExecutionTime = '),pipeline().TriggerTime),'\"\n\"'),'Machine = '),variables('machineName')),'\"\n\"'),'\"\n\n=======================================\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\n=======================================\n\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. \"')",
           "type" : "Expression"
         }
       }
@@ -67,6 +67,27 @@
         }
       }
     }, {
+      "name" : "gv_downgrade",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_downgrade",
+        "value" : {
+          "value" : "@concat('0',formatDateTime(variables('gv_BtchDate'), 'MM')), sub(length(concat('0',formatDateTime(variables('gv_BtchDate'), 'MM'))), 2), 2),substring(concat('0',formatDateTime(variables('gv_BtchDate'), 'dd')), sub(length(concat('0',formatDateTime(variables('gv_BtchDate'), 'dd'))), 2), 2),''')')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "gv_ExtractFileName",
       "type" : "SetVariable",
       "policy" : {
@@ -104,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "gv_FalloutMember",
         "value" : {
-          "value" : "@and(and(equals(equals(variables('meme_ck \njoin CMC_SBSB_SUBSC c on sbsb_ck'),variables('sbsb_ck \njoin Downgradestage on sbsb_id')),variables('sbsb_id')), equals(variables('MEPE_ELIG_IND'),'Y')), ((and(TO_DATE('\"+ (DT_WSTR, 50) gv_BtchDate +\"','MM/dd/yyyy') >= variables('mepe_eff_dt'), TO_DATE('\"+ (DT_WSTR, 50) gv_BtchDate +\"','MM/dd/yyyy') <= variables('mepe_term_dt')))))",
+          "value" : "@concat(concat(concat(concat(concat(concat(concat(concat('\"With cte1 as (\nselect sbsb_id, cspi_id, cscs_id ,grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on meme_ck =meme_ck \njoin CMC_SBSB_SUBSC c on sbsb_ck =sbsb_ck \njoin Downgradestage on sbsb_id = Downgradestage.sbsb_id  AND MEPE_ELIG_IND=''Y'' AND ( (TO_DATE(''\"',variables('gv_BtchDate')),'\"'', ''MM/DD/YYYY'') >=mepe_eff_dt \nand TO_DATE(''\"'),variables('gv_BtchDate')),'\"'', ''MM/DD/YYYY'') <=mepe_term_dt ))) ,\ncte2 as(\nselect sbsb_id, cspi_id, cscs_id ,grgr_ck from  CMC_MEPE_PRCS_ELIG a   join CMC_MEME_MEMBER b on meme_ck =meme_ck \njoin CMC_SBSB_SUBSC c on sbsb_ck =sbsb_ck \njoin Downgradestage on sbsb_id = Downgradestage.sbsb_id  AND MEPE_ELIG_IND=''Y''\nand ( TO_DATE(''\"'),variables('gv_BtchDateDayBefore')),'\"'', ''MM/DD/YYYY'') >=mepe_eff_dt \nand TO_DATE(''\"'),variables('gv_BtchDateDayBefore')),'\"'', ''MM/DD/YYYY'') <=mepe_term_dt))\nselect distinct  sbsb_id from cte1 join cte2 on sbsb_id =sbsb_id and grgr_ck=grgr_ck and cscs_id=cscs_id and cspi_id =cspi_id\"')",
           "type" : "Expression"
         }
       }
@@ -151,6 +172,9 @@
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_BtchDateDayBefore",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_downgrade",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "gv_ExtractFileName",

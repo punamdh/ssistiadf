@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "gv_CombineInsert",
         "value" : {
-          "value" : "'INMCDWP0'",
+          "value" : "@concat('\"SELECT [EEDIFileDetailId,\n[BatchId,\n[RecType,\nCASE WHEN [ReceiptGroup = ''INMCDWP0'' OR [ReceiptGroup LIKE ''%00000000000000000000%'' THEN '''' ELSE [ReceiptGroup END AS [ReceiptGroup,\n[ReceiptCert,\n[Payment,\n[Invoice,\n[CheckNum,\n[RoutingNum,\n[AcctNum,\n[LOBProduct,\n[DueDate,\n[PaymentChannel,\n[PaymentType,\n[LegalEntity,\n[MarketSeg,\n[SystemCd,\n[RefNum,\n[PremPaid ,\n[ConvFeePaid,\n[NSFFeePaid ,\n[ReinstateFee,\n[LateFeePaid,\n[OtherAmtPaid1,\n[OtherAmtPaid2,\n[SecCode,\n[Frequency,\n[ReturnReason,\n[ReturnDesc,\n[TranType,\n[VendorDivision,\n[Filler1,\n[DepositDt,\n[PaymentType1 FROM EEDIFILEDETAIL  WHERE BATCHID = \"',variables('BatchId'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "gv_MPWRUpdateQueries",
         "value" : {
-          "value" : "@and(equals(equals(equals(variables('select DISTINCT  meme_record_no from cmc_meme_member mem \nJOIN CMC_MEPE_PRCS_ELIG mepe on meme_ck'),variables('meme_ck\nJOIN CMC_MEMD_MECR_DETL memd on meme_ck')),variables('meme_ck\njoin CMC_GRGR_GROUP GRGR ON GRGR_CK')),variables('GRGR_CK')), (variables('GRGR_ID LIKE'))) || variables('GRGR_ID LIKE')",
+          "value" : "@concat(concat(concat(concat('\"Begin\n\nupdate Receipts_BillingGroupID_Lookup lkp \nset MEME_RECORD_NO =(select DISTINCT  meme_record_no from cmc_meme_member mem \nJOIN CMC_MEPE_PRCS_ELIG mepe on meme_ck = meme_ck\nJOIN CMC_MEMD_MECR_DETL memd on meme_ck = meme_ck\njoin CMC_GRGR_GROUP GRGR ON GRGR_CK =GRGR_CK AND (GRGR_ID LIKE ''%MCR%'' OR GRGR_ID LIKE ''%PDP%'')\nWHERE MEME_HICN = acctnum AND MEMD_EVENT_CD = ''HICN'' AND receiveddate between MEPE_EFF_DT AND mepe_term_dt\nAND MEPE_ELIG_IND =''Y'' AND meme_record_no <> '' '' and rownum=1);\n\nupdate Receipts_BillingGroupID_Lookup lkp \nset MEME_RECORD_NO =(select DISTINCT  meme_record_no from cmc_meme_member mem \nJOIN CMC_MEPE_PRCS_ELIG mepe on meme_ck = meme_ck\nJOIN CMC_MEMD_MECR_DETL memd on meme_ck = meme_ck\njoin CMC_GRGR_GROUP GRGR ON GRGR_CK =GRGR_CK AND (GRGR_ID LIKE ''%MCR%'' OR GRGR_ID LIKE ''%PDP%'')\nWHERE MEME_HICN = acctnum\nAND MEMD_EVENT_CD = ''HICN''\nAND mepe_term_dt > TO_DATE(''\"',variables('gv_MPWRDate')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\nAND mepe_eff_dt <= receiveddate\nAND MEPE_ELIG_IND =''Y'' AND meme_record_no <> '' '' AND rownum=1)\nWHERE (MEME_RECORD_NO is null OR MEME_RECORD_NO='''');\n\nupdate Receipts_BillingGroupID_Lookup lkp \nset SBSB_ID =(select DISTINCT  sbsb_id from cmc_meme_member mem\n                          JOIN CMC_MEPE_PRCS_ELIG mepe on meme_ck = meme_ck\n                          JOIN CMC_MEMD_MECR_DETL memd on meme_ck = meme_ck\n                          JOIN CMC_SBSB_SUBSC SBSB ON SBSB_CK = SBSB_CK\n                          JOIN CMC_GRGR_GROUP GRGR ON GRGR_CK = GRGR_CK AND (GRGR_ID LIKE ''%MCR%'' OR GRGR_ID LIKE ''%PDP%'')\n                          Where MEME_HICN = acctnum  \n                          AND MEMD_EVENT_CD = ''HICN''\n                          AND receiveddate between MEPE_EFF_DT AND mepe_term_dt\n                          AND MEPE_ELIG_IND =''Y'' AND GRGR_ID LIKE ''%MCR%'' AND rownum=1)\n                                                                                                  WHERE MEME_RECORD_NO is null OR MEME_RECORD_NO='' '';\n\nupdate Receipts_BillingGroupID_Lookup lkp \nset SBSB_ID =(select DISTINCT  sbsb_id from cmc_meme_member mem \n                          JOIN CMC_MEPE_PRCS_ELIG mepe ON meme_ck = meme_ck\n                          JOIN CMC_MEMD_MECR_DETL memd on meme_ck = meme_ck\n                          JOIN CMC_SBSB_SUBSC SBSB ON SBSB_CK = SBSB_CK\n                          JOIN CMC_GRGR_GROUP GRGR ON GRGR_CK = GRGR_CK AND (GRGR_ID LIKE ''%MCR%'' OR GRGR_ID LIKE ''%PDP%'')\n                          Where MEME_HICN = acctnum\n                          AND MEMD_EVENT_CD = ''HICN''  \n                          AND mepe_term_dt > TO_DATE(''\"'),variables('gv_MPWRDate')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'')\n                          AND mepe_eff_dt <= receiveddate\n                          AND MEPE_ELIG_IND =''Y'' AND GRGR_ID LIKE ''%MCR%'' AND rownum=1)\n                                                                                                  WHERE (MEME_RECORD_NO is null OR MEME_RECORD_NO='' '') and (sbsb_id is null or sbsb_id ='''');\n\nupdate Receipts_BillingGroupID_Lookup lkp \nset SBSB_ID = substr(acctnum,1,9), VendorRefId = acctnum\nwhere (MEME_RECORD_NO is null OR MEME_RECORD_NO='' '');\n\nend;\"')",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "gv_oraclelookupfetchNSF",
         "value" : {
-          "value" : "@and(and(and(and(and(notConvertedectfunctionotherisNull(variables('VendorRefId'), ''), equals(variables('PaymentType'),'P')), not(notConvertedectfunctionotherisNull(variables('FACReceiptId')))), not(notConvertedectfunctionotherisNull(variables('VendorRefId')))), not(equals(variables('BatchId'),variables('BatchId')))), equals(variables('BatchId'),'+(DT_WSTR, 50) BatchId +'))",
+          "value" : "@concat(concat(concat(concat('\"Select BatchId,ReceiptId, VendorRefId,FACReceiptId, ReceiptId as PrvReceiptID \nfrom Receipt (nolock)  curBatch\n\nJOIN  Receipt prvBatch (nolock)\non ISNULL(VendorRefId,'''')=ISNULL(VendorRefId,'''')\nAND PaymentType=''P'' \nAND FACReceiptId IS NOT NULL \nAND VendorRefId IS NOT NULL\n\nAND  BatchId <> BatchId\n\nAND  BatchId=  \"',variables('BatchId')),'\"\nWHERE EXISTS (SELECT TOP 1 1 FROM Receipt (nolock) R\n\nWHERE ISNULL(VendorRefId,'''')=ISNULL(VendorRefId,'''') \nAND VendorRefId IS NOT NULL\nAND PaymentType=PaymentType\nAND FACReceiptId=FACReceiptId\nAND BatchId <> \"'),variables('BatchId')),'\"\nHaving ReceiptId= Max(ReceiptId))\n\"')",
           "type" : "Expression"
         }
       }
@@ -146,7 +146,7 @@
       "typeProperties" : {
         "variableName" : "gv_oraclelookup_fetch",
         "value" : {
-          "value" : "@and(and(and('', not(equals(notConvertedectfunctionotherisNull(notConvertedectfunctionstringltrim(notConvertedectfunctionstringrtrim(variables('SubscriberId'))), ''),''))), equals(notConvertedectfunctionotherisNull(notConvertedectfunctionstringltrim(notConvertedectfunctionstringrtrim(variables('BillingGroupId'))), ''),'')), variables('BatchId'))",
+          "value" : "@concat('\"SELECT DISTINCT BatchId,SubscriberId,ReceivedDate,PaymentType  from Receipt r\nWHERE  ISNULL(LTRIM(RTRIM(GroupId)) ,'''')='''' \nand ISNULL(LTRIM(RTRIM(SubscriberId)) ,'''')!=''''\nand ISNULL(LTRIM(RTRIM(BillingGroupId)) ,'''')='''' \nAND BatchId=\"',variables('BatchId'))",
           "type" : "Expression"
         }
       }
@@ -209,7 +209,7 @@
       "typeProperties" : {
         "variableName" : "gv_OracleNSF_Stageupdate",
         "value" : {
-          "value" : "@and(and(and(and(variables('VendorRefId'), equals(variables('PaymentType'),'P')), notConvertedectfunctionotherisNull(variables('FACReceiptId'))), not(equals(variables('BatchId'),variables('BatchId')))), equals(variables('BatchId'),' + (DT_WSTR, 50)BatchId  +'))",
+          "value" : "@concat(concat(concat(concat('\"INSERT INTO [Receipts.[FacetsNSFStage\nselect BatchId,ReceiptId, VendorRefId,\nFACReceiptId , ReceiptId as PrvReceiptID,''S'' AS ExcludeInd\nfrom Receipt  curBatch\nJOIN  Receipt prvBatch \non VendorRefId=VendorRefId \nAND PaymentType=''P'' \nAND FACReceiptId IS NULL\nAND  BatchId != BatchId\nAND  BatchId= \"',variables('BatchId')),'\"\nWHERE EXISTS (SELECT TOP 1 1 FROM Receipt R\n\t\t\t\tWHERE VendorRefId=VendorRefId\nAND PaymentType=PaymentType\n\nAND FACReceiptId IS NULL\nAND BatchId !=\"'),variables('BatchId')),'\"\nHaving ReceiptId= Max(ReceiptId)\n\t\t\t)\nAND NOT EXISTS ( SELECT TOP 1 1 FROM  FacetsNSFStage R\n\t\t\t\tWHERE BatchId=BatchId\n\t\t\t\tAND ReceiptId=ReceiptId)\n\"')",
           "type" : "Expression"
         }
       }
@@ -230,7 +230,7 @@
       "typeProperties" : {
         "variableName" : "gv_OracleUpdatelookupNSF",
         "value" : {
-          "value" : "@equals(equals(variables('FACReceiptId\nJOIN CMC_BLRC_BILL_RCPT b on RCPT_ID'),variables('RCPT_ID\nJOIN CMC_RCPT_RECEIPTS c on BLRC_ALLOC_RCPT_ID')),variables('RCPT_ID\nWHERE RCPT_INPUT_GRGR_ID LIKE'))",
+          "value" : "@concat('MERGE INTO ',variables('gv_ReceiptNSFLookup'),'\" rnp \nUSING ( \nselect  /*+ optimizer_features_enable(''2.3'') */ DISTINCT FACReceiptId\nfrom BOSS_RECEIPT_NSF_LOOKUP NSF\nJOIN CMC_RCPT_RECEIPTS a ON RCPT_ID=FACReceiptId\nJOIN CMC_BLRC_BILL_RCPT b on RCPT_ID = RCPT_ID\nJOIN CMC_RCPT_RECEIPTS c on BLRC_ALLOC_RCPT_ID = RCPT_ID\nWHERE RCPT_INPUT_GRGR_ID LIKE ''%WP0'' \nand BLEI_CK = BLEI_CK\nand RCPT_RCPT_CD IN (''F'', ''O'',''W'',''Z'',''R'',''N'',''X'')\n) ta \nON (FACReceiptId=FACReceiptId) WHEN MATCHED THEN UPDATE SET ExcludeInd=''F''\"')",
           "type" : "Expression"
         }
       }
@@ -249,7 +249,11 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "gv_orcale_Eboxfetch"
+        "variableName" : "gv_orcale_Eboxfetch",
+        "value" : {
+          "value" : "@concat('\"SELECT DISTINCT BatchId,LEFT(LTRIM(RTRIM(ConsumerAccountNumber)),13) AS SBSB_ID, LEFT(LTRIM(RTRIM(ConsumerAccountNumber)),13) as Customer_ACCNUM,BILLERIDNUMBER from EBOXFileDetail D\nWHERE  BatchId=\"',variables('BatchId'))",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "gv_Select_BillingGroupIdLkp",

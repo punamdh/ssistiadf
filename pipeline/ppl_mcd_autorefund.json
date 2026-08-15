@@ -188,7 +188,7 @@
       "typeProperties" : {
         "variableName" : "gv_Query_Select_Refund_Rec",
         "value" : {
-          "value" : "@and(and('REFUND', equals(variables('Rpt_REF_Identifier'),'Y')), notConvertedcast(variables('ImportDate AS DATE')))",
+          "value" : "@concat(concat(concat(concat(concat(concat('\"SELECT \n\tROW_NUMBER() OVER(ORDER BY TapeDate DESC) AS ENROLL_ROW_ID, \"',variables('gv_Batch_ID')),'\" AS BATCH_ID,\n\tMedicaid_ID AS MEDICAID_ID,\n\tMaintenance_Type_Code AS MAINTENANCE_TYPE_CODE,\n\tMaintenance_Reason_code AS MAINTENANCE_REASON_CODE,\n\tCONVERT(DATETIME, FTE_Eligibility_Start_Date, 112) AS FTE_ELIGIBILITY_START_DATE,\n\tTapeDate AS TAPE_DATE, \n\tCONVERT(DATETIME, FTE_Eligibility_End_Date, 112)  AS FTE_ELIGIBILITY_END_DATE, \n\tImportDate AS IMPORT_DATE,  FTE_Application_ID AS FTE_APPLICATION_ID\nFROM\n(\nSELECT \n\t*, ROW_NUMBER() OVER (PARTITION BY Medicaid_ID ORDER BY TapeDate DESC, ImportDate DESC) AS RANK1\nFROM Indiana_Reporting_Categories IRC\nWHERE\nRpt_Name = ''REFUND''\nAND Rpt_REF_Identifier = ''Y''\nAND CAST(ImportDate AS DATE) BETWEEN CAST(''\"'),variables('gv_Import_From_Date_Derived')),''' AS DATE) AND CAST('''),variables('gv_Import_Thru_Date_Derived')),'\"'' AS DATE)\n--AND Medicaid_ID = ''100003097199'' AND ID <= 147989330\n)IRC1\nINNER JOIN Indiana_Enrollment IE\n\tON Medicaid_ID = Medicaid_ID\n\tAND TapeDate = TapeDate\nWHERE\n\tMaintenance_Type_Code IN (''024'') AND Maintenance_Reason_code IN (''03'', ''14'')\n                AND LTRIM(FTE_Eligibility_Start_Date) <> ''''\n\tAND RANK1 = 1\"')",
           "type" : "Expression"
         }
       }
@@ -1684,7 +1684,7 @@
                 }
               },
               "datasetParameters" : {
-                "OracleSource" : {
+                "OracleDestination" : {
                   "TableName" : null,
                   "Schema" : null,
                   "Container" : {
@@ -1701,7 +1701,7 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "OracleDestination" : {
+                "OracleSource" : {
                   "TableName" : null,
                   "Schema" : null,
                   "Container" : {
