@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "gv_EBOXQuery",
         "value" : {
-          "value" : "@concat('\"SELECT  \n rcpt_input_sbsb_id,\n rcpt_input_bgbg_id,\n RCPT_CREATE_DTM,\n RCPT_MCTR_RSN,\n CASE WHEN RCPT_INPUT_SBSB_ID <> '' '' THEN RCPT_INPUT_GRGR_ID \n      ELSE ''99999999'' \n      END RCPT_GRGR_ID,RCPT_AMT as RCPT_AMT\n,NVL(BGBG_ID,''ALL'') AS CONTRACT_CODE\n FROM  CMC_RCPT_RECEIPTS RCPT\nLEFT OUTER JOIN (SELECT SBSB_ID, MEME_CK, BGBG_ID\n                            FROM CMC_SBSB_SUBSC SBSB\n                            INNER JOIN CMC_MEME_MEMBER MEME\n                                ON SBSB_CK = SBSB_CK\n                            INNER JOIN (SELECT MEME_CK, MAX(MEMD_HCFA_EFF_DT) MAXEFFDT\n                                               FROM CMC_MEMD_MECR_DETL MEMD\n                                               INNER JOIN CMC_GRGR_GROUP GRGR\n                                               ON GRGR_CK = GRGR_CK\n                                               WHERE MEMD_EVENT_CD = ''SCCC'' \n                                               AND GRGR_ID IN (''MEMCRWP0'',''MOMCRWP0'',''TXMCR000'',''AZMCR000'',''NYMCRWP0'')\n                                               GROUP BY MEME_CK\n                                               ) MAXMEMD\n                                ON MEME_CK = MEME_CK\n                            INNER JOIN CMC_MEMD_MECR_DETL MEMD\n                                ON MEME_CK = MEME_CK\n                                AND MAXEFFDT = MEMD_HCFA_EFF_DT\n                                AND MEMD_EVENT_CD = ''SCCC''\n                            INNER JOIN CMC_BGBG_BIL_GROUP BGBG\n                                ON BGBG_CK = BGBG_CK  \n                            ) MEMD_BGBG                \n         ON SBSB_ID = RCPT_INPUT_SBSB_ID\nAND ((RCPT_INPUT_GRGR_ID = ''MEMCRWP0'' AND BGBG_ID IN (''H9065'',''H9219''))\nOR (RCPT_INPUT_GRGR_ID = ''MOMCRWP0'' AND BGBG_ID = ''H6316'')\nOR (RCPT_INPUT_GRGR_ID = ''TXMCR000'' AND BGBG_ID IN (''H8343'',''H8849''))\nOR (RCPT_INPUT_GRGR_ID = ''AZMCR000'' AND BGBG_ID = ''H1423'')\nOR (RCPT_INPUT_GRGR_ID = ''NYMCRWP0'' AND BGBG_ID = ''H1732''))\nWHERE TRUNC(RCPT_CREATE_DTM) = TO_DATE(''\"', variables('gv_CurrentDate'), '\"'' ,''mm/dd/yyyy'')\nAND RCPT_MCTR_RSN IN (''EBOX'',''MGR'')\"')",
+          "value" : "@concat('\"SELECT  \n rcpt_input_sbsb_id,\n rcpt_input_bgbg_id,\n RCPT_CREATE_DTM,\n RCPT_MCTR_RSN,\n CASE WHEN RCPT_INPUT_SBSB_ID <> '' '' THEN RCPT_INPUT_GRGR_ID \n      ELSE ''99999999'' \n      END RCPT_GRGR_ID,RCPT_AMT as RCPT_AMT\n,NVL(MEMD_BGBG.BGBG_ID,''ALL'') AS CONTRACT_CODE\n FROM  FACETS.CMC_RCPT_RECEIPTS RCPT\nLEFT OUTER JOIN (SELECT SBSB.SBSB_ID, MEME.MEME_CK, BGBG.BGBG_ID\n                            FROM FACETS.CMC_SBSB_SUBSC SBSB\n                            INNER JOIN FACETS.CMC_MEME_MEMBER MEME\n                                ON SBSB.SBSB_CK = MEME.SBSB_CK\n                            INNER JOIN (SELECT MEMD.MEME_CK, MAX(MEMD_HCFA_EFF_DT) MAXEFFDT\n                                               FROM FACETS.CMC_MEMD_MECR_DETL MEMD\n                                               INNER JOIN FACETS.CMC_GRGR_GROUP GRGR\n                                               ON MEMD.GRGR_CK = GRGR.GRGR_CK\n                                               WHERE MEMD.MEMD_EVENT_CD = ''SCCC'' \n                                               AND GRGR.GRGR_ID IN (''MEMCRWP0'',''MOMCRWP0'',''TXMCR000'',''AZMCR000'',''NYMCRWP0'')\n                                               GROUP BY MEMD.MEME_CK\n                                               ) MAXMEMD\n                                ON MEME.MEME_CK = MAXMEMD.MEME_CK\n                            INNER JOIN FACETS.CMC_MEMD_MECR_DETL MEMD\n                                ON MAXMEMD.MEME_CK = MEMD.MEME_CK\n                                AND MAXMEMD.MAXEFFDT = MEMD.MEMD_HCFA_EFF_DT\n                                AND MEMD.MEMD_EVENT_CD = ''SCCC''\n                            INNER JOIN FACETS.CMC_BGBG_BIL_GROUP BGBG\n                                ON MEMD.BGBG_CK = BGBG.BGBG_CK  \n                            ) MEMD_BGBG                \n         ON MEMD_BGBG.SBSB_ID = RCPT.RCPT_INPUT_SBSB_ID\nAND ((RCPT.RCPT_INPUT_GRGR_ID = ''MEMCRWP0'' AND MEMD_BGBG.BGBG_ID IN (''H9065'',''H9219''))\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''MOMCRWP0'' AND MEMD_BGBG.BGBG_ID = ''H6316'')\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''TXMCR000'' AND MEMD_BGBG.BGBG_ID IN (''H8343'',''H8849''))\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''AZMCR000'' AND MEMD_BGBG.BGBG_ID = ''H1423'')\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''NYMCRWP0'' AND MEMD_BGBG.BGBG_ID = ''H1732''))\nWHERE TRUNC(RCPT_CREATE_DTM) = TO_DATE(''\"', variables('gv_CurrentDate'), '\"'' ,''mm/dd/yyyy'')\nAND RCPT_MCTR_RSN IN (''EBOX'',''MGR'')\"')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "gv_PopulateFile",
         "value" : {
-          "value" : "@concat('EXEC [Receipts.[Pr_PopulateEBoxPostBackFile ', string(variables('gv_BatchId')))",
+          "value" : "@concat('EXEC [Receipts].[Pr_PopulateEBoxPostBackFile] ', string(variables('gv_BatchId')))",
           "type" : "Expression"
         }
       }
@@ -526,6 +526,23 @@
             }
           },
           "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -545,23 +562,6 @@
               },
               "Directory" : {
                 "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","

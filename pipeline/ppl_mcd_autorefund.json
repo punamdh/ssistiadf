@@ -188,7 +188,7 @@
       "typeProperties" : {
         "variableName" : "gv_Query_Select_Refund_Rec",
         "value" : {
-          "value" : "@concat('\"SELECT \n\tROW_NUMBER() OVER(ORDER BY TapeDate DESC) AS ENROLL_ROW_ID, \"', string(variables('gv_Batch_ID')), '\" AS BATCH_ID,\n\tMedicaid_ID AS MEDICAID_ID,\n\tMaintenance_Type_Code AS MAINTENANCE_TYPE_CODE,\n\tMaintenance_Reason_code AS MAINTENANCE_REASON_CODE,\n\tCONVERT(DATETIME, FTE_Eligibility_Start_Date, 112) AS FTE_ELIGIBILITY_START_DATE,\n\tTapeDate AS TAPE_DATE, \n\tCONVERT(DATETIME, FTE_Eligibility_End_Date, 112)  AS FTE_ELIGIBILITY_END_DATE, \n\tImportDate AS IMPORT_DATE,  FTE_Application_ID AS FTE_APPLICATION_ID\nFROM\n(\nSELECT \n\t*, ROW_NUMBER() OVER (PARTITION BY Medicaid_ID ORDER BY TapeDate DESC, ImportDate DESC) AS RANK1\nFROM Indiana_Reporting_Categories IRC\nWHERE\nRpt_Name = ''REFUND''\nAND Rpt_REF_Identifier = ''Y''\nAND CAST(ImportDate AS DATE) BETWEEN CAST(''\"', string(variables('gv_Import_From_Date_Derived')), ''' AS DATE) AND CAST(''', string(variables('gv_Import_Thru_Date_Derived')), '\"'' AS DATE)\n--AND Medicaid_ID = ''100003097199'' AND ID <= 147989330\n)IRC1\nINNER JOIN Indiana_Enrollment IE\n\tON Medicaid_ID = Medicaid_ID\n\tAND TapeDate = TapeDate\nWHERE\n\tMaintenance_Type_Code IN (''024'') AND Maintenance_Reason_code IN (''03'', ''14'')\n                AND LTRIM(FTE_Eligibility_Start_Date) <> ''''\n\tAND RANK1 = 1\"')",
+          "value" : "@concat('\"SELECT \n\tROW_NUMBER() OVER(ORDER BY IE.TapeDate DESC) AS ENROLL_ROW_ID, \"', string(variables('gv_Batch_ID')), '\" AS BATCH_ID,\n\tIE.Medicaid_ID AS MEDICAID_ID,\n\tIE.Maintenance_Type_Code AS MAINTENANCE_TYPE_CODE,\n\tIE.Maintenance_Reason_code AS MAINTENANCE_REASON_CODE,\n\tCONVERT(DATETIME, IE.FTE_Eligibility_Start_Date, 112) AS FTE_ELIGIBILITY_START_DATE,\n\tIE.TapeDate AS TAPE_DATE, \n\tCONVERT(DATETIME, IE.FTE_Eligibility_End_Date, 112)  AS FTE_ELIGIBILITY_END_DATE, \n\tIE.ImportDate AS IMPORT_DATE,  IE.FTE_Application_ID AS FTE_APPLICATION_ID\nFROM\n(\nSELECT \n\t*, ROW_NUMBER() OVER (PARTITION BY IRC.Medicaid_ID ORDER BY IRC.TapeDate DESC, IRC.ImportDate DESC) AS RANK1\nFROM dbo.Indiana_Reporting_Categories IRC\nWHERE\nIRC.Rpt_Name = ''REFUND''\nAND IRC.Rpt_REF_Identifier = ''Y''\nAND CAST(IRC.ImportDate AS DATE) BETWEEN CAST(''\"', string(variables('gv_Import_From_Date_Derived')), ''' AS DATE) AND CAST(''', string(variables('gv_Import_Thru_Date_Derived')), '\"'' AS DATE)\n--AND IRC.Medicaid_ID = ''100003097199'' AND IRC.ID <= 147989330\n)IRC1\nINNER JOIN dbo.Indiana_Enrollment IE\n\tON IRC1.Medicaid_ID = IE.Medicaid_ID\n\tAND IRC1.TapeDate = IE.TapeDate\nWHERE\n\tIE.Maintenance_Type_Code IN (''024'') AND IE.Maintenance_Reason_code IN (''03'', ''14'')\n                AND LTRIM(IE.FTE_Eligibility_Start_Date) <> ''''\n\tAND IRC1.RANK1 = 1\"')",
           "type" : "Expression"
         }
       }
@@ -996,23 +996,6 @@
                         }
                       },
                       "datasetParameters" : {
-                        "FlatFileDestination" : {
-                          "TableName" : null,
-                          "Schema" : null,
-                          "Container" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
                         "OracleSource" : {
                           "TableName" : null,
                           "Schema" : null,
@@ -1026,6 +1009,23 @@
                           },
                           "Directory" : {
                             "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "FlatFileDestination" : {
+                          "TableName" : null,
+                          "Schema" : null,
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","
@@ -1982,7 +1982,7 @@
                     }
                   },
                   "datasetParameters" : {
-                    "OracleDestination" : {
+                    "OracleSource" : {
                       "TableName" : null,
                       "Schema" : null,
                       "Container" : {
@@ -1999,7 +1999,7 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "OracleSource" : {
+                    "OracleDestination" : {
                       "TableName" : null,
                       "Schema" : null,
                       "Container" : {
