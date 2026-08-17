@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "ExtractFileName",
         "value" : {
-          "value" : "@concat('GBD_WPT071PDPInvoice_GDBBEE02_',(formatDateTime(utcNow(), 'yyyy')),substring(concat('0',(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',(formatDateTime(utcNow(), 'MM')))), 2), 2),substring(concat('0',(dayOfMonth(utcNow()))), sub(length(concat('0',(dayOfMonth(utcNow())))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'HH')), sub(length(concat('0',formatDateTime(utcNow(), 'HH'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'mm')), sub(length(concat('0',formatDateTime(utcNow(), 'mm'))), 2), 2),substring(concat('0',formatDateTime(utcNow(), 'ss')), sub(length(concat('0',formatDateTime(utcNow(), 'ss'))), 2), 2))",
+          "value" : "@concat('GBD_WPT071PDPInvoice_GDBBEE02_', (string(formatDateTime(utcNow(), 'yyyy'))), substring(concat('0', (string(formatDateTime(utcNow(), 'MM')))), sub(length(concat('0', (string(formatDateTime(utcNow(), 'MM'))))), 2), 2), substring(concat('0', (string(dayOfMonth(utcNow())))), sub(length(concat('0', (string(dayOfMonth(utcNow()))))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'HH'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'HH')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'mm'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'mm')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'ss'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'ss')))), 2), 2))",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "get_Batch",
         "value" : {
-          "value" : "@concat('\"SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM,'\" \nORDER BY BATCH_ID\"')",
+          "value" : "@concat('\"SELECT BATCH_ID, TRUNC(BLIV_CREATE_DTM) AS BLIV_CREATE_DTM FROM PDP_INVOICE_BATCH\nWHERE BATCH_STATUS IN ( ''Completed'',''No Data'') AND BATCH_ID >\"', string(variables('Var_LastBatch')), '\" \nORDER BY BATCH_ID\"')",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "LoadTCDetail",
         "value" : {
-          "value" : "@concat('SELECT * FROM PDP_INVOICE_DETAIL  WHERE BATCH_ID =',variables('BatchId'))",
+          "value" : "@concat('SELECT * FROM PDP_INVOICE_DETAIL  WHERE BATCH_ID =', string(variables('BatchId')))",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "LoadTCHeader",
         "value" : {
-          "value" : "@concat('SELECT * FROM PDP_INVOICE_HEADER  WHERE BATCH_ID =',variables('BatchId'))",
+          "value" : "@concat('SELECT * FROM PDP_INVOICE_HEADER  WHERE BATCH_ID =', string(variables('BatchId')))",
           "type" : "Expression"
         }
       }
@@ -104,7 +104,7 @@
       "typeProperties" : {
         "variableName" : "LoadTCTrailer",
         "value" : {
-          "value" : "@concat('SELECT  * FROM PDP_INVOICE_TRAILER  WHERE BATCH_ID =',variables('BatchId'))",
+          "value" : "@concat('SELECT  * FROM PDP_INVOICE_TRAILER  WHERE BATCH_ID =', string(variables('BatchId')))",
           "type" : "Expression"
         }
       }
@@ -125,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "LoadXML",
         "value" : {
-          "value" : "@concat('\"[Invoice.[Pr_GenerateXML_PDPInv_PSD\n\t@BATCH_ID = \"',variables('BatchId'))",
+          "value" : "@concat('\"[Invoice.[Pr_GenerateXML_PDPInv_PSD\n\t@BATCH_ID = \"', string(variables('BatchId')))",
           "type" : "Expression"
         }
       }
@@ -444,52 +444,6 @@
                     }
                   },
                   "datasetParameters" : {
-                    "DSTOLEDBHDR" : {
-                      "TableName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_TableName",
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_SchemaName",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "SRCOLEDBDTL" : {
-                      "TableName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_TableName",
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_SchemaName",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "SRC_OLEDB_DTL",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "SRCOLEDBHDR" : {
                       "TableName" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBHDR_TableName",
@@ -536,6 +490,29 @@
                       },
                       "ColumnDelimiter" : ","
                     },
+                    "SRCOLEDBDTL" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBDTL_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "SRC_OLEDB_DTL",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "DSTOLEDBDTL" : {
                       "TableName" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBDTL_TableName",
@@ -543,6 +520,29 @@
                       },
                       "Schema" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBDTL_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTOLEDBHDR" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTOLEDBHDR_SchemaName",
                         "type" : "Expression"
                       },
                       "Container" : {
@@ -981,19 +981,19 @@
                     }
                   },
                   "datasetParameters" : {
-                    "FFDSTTCXML" : {
+                    "DSTFFPSDCNT" : {
                       "TableName" : null,
                       "Schema" : null,
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_ContainerName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_ContainerName",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FileName",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FileName",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FilePath",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -1021,23 +1021,6 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "DSTFFPSDCNT" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFPSDCNT_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "SRCOLEDBPSDCNT" : {
                       "TableName" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_TableName",
@@ -1057,6 +1040,23 @@
                       },
                       "Directory" : {
                         "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FFDSTTCXML" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDSTTCXML_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","

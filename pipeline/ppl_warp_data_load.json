@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "SQL_DEFAULT_GET_WARP_DATA",
         "value" : {
-          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, CONT_COVRGE_COUNT, RPAD(ZIP,9,''0'','\" \nWHERE DATE_SENT_TO_WARP IS NULL\"')",
+          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, CONT_COVRGE_COUNT, RPAD(ZIP,9,''0'') AS ZIPCODE, INVALID_ZIP \nFROM \"', variables('gv_CountOracleTable'), '\" \nWHERE DATE_SENT_TO_WARP IS NULL\"')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "SQL_GET_WARP_DATA",
         "value" : {
-          "value" : "@concat(concat(concat(concat(concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'','\" \nWHERE DATE_SENT_TO_WARP IS NULL \nAND PULLED_DATE = TO_DATE(''\"'),variables('V_PULLED_DATE')),'\"'', ''mm/dd/yyyy'')\nAND RUN_DATE = TO_DATE(''\"'),variables('V_RUN_DATE')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'') \n\n\"')",
+          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'') AS ZIPCODE, INVALID_ZIP \nFROM \"', variables('gv_CountOracleTable'), '\" \nWHERE DATE_SENT_TO_WARP IS NULL \nAND PULLED_DATE = TO_DATE(''\"', string(variables('V_PULLED_DATE')), '\"'', ''mm/dd/yyyy'')\nAND RUN_DATE = TO_DATE(''\"', string(variables('V_RUN_DATE')), '\"'', ''mm/dd/yyyy HH:MI:SS AM'') \n\n\"')",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "SQL_PULLED_DATE_GET_WARP_DATA",
         "value" : {
-          "value" : "@concat(concat(concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'','\" \nWHERE PULLED_DATE = TO_DATE(''\"'),variables('V_PULLED_DATE')),'\"'', ''mm/dd/yyyy'')\n\n\"')",
+          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'') AS ZIPCODE, INVALID_ZIP \nFROM \"', variables('gv_CountOracleTable'), '\" \nWHERE PULLED_DATE = TO_DATE(''\"', string(variables('V_PULLED_DATE')), '\"'', ''mm/dd/yyyy'')\n\n\"')",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "SQL_RUN_DATE_GET_WARP_DATA",
         "value" : {
-          "value" : "@concat(concat(concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'','\" \nWHERE RUN_DATE = TO_DATE(''\"'),variables('V_RUN_DATE')),'\"'', ''mm/dd/yyyy HH:MI:SS AM'') \n\n\"')",
+          "value" : "@concat('\"select COUNT_ID, GRGR_CK, GRGR_ID, CSCS_ID, CSPI_ID, PDPD_ID, COUNT, PULLED_DATE, DATE_SENT_TO_WARP, RUN_DATE,SALES_COUNT,LAPSE_COUNT, RPAD(ZIP,9,''0'') AS ZIPCODE, INVALID_ZIP \nFROM \"', variables('gv_CountOracleTable'), '\" \nWHERE RUN_DATE = TO_DATE(''\"', string(variables('V_RUN_DATE')), '\"'', ''mm/dd/yyyy HH:MI:SS AM'') \n\n\"')",
           "type" : "Expression"
         }
       }
@@ -459,29 +459,6 @@
                 }
               },
               "datasetParameters" : {
-                "OLEDSTWARPLOADWARPMEMBERCOUNTS1" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLESRCFACETSWARPMEMBERCOUNTS1" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS1_TableName",
@@ -497,6 +474,29 @@
                   },
                   "FileName" : {
                     "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS 1",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDSTWARPLOADWARPMEMBERCOUNTS1" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS1_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -999,29 +999,6 @@
                 }
               },
               "datasetParameters" : {
-                "OLESRCFACETSWARPMEMBERCOUNTS11" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS 1 1",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLEDSTWARPLOADWARPMEMBERCOUNTS11" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDSTWARPLOADWARPMEMBERCOUNTS11_TableName",
@@ -1037,6 +1014,29 @@
                   },
                   "FileName" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLESRCFACETSWARPMEMBERCOUNTS11" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACETSWARPMEMBERCOUNTS11_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE_SRC_FACETS_WARP_MEMBER_COUNTS 1 1",
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -1732,23 +1732,6 @@
             }
           },
           "datasetParameters" : {
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -1768,6 +1751,23 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -2228,23 +2228,6 @@
             }
           },
           "datasetParameters" : {
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -2264,6 +2247,23 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -2476,6 +2476,23 @@
             }
           },
           "datasetParameters" : {
+            "FFDMEMBERBAL11" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "LookupLKPTABLE" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_TableName",
@@ -2495,23 +2512,6 @@
               },
               "Directory" : {
                 "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "FFDMEMBERBAL11" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFDMEMBERBAL11_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","

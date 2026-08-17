@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "gv_EmailSubjectFailure",
         "value" : {
-          "value" : "@concat('Billing Finance FIS Balancing Report Process Terminated Abnormally in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "value" : "@concat('Billing Finance FIS Balancing Report Process Terminated Abnormally in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "gv_EmailSubjectSuccess",
         "value" : {
-          "value" : "@concat('Billing Finance FIS Balancing Report Process Completed Successfully in the ',variables('gv_Environment'),' Environment on ',variables('gv_OracleDS'))",
+          "value" : "@concat('Billing Finance FIS Balancing Report Process Completed Successfully in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "gv_Extract_Detailed_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Extract_Path'),variables('gv_File_Detailed'))",
+          "value" : "@concat(variables('gv_Extract_Path'), variables('gv_File_Detailed'))",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "gv_Extract_Summ_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Extract_Path'),variables('gv_File_Summary'))",
+          "value" : "@concat(variables('gv_Extract_Path'), variables('gv_File_Summary'))",
           "type" : "Expression"
         }
       }
@@ -125,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "gv_ProcessDateStr",
         "value" : {
-          "value" : "@concat(substring(concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM')), sub(length(concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM'))), 2), 2),'/',substring(concat('0',dayOfMonth(variables('gv_ProcessDate'))), sub(length(concat('0',dayOfMonth(variables('gv_ProcessDate')))), 2), 2),'/',formatDateTime(variables('gv_ProcessDate'), 'yyyy'))",
+          "value" : "@concat(substring(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM')))), 2), 2), '/', substring(concat('0', string(dayOfMonth(variables('gv_ProcessDate')))), sub(length(concat('0', string(dayOfMonth(variables('gv_ProcessDate'))))), 2), 2), '/', string(formatDateTime(variables('gv_ProcessDate'), 'yyyy')))",
           "type" : "Expression"
         }
       }
@@ -146,7 +146,7 @@
       "typeProperties" : {
         "variableName" : "gv_QRY_SELECT_FACETS_INVOICE",
         "value" : {
-          "value" : "@concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM')), sub(length(concat('0',formatDateTime(variables('gv_ProcessDate'), 'MM'))), 2), 2),'/',substring(concat('0',dayOfMonth(variables('gv_ProcessDate'))), sub(length(concat('0',dayOfMonth(variables('gv_ProcessDate')))), 2), 2),'/',formatDateTime(variables('gv_ProcessDate'), 'yyyy'),'\"'' );\nEND;\"')",
+          "value" : "@concat('\"BEGIN\n\tPKG_FIS_BAL.LOAD_INVOICE ( \"', string(variables('gv_BatchID')), ' ,''', substring(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM'))), sub(length(concat('0', string(formatDateTime(variables('gv_ProcessDate'), 'MM')))), 2), 2), '/', substring(concat('0', string(dayOfMonth(variables('gv_ProcessDate')))), sub(length(concat('0', string(dayOfMonth(variables('gv_ProcessDate'))))), 2), 2), '/', string(formatDateTime(variables('gv_ProcessDate'), 'yyyy')), '\"'' );\nEND;\"')",
           "type" : "Expression"
         }
       }
@@ -167,7 +167,7 @@
       "typeProperties" : {
         "variableName" : "gv_QRY_SELECT_FIS_INVOICE",
         "value" : {
-          "value" : "@concat(concat(concat(concat('\"\nSELECT DISTINCT\n       BATCH_ID,\n       BLEI_CK,\n       GRGR_ID,\n       BLIV_ID,\n       BLBL_DUE_DT,\n       BLIV_CREATE_DTM,\n       BLSH_BILLED_AMT,\n       IS_REVERSAL_INVOICE,\n       CASE\n           WHEN (IS_RECYCLED IS NOT NULL)\n           THEN\n               IS_RECYCLED\n           ELSE\n               IS_RECYCLED\n       END\n           AS IS_RECYCLED\n  FROM (SELECT BATCHID                         AS BATCH_ID,\n               BLEI_CK,\n               GRGR_ID,\n               BLIV_ID,\n               BLBL_DUE_DT,\n               BLIV_CREATE_DTM,\n               BLSH_INVOICE_DTM,\n               BLSH_BILLED_AMT,\n               CASE\n                   WHEN [TYPE = ''S''\n                   THEN\n                       ''N''\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''N''                             AS IS_RECYCLED\n          FROM STT_GBD_BLSH_TRANS_DATA_HIST\n         WHERE IS_EXCEP_EXISTS IS NULL AND BATCHID = \"',(variables('gv_BatchID'))),'\")\n       EXTRACT_HIST\n       LEFT OUTER JOIN\n       (SELECT DISTINCT\n               --0 AS BATCH_ID,\n               BATCHID                       AS BATCH_ID,\n               BLEI_CK,\n               GRGR_ID,\n               BLIV_ID,\n               BLBL_DUE_DT,\n               BLSH_INVOICE_DTM                AS BLIV_CREATE_DTM,\n               SENT_BLSH_INVOICE_DTM,\n               CAST (BLSH_BILLED_AMT AS MONEY) AS BLSH_BILLED_AMT,\n               CASE\n                   WHEN EX.[TYPE = ''S''\n                   THEN\n                       ''N''\n                   WHEN EX.[TYPE IS NULL\n                   THEN\n                       CASE WHEN EX.[BLIV_ID LIKE ''%S'' THEN ''Y'' ELSE ''N'' END\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''Y''                                AS IS_RECYCLED\n          FROM FIS_EXCEPTION_HIST EX   (NOLOCK)\n   INNER JOIN STT_GBD_BLSH_TRANS_DATA_HIST BLSH (NOLOCK)\n    ON BLIV_ID = BLIV_ID\n    AND EX.[TYPE = BLSH.[TYPE  AND UPDATED_DTM IS NOT NULL   AND IS_EXCEP_EXISTS IS NULL AND BATCHID = \"'),(variables('gv_BatchID'))),'\"\n   INNER JOIN Batch BTH\n    ON BatchID = BatchId AND CAST(UPDATED_DTM AS DATE) = CAST(RanDate\n AS DATE)   AND SENT_BLSH_INVOICE_DTM NOT BETWEEN BatchFromDate AND BatchDate AND BatchStatusId = 9\n )EXCEP_HIST\n  ON BLEI_CK = BLEI_CK\n  AND BLIV_ID = BLIV_ID\n  AND IS_REVERSAL_INVOICE = IS_REVERSAL_INVOICE\"')",
+          "value" : "@concat('\"\nSELECT DISTINCT\n       BATCH_ID,\n       BLEI_CK,\n       GRGR_ID,\n       BLIV_ID,\n       BLBL_DUE_DT,\n       BLIV_CREATE_DTM,\n       BLSH_BILLED_AMT,\n       IS_REVERSAL_INVOICE,\n       CASE\n           WHEN (IS_RECYCLED IS NOT NULL)\n           THEN\n               IS_RECYCLED\n           ELSE\n               IS_RECYCLED\n       END\n           AS IS_RECYCLED\n  FROM (SELECT BATCHID                         AS BATCH_ID,\n               BLEI_CK,\n               GRGR_ID,\n               BLIV_ID,\n               BLBL_DUE_DT,\n               BLIV_CREATE_DTM,\n               BLSH_INVOICE_DTM,\n               BLSH_BILLED_AMT,\n               CASE\n                   WHEN [TYPE = ''S''\n                   THEN\n                       ''N''\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''N''                             AS IS_RECYCLED\n          FROM STT_GBD_BLSH_TRANS_DATA_HIST\n         WHERE IS_EXCEP_EXISTS IS NULL AND BATCHID = \"', (string(variables('gv_BatchID'))), '\")\n       EXTRACT_HIST\n       LEFT OUTER JOIN\n       (SELECT DISTINCT\n               --0 AS BATCH_ID,\n               BATCHID                       AS BATCH_ID,\n               BLEI_CK,\n               GRGR_ID,\n               BLIV_ID,\n               BLBL_DUE_DT,\n               BLSH_INVOICE_DTM                AS BLIV_CREATE_DTM,\n               SENT_BLSH_INVOICE_DTM,\n               CAST (BLSH_BILLED_AMT AS MONEY) AS BLSH_BILLED_AMT,\n               CASE\n                   WHEN EX.[TYPE = ''S''\n                   THEN\n                       ''N''\n                   WHEN EX.[TYPE IS NULL\n                   THEN\n                       CASE WHEN EX.[BLIV_ID LIKE ''%S'' THEN ''Y'' ELSE ''N'' END\n                   ELSE\n                       ''Y''\n               END\n                   AS IS_REVERSAL_INVOICE,\n               ''Y''                                AS IS_RECYCLED\n          FROM FIS_EXCEPTION_HIST EX   (NOLOCK)\n   INNER JOIN STT_GBD_BLSH_TRANS_DATA_HIST BLSH (NOLOCK)\n    ON BLIV_ID = BLIV_ID\n    AND EX.[TYPE = BLSH.[TYPE  AND UPDATED_DTM IS NOT NULL   AND IS_EXCEP_EXISTS IS NULL AND BATCHID = \"', (string(variables('gv_BatchID'))), '\"\n   INNER JOIN Batch BTH\n    ON BatchID = BatchId AND CAST(UPDATED_DTM AS DATE) = CAST(RanDate\n AS DATE)   AND SENT_BLSH_INVOICE_DTM NOT BETWEEN BatchFromDate AND BatchDate AND BatchStatusId = 9\n )EXCEP_HIST\n  ON BLEI_CK = BLEI_CK\n  AND BLIV_ID = BLIV_ID\n  AND IS_REVERSAL_INVOICE = IS_REVERSAL_INVOICE\"')",
           "type" : "Expression"
         }
       }
@@ -188,7 +188,7 @@
       "typeProperties" : {
         "variableName" : "gv_Template_Detailed_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Template_Path'),variables('gv_File_Detailed'))",
+          "value" : "@concat(variables('gv_Template_Path'), variables('gv_File_Detailed'))",
           "type" : "Expression"
         }
       }
@@ -209,7 +209,7 @@
       "typeProperties" : {
         "variableName" : "gv_Template_Summ_Full_Path",
         "value" : {
-          "value" : "@concat(variables('gv_Template_Path'),variables('gv_File_Summary'))",
+          "value" : "@concat(variables('gv_Template_Path'), variables('gv_File_Summary'))",
           "type" : "Expression"
         }
       }

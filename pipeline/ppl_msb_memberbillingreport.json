@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "LSQ_DELETE",
         "value" : {
-          "value" : "@concat('Delete From ',variables('OLS_OUTP'),' Where BATCH_ID = ? AND ? Like ''%D%'' AND REPT_ID = ?')",
+          "value" : "@concat('Delete From ', variables('OLS_OUTP'), ' Where BATCH_ID = ? AND ? Like ''%D%'' AND REPT_ID = ?')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "LSQ_GETREPORT_DETAILS",
         "value" : {
-          "value" : "@concat(concat('\"SELECT BATCH_ID, REPT_ID, SCHD_ID , REPT_ARCH, AMCTR_DESC REPT_OUTP, AMCTR_DESC REPT_OUTA, REPT_QUERY1, REPT_QUERY2 \nFROM MSB_REPORT_BAT BAT\nINNER JOIN MSB_REPORT_BAT_DET BATDET ON BATCH_ID = BATCH_ID AND BAT_DET_STS = 1 and REPT_STS = ''A'' and SCHD_STS = ''A''\nINNER JOIN MSB_REPORT_MASTER MAST ON REPT_ID = REPT_ID\nINNER JOIN MSB_MCTR_LKUP OUTP ON AMCTR_ENTITY =''REMA'' and AMCTR_TYPE =''OUTP'' and AMCTR_VALUE = REPT_OUTP\nINNER JOIN MSB_MCTR_LKUP OUTA ON AMCTR_ENTITY =''REMA'' and AMCTR_TYPE =''OUTA'' and AMCTR_VALUE = REPT_OUTA\nWHERE BATCH_ID = \"',variables('PL_BATID')),'\"\nOrder by SCHD_PRIORITY\"')",
+          "value" : "@concat('\"SELECT BATCH_ID, REPT_ID, SCHD_ID , REPT_ARCH, AMCTR_DESC REPT_OUTP, AMCTR_DESC REPT_OUTA, REPT_QUERY1, REPT_QUERY2 \nFROM MSB_REPORT_BAT BAT\nINNER JOIN MSB_REPORT_BAT_DET BATDET ON BATCH_ID = BATCH_ID AND BAT_DET_STS = 1 and REPT_STS = ''A'' and SCHD_STS = ''A''\nINNER JOIN MSB_REPORT_MASTER MAST ON REPT_ID = REPT_ID\nINNER JOIN MSB_MCTR_LKUP OUTP ON AMCTR_ENTITY =''REMA'' and AMCTR_TYPE =''OUTP'' and AMCTR_VALUE = REPT_OUTP\nINNER JOIN MSB_MCTR_LKUP OUTA ON AMCTR_ENTITY =''REMA'' and AMCTR_TYPE =''OUTA'' and AMCTR_VALUE = REPT_OUTA\nWHERE BATCH_ID = \"', string(variables('PL_BATID')), '\"\nOrder by SCHD_PRIORITY\"')",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "LS_FILE",
         "value" : {
-          "value" : "@concat(variables('ExtactFilePath'),'EXTRACT_',(if(equals(variables('ExtractToFile'),'N'), '0', concat(variables('OLL_BATCHID'),'_',variables('OLL_REPTID'),'_',variables('OLL_SCHDID')))),'.CSV')",
+          "value" : "@concat(variables('ExtactFilePath'), 'EXTRACT_', (if(equals(variables('ExtractToFile'),'N'), '0', concat(string(variables('OLL_BATCHID')), '_', string(variables('OLL_REPTID')), '_', string(variables('OLL_SCHDID'))))), '.CSV')",
           "type" : "Expression"
         }
       }
@@ -248,7 +248,7 @@
           "typeProperties" : {
             "variableName" : "PL_BATID",
             "value" : {
-              "value" : "@concat(pipeline().parameters.PL_BATID,1)",
+              "value" : "@concat(pipeline().parameters.PL_BATID, 1)",
               "type" : "Expression"
             }
           }
@@ -731,6 +731,23 @@
                     }
                   },
                   "datasetParameters" : {
+                    "Extract" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "OLEDBSource" : {
                       "TableName" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -750,23 +767,6 @@
                       },
                       "Directory" : {
                         "value" : null,
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "Extract" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Extract_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
