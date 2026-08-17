@@ -9,23 +9,21 @@
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
         "dataset" : {
-          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "referenceName" : "Generic_File_TGT",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "FlatFileDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DataConversion"
-      } ],
-      "script" : "parameters{\n\tDB_NAME as string (),\n\tDB_PASSWORD as string (),\n\tDB_USER_NAME as string (),\n\tFileName as string (),\n\tFileSource as string (),\n\tFOLDER_PATH as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tSERVER_NAME as string ()\n}\n\nsource(output(\n\t\t{Column 0} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive({Column 0} = {Column 0}) ~> DataConversion\nDataConversion sink(input(\n\t\tFILE_BODY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tFILE_BODY = {Copy of Column 0})) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBUS_PATH_FINAL as string (),\n\tEmail_CC as string (),\n\tEmail_From as string (),\n\tEmail_To as string (),\n\tfile_name as string (),\n\tfile_name_final as string (),\n\tFile_path as string (),\n\tInstance_Name as string (),\n\tORA_Password as string (),\n\tORA_Server as string (),\n\tORA_Username as string (),\n\tOUT_FILE as string (),\n\tSMTP_Connection as string (),\n\tTable_data_Summary as string (),\n\tV_ERR_EXISTS as integer ()\n}\n\nsource(output(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select  \\'@pRECTYPE=\"SBSB\",\\' ||  (\\'@pSBSB_ID=\"\\' || SBSB_ID || \\'\",\\') || \\'@pSBSB_FAM_UPDATE_CD=\"UP\",\\' || (\\'@pGRGR_ID=\"\\' || GRGR_ID || \\'\"\\') || chr(13) || chr(10) || \\'@pRECTYPE=\"SBSR\",\\' || \\'@pSBSR_UPDATE_CD=\"UP\",\\' || (\\'@pSBSR_TYPE=\"\\' || SBSR_TYPE || \\'\",\\') || (\\'@pPDPD_ID=\"\\' || PDPD_ID || \\'\",\\') || (\\'@pPDBL_ID=\"\\' || PDBL_ID || \\'\",\\') || (\\'@pPDRT_TYPE=\"\\' || PDRT_TYPE || \\'\",\\') || (\\'@pSBSR_EFF_DT=\"\\' || TO_CHAR( SBSR_EFF_DT, \\'MM/DD/YYYY\\') || \\'\",\\') || (\\'@pSBSR_TERM_DT=\"\\' || SBSR_TERM_DT ||\\'\"\\') as data1 from AGP.BFI_LIS_UPD_RECORD_STG where curr_status=\\'I\\' order by SBSB_ID, SBSR_EFF_DT',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATA1)) ~> FlatFileDestination"
     }
   }
 }
