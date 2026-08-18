@@ -1,0 +1,31 @@
+{
+  "name" : "dft_generate_xml",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBPSDOUT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFPSDOUT"
+      } ],
+      "transformations" : [ {
+        "name" : "DTTDCNVPSDOUT"
+      } ],
+      "script" : "parameters{\n\tBatchDate as timestamp (),\n\tBatchId as integer (),\n\tBlankFilePath as string (),\n\tFallout_Query as string (),\n\tFileName as string (),\n\tgv_HDRdt as string (),\n\tgv_IndPrem as string (),\n\tInputFileName as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserId as string (),\n\tOuputFileName as string (),\n\tOutputPath as string (),\n\tOutput_CA_II as string (),\n\tPsdOutCnt as integer (),\n\tRAD_Fallout as string (),\n\tRad_FalloutTbl as string (),\n\tRad_Fallout_SQLTbl as string (),\n\tRAD_FileName as string (),\n\tSQLCatalog as string (),\n\tSQLDataSource as string (),\n\tSQLPassword as string (),\n\tSQLProvider as string (),\n\tSQLUserName as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tUserPath as string ()\n}\n\nsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: 'Pr_GenerateXML_PSD',\n\tschemaName: 'LETTER',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> SRCOLEDBPSDOUT\nSRCOLEDBPSDOUT derive({Copy of COL_XML} = COL_XML) ~> DTTDCNVPSDOUT\nDTTDCNVPSDOUT sink(input(\n\t\tCopy_of_COL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCopy_of_COL_XML = {Copy of COL_XML})) ~> DSTFFPSDOUT"
+    }
+  }
+}

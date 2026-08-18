@@ -1,0 +1,33 @@
+{
+  "name" : "dft_-_delimited_fixed_footer_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InputPlaceHolderScriptComponent",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "TRAILERDerivedColumn"
+      }, {
+        "name" : "TRAILER"
+      } ],
+      "script" : "parameters{\n\tBatchId as integer (),\n\tBossDataSource as string (),\n\tBossInitialCatalog as string (),\n\tBossPassword as string (),\n\tBossUserName as string (),\n\tCriticalEventSeverityID as integer (),\n\tdtAccLKP as string (),\n\tEventTypeID as integer (),\n\tFacetsDataSource as string (),\n\tFacetsPassword as string (),\n\tFacetsUserID as string (),\n\tGBD_EGR_Accounts as string (),\n\tGBD_EGR_FLDR as string (),\n\tGBD_EGR_Outbound as string (),\n\tGBD_EGR_Template as string (),\n\tgv_ExcelACLKPFileName as string (),\n\tgv_ExcelACLKPOutFileName as string (),\n\tgv_ExcelACLKPTemplate as string (),\n\tInfoEventSeverityID as integer (),\n\tModuleID as integer (),\n\tOutputFileName as string (),\n\tOutputFilepath as string (),\n\tRowCount as integer ()\n}\n\nsource(output(\n\t\tDummyColumn as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InputPlaceHolderScriptComponent\nInputPlaceHolderScriptComponent derive(T1 = 'T,',\n\t\tT2 = right(lpad('', 15, '0') + toString($RowCount), 15)) ~> TRAILERDerivedColumn\nTRAILERDerivedColumn derive(TRAILER = T1 + T2) ~> TRAILER\nTRAILER sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = TRAILER)) ~> FlatFileDestination"
+    }
+  }
+}

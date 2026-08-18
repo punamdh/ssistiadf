@@ -1,0 +1,29 @@
+{
+  "name" : "generate_trailor_-_falloutmember",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetTrailerRecord",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tArchivePath as string (),\n\tBatchDate as string (),\n\tBatchId as integer (),\n\tDateFormat as string (),\n\tDateTimeFinal as string (),\n\tEndDate as string (),\n\tEndTime as string (),\n\tErrorFileName as string (),\n\tErrorFilePath as string (),\n\tErrorRecordCount as integer (),\n\texEndDateTime as string (),\n\texStartDateTime as string (),\n\tFalloutPath as string (),\n\tGroupID as string (),\n\tGroupName as string (),\n\tHeader as string (),\n\tIsAdhocDailyRun as string (),\n\tIsFallOutReport as string (),\n\tIsMultiRunMode as string (),\n\tIsOneTimeProcess as string (),\n\tJobDate as string (),\n\tobjOneTimeGroups as string (),\n\tOneTimeReverseSync as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserId as string (),\n\tOutputFileName as string (),\n\tOutputPath as string (),\n\tQueryGroup as string (),\n\tReverseSyncQuery as string (),\n\tReverseSyncQueryDaily as string (),\n\tReverseSyncQuery_Range as string (),\n\tSQLCatalog as string (),\n\tSQLDataSource as string (),\n\tSQLPassword as string (),\n\tSQLProvider as string (),\n\tSQLUserName as string (),\n\tStartDate as string (),\n\tStartTime as string (),\n\tUpdateEndTime as string ()\n}\n\nsource(output(\n\t\tTrailerRow as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select \\'TRL|\\' + (SELECT RIGHT(\\'0000000\\'+ISNULL(CAST(COUNT(*)  as varchar),\\'\\'),7)  + \\'|\\'  FROM [ReverseSync].[MemberList] ML   INNER JOIN [ReverseSync].[FallOutMembers] FML ON FML.GroupID = ML.GroupID    AND FML.SubscriberID = ML.SubscriberID WHERE ML.[SubscriberID] NOT IN    ( \tSELECT DISTINCT SubscriberID FROM [ReverseSync].[MemberList] \tWHERE ISNULL(RTRIM(LTRIM([ListBillGroupNumber])),\\'\\') = \\'MULTGROUP\\'   ) ) as TrailerRow',\n\tformat: 'query',\n\tstaged:false) ~> GetTrailerRecord\nGetTrailerRecord sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = TrailerRow)) ~> FlatFileDestination"
+    }
+  }
+}

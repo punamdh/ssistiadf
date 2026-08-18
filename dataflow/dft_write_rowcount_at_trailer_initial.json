@@ -1,0 +1,29 @@
+{
+  "name" : "dft_write_rowcount_at_trailer_initial",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FetchInitialPRFRecordCount",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "InitialPRFWriteRecordCountinTrailer"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tFileName as string (),\n\tFinalOutboundFileName as string (),\n\tFinalPRFRecordCount as string (),\n\tInitialOutboundFileName as string (),\n\tInitialPRFRecordCount as string (),\n\tOracleDataSource as string (),\n\tOraclePassword as string (),\n\tOracleProvider as string (),\n\tOracleUserID as string (),\n\tOutboundFilePath as string (),\n\tOutReportName as string (),\n\tOutReportPath as string ()\n}\n\nsource(output(\n\t\tINITIAL_PRF_RECORD_COUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT \\'T\\'||TO_CHAR(COUNT(1)+1) AS INITIAL_PRF_RECORD_COUNT  FROM AGP.PRF_OUTBOUND_FILE_STAGING PRFS WHERE UPPER(PRFS.PRF_TYPE) = UPPER(\\'Initial\\')',\n\tformat: 'query',\n\tstaged:false) ~> FetchInitialPRFRecordCount\nFetchInitialPRFRecordCount sink(input(\n\t\tINITIAL_PRF_RECORD_COUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINITIAL_PRF_RECORD_COUNT)) ~> InitialPRFWriteRecordCountinTrailer"
+    }
+  }
+}

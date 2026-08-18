@@ -1,0 +1,29 @@
+{
+  "name" : "dft_populate_extract",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tgv_BalanceFileName as string (),\n\tgv_BalanceFilePath as string (),\n\tgv_BatchId as integer (),\n\tgv_BatchType as string (),\n\tgv_ErrorCount as integer (),\n\tgv_ErrorCountRFDDupes as integer (),\n\tgv_ExtractName as string (),\n\tgv_ExtractPath as string (),\n\tgv_FromDate as string (),\n\tgv_FromDateOverride as boolean (),\n\tgv_FTP_PATH as string (),\n\tgv_GetOracleStagingData as string (),\n\tgv_HRAEmailList as string (),\n\tgv_HRAEmailMessage as string (),\n\tgv_HRAEmailSubject as string (),\n\tgv_HRARowCount as integer (),\n\tgv_HRA_FINAL_PATH as string (),\n\tgv_MedSuppSelectQuery as string (),\n\tgv_MLRBatchGroup as string (),\n\tgv_MLREmailList as string (),\n\tgv_MLREmailMessage as string (),\n\tgv_MLRGroupResult as string (),\n\tgv_MLRGrpKey as string (),\n\tgv_MLRGrpKeyList as string (),\n\tgv_MLRRefundReason as string (),\n\tgv_MLRSelectQuery as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_ProcessCommandPath as string (),\n\tgv_SelectQuery as string (),\n\tgv_SMTPServer as string (),\n\tgv_SourceFiles as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strDataSource as string (),\n\tgv_strInitialCatalog as string (),\n\tgv_strOracleDS as string (),\n\tgv_strPassword as string (),\n\tgv_strUserName as string (),\n\tgv_ToDate as timestamp (),\n\tgv_ToDateString as string (),\n\tgv_ValidationEmailFrom as string (),\n\tgv_ValidationEmailSubject as string (),\n\tgv_ValidationEmailTo as string (),\n\tgv_ValidationErrorFolderPath as string (),\n\tgv_ValidationErrorList as string (),\n\tgv_ValidationErrorRFDDupes as string ()\n}\n\nsource(output(\n\t\tExtractData as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[Pr_DMS_GetDataForExtract]',\n\tschemaName: '[REFUND]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tExtractData as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tExtractData)) ~> FlatFileDestination"
+    }
+  }
+}

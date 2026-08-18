@@ -1,0 +1,233 @@
+{
+  "name" : "ppl_edwardextract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_EmailSubjectFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectFailure",
+        "value" : {
+          "value" : "@concat('EDWard Extract Process Terminated Abnormally in ', variables('gv_Environment'), ' Environment on ', variables('gv_SQLDataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectSuccess",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectSuccess",
+        "value" : {
+          "value" : "@concat('EDWard Extract Process Completed Successfully in ', variables('gv_Environment'), ' Environment on ', variables('gv_SQLDataSource'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SC-FLOW",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_EmailSubjectSuccess",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST-FETCH",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST-FETCH",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "SMT-FAILURE",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "ST-SET_SUCCESS_EMAIL_VALUES",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST-SET_SUCCESS_EMAIL_VALUES",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT-SUCCESS",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST-SET_SUCCESS_EMAIL_VALUES",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_SQLDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "gv_EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@anthem.com'"
+      },
+      "gv_SQLInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_EmailSmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_BatchFromID" : {
+        "type" : "Integer",
+        "defaultValue" : "4098"
+      },
+      "gv_BatchThroughID" : {
+        "type" : "Integer",
+        "defaultValue" : "4099"
+      },
+      "gv_EmailSubjectSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'EDWard Extract Process Completed Successfully in DEV Environment on DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "gv_EmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'Success message'"
+      },
+      "gv_SQLProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLOLEDB.1'"
+      },
+      "gv_ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va01pstodfs003\\\\apps\\\\Billing\\\\{0}\\\\Archive\\\\Finance\\\\FIS\\\\EDWARD_BillGrpInvoices'"
+      },
+      "gv_SQLUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'saitheja.penukonda@anthem.com'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_SQLPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_EmailSubjectFailure" : {
+        "type" : "string",
+        "defaultValue" : "'EDWard Extract Process Terminated Abnormally in DEV Environment on DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      }
+    }
+  }
+}

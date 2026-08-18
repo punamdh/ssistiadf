@@ -1,0 +1,29 @@
+{
+  "name" : "dft_create_trigger_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCOLEDBTRIGGER",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFTRIGGER"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tBatchId as integer (),\n\teMailEnv as string (),\n\tgv_CA_FileName as string (),\n\tgv_CA_TemplatePath as string (),\n\tgv_CO_Extract_Conn as string (),\n\tgv_CO_FileName as string (),\n\tgv_CO_TemplatePath as string (),\n\tgv_CRMR_Extract_Conn as string (),\n\tgv_CRMR_FileName as string (),\n\tgv_CRMR_TemplatePath as string (),\n\tgv_CT_Extract_Conn as string (),\n\tgv_CT_FileName as string (),\n\tgv_CT_TemplatePath as string (),\n\tgv_ExcelProvider as string (),\n\tgv_Fetch_Cntrct_Mtch_Rec as string (),\n\tgv_FileName as string (),\n\tgv_FilePath as string (),\n\tgv_LOADCO as string (),\n\tgv_LOADCRMR as string (),\n\tgv_LOADCT as string (),\n\tgv_LOADNH as string (),\n\tgv_LOAD_CA as string (),\n\tgv_NH_Extract_Conn as string (),\n\tgv_NH_FileName as string (),\n\tgv_NH_TemplatePath as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_Override_Rec_To_Process as integer (),\n\tgv_RecordsToProcess as integer (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tgv_tbl as string (),\n\tMailFrom as string (),\n\tMailTo as string (),\n\tReportPeriodEndDt as timestamp (),\n\tReportPeriodEndNextDt as timestamp (),\n\tReportPeriodStartDt as timestamp (),\n\tSMTP as string (),\n\tstrDataSource as string (),\n\tstrInitialCatalog as string (),\n\tstrMemEligQuery as string (),\n\tstrPassword as string (),\n\tstrUserName as string (),\n\tstr_Run_Dt as timestamp (),\n\tVarArchive as string (),\n\tVarArchivePath as string (),\n\tVarCreateArchiveMon as string (),\n\tVarDetailReport as string (),\n\tVarEligMem as string (),\n\tVarFileSysMonthPath as string (),\n\tVarFileSysYear as string (),\n\tVarFileSysYearPath as string (),\n\tVarFTP as string (),\n\tVariable as integer (),\n\tVarInputArchivePath as string (),\n\tVarInputFileArcvPath as string (),\n\tVarInputMonthPath as string (),\n\tVarInputSysYearPath as string (),\n\tVarMem as string (),\n\tVarTrigger as string (),\n\tVarVarianceReport as string (),\n\tVar_FileName as string (),\n\tVar_FilePath as string ()\n}\n\nsource(output(\n\t\tTRIG_FILE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT LEFT((CAST((SELECT CONVERT(VARCHAR(8), GETDATE(), 112) ) AS VARCHAR)+\\'START\\'),79) AS TRIG_FILE',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBTRIGGER\nSRCOLEDBTRIGGER sink(input(\n\t\tTriggerFILE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTriggerFILE = TRIG_FILE)) ~> DSTFFTRIGGER"
+    }
+  }
+}
