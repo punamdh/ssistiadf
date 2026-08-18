@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "DestinationTable",
         "value" : {
-          "value" : "@concat('[',split(pipeline().PipelineName,'_')[{3}]),'].[',split(pipeline().PipelineName,'_')[{3}]),']')",
+          "value" : "@concat('[', split(pipeline().Pipeline,'_')[{3}]), '].[', split(pipeline().Pipeline,'_')[{3}]), ']')",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileDate",
         "value" : {
-          "value" : "@concat(formatDateTime(variables('FileDateDt'), 'yyyy'),substring(concat('00',formatDateTime(variables('FileDateDt'), 'MM')), sub(length(concat('00',formatDateTime(variables('FileDateDt'), 'MM'))), 2), 2),substring(concat('00',dayOfMonth(variables('FileDateDt'))), sub(length(concat('00',dayOfMonth(variables('FileDateDt')))), 2), 2))",
+          "value" : "@concat(string(formatDateTime(variables('FileDateDt'), 'yyyy')), substring(concat('00', string(formatDateTime(variables('FileDateDt'), 'MM'))), sub(length(concat('00', string(formatDateTime(variables('FileDateDt'), 'MM')))), 2), 2), substring(concat('00', string(dayOfMonth(variables('FileDateDt')))), sub(length(concat('00', string(dayOfMonth(variables('FileDateDt'))))), 2), 2))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "FileDateDt",
         "value" : {
-          "value" : "@addDays((concat(substring(variables('FileDateStr'), 1, 4),'-',substring(variables('FileDateStr'), 5, 2),'-',substring(variables('FileDateStr'), 7, 2))), -1)",
+          "value" : "@addDays(concat(substring(variables('FileDateStr'), 1, 4), '-', substring(variables('FileDateStr'), 5, 2), '-', substring(variables('FileDateStr'), 7, 2)), -1)",
           "type" : "Expression"
         }
       }
@@ -102,7 +102,11 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "QueryReadffromSrcDupe"
+        "variableName" : "QueryReadffromSrcDupe",
+        "value" : {
+          "value" : "\"--Ver:1.0-Initial\nSELECT DISTINCT   [INVOICE #] = CAST([INVOICE #] AS VARCHAR(50))\n\t,[InvoiceBK] = CAST([InvoiceBK] AS VARCHAR(100))\n\n\t,[CUST CODE] = CAST([CUST CODE] AS VARCHAR(50))\n\t,[CUST Ship to] = CAST([CUST Ship to] AS VARCHAR(50))\n\t,[PROJECT NUMBER] = CAST([PROJECT NUMBER] AS VARCHAR(50))\n\t,[BRANCH] = CAST([BRANCH] AS VARCHAR(50))\n\t,[SALES AGENT 1] = CAST([SALES AGENT 1] AS VARCHAR(50))\n\t,[SALES AGENT 2] = CAST([SALES AGENT 2] AS VARCHAR(50))\n\t,[INVOICED BY] = CAST([INVOICED BY] AS VARCHAR(50))\n\t,[INV DATE] = CAST([INV DATE] AS VARCHAR(50))\n\t,[DUE DATE] = CAST([DUE DATE] AS VARCHAR(50))\n\t,[CREATED DATE] = CAST([CREATED DATE] AS VARCHAR(50))\n\t,[OPEN A R] = CAST([OPEN A R] AS VARCHAR(50))\n\t,[CBG CODE] = CAST([CBG CODE] AS VARCHAR(50))\n\t,[JOURNAL #] = CAST([JOURNAL #] AS VARCHAR(50))\n\t,[reference] = CAST([reference] AS VARCHAR(200))\n\t,[ORIGINAL AMOUNT] = CAST([ORIGINAL AMOUNT] AS VARCHAR(50))\n\t,[TAX] = CAST([TAX] AS VARCHAR(50))\n\t,[RETAINAGE] = CAST([RETAINAGE] AS VARCHAR(50))\n\t,[FileDate] = CAST([FileDate] AS VARCHAR(8))\n\t,[FileName] = CAST([FileName] AS VARCHAR(128))\nFROM (\n\tSELECT   [INVOICE #]\n\t\t,[InvoiceBK]\n \n\t\t,[CUST CODE] = max([CUST CODE])\n\t\t,[CUST Ship to] = max([CUST Ship to])\n\t\t,[PROJECT NUMBER] = max([PROJECT NUMBER])\n\t\t,[BRANCH] = max([BRANCH])\n\t\t,[SALES AGENT 1] = max([SALES AGENT 1])\n\t\t,[SALES AGENT 2] = max([SALES AGENT 2])\n\t\t,[INVOICED BY] = max([INVOICED BY])\n\t\t,[INV DATE] = MIN(CAST([INV DATE] AS DATETIME))\n\t\t,[DUE DATE] = MIN(CAST([DUE DATE] AS DATETIME))\n\t\t,[CREATED DATE] = MIN(CAST([CREATED DATE] AS DATETIME))\n\t\t,[OPEN A R] = SUM(CAST( [OPEN A R]  AS DECIMAL(14, 4)))\n\t\t,[CBG CODE] = MAX([CBG CODE])\n\t\t,[JOURNAL #] = max([JOURNAL #])\n\t\t,[reference] = max([reference])\n\t\t,[ORIGINAL AMOUNT] = SUM(CAST([ORIGINAL AMOUNT] AS DECIMAL(14, 4)))\n\t\t,[TAX] = SUM(CAST([TAX] AS DECIMAL(14, 4)))\n\t\t,[RETAINAGE] = SUM(CAST([RETAINAGE] AS DECIMAL(14, 4)))\n\t\t,[FileDate]\n\t\t,[FileName] = MAX([FileName])\n\tFROM [Stg].[AgilityOpenARFile] WITH (NOLOCK)\n\tWHERE [INVOICE #] <> ''''\n\tGROUP BY [INVOICE #]\n\t\t,[InvoiceBK]\n\t\t,[FileDate]\n\t) x\n\"",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "LKP_Fetch_Param",
@@ -452,6 +456,29 @@
                     }
                   },
                   "datasetParameters" : {
+                    "WritetoTarget" : {
+                      "TableName" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "ReadfromAgilityOpenARCSv" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -482,29 +509,6 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromAgilityOpenARCSvERROROUTPUTFILE_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "WritetoTarget" : {
-                      "TableName" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -765,29 +769,6 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "WritetoTarget" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLEDBSource" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -807,6 +788,29 @@
                   },
                   "Directory" : {
                     "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "WritetoTarget" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","

@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "FileArchiveDir",
         "value" : {
-          "value" : "@concat(pipeline().parameters.FileArchiveFolder,replace(pipeline().parameters.Environment,'Prod',''),'\\\\',pipeline().parameters.FeedFolderLocal)",
+          "value" : "@concat(pipeline().parameters.FileArchiveFolder, replace(pipeline().parameters.Environment,'Prod',''), '\\\\', pipeline().parameters.FeedFolderLocal)",
           "type" : "Expression"
         }
       }
@@ -41,7 +41,7 @@
       "typeProperties" : {
         "variableName" : "FileLocalDir",
         "value" : {
-          "value" : "@concat(pipeline().parameters.FileOutboundFeedFolder,'\\\\',pipeline().parameters.FeedFolderLocal,replace(pipeline().parameters.Environment,'Prod',''))",
+          "value" : "@concat(pipeline().parameters.FileOutboundFeedFolder, '\\\\', pipeline().parameters.FeedFolderLocal, replace(pipeline().parameters.Environment,'Prod',''))",
           "type" : "Expression"
         }
       }
@@ -62,7 +62,7 @@
       "typeProperties" : {
         "variableName" : "FileName",
         "value" : {
-          "value" : "@if('Test', replace(pipeline().parameters.FeedFileName,'.csv','csv'), pipeline().parameters.FeedFileName)",
+          "value" : "@if(equals(pipeline().parameters.Environment,'Test'), replace(pipeline().parameters.FeedFileName,'.csv','Testing.csv'), pipeline().parameters.FeedFileName)",
           "type" : "Expression"
         }
       }
@@ -83,7 +83,7 @@
       "typeProperties" : {
         "variableName" : "QueryReadFromSourcecsvAG",
         "value" : {
-          "value" : "@variables('InvoiceSK')",
+          "value" : "\"--Ver 1.1\nSELECT\n\t[InvoiceNumber] = InvoiceSK\n\t,[CustomerNumber]\n\t,[InvoiceDate]\n\t,[PurchaseOrderNumber]\n\t,[InvoiceCreatedDate]\n\t,[InvoicedAmount]\n\t,[CustomerPayment]\n\t,[AmountDue]\n\t,[PDFFileName]\nFROM  [Stg].[EcomInvProcHist]\n  WHERE [AmountDue]<>0\n\"",
           "type" : "Expression"
         }
       }
@@ -104,7 +104,7 @@
       "typeProperties" : {
         "variableName" : "QueryReadFromSourceInv",
         "value" : {
-          "value" : "@variables('di_invoice_id')",
+          "value" : "\"--Ver 1.0 Initial\n SELECT [InvoiceId] = FI.di_invoice_id\n\t,ProjectOrSales = OSO.ds_trans_type\n\t,[DivisionCode] = ds_division\n\t,[DivisionAddress] = CAST((\n\t\t\tSELECT (ISNULL(ds_address_po, '''') + CHAR(13) + CHAR(10) + ISNULL(ds_city_po, '''') + '','' + ISNULL(ds_provstate, '''') + ''-'' + ISNULL(ds_postcode_po, '''') + CHAR(13) + CHAR(10) + ISNULL(''Tel:'' + ds_phone_po, '''') + isnull('' Fax:'' + ds_fax_po, ''''))\n\t\t\tFROM division_master dm WITH (NOLOCK)\n\t\t\tWHERE dm.ds_division = oso.ds_division\n\t\t\t) AS VARCHAR(1000))\n\t,[CustomerAddress] = CAST((\n\t\t\tSELECT (ds_name + CHAR(13) + CHAR(10) + ds_address + CHAR(13) + CHAR(10) + ds_city + '','' + ds_provstate + '' '' + ds_postcode)\n\t\t\tFROM customer_master cm WITH (NOLOCK)\n\t\t\tWHERE ds_code = ds_customer\n\t\t\t) AS VARCHAR(1000))\n\t,CustomerShiptoAddress = CAST((\n\t\t\tSELECT (ds_name + CHAR(13) + CHAR(10) + ds_address + CHAR(13) + CHAR(10) + ds_city + '','' + ds_provstate + '' '' + ds_postcode + isnull(CHAR(13) + CHAR(10) + ''Tel:'' + csh.ds_phone, '''')) --+ '' Contact:''+ds_contact)\n\t\t\tFROM customer_shipto csh WITH (NOLOCK)\n\t\t\tWHERE csh.di_customer_shipto_id = fi.di_customer_shipto_id\n\t\t\t) AS VARCHAR(1000))\n\t,AccountNumber = fi.ds_customer\n\t,QuoteNumber = di_sales_order_id_quote\n\t,Terms = (\n\t\tSELECT ds_name\n\t\tFROM dbo.terms t WITH (NOLOCK)\n\t\tWHERE t.di_terms_id = oso.di_terms_id\n\t\t)\n\t,PurchaseOrderNumber =  CAST( REPLACE(REPLACE(REPLACE(oso.ds_customer_po_number,CHAR(10),''''),CHAR(13),''''),CHAR(9),'''') as varchar(20))\n\t,CustomerJobNumber = ds_customer_job_number\n\t,ShippedVia = (\n\t\tSELECT Ds_name\n\t\tFROM dbo.delivery DL WITH (NOLOCK)\n\t\tWHERE DL.ds_delivery = OSO.ds_delivery\n\t\t)\n\t,SalesPerson = (\n\t\tSELECT ds_name\n\t\tFROM dbo.[userstats] WITH (NOLOCK)\n\t\tWHERE ds_usercode = ISNULL(ds_outside_sales, ds_inside_sales)\n\t\t)\n\t,Contact = (\n\t\tSELECT ISNULL(c.ds_name, u.ds_name)\n\t\tFROM dbo.[userstats] u WITH (NOLOCK)\n\t\tLEFT JOIN [dbo].[contact] c WITH (NOLOCK)\n\t\t\tON u.di_contact_id = c.di_contact_id\n\t\tWHERE ds_usercode = ds_inside_sales\n\t\t)\n\t,OrderName = (\n\t\tSELECT ds_name\n\t\tFROM dbo.projectname p WITH (NOLOCK)\n\t\tWHERE p.ds_project = oso.ds_project AND p.ds_trans_type = oso.ds_trans_type\n\t\t)\n\t,InvoiceNote = (\n\t\tSELECT (CASE WHEN ds_note = '''' THEN NULL ELSE ds_note END)\n\t\tFROM note n WITH (NOLOCK)\n\t\tWHERE n.di_note_id = fi.di_note_id\n\t\t)\n\t,Invoiced = PRDDTL.di_qty_invoiced\n\t,Shipped = PRDDTL.di_qty_shipped\n\t,ProdDesc = PRDDTL.ds_description\n\t,ProdLineNumber = PRDDTL.di_line_number\n\t,ProdDetailId = PRDDTL.di_sales_order_dtl_id\n\t,ChangeOrder = di_Order\n\t,MiscDescription = ds_misc_desc\n\t,InvoiceNumber = fi.ds_project\n\t,ProjectNumber = oso.ds_project\n\t,InvoiceDate = Convert(VARCHAR(12), dd_invoice, 107)\n\t,InvoiceDatetime = dd_invoice\n\t,PreTaxTotal = dn_pretax_total\n\t,TaxTotal = fi.dn_tax_total\n\t,IsProd = SUM(ISNULL(Prod, 0)) OVER (PARTITION BY fi.di_invoice_id)\n\t,IsMisc = SUM(ISNULL(Misc, 0)) OVER (PARTITION BY fi.di_invoice_id)\n\t,[InvoiceCreatedDate] =  FI.dd_created \n \t,[AmountDue] = CAST([dn_pretax_total] + fi.[dn_tax_total] - ISNULL([CustomerPayment], 0) as decimal(14,4))\n\t,InvoicedAmount = CAST([dn_pretax_total] + fi.[dn_tax_total] as decimal(14,4))\n\t,[CustomerPayment] =CAST([CustomerPayment] as decimal(14,4))\nFROM dbo.fin_invoice FI WITH (NOLOCK)\nLEFT JOIN dbo.ord_sales_order OSO WITH (NOLOCK)\n\tON OSO.di_sales_order_id = FI.di_sales_order_id\nLEFT JOIN (\n\tSELECT di_invoice_id\n\t\t,ds_description = ds_description COLLATE DATABASE_DEFAULT\n\t\t,di_line_number\n\t\t,fisod.di_sales_order_dtl_id\n\t\t,di_qty_invoiced = SUM(di_qty)\n\t\t,di_qty_shipped = SUM(di_qty - di_qty_stored)\n\t\t,di_Order = NULL\n\t\t,ds_misc_desc = NULL\n\t\t,Prod = 1\n\t\t,Misc = 0\n\tFROM fin_invoice_sales_order_dtl fisod WITH (NOLOCK)\n\tINNER JOIN dbo.ord_sales_order_dtl osod WITH (NOLOCK)\n\t\tON osod.di_sales_order_dtl_id = fisod.di_sales_order_dtl_id\n\tINNER JOIN fin_invoice_sales_order_dtl_opening fisodo WITH (NOLOCK)\n\t\tON fisodo.di_invoice_sales_order_dtl_id = fisod.di_invoice_sales_order_dtl_id\n\t--WHERE di_invoice_id IN (737244, 775884, 882022, 917474, 922396)\n\tGROUP BY di_invoice_id\n\t\t,ds_description\n\t\t,di_line_number\n\t\t, fisod.di_sales_order_dtl_id\n\n\tUNION ALL\n\t\n\tSELECT di_invoice_id\n\t\t,ds_description = NULL\n\t\t,di_line_number = -1\n\t\t,fimc.di_sales_order_miscellaneous_cost_id\n\t\t,di_qty_invoiced = NULL\n\t\t,di_qty_shipped = NULL\n\t\t,di_Order = (CASE WHEN di_order = 0 THEN NULL ELSE di_order END)\n\t\t,ds_misc_desc = ds_note COLLATE DATABASE_DEFAULT\n\t\t,Prod = 0\n\t\t,Misc = 1\n\tFROM DBO.fin_invoice_miscellaneous_cost FIMC WITH (NOLOCK)\n\tINNER JOIN dbo.ord_sales_order_miscellaneous_cost OSOMC WITH (NOLOCK)\n\t\tON OSOMC.di_sales_order_miscellaneous_cost_id = FIMC.di_sales_order_miscellaneous_cost_id\n\tINNER JOIN dbo.note N\n\t\tON N.di_note_id = OSOMC.di_note_id\n\t\t\t--WHERE di_invoice_id IN (737244, 775884, 882022, 917474, 922396)\n\t) PRDDTL\n\tON FI.di_invoice_id = PRDDTL.di_invoice_id\n\tLEFT JOIN (\n\tSELECT di_invoice_id\n\t\t,[CustomerPayment] = SUM(ISNULL(dn_deposit_applied + dn_discount + dn_payment + dn_writeoff, 0))\n\tFROM [dbo].[fin_customer_payment_dtl_invoice] ficpdi WITH (NOLOCK)\n\tINNER JOIN [dbo].[fin_customer_payment_dtl] ficpd WITH (NOLOCK) ON ficpd.di_customer_payment_dtl_id = ficpdi.di_customer_payment_dtl_id\n\tGROUP BY di_invoice_id\n\t) ficpd ON ficpd.di_invoice_id = fi.di_invoice_id\"",
           "type" : "Expression"
         }
       }
@@ -125,7 +125,7 @@
       "typeProperties" : {
         "variableName" : "QueryReadFromSourceShp",
         "value" : {
-          "value" : "@variables('ds_project')",
+          "value" : "\"--Ver 1.0 Initial\nSELECT InvoiceNumber=fi.ds_project\n\t,ShipmentNumber = fish.di_shipment_id\n\t,ShipmentDate = dd_shipped\n\t,Note = (\n\t\tSELECT (CASE WHEN ds_note = '''' THEN NULL ELSE ds_note END)\n\t\tFROM note n WITH (NOLOCK)\n\t\tWHERE n.di_note_id = osh.di_note_id\n\t\t)\nFROM dbo.fin_invoice_shipment fish WITH (NOLOCK)\nINNER JOIN dbo.ord_shipment osh WITH (NOLOCK) ON osh.di_shipment_id = fish.di_shipment_id\nJOIN fin_invoice fi on fish.di_invoice_id=fi.di_invoice_id \n\"",
           "type" : "Expression"
         }
       }
@@ -146,7 +146,7 @@
       "typeProperties" : {
         "variableName" : "QueryReadFromSourceTax",
         "value" : {
-          "value" : "@variables('ds_project')",
+          "value" : "\"--Ver 1.0 Initial\n\n--Ver 1.0 Initial\nSELECT InvoiceNumber = fi.ds_project\n\t,InvoiceId = Fi.di_invoice_id\n\t,[PreTaxTotal] = [dn_pretax_total]\n\t,[TaxDesc] = TM.[ds_tax_desc]\n\t,[Tax] = CAST(cast([dn_amount] * [dn_taxable_amount] AS DECIMAL(7, 2)) AS VARCHAR(10))\n\t,[InvoiceTotal] = [dn_pretax_total] + fi.[dn_tax_total]\n\t,[LessPaymentsDeposits] = [CustomerPayment]\n\t,[AmountDue] = [dn_pretax_total] + fi.[dn_tax_total] - ISNULL([CustomerPayment], 0)\n\t,MaxLen = MAX(LEN([ds_tax_desc])) OVER (PARTITION BY Fi.di_invoice_id)\n\t,InvoiceDate = fi.dd_created\t,DivisionCode = ds_division\nFROM [dbo].[fin_invoice] fi WITH (NOLOCK)\nLEFT JOIN [dbo].[ord_sales_order] OSO WITH (NOLOCK)\n\tON OSO.di_sales_order_id = FI.di_sales_order_id\nLEFT JOIN [dbo].[fin_invoice_tax] FIT WITH (NOLOCK)\n\tON FIT.di_invoice_id = fi.di_invoice_id\nLEFT JOIN [dbo].[tax_master] TM WITH (NOLOCK)\n\tON TM.ds_tax_code = ISNULL(FIT.ds_tax_code, - 1)\nLEFT JOIN (\n\tSELECT di_invoice_id\n\t\t,[CustomerPayment] = SUM(ISNULL(dn_deposit_applied + dn_discount + dn_payment + dn_writeoff, 0))\n\tFROM [dbo].[fin_customer_payment_dtl_invoice] ficpdi WITH (NOLOCK)\n\tINNER JOIN [dbo].[fin_customer_payment_dtl] ficpd WITH (NOLOCK)\n\t\tON ficpd.di_customer_payment_dtl_id = ficpdi.di_customer_payment_dtl_id\n\tGROUP BY di_invoice_id\n\t) ficpd\n\tON ficpd.di_invoice_id = fi.di_invoice_id\n\"",
           "type" : "Expression"
         }
       }
@@ -633,29 +633,6 @@
                         }
                       },
                       "datasetParameters" : {
-                        "LookupBCDivisionLKPTABLE" : {
-                          "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
-                            "type" : "Expression"
-                          },
-                          "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_SchemaName",
-                            "type" : "Expression"
-                          },
-                          "Container" : {
-                            "value" : "",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "Lookup BC Division",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : null,
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
                         "ReadfromSource" : {
                           "TableName" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
@@ -698,6 +675,29 @@
                           },
                           "Directory" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "LookupBCDivisionLKPTABLE" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Lookup BC Division",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","
@@ -1184,29 +1184,6 @@
                         }
                       },
                       "datasetParameters" : {
-                        "ReadfromSource" : {
-                          "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
-                            "type" : "Expression"
-                          },
-                          "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
-                            "type" : "Expression"
-                          },
-                          "Container" : {
-                            "value" : "",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "Read from Source",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : null,
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
                         "LookupBCDivisionLKPTABLE" : {
                           "TableName" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
@@ -1222,6 +1199,29 @@
                           },
                           "FileName" : {
                             "value" : "Lookup BC Division",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "ReadfromSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Read from Source",
                             "type" : "Expression"
                           },
                           "Directory" : {
@@ -1681,29 +1681,6 @@
                     }
                   },
                   "datasetParameters" : {
-                    "ReadfromStgEcomInvoice" : {
-                      "TableName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_TableName",
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_SchemaName",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "Read from Stg EcomInvoice",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : null,
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "WritetoInvoiceFile" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -1717,6 +1694,23 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadfromStgEcomInvoiceERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -1744,19 +1738,25 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "ReadfromStgEcomInvoiceERROROUTPUTFILE" : {
-                      "TableName" : null,
-                      "Schema" : null,
+                    "ReadfromStgEcomInvoice" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_SchemaName",
+                        "type" : "Expression"
+                      },
                       "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_ContainerName",
+                        "value" : "",
                         "type" : "Expression"
                       },
                       "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FileName",
+                        "value" : "Read from Stg EcomInvoice",
                         "type" : "Expression"
                       },
                       "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FilePath",
+                        "value" : null,
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","

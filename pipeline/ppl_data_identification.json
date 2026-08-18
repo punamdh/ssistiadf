@@ -20,7 +20,7 @@
       "typeProperties" : {
         "variableName" : "Fact_table",
         "value" : {
-          "value" : "'Exit'",
+          "value" : "@concat('\"Select DW_Holder_Key,DW_AGG_Key,DW_Gate_Key,DW_Run_Key, IO_date,Count( case when IOStatus=''Exit'' then 1 else null end)  IOStatus_ExCnt, Count( case when IOStatus=''Entry'' then 1 else null end) IOStatus_EnCnt\nFrom( \n      Select a.*,ISNULL(ISNULL(E.IODate,S.IODate),a.IODate) IO_Date\n      FROM\n      (\n                        SELECT * \n                        FROM  FACT I    \n                        where \n                        (\n                        iodate Between ''\"', string(variables('G_Run_Eff_DT')), ''' And  ''', string(variables('G_Run_End_DT')), '\"''\n                        )\n                       \n      ) AS A \n      LEFT OUTER JOIN \n      (\n              SELECT EmployeeName,IODate as PrevDate, IODate,convert(varchar, IOTime,108)  as IOTime,IOStatus ,\n              (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry\n              WHERE Reason = ''Final Exit''  \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS E\n      \n      ON A.DW_Holder_Key = E.Holder_Key\n      AND A.IODate = (e.PrevDate)\n      LEFT OUTER JOIN\n      (\n              SELECT EmployeeName, IODate+1 as NextDate, IODate,convert(varchar, IOTime,108) as IOTime,IOStatus,\n               (select DW_Holder_Key from dim_holder where Holder_Name=EmployeeName ) as Holder_Key\n              FROM OOOIOEntry   \n              WHERE Reason = ''Final Exit''    \n              and cast(substring(convert(varchar, IOTime,108),1,2) as int) < 12\n      ) AS S\n      ON A.DW_Holder_Key = s.Holder_Key\n      AND A.IODate = (S.NextDate)\n) as AA\nGroup By DW_Holder_Key,Dw_Gate_Key,Dw_agg_Key,Dw_Run_Key, IO_date\"')",
           "type" : "Expression"
         }
       }
@@ -261,29 +261,6 @@
             }
           },
           "datasetParameters" : {
-            "CMDAGGFACT" : {
-              "TableName" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLESRCFACT" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLESRCFACT_TableName",
@@ -303,6 +280,29 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "CMDAGGFACT" : {
+              "TableName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMDAGGFACT_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
