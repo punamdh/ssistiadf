@@ -220,13 +220,84 @@
                 "scriptBlockExecutionTimeout" : null
               }
             }, {
-              "name" : "IFACTIVITY_SQL_LOAD_INDIVIDUAL_SCRIPT",
+              "name" : "IFACTIVITY_DFT_BILL_LEVEL",
               "type" : "IfCondition",
               "policy" : null,
               "dependsOn" : [ {
                 "activity" : "SQL_LOAD_CONTRACT_PBP_SCRIPT",
                 "dependencyConditions" : [ "Succeeded" ]
-              }, {
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(variables('gv_Bill_Level'),'ALL')",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "DFT_BILL_LEVEL0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "ppl_Generic_db_replication",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : {
+                      "SysDatetime" : {
+                        "type" : "Expression",
+                        "value" : "@utcnow()"
+                      },
+                      "Dataflow_Name" : {
+                        "type" : "string",
+                        "value" : "DFT_BILL_LEVEL"
+                      },
+                      "FilePath_Date" : {
+                        "type" : "Expression",
+                        "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                      },
+                      "Pipeline_Name" : {
+                        "type" : "Expression",
+                        "value" : "@pipeline().Pipeline"
+                      }
+                    }
+                  }
+                }, {
+                  "name" : "DFT_BILL_LEVEL",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "DFT_BILL_LEVEL0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "DelimitedTextsource"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ ],
+                  "outputs" : [ ]
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_SQL_LOAD_INDIVIDUAL_SCRIPT",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
                 "activity" : "SQL_LOAD_CONTRACT_PBP_SCRIPT",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
@@ -259,6 +330,28 @@
                     "scriptBlockExecutionTimeout" : null
                   }
                 } ]
+              }
+            }, {
+              "name" : "SQL_LOAD_INDIVIDUAL_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_DFT_BILL_LEVEL",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "BEGIN\nAGP.AUDIT_EXTRACT_DATA.LOAD_IND_MEMBERS (@gv_Cov_From_Dt,@gv_Cov_To_Dt,@gv_Batch_ID);\nEND;\n"
+                } ],
+                "scriptBlockExecutionTimeout" : null
               }
             }, {
               "name" : "IFACTIVITY_SQL_LOAD_BILL_GROUP_SCRIPT",
@@ -819,23 +912,6 @@
                     }
                   },
                   "datasetParameters" : {
-                    "DSTFFGENERATEEXTRACT" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "SRCOLEDBGENERATEEXTRACT" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -849,6 +925,23 @@
                       },
                       "Directory" : {
                         "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "DSTFFGENERATEEXTRACT" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFGENERATEEXTRACT_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
