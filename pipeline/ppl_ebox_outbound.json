@@ -4,6 +4,30 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+<<<<<<< HEAD
+=======
+      "name" : "gv_EBOXQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EBOXQuery",
+        "value" : {
+          "value" : "@concat('\"SELECT  \n rcpt_input_sbsb_id,\n rcpt_input_bgbg_id,\n RCPT_CREATE_DTM,\n RCPT_MCTR_RSN,\n CASE WHEN RCPT_INPUT_SBSB_ID <> '' '' THEN RCPT_INPUT_GRGR_ID \n      ELSE ''99999999'' \n      END RCPT_GRGR_ID,RCPT_AMT as RCPT_AMT\n,NVL(MEMD_BGBG.BGBG_ID,''ALL'') AS CONTRACT_CODE\n FROM  FACETS.CMC_RCPT_RECEIPTS RCPT\nLEFT OUTER JOIN (SELECT SBSB.SBSB_ID, MEME.MEME_CK, BGBG.BGBG_ID\n                            FROM FACETS.CMC_SBSB_SUBSC SBSB\n                            INNER JOIN FACETS.CMC_MEME_MEMBER MEME\n                                ON SBSB.SBSB_CK = MEME.SBSB_CK\n                            INNER JOIN (SELECT MEMD.MEME_CK, MAX(MEMD_HCFA_EFF_DT) MAXEFFDT\n                                               FROM FACETS.CMC_MEMD_MECR_DETL MEMD\n                                               INNER JOIN FACETS.CMC_GRGR_GROUP GRGR\n                                               ON MEMD.GRGR_CK = GRGR.GRGR_CK\n                                               WHERE MEMD.MEMD_EVENT_CD = ''SCCC'' \n                                               AND GRGR.GRGR_ID IN (''MEMCRWP0'',''MOMCRWP0'',''TXMCR000'',''AZMCR000'',''NYMCRWP0'')\n                                               GROUP BY MEMD.MEME_CK\n                                               ) MAXMEMD\n                                ON MEME.MEME_CK = MAXMEMD.MEME_CK\n                            INNER JOIN FACETS.CMC_MEMD_MECR_DETL MEMD\n                                ON MAXMEMD.MEME_CK = MEMD.MEME_CK\n                                AND MAXMEMD.MAXEFFDT = MEMD.MEMD_HCFA_EFF_DT\n                                AND MEMD.MEMD_EVENT_CD = ''SCCC''\n                            INNER JOIN FACETS.CMC_BGBG_BIL_GROUP BGBG\n                                ON MEMD.BGBG_CK = BGBG.BGBG_CK  \n                            ) MEMD_BGBG                \n         ON MEMD_BGBG.SBSB_ID = RCPT.RCPT_INPUT_SBSB_ID\nAND ((RCPT.RCPT_INPUT_GRGR_ID = ''MEMCRWP0'' AND MEMD_BGBG.BGBG_ID IN (''H9065'',''H9219''))\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''MOMCRWP0'' AND MEMD_BGBG.BGBG_ID = ''H6316'')\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''TXMCR000'' AND MEMD_BGBG.BGBG_ID IN (''H8343'',''H8849''))\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''AZMCR000'' AND MEMD_BGBG.BGBG_ID = ''H1423'')\nOR (RCPT.RCPT_INPUT_GRGR_ID = ''NYMCRWP0'' AND MEMD_BGBG.BGBG_ID = ''H1732''))\nWHERE TRUNC(RCPT_CREATE_DTM) = TO_DATE(''\"', variables('gv_CurrentDate'), '\"'' ,''mm/dd/yyyy'')\nAND RCPT_MCTR_RSN IN (''EBOX'',''MGR'')\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
       "name" : "gv_PopulateFile",
       "type" : "SetVariable",
       "policy" : {
@@ -20,7 +44,11 @@
       "typeProperties" : {
         "variableName" : "gv_PopulateFile",
         "value" : {
+<<<<<<< HEAD
           "value" : "@concat('EXEC [Receipts.[Pr_PopulateEBoxPostBackFile ',variables('gv_BatchId'))",
+=======
+          "value" : "@concat('EXEC [Receipts].[Pr_PopulateEBoxPostBackFile] ', string(variables('gv_BatchId')))",
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
           "type" : "Expression"
         }
       }
@@ -42,7 +70,11 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
+<<<<<<< HEAD
           "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_sink_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_sink_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_source_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_source_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_source_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_sink_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_sink_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_sink_TableName;",
+=======
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Destination_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK') AS Flat_File_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_ContainerName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_FileName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_source_FilePath' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_sink_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_EBOXPOSTBACK01_sink_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_EBOXPOSTBACK01') AS DFT_POPULATE_EBOXPOSTBACK01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_source_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_source_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_sink_SchemaName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_POPULATE_FACETSDATA01_sink_TableName' AND PIPELINE_NAME = 'EBox_OutBound' AND DATAFLOW_NAME = 'DFT_POPULATE_FACETSDATA01') AS DFT_POPULATE_FACETSDATA01_sink_TableName;",
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -60,6 +92,12 @@
         "activity" : "gv_PopulateFile",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
+<<<<<<< HEAD
+=======
+        "activity" : "gv_EBOXQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -73,7 +111,11 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
+<<<<<<< HEAD
           "text" : " SELECT MAX([Batchid]) FROM RECEIPTS.BATCH WHERE SOURCE = 'EBX' AND BATCHDATE = @gv_CurrentDate "
+=======
+          "text" : " SELECT MAX([Batchid]) FROM RECEIPTS.BATCH WHERE SOURCE = 'EBX' AND BATCHDATE = @0 "
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -116,7 +158,11 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
+<<<<<<< HEAD
           "text" : "SELECT COUNT(*) AS CNT FROM RECEIPTS.BATCH WHERE SOURCE = 'EBX' AND  BATCHDATE = @gv_CurrentDate "
+=======
+          "text" : "SELECT COUNT(*) AS CNT FROM RECEIPTS.BATCH WHERE SOURCE = 'EBX' AND  BATCHDATE = @0 "
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -193,7 +239,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
+<<<<<<< HEAD
           "referenceName" : "Generic_db_replication_ppl",
+=======
+          "referenceName" : "ppl_Generic_db_replication_ppl",
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -284,10 +334,25 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
+<<<<<<< HEAD
           "type" : "ParquetSource"
         },
         "sink" : {
           "type" : "AzureSqlSink"
+=======
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
         }
       },
       "inputs" : [ {
@@ -381,7 +446,11 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "pipeline" : {
+<<<<<<< HEAD
           "referenceName" : "Generic_db_replication_ppl",
+=======
+          "referenceName" : "ppl_Generic_db_replication_ppl",
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
           "type" : "PipelineReference"
         },
         "waitOnCompletion" : false,
@@ -552,10 +621,25 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
+<<<<<<< HEAD
           "type" : "DelimitedTextSource"
         },
         "sink" : {
           "type" : "AzureSqlSink"
+=======
+          "type" : "DelimitedTextSource",
+          "dataset" : {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
         }
       },
       "inputs" : [ {
@@ -622,7 +706,11 @@
       }
     } ],
     "folder" : {
+<<<<<<< HEAD
       "name" : "NonWellsfargo_1108/PACKAGES"
+=======
+      "name" : "Elevance/PACKAGES"
+>>>>>>> f82d097b0fe4e20ea258fb75f3c2f0740d60809f
     },
     "parameters" : { },
     "variables" : {
