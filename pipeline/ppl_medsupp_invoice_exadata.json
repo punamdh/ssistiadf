@@ -950,7 +950,7 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "DECLARE \n @Continue BIT = 1, \n @ReadyBatchStatusID INT,  \n @EventTypeId INT, \n @InfoEventSeverityId INT,\n @CriticalEventSeverityId INT, \n @ModuleId INT, \n @BatchCategoryID INT\n\nSET @ReadyBatchStatusID = @0\nSET @EventTypeId = @1\nSET @InfoEventSeverityId = @2 \nSET @CriticalEventSeverityId = @3\nSET @ModuleId = @4 \nSET @BatchCategoryID = @5\n\nIF NOT EXISTS(\n SELECT 1 \n FROM ( \n  SELECT \n   ROW_NUMBER() OVER (ORDER BY b.BatchId DESC) AS RowNumber, \n   b.BatchStatusId\n  FROM Invoice.Batch b \n  INNER JOIN Invoice.BatchStatus bs \n   ON b.BatchStatusId = bs.BatchStatusId \n  WHERE bs.BatchStatus NOT IN ('Complete', 'Error', 'Re-Ran')\n   AND b.BatchCategoryID = @BatchCategoryID\n ) x \n WHERE x.RowNumber = 1 \n  AND x.BatchStatusId = @ReadyBatchStatusID\n) \nBEGIN \n SET @Continue = 0\n\n EXEC GENERIC.Pr_UpdateEventLog\n  @EventTypeId,\n  @CriticalEventSeverityId,\n  @ModuleId,\n  'No records found to generate MedSupp Transcentra file.'\n \n EXEC GENERIC.Pr_UpdateEventLog\n  @EventTypeId,\n  @InfoEventSeverityId,\n  @ModuleId,\n  'Package MedSupp Billing batch- End'\nEND \n\nSELECT @Continue"
+          "text" : "DECLARE \n @Continue BIT = 1, \n @ReadyBatchStatusID INT,  \n @EventTypeId INT, \n @InfoEventSeverityId INT,\n @CriticalEventSeverityId INT, \n @ModuleId INT, \n @BatchCategoryID INT\n\nSET @ReadyBatchStatusID = @User::ReadyBatchStatusID\nSET @EventTypeId = @User::EventTypeID\nSET @InfoEventSeverityId = @User::InfoEventSeverityID \nSET @CriticalEventSeverityId = @User::CriticalEventSeverityID\nSET @ModuleId = @User::ModuleID \nSET @BatchCategoryID = @User::BatchCategoryID\n\nIF NOT EXISTS(\n SELECT 1 \n FROM ( \n  SELECT \n   ROW_NUMBER() OVER (ORDER BY b.BatchId DESC) AS RowNumber, \n   b.BatchStatusId\n  FROM Invoice.Batch b \n  INNER JOIN Invoice.BatchStatus bs \n   ON b.BatchStatusId = bs.BatchStatusId \n  WHERE bs.BatchStatus NOT IN ('Complete', 'Error', 'Re-Ran')\n   AND b.BatchCategoryID = @BatchCategoryID\n ) x \n WHERE x.RowNumber = 1 \n  AND x.BatchStatusId = @ReadyBatchStatusID\n) \nBEGIN \n SET @Continue = 0\n\n EXEC GENERIC.Pr_UpdateEventLog\n  @EventTypeId,\n  @CriticalEventSeverityId,\n  @ModuleId,\n  'No records found to generate MedSupp Transcentra file.'\n \n EXEC GENERIC.Pr_UpdateEventLog\n  @EventTypeId,\n  @InfoEventSeverityId,\n  @ModuleId,\n  'Package MedSupp Billing batch- End'\nEND \n\nSELECT @Continue"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -4496,6 +4496,23 @@
                 }
               },
               "datasetParameters" : {
+                "DSTXLSFAMLINACTIVE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "SRCOLEDBFAMLINACTIVE" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBFAMLINACTIVE_TableName",
@@ -4511,23 +4528,6 @@
                   },
                   "FileName" : {
                     "value" : "SRC_OLEDB_FAML_INACTIVE",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "DSTXLSFAMLINACTIVE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : null,
                     "type" : "Expression"
                   },
                   "Directory" : {
@@ -4723,7 +4723,7 @@
               "typeProperties" : {
                 "scripts" : [ {
                   "type" : "Query",
-                  "text" : "UPDATE Invoice.Batch \nSET [FileName] = @BatchID\n WHERE BatchId = @ExtractFileName"
+                  "text" : "UPDATE Invoice.Batch \nSET [FileName] = @ExtractFileName\n WHERE BatchId = @BatchID"
                 } ],
                 "scriptBlockExecutionTimeout" : null
               }
@@ -4745,7 +4745,7 @@
               "typeProperties" : {
                 "scripts" : [ {
                   "type" : "Query",
-                  "text" : "SELECT FILENAME FROM INVOICE.BATCH\nWHERE BATCHID = @0"
+                  "text" : "SELECT FILENAME FROM INVOICE.BATCH\nWHERE BATCHID = @User::BatchID"
                 } ],
                 "scriptBlockExecutionTimeout" : null
               }
@@ -5055,13 +5055,13 @@
                         }
                       },
                       "datasetParameters" : {
-                        "SRCOLEDBPSDCNT" : {
+                        "SRCOLEDBTCFileDataBOSS" : {
                           "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_TableName",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_TableName",
                             "type" : "Expression"
                           },
                           "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_SchemaName",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_SchemaName",
                             "type" : "Expression"
                           },
                           "Container" : {
@@ -5069,28 +5069,11 @@
                             "type" : "Expression"
                           },
                           "FileName" : {
-                            "value" : "SRC_OLEDB_PSD_CNT",
+                            "value" : "SRC_OLEDB_TC File Data (BOSS)",
                             "type" : "Expression"
                           },
                           "Directory" : {
                             "value" : null,
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
-                        "FlatFileDestination" : {
-                          "TableName" : null,
-                          "Schema" : null,
-                          "Container" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","
@@ -5112,13 +5095,30 @@
                           },
                           "ColumnDelimiter" : ","
                         },
-                        "SRCOLEDBTCFileDataBOSS" : {
+                        "FlatFileDestination" : {
+                          "TableName" : null,
+                          "Schema" : null,
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "SRCOLEDBPSDCNT" : {
                           "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_TableName",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_TableName",
                             "type" : "Expression"
                           },
                           "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBTCFileDataBOSS_SchemaName",
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBPSDCNT_SchemaName",
                             "type" : "Expression"
                           },
                           "Container" : {
@@ -5126,7 +5126,7 @@
                             "type" : "Expression"
                           },
                           "FileName" : {
-                            "value" : "SRC_OLEDB_TC File Data (BOSS)",
+                            "value" : "SRC_OLEDB_PSD_CNT",
                             "type" : "Expression"
                           },
                           "Directory" : {
