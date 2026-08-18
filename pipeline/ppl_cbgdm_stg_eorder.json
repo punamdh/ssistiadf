@@ -343,23 +343,6 @@
                       },
                       "ColumnDelimiter" : ","
                     },
-                    "ReadfromEcomOrderLineFile" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
                     "ReadfromEcomOrderFile" : {
                       "TableName" : null,
                       "Schema" : null,
@@ -373,6 +356,23 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "ReadfromEcomOrderLineFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromEcomOrderLineFile_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -487,6 +487,54 @@
                 }
               } ]
             }, {
+              "name" : "Load_Stage_Ecom_Order_OrderLine_1_Rows_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Load_Stage_Ecom_Order_OrderLine_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_to_Stg_EOrder_Load_Stage_Ecom_Order_OrderLine_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsNotWrittenError",
+                "value" : "@int(activity('Load_Stage_Ecom_Order_OrderLine_1').output.runStatus.output.Rows_ErrorCACHESINK.value[0].rowCount)"
+              }
+            }, {
+              "name" : "Load_Stage_Ecom_Order_OrderLine_1_Rows_Read_No_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Load_Stage_Ecom_Order_OrderLine_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_to_Stg_EOrder_Load_Stage_Ecom_Order_OrderLine_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsReadNoError",
+                "value" : "@int(activity('Load_Stage_Ecom_Order_OrderLine_1').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+              }
+            }, {
               "name" : "GETMETADATA_ForEach_Source_File_Archive_file",
               "type" : "GetMetadata",
               "policy" : {
@@ -497,10 +545,10 @@
                 "secureInput" : false
               },
               "dependsOn" : [ {
-                "activity" : "Write_to_Error_Load_Stage_Ecom_Order_OrderLine_1",
+                "activity" : "Load_Stage_Ecom_Order_OrderLine_1_Rows_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               }, {
-                "activity" : "Write_to_Stg_EOrder_Load_Stage_Ecom_Order_OrderLine_1",
+                "activity" : "Load_Stage_Ecom_Order_OrderLine_1_Rows_Read_No_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
               "state" : null,

@@ -316,23 +316,6 @@
                 }
               },
               "datasetParameters" : {
-                "CustomersCSVERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "CustomersCSV" : {
                   "TableName" : null,
                   "Schema" : null,
@@ -346,6 +329,23 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSV_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "CustomersCSVERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.CustomersCSVERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -483,14 +483,89 @@
             }
           } ]
         }, {
-          "name" : "Get_Rows_Inserted_Updated_SCRIPT",
-          "type" : "Script",
-          "policy" : null,
+          "name" : "CSV_to_Database_1_RowsNotWrittenError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ {
             "activity" : "Customers_Table_CSV_to_Database_1",
             "dependencyConditions" : [ "Succeeded" ]
           }, {
             "activity" : "DataError_Table_CSV_to_Database_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsNotWrittenError",
+            "value" : "@int(activity('CSV_to_Database_1').output.runStatus.output.RowsNotWrittenErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "CSV_to_Database_1_RowsReadError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Customers_Table_CSV_to_Database_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "DataError_Table_CSV_to_Database_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadError",
+            "value" : "@int(activity('CSV_to_Database_1').output.runStatus.output.RowsReadErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "CSV_to_Database_1_RowsReadNoError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Customers_Table_CSV_to_Database_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "DataError_Table_CSV_to_Database_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadNoError",
+            "value" : "@int(activity('CSV_to_Database_1').output.runStatus.output.RowsReadNoErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Get_Rows_Inserted_Updated_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CSV_to_Database_1_RowsNotWrittenError",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "CSV_to_Database_1_RowsReadError",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "CSV_to_Database_1_RowsReadNoError",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,

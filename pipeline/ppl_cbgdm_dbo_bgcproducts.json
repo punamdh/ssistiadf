@@ -294,19 +294,25 @@
                 }
               },
               "datasetParameters" : {
-                "ProductsERROROUTPUTFILE" : {
-                  "TableName" : null,
-                  "Schema" : null,
+                "ProductsTable" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_ContainerName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_FileName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_FilePath",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -328,25 +334,19 @@
                   },
                   "ColumnDelimiter" : ","
                 },
-                "ProductsTable" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
+                "ProductsERROROUTPUTFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
                   "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_ContainerName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_ContainerName",
                     "type" : "Expression"
                   },
                   "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_FileName",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_FileName",
                     "type" : "Expression"
                   },
                   "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsTable_FilePath",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ProductsERROROUTPUTFILE_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -461,14 +461,89 @@
             }
           } ]
         }, {
-          "name" : "Get_Rows_Inserted_Updated_SCRIPT",
-          "type" : "Script",
-          "policy" : null,
+          "name" : "CSV_to_Database_RowsNotWrittenError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ {
             "activity" : "DataError_Table_CSV_to_Database",
             "dependencyConditions" : [ "Succeeded" ]
           }, {
             "activity" : "Products_Table_CSV_to_Database",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsNotWrittenError",
+            "value" : "@int(activity('CSV_to_Database').output.runStatus.output.RowsNotWrittenErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "CSV_to_Database_RowsReadError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DataError_Table_CSV_to_Database",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Products_Table_CSV_to_Database",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadError",
+            "value" : "@int(activity('CSV_to_Database').output.runStatus.output.RowsReadErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "CSV_to_Database_RowsReadNoError",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DataError_Table_CSV_to_Database",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Products_Table_CSV_to_Database",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadNoError",
+            "value" : "@int(activity('CSV_to_Database').output.runStatus.output.RowsReadNoErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Get_Rows_Inserted_Updated_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CSV_to_Database_RowsNotWrittenError",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "CSV_to_Database_RowsReadError",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "CSV_to_Database_RowsReadNoError",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,

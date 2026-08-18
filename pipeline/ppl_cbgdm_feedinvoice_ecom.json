@@ -425,6 +425,42 @@
                     "headers" : { }
                   }
                 }, {
+                  "name" : "Load_Target_Table_Shp_1_Rows_Read_No_Error",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "RowsReadNoError",
+                    "value" : "@int(activity('Load_Target_Table_Shp_1').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+                  }
+                }, {
+                  "name" : "Load_Target_Table_Tax_1_Rows_Read_No_Error",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "RowsReadNoError",
+                    "value" : "@int(activity('Load_Target_Table_Tax_1').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+                  }
+                }, {
                   "name" : "Truncate_Target_Table_SCRIPT",
                   "type" : "Script",
                   "policy" : null,
@@ -760,11 +796,35 @@
                     }
                   } ]
                 }, {
+                  "name" : "Load_Target_Table_Inv_1_Rows_Read_No_Error",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ {
+                    "activity" : "Load_Target_Table_Inv_101",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "RowsReadNoError",
+                    "value" : {
+                      "value" : "@int(activity('Load_Target_Table_Inv_101').output.rowsWritten)",
+                      "type" : "Expression"
+                    }
+                  }
+                }, {
                   "name" : "Load_Target_Table_Shp_10",
                   "type" : "ExecutePipeline",
                   "policy" : null,
                   "dependsOn" : [ {
-                    "activity" : "Load_Target_Table_Inv_101",
+                    "activity" : "Load_Target_Table_Inv_1_Rows_Read_No_Error",
                     "dependencyConditions" : [ "Succeeded" ]
                   } ],
                   "userProperties" : null,
@@ -801,7 +861,7 @@
                   "type" : "ExecutePipeline",
                   "policy" : null,
                   "dependsOn" : [ {
-                    "activity" : "Load_Target_Table_Inv_101",
+                    "activity" : "Load_Target_Table_Inv_1_Rows_Read_No_Error",
                     "dependencyConditions" : [ "Succeeded" ]
                   } ],
                   "userProperties" : null,
@@ -983,29 +1043,6 @@
                         }
                       },
                       "datasetParameters" : {
-                        "WritetoTarget" : {
-                          "TableName" : {
-                            "value" : null,
-                            "type" : "Expression"
-                          },
-                          "Schema" : {
-                            "value" : "dbo",
-                            "type" : "Expression"
-                          },
-                          "Container" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
                         "ReadfromSource" : {
                           "TableName" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
@@ -1025,6 +1062,29 @@
                           },
                           "Directory" : {
                             "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "WritetoTarget" : {
+                          "TableName" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "dbo",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoTarget_FilePath",
                             "type" : "Expression"
                           },
                           "ColumnDelimiter" : ","
@@ -1207,29 +1267,6 @@
                           },
                           "ColumnDelimiter" : ","
                         },
-                        "ReadfromSource" : {
-                          "TableName" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
-                            "type" : "Expression"
-                          },
-                          "Schema" : {
-                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
-                            "type" : "Expression"
-                          },
-                          "Container" : {
-                            "value" : "",
-                            "type" : "Expression"
-                          },
-                          "FileName" : {
-                            "value" : "Read from Source",
-                            "type" : "Expression"
-                          },
-                          "Directory" : {
-                            "value" : null,
-                            "type" : "Expression"
-                          },
-                          "ColumnDelimiter" : ","
-                        },
                         "LookupBCDivisionLKPTABLE" : {
                           "TableName" : {
                             "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupBCDivisionLKPTABLE_TableName",
@@ -1245,6 +1282,29 @@
                           },
                           "FileName" : {
                             "value" : "Lookup BC Division",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "ReadfromSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "Read from Source",
                             "type" : "Expression"
                           },
                           "Directory" : {
@@ -1681,6 +1741,23 @@
                     }
                   },
                   "datasetParameters" : {
+                    "ReadfromStgEcomInvoiceERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "ReadfromStgEcomInvoice" : {
                       "TableName" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoice_TableName",
@@ -1704,6 +1781,23 @@
                       },
                       "ColumnDelimiter" : ","
                     },
+                    "WritetoInvoiceFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "WritetoError" : {
                       "TableName" : {
                         "value" : "DataError",
@@ -1723,40 +1817,6 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoError_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "ReadfromStgEcomInvoiceERROROUTPUTFILE" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromStgEcomInvoiceERROROUTPUTFILE_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "WritetoInvoiceFile" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.WritetoInvoiceFile_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -1871,6 +1931,54 @@
                 }
               } ]
             }, {
+              "name" : "Generate_Invoice_File_1_Rows_Read_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Generate_Invoice_File_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_to_Invoice_File_Generate_Invoice_File_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsReadError",
+                "value" : "@int(activity('Generate_Invoice_File_1').output.runStatus.output.Rows_Read_ErrorCACHESINK.value[0].rowCount)"
+              }
+            }, {
+              "name" : "Generate_Invoice_File_1_Rows_Read_No_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Generate_Invoice_File_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_to_Invoice_File_Generate_Invoice_File_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsReadNoError",
+                "value" : "@int(activity('Generate_Invoice_File_1').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+              }
+            }, {
               "name" : "Move_Ecom_Feed_File_to_SFTP_Location",
               "type" : "AzureFunctionActivity",
               "policy" : {
@@ -1881,10 +1989,10 @@
                 "secureInput" : false
               },
               "dependsOn" : [ {
-                "activity" : "Write_to_Error_Generate_Invoice_File_1",
+                "activity" : "Generate_Invoice_File_1_Rows_Read_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               }, {
-                "activity" : "Write_to_Invoice_File_Generate_Invoice_File_1",
+                "activity" : "Generate_Invoice_File_1_Rows_Read_No_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
               "state" : "Inactive",

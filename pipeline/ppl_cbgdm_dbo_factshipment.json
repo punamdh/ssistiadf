@@ -266,29 +266,6 @@
                 }
               },
               "datasetParameters" : {
-                "ReadfromSource" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "Read from Source",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
                 "OLEDBDestination" : {
                   "TableName" : {
                     "value" : null,
@@ -308,6 +285,29 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "ReadfromSource" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "Read from Source",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -392,6 +392,29 @@
                 }
               },
               "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "ReadfromSource" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSource_TableName",
@@ -428,29 +451,6 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromSourceERROROUTPUTFILE_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : null,
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
@@ -669,20 +669,170 @@
             }
           } ]
         }, {
-          "name" : "Get_RowsInserted_SCRIPT",
-          "type" : "Script",
-          "policy" : null,
+          "name" : "Load_target_Table_-_NAV_Elite_Door_Rows_Not_Written_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ {
             "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_Elite_Door",
             "dependencyConditions" : [ "Succeeded" ]
           }, {
             "activity" : "Write_Data_Error_Load_target_Table_-_NAV_Elite_Door",
             "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsNotWrittenError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_Elite_Door').output.runStatus.output.Rows_Not_Written_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_Elite_Door_Rows_Read_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_Elite_Door",
+            "dependencyConditions" : [ "Succeeded" ]
           }, {
+            "activity" : "Write_Data_Error_Load_target_Table_-_NAV_Elite_Door",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_Elite_Door').output.runStatus.output.Rows_Read_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_Elite_Door_Rows_Read_No_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_Elite_Door",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Write_Data_Error_Load_target_Table_-_NAV_Elite_Door",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadNoError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_Elite_Door').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_National_Millwork_Rows_Not_Written_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
             "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_National_Millwork",
             "dependencyConditions" : [ "Succeeded" ]
           }, {
             "activity" : "Write_Data_Error_Load_target_Table_-_NAV_National_Millwork",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsNotWrittenError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_National_Millwork').output.runStatus.output.Rows_Not_Written_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_National_Millwork_Rows_Read_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_National_Millwork",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Write_Data_Error_Load_target_Table_-_NAV_National_Millwork",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_National_Millwork').output.runStatus.output.Rows_Read_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Load_target_Table_-_NAV_National_Millwork_Rows_Read_No_Error",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "OLE_DB_Destination_Load_target_Table_-_NAV_National_Millwork",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Write_Data_Error_Load_target_Table_-_NAV_National_Millwork",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RowsReadNoError",
+            "value" : "@int(activity('Load_target_Table_-_NAV_National_Millwork').output.runStatus.output.Rows_Read_No_ErrorCACHESINK.value[0].rowCount)"
+          }
+        }, {
+          "name" : "Get_RowsInserted_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Load_target_Table_-_NAV_Elite_Door_Rows_Not_Written_Error",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Load_target_Table_-_NAV_Elite_Door_Rows_Read_Error",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Load_target_Table_-_NAV_Elite_Door_Rows_Read_No_Error",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Load_target_Table_-_NAV_National_Millwork_Rows_Not_Written_Error",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Load_target_Table_-_NAV_National_Millwork_Rows_Read_Error",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "Load_target_Table_-_NAV_National_Millwork_Rows_Read_No_Error",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,

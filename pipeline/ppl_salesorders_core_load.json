@@ -181,29 +181,6 @@
             }
           },
           "datasetParameters" : {
-            "ODataSource" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OData Source",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "SalesOrders",
@@ -223,6 +200,29 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "ODataSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ODataSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OData Source",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -285,11 +285,56 @@
         }
       } ]
     }, {
+      "name" : "Data_Flow_Task_39_DEST_OLE_DB_Destination",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_3901",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varSSISOps_0FF63745B5EA43FD9D222B8065AB2FA1_RowCount_2",
+        "value" : "@int(activity('Data_Flow_Task_39').output.runStatus.output.DEST_OLE_DB_DestinationCACHESINK.value[0].rowCount)"
+      }
+    }, {
+      "name" : "Data_Flow_Task_39_SRC_OData_Source",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_3901",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varSSISOps_0FF63745B5EA43FD9D222B8065AB2FA1_RowCount_1",
+        "value" : "@int(activity('Data_Flow_Task_39').output.runStatus.output.SRC_OData_SourceCACHESINK.value[0].rowCount)"
+      }
+    }, {
       "name" : "Close_Batch_Interface_Package_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Data_Flow_Task_3901",
+        "activity" : "Data_Flow_Task_39_DEST_OLE_DB_Destination",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Data_Flow_Task_39_SRC_OData_Source",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,

@@ -554,6 +554,23 @@
                       },
                       "ColumnDelimiter" : ","
                     },
+                    "ReadfromARAgilitycsvERROROUTPUTFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
                     "WriteToStgARAgility" : {
                       "TableName" : {
                         "value" : null,
@@ -573,23 +590,6 @@
                       },
                       "Directory" : {
                         "value" : "@activity('LKP_Fetch_Param').output.firstRow.WriteToStgARAgility_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "ReadfromARAgilitycsvERROROUTPUTFILE" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.ReadfromARAgilitycsvERROROUTPUTFILE_FilePath",
                         "type" : "Expression"
                       },
                       "ColumnDelimiter" : ","
@@ -704,6 +704,87 @@
                 }
               } ]
             }, {
+              "name" : "Load_Target_Table_4_Rows_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_To_Stg_ARAgility_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsNotWrittenError",
+                "value" : {
+                  "value" : "@int(activity('Write_To_Stg_ARAgility_Load_Target_Table_4').output.rowsWritten)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Load_Target_Table_4_Rows_Read_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_To_Stg_ARAgility_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsReadError",
+                "value" : {
+                  "value" : "@int(activity('Write_To_Stg_ARAgility_Load_Target_Table_4').output.rowsWritten)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "Load_Target_Table_4_Rows_Read_No_Error",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Write_to_Error_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Write_To_Stg_ARAgility_Load_Target_Table_4",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "RowsReadNoError",
+                "value" : {
+                  "value" : "@int(activity('Write_To_Stg_ARAgility_Load_Target_Table_4').output.rowsWritten)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
               "name" : "COPYDATA_Create_Archive_Folder",
               "type" : "Copy",
               "policy" : {
@@ -714,10 +795,13 @@
                 "secureInput" : false
               },
               "dependsOn" : [ {
-                "activity" : "Write_to_Error_Load_Target_Table_4",
+                "activity" : "Load_Target_Table_4_Rows_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               }, {
-                "activity" : "Write_To_Stg_ARAgility_Load_Target_Table_4",
+                "activity" : "Load_Target_Table_4_Rows_Read_Error",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "Load_Target_Table_4_Rows_Read_No_Error",
                 "dependencyConditions" : [ "Succeeded" ]
               } ],
               "state" : null,
