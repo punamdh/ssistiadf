@@ -5,11 +5,17 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "Elevance_Punam/PACKAGES"
+      "name" : "Elevance_Punam/"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPforCIDLKPTABLE",
         "dataset" : {
           "referenceName" : "Generic_OLEDB_DS_SRC",
           "type" : "DatasetReference"
@@ -21,9 +27,25 @@
           "type" : "DatasetReference"
         },
         "name" : "FlatFileDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tBUS_PATH_FINAL as string (),\n\tEmail_CC as string (),\n\tEmail_From as string (),\n\tEmail_To as string (),\n\tfile_name as string (),\n\tfile_name_final as string (),\n\tFile_path as string (),\n\tInstance_Name as string (),\n\tORA_Password as string (),\n\tORA_Server as string (),\n\tORA_Username as string (),\n\tOUT_FILE as string (),\n\tSMTP_Connection as string (),\n\tTable_data_Summary as string (),\n\tV_ERR_EXISTS as integer ()\n}\n\nsource(output(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select  \\'@pRECTYPE=\"SBSB\",\\' ||  (\\'@pSBSB_ID=\"\\' || SBSB_ID || \\'\",\\') || \\'@pSBSB_FAM_UPDATE_CD=\"UP\",\\' || (\\'@pGRGR_ID=\"\\' || GRGR_ID || \\'\"\\') || chr(13) || chr(10) || \\'@pRECTYPE=\"SBSR\",\\' || \\'@pSBSR_UPDATE_CD=\"UP\",\\' || (\\'@pSBSR_TYPE=\"\\' || SBSR_TYPE || \\'\",\\') || (\\'@pPDPD_ID=\"\\' || PDPD_ID || \\'\",\\') || (\\'@pPDBL_ID=\"\\' || PDBL_ID || \\'\",\\') || (\\'@pPDRT_TYPE=\"\\' || PDRT_TYPE || \\'\",\\') || (\\'@pSBSR_EFF_DT=\"\\' || TO_CHAR( SBSR_EFF_DT, \\'MM/DD/YYYY\\') || \\'\",\\') || (\\'@pSBSR_TERM_DT=\"\\' || SBSR_TERM_DT ||\\'\"\\') as data1 from AGP.BFI_LIS_UPD_RECORD_STG where curr_status=\\'I\\' order by SBSB_ID, SBSR_EFF_DT',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDATA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATA1)) ~> FlatFileDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "LKPforCID"
+      }, {
+        "name" : "LKPforCIDIsMatch"
+      }, {
+        "name" : "LKPforCIDREFORMAT"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tCONCEPT as integer (),\n\tCurrentFileName as string (),\n\tDataSource as string (),\n\tDB as string (),\n\tDestVariable as string (),\n\tErrorFolder as string (),\n\tExcel as string (),\n\tPWD as string (),\n\tRowcount as integer (),\n\tSrcFolder as string (),\n\tUser_ID as string ()\n}\n\nsource(output(\n\t\tMEMBERNUMBER as string,\n\t\tVALUE as string,\n\t\tLAST_NAME as string,\n\t\tFIRST_NAME as string,\n\t\tAGE as string,\n\t\tADDRESS as string,\n\t\tCITY as string,\n\t\tCOUNTY as string,\n\t\tSTATE as string,\n\t\tZIP as string,\n\t\tPHONE as string,\n\t\tPLAN as string,\n\t\tPRODUCT as string,\n\t\tPOPCATEGORYCODE as string,\n\t\tGRGR_CK as string,\n\t\tGRGR_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\tsource(output(\n\t\tsubscriber_id as string,\n\t\tcid as integer,\n\t\tgroup_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT        subscriber_id, cid,group_id  FROM            CKOLTP.MEMBER_COVERAGE WITH (NOLOCK)',\n\tformat: 'query',\n\tstaged:false) ~> LKPforCIDLKPTABLE\nExcelSource derive(CONCEPT_ID = $CONCEPT,\n\t\tUPDATE_DATE = toDate(toString((substring(toString($CurrentFileName), toInteger(16), toInteger(4)) + '-' + substring(toString($CurrentFileName), toInteger(20), toInteger(2)) + '-' + substring(toString($CurrentFileName), toInteger(22), toInteger(2))), 'MM/dd/yyyy'), \"MM/dd/yyyy\"),\n\t\tSYSTEM_DATE = notConvertedectfunctiondategetdatef(),\n\t\tSOURCE_NAME = 'FAST TRACK DUALS',\n\t\tMEMBERNUMBER = iif(substring(toString(reverse(MEMBERNUMBER)), toInteger(1), toInteger(2)) == '00', reverse(substring(toString(reverse(MEMBERNUMBER)), toInteger(3), toInteger(100))), MEMBERNUMBER)) ~> DerivedColumn\nDerivedColumn,LKPforCIDLKPTABLE lookup(GRGR_ID == group_id && MEMBERNUMBER == subscriber_id,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPforCID\nLKPforCID split(isMatch(), disjoint: true) ~> LKPforCIDIsMatch@(Match,NotMatch)\nLKPforCIDIsMatch@NotMatch select(mapColumn(\n\t\tCID = cid,\n\t\tCONCEPT_ID = CONCEPT_ID,\n\t\tUPDATE_DATE = UPDATE_DATE,\n\t\tSYSTEM_DATE = SYSTEM_DATE,\n\t\tSOURCE_NAME = SOURCE_NAME,\n\t\tMEMBERNUMBER = MEMBERNUMBER,\n\t\tVALUE = VALUE,\n\t\tLAST_NAME = LAST_NAME,\n\t\tFIRST_NAME = FIRST_NAME,\n\t\tAGE = AGE,\n\t\tADDRESS = ADDRESS,\n\t\tCITY = CITY,\n\t\tCOUNTY = COUNTY,\n\t\tSTATE = STATE,\n\t\tZIP = ZIP,\n\t\tPHONE = PHONE,\n\t\tPLAN = PLAN,\n\t\tPRODUCT = PRODUCT,\n\t\tPOPCATEGORYCODE = POPCATEGORYCODE,\n\t\tGRGR_CK = GRGR_CK,\n\t\tGRGR_ID = GRGR_ID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPforCIDREFORMAT\nLKPforCIDIsMatch@NotMatch sink(input(\n\t\tZIP as string,\n\t\tGRGR_CK as string,\n\t\tPHONE as string,\n\t\tMEMBERNUMBER as string,\n\t\tSTATE as string,\n\t\tVALUE as string,\n\t\tLAST_NAME as string,\n\t\tPLAN as string,\n\t\tFIRST_NAME as string,\n\t\tGRGR_ID as string,\n\t\tCITY as string,\n\t\tPRODUCT as string,\n\t\tADDRESS as string,\n\t\tPOPCATEGORYCODE as string,\n\t\tAGE as string,\n\t\tCOUNTY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tZIP,\n\t\tGRGR_CK,\n\t\tPHONE,\n\t\tMEMBERNUMBER,\n\t\tSTATE,\n\t\tVALUE,\n\t\tLAST_NAME,\n\t\tPLAN,\n\t\tFIRST_NAME,\n\t\tGRGR_ID,\n\t\tCITY,\n\t\tPRODUCT,\n\t\tADDRESS,\n\t\tPOPCATEGORYCODE,\n\t\tAGE,\n\t\tCOUNTY)) ~> FlatFileDestination\nLKPforCIDREFORMAT derive(SUBSCRIBER_ID = toString(MEMBERNUMBER),\n\t\tCONCEPT_VALUE = toString(VALUE),\n\t\tSOURCE_NAME = toString(SOURCE_NAME)) ~> DataConversion\nDataConversion sink(input(\n\t\tSYSTEM_DATE as timestamp 'dd-MM-yyyy',\n\t\tCONCEPT_ID as integer,\n\t\tUPDATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tSOURCE_NAME as string,\n\t\tCONCEPT_VALUE as string,\n\t\tSUBSCRIBER_ID as string,\n\t\tCID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSYSTEM_DATE,\n\t\tCONCEPT_ID,\n\t\tUPDATE_DATE,\n\t\tSOURCE_NAME,\n\t\tCONCEPT_VALUE,\n\t\tSUBSCRIBER_ID,\n\t\tCID)) ~> OLEDBDestination"
     }
   }
 }
