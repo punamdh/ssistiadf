@@ -1,0 +1,262 @@
+{
+  "name" : "ppl_moc_hra_populate_queue",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_PR_MOC_HRA_POPULATE_QUEUE_STAGE__CAREADVANCE_DM_UTIL__SchemaName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table') AS EXEC_PR_MOC_HRA_POPULATE_QUEUE_STAGE__CAREADVANCE_DM_UTIL__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'EXEC_PR_MOC_HRA_POPULATE_QUEUE_STAGE__CAREADVANCE_DM_UTIL__TableName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table') AS EXEC_PR_MOC_HRA_POPULATE_QUEUE_STAGE__CAREADVANCE_DM_UTIL__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__ContainerName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table') AS INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__FileName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table') AS INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__FilePath' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table') AS INSERT_INTO_MOC_HRA_QUEUE_STAGE__CAE_OLTP_UTIL__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_Table01_source_ContainerName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table01') AS Load_Staging_Table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_Table01_source_FileName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table01') AS Load_Staging_Table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_Table01_source_FilePath' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table01') AS Load_Staging_Table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_Table01_sink_SchemaName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table01') AS Load_Staging_Table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Staging_Table01_sink_TableName' AND PIPELINE_NAME = 'MOC_HRA_POPULATE_QUEUE' AND DATAFLOW_NAME = 'Load_Staging_Table01') AS Load_Staging_Table01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Truncate_Stage_Table_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE [APP_CPLS].[MOC_HRA_QUEUE_STAGE];"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_Staging_Table0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Truncate_Stage_Table_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Load_Staging_Table"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Load_Staging_Table",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Staging_Table0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "EXEC [APP_RPTS].[PR_MOC_HRA_POPULATE_QUEUE_STAGE] WITH RESULT SETS (( CID_OLD INT, CID_NEW INT, INITIAL_QUEUE_ID INT, REASSESS_QUEUE_ID INT, ACTION_TYPE VARCHAR(25), DUE_DATE DATE, STAGE_LOAD_DATE DATETIME ))"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Load_Staging_Table01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Staging_Table",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Staging_Table01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Load_Queue_Tables_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Staging_Table01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [APP_CPLS].[PR_MOC_HRA_POPULATE_QUEUE];"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DM_UTIL_Server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_DWA1\\\\DWA1D'"
+      },
+      "DM_UTIL_User" : {
+        "type" : "string",
+        "defaultValue" : "'APP_RPTS'"
+      },
+      "OLTP_Password" : {
+        "type" : "string",
+        "defaultValue" : "'App_69!s'"
+      },
+      "OLTP_Database" : {
+        "type" : "string",
+        "defaultValue" : "'CAE_OLTP_UTIL6D'"
+      },
+      "OLTP_Server" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CAEOLTP1\\\\CAEOLTP1D'"
+      },
+      "DM_UTIL_Database" : {
+        "type" : "string",
+        "defaultValue" : "'CAREADVANCE_DM_UTIL'"
+      },
+      "DM_UTIL_Password" : {
+        "type" : "string",
+        "defaultValue" : "'rpt5_d3v!!'"
+      },
+      "OLTP_User" : {
+        "type" : "string",
+        "defaultValue" : "'APP_CPLS'"
+      }
+    }
+  }
+}

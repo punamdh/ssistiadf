@@ -1,0 +1,29 @@
+{
+  "name" : "generate_error_out_file_if_exists",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tHEALTHLINK_DATASOURCE as string (),\n\tHEALTHLINK_DB as string (),\n\tHEALTHLINK_PWD as string (),\n\tHEALTHLINK_USER as string (),\n\tv_createUserID as integer (),\n\tv_fileExists as boolean (),\n\tv_log_EventDate as string (),\n\tv_outreachFileFolder as string (),\n\tv_outreachFileName as string (),\n\tv_processedFileFolder as string ()\n}\n\nsource(output(\n\t\tContactSource as string,\n\t\tTopicsCovered as string,\n\t\tSubscriberID as string,\n\t\tRemarks as string,\n\t\tLoadDate as timestamp,\n\t\tContactDate as timestamp,\n\t\tNotes as string,\n\t\tContactSourceType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from [member].[PHLOutreachErrorOutRecords]',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tContact_Source as string,\n\t\tTopics_Covered as string,\n\t\tSubscriber_ID as string,\n\t\tRemarks as string,\n\t\tCreateDate as date 'dd-MM-yyyy',\n\t\tContact_Date as date 'dd-MM-yyyy',\n\t\tNotes as string,\n\t\tContact_Source_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tContact_Source = ContactSource,\n\t\tTopics_Covered = TopicsCovered,\n\t\tSubscriber_ID = SubscriberID,\n\t\tRemarks,\n\t\tCreateDate = LoadDate,\n\t\tContact_Date = ContactDate,\n\t\tNotes,\n\t\tContact_Source_Type = ContactSourceType)) ~> FlatFileDestination"
+    }
+  }
+}

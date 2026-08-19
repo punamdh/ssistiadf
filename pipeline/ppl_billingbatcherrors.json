@@ -1,0 +1,832 @@
+{
+  "name" : "ppl_billingbatcherrors",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ArchDelDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ArchDelDate",
+        "value" : {
+          "value" : "@addDays(variables('BatchDt'), -90)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "BatchDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BatchDate",
+        "value" : {
+          "value" : "@addDays(variables('BatchDt'), -1)",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleArch",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleArch",
+        "value" : {
+          "value" : "@concat('\"INSERT INTO agp.billing_err_log_Arch\nSELECT \n   RUN_DATE,\n   BATCHI_ID,\n   FACETS_ERROR,\n   RETURN_CODE,\n   ERROR_CODE,\n   ERROR_MESSAGE,\n   SOLUTION\nFROM AGP.billing_err_log WHERE RUN_DATE <TO_DATE(''\"', string(variables('BatchDate')), ''', ''mm/dd/yyyy HH:MI:SS AM'') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleDeleteArch",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleDeleteArch",
+        "value" : {
+          "value" : "@concat('DELETE FROM agp.billing_err_log_arch WHERE  RUN_DATE < TO_DATE(''', string(variables('ArchDelDate')), ''', ''mm/dd/yyyy HH:MI:SS AM'')')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_OracleDeleteStage",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_OracleDeleteStage",
+        "value" : {
+          "value" : "@concat('DELETE FROM AGP.billing_err_log  WHERE RUN_DATE <TO_DATE(''', string(variables('BatchDate')), ''', ''mm/dd/yyyy HH:MI:SS AM'') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "OraStageQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "OraStageQuery",
+        "value" : {
+          "value" : "@concat('\"WITH LOAD_ERR\n     AS (SELECT                                              \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                 \"', string(variables('BatchId')), '\"   AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 3 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                               \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"   AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 4 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                               \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"   AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 5 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                               \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"   AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 6 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                             \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"  AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 7 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                              \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"   AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 8 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         UNION\n         SELECT                                               \n                DISTINCT\n                A.ID AS ID1,\n                D.ID AS ID2,\n                TO_DATE (''\"', string(variables('BatchDate')), '\"'',\n                         ''mm/dd/yyyy'')\n                   AS RUN_DATE,\n                \"', string(variables('BatchId')), '\"  AS BATCH_ID,\n                A.ERR_DATA AS FACETS_ERROR,\n                B.ERR_DATA AS RETURN_CODE,\n                C.ERR_DATA AS ERROR_CODE,\n                D.ERR_DATA AS ERROR_MESSAGE\n           FROM AGP.LOAD_ERR_FILE A\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 9 = D.ID\n          WHERE A.ERR_DATA LIKE ''Facets - Error:%''\n         ORDER BY 1, 2),\n     LOAD_LOG\n     AS (  SELECT                                          \n                 ID1,\n                  RUN_DATE,\n                  BATCH_ID,\n                  FACETS_ERROR,\n                  RETURN_CODE,\n                  ERROR_CODE,\n                  LISTAGG (ERROR_MESSAGE, '' '') WITHIN GROUP (ORDER BY ID2)\n                     AS ERROR_MESSAGE\n             FROM LOAD_ERR\n         GROUP BY ID1,\n                  RUN_DATE,\n                  FACETS_ERROR,\n                  RETURN_CODE,\n                  ERROR_CODE,\n                  BATCH_ID)\nSELECT                                                       \n      ID1,\n       RUN_DATE,\n       FACETS_ERROR,\n       RETURN_CODE,\n       ERROR_CODE,\n       CASE\n          WHEN SUBSTR (ERROR_MESSAGE,\n                       1,\n                       (INSTR (ERROR_MESSAGE, ''Solution:'', 1)) - 1)\n                  IS NULL\n          THEN\n             ERROR_MESSAGE\n          ELSE\n             SUBSTR (ERROR_MESSAGE,\n                     1,\n                     (INSTR (ERROR_MESSAGE, ''Solution:'', 1)) - 1)\n       END\n          AS ERR_MESSAGE,\n       BATCH_ID\n  FROM LOAD_LOG\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "VarFilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VarFilePath",
+        "value" : {
+          "value" : "@concat(variables('VarFolderPath'), 'ercmcrunbil0_', string(variables('SYIN_INST')), '\\\\log\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "VarForLoopQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VarForLoopQuery",
+        "value" : {
+          "value" : "@concat('\"SELECT COUNT(*)  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = ''FA'' AND PZAP_APP_ID = ''BIL0'' AND SYIN_STS = ''C'' \nAND SYIN_DESC = ''Batch Premium Billing Processi'' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,''MM/DD/YYYY''),''MM/DD/YYYY'')= TO_DATE(''\"', string(variables('BatchDate')), ''',''mm/dd/yyyy'') ')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "VarSYIN_INST",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VarSYIN_INST",
+        "value" : {
+          "value" : "@concat('\"SELECT SYIN_INST  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = ''FA'' AND PZAP_APP_ID = ''BIL0'' AND SYIN_STS = ''C'' \nAND SYIN_DESC = ''Batch Premium Billing Processi'' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,''MM/DD/YYYY''),''MM/DD/YYYY'')= TO_DATE(''\"', string(variables('BatchDate')), '\"'',''mm/dd/yyyy'')   AND SYIN_INST NOT IN (SELECT * FROM AGP.SYIN_INST) AND ROWNUM=1\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Ora_Src_SchemaName' AND PIPELINE_NAME = 'BillingBatchErrors' AND DATAFLOW_NAME = 'DFT_LOAD_ERRLOG_TO_STG') AS Ora_Src_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Ora_Src_TableName' AND PIPELINE_NAME = 'BillingBatchErrors' AND DATAFLOW_NAME = 'DFT_LOAD_ERRLOG_TO_STG') AS Ora_Src_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "VarSYIN_INST",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ArchDelDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "BatchDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleArch",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleDeleteArch",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_OracleDeleteStage",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "OraStageQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "VarFilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "VarForLoopQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "Exec INVOICE.[Pr_TCCreateBatch] @BatchDate"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_CREATE_BATCH_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "BatchId",
+        "value" : "@activity('SQL_CREATE_BATCH_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "SEQ_TRUNCATE_TABLES",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_CREATE_BATCH_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_TRNC_LOAD_ERR_FILE_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM AGP.LOAD_ERR_FILE\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_TRNC_SYIN_INST_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_TRNC_LOAD_ERR_FILE_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE FROM AGP.SYIN_INST"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_TRUNCATE_TBL0_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_TRNC_SYIN_INST_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE INVOICE.LOAD_ERR_FILE"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_SYIN_INST_CNT_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SEQ_TRUNCATE_TABLES",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "VarForLoopQuery"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SQL_SYIN_INST_CNT_VA_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SQL_SYIN_INST_CNT_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "VarForLoopCount",
+        "value" : "@activity('SQL_SYIN_INST_CNT_SCRIPT').output.resultSets[0].rows[0][0]"
+      }
+    }, {
+      "name" : "IFACTIVITY_FL_LOAD_ERR_FILES_UNTIL",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_SYIN_INST_CNT_VA_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FL_LOAD_ERR_FILES_UNTIL",
+          "type" : "Until",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : null,
+            "timeout" : "0.12:00:00",
+            "activities" : [ ]
+          }
+        } ]
+      }
+    }, {
+      "name" : "DFT_LOAD_ERRLOG_TO_STG0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_FL_LOAD_ERR_FILES_UNTIL",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "DFT_LOAD_ERRLOG_TO_STG"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "DFT_LOAD_ERRLOG_TO_STG",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_LOAD_ERRLOG_TO_STG0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "dft_load_errlog_to_stg",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "gv_OraclePassword" : {
+              "type" : "Expression",
+              "value" : "'yeL0wp#n'"
+            },
+            "Variable" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "ArchDelDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('11/29/2017')"
+            },
+            "gv_OracleDeleteArch" : {
+              "type" : "Expression",
+              "value" : "'DELETE FROM agp.billing_err_log_arch WHERE  RUN_DATE < TO_DATE('11/29/2017', 'mm/dd/yyyy HH:MI:SS AM')'"
+            },
+            "VarFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\apps\\\\Facets\\\\Dev\\\\TZG\\\\Logs\\\\FAC6D\\\\ercmcrunbil0_0\\\\log\\\\'"
+            },
+            "strInitialCatalog" : {
+              "type" : "Expression",
+              "value" : "'BOSS'"
+            },
+            "strPassword" : {
+              "type" : "Expression",
+              "value" : "'0s-dyekDSD40Jg'"
+            },
+            "gv_OracleUserID" : {
+              "type" : "Expression",
+              "value" : "'AGP'"
+            },
+            "Variable1" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "gv_OracleArch" : {
+              "type" : "Expression",
+              "value" : "'INSERT INTO agp.billing_err_log_Arch SELECT     RUN_DATE,    BATCHI_ID,    FACETS_ERROR,    RETURN_CODE,    ERROR_CODE,    ERROR_MESSAGE,    SOLUTION FROM AGP.billing_err_log WHERE RUN_DATE <TO_DATE('2/26/2018', 'mm/dd/yyyy HH:MI:SS AM') '"
+            },
+            "gv_OracleDeleteStage" : {
+              "type" : "Expression",
+              "value" : "'DELETE FROM AGP.billing_err_log  WHERE RUN_DATE <TO_DATE('2/26/2018', 'mm/dd/yyyy HH:MI:SS AM') '"
+            },
+            "ForLoop" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "BatchId" : {
+              "type" : "Expression",
+              "value" : "2828"
+            },
+            "strDataSource" : {
+              "type" : "Expression",
+              "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+            },
+            "SYIN_INST" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "VarFileName" : {
+              "type" : "Expression",
+              "value" : "'BILL_3500_1000_1_1.err'"
+            },
+            "gv_SqlServerProvider" : {
+              "type" : "Expression",
+              "value" : "'SQLOLEDB.1'"
+            },
+            "VarSYIN_INST" : {
+              "type" : "Expression",
+              "value" : "'SELECT SYIN_INST  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = 'FA' AND PZAP_APP_ID = 'BIL0' AND SYIN_STS = 'C'  AND SYIN_DESC = 'Batch Premium Billing Processi' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,'MM/DD/YYYY'),'MM/DD/YYYY')= TO_DATE('2/26/2018','mm/dd/yyyy')   AND SYIN_INST NOT IN (SELECT * FROM AGP.SYIN_INST) AND ROWNUM=1 '"
+            },
+            "OraStageQuery" : {
+              "type" : "Expression",
+              "value" : "'WITH LOAD_ERR      AS (SELECT                                                               DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                  2828   AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 3 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                                DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828   AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 4 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                                DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828   AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 5 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                                DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828   AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 6 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                              DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828  AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 7 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                               DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828   AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 8 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          UNION          SELECT                                                                DISTINCT                 A.ID AS ID1,                 D.ID AS ID2,                 TO_DATE ('2/26/2018',                          'mm/dd/yyyy')                    AS RUN_DATE,                 2828  AS BATCH_ID,                 A.ERR_DATA AS FACETS_ERROR,                 B.ERR_DATA AS RETURN_CODE,                 C.ERR_DATA AS ERROR_CODE,                 D.ERR_DATA AS ERROR_MESSAGE            FROM AGP.LOAD_ERR_FILE A                 JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID                 JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID                 JOIN AGP.LOAD_ERR_FILE D ON A.ID + 9 = D.ID           WHERE A.ERR_DATA LIKE 'Facets - Error:%'          ORDER BY 1, 2),      LOAD_LOG      AS (  SELECT                                                            ID1,                   RUN_DATE,                   BATCH_ID,                   FACETS_ERROR,                   RETURN_CODE,                   ERROR_CODE,                   LISTAGG (ERROR_MESSAGE, ' ') WITHIN GROUP (ORDER BY ID2)                      AS ERROR_MESSAGE              FROM LOAD_ERR          GROUP BY ID1,                   RUN_DATE,                   FACETS_ERROR,                   RETURN_CODE,                   ERROR_CODE,                   BATCH_ID) SELECT                                                              ID1,        RUN_DATE,        FACETS_ERROR,        RETURN_CODE,        ERROR_CODE,        CASE           WHEN SUBSTR (ERROR_MESSAGE,                        1,                        (INSTR (ERROR_MESSAGE, 'Solution:', 1)) - 1)                   IS NULL           THEN              ERROR_MESSAGE           ELSE              SUBSTR (ERROR_MESSAGE,                      1,                      (INSTR (ERROR_MESSAGE, 'Solution:', 1)) - 1)        END           AS ERR_MESSAGE,        BATCH_ID   FROM LOAD_LOG'"
+            },
+            "strUserName" : {
+              "type" : "Expression",
+              "value" : "'APP_BOSS'"
+            },
+            "gv_strOracleDS" : {
+              "type" : "Expression",
+              "value" : "'GBFAC06D'"
+            },
+            "BatchDt" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('2/27/2018')"
+            },
+            "VarForLoopQuery" : {
+              "type" : "Expression",
+              "value" : "'SELECT COUNT(*)  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = 'FA' AND PZAP_APP_ID = 'BIL0' AND SYIN_STS = 'C'  AND SYIN_DESC = 'Batch Premium Billing Processi' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,'MM/DD/YYYY'),'MM/DD/YYYY')= TO_DATE('2/26/2018','mm/dd/yyyy') '"
+            },
+            "gv_OracleProvider" : {
+              "type" : "Expression",
+              "value" : "'OraOLEDB.Oracle.1'"
+            },
+            "VarFolderPath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\apps\\\\Facets\\\\Dev\\\\TZG\\\\Logs\\\\FAC6D\\\\'"
+            },
+            "VarForLoopCount" : {
+              "type" : "Expression",
+              "value" : "0"
+            },
+            "BatchDate" : {
+              "type" : "Expression",
+              "value" : "toTimestamp('2/26/2018')"
+            }
+          },
+          "datasetParameters" : {
+            "OraSrc" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OraSrc_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OraSrc_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Ora_Src",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OraDest" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "SQL_Archive_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_LOAD_ERRLOG_TO_STG",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "gv_OracleArch"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ORA_DELETE_FROM_STAGING_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_Archive_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "gv_OracleDeleteStage"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ORA_DELETE_FROM_ARCH_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ORA_DELETE_FROM_STAGING_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "gv_OracleDeleteArch"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#n'"
+      },
+      "ArchDelDate" : {
+        "type" : "string",
+        "defaultValue" : "'11/29/2017'"
+      },
+      "gv_OracleDeleteArch" : {
+        "type" : "string",
+        "defaultValue" : "'DELETE FROM agp.billing_err_log_arch WHERE  RUN_DATE < TO_DATE('11/29/2017', 'mm/dd/yyyy HH:MI:SS AM')'"
+      },
+      "VarFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Facets\\\\Dev\\\\TZG\\\\Logs\\\\FAC6D\\\\ercmcrunbil0_0\\\\log\\\\'"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_OracleArch" : {
+        "type" : "string",
+        "defaultValue" : "'INSERT INTO agp.billing_err_log_Arch\\nSELECT \\n   RUN_DATE,\\n   BATCHI_ID,\\n   FACETS_ERROR,\\n   RETURN_CODE,\\n   ERROR_CODE,\\n   ERROR_MESSAGE,\\n   SOLUTION\\nFROM AGP.billing_err_log WHERE RUN_DATE <TO_DATE('2/26/2018', 'mm/dd/yyyy HH:MI:SS AM')'"
+      },
+      "gv_OracleDeleteStage" : {
+        "type" : "string",
+        "defaultValue" : "'DELETE FROM AGP.billing_err_log  WHERE RUN_DATE <TO_DATE('2/26/2018', 'mm/dd/yyyy HH:MI:SS AM')'"
+      },
+      "ForLoop" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BatchId" : {
+        "type" : "Integer",
+        "defaultValue" : "2828"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "SYIN_INST" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "VarFileName" : {
+        "type" : "string",
+        "defaultValue" : "'BILL_3500_1000_1_1.err'"
+      },
+      "gv_SqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLOLEDB.1'"
+      },
+      "VarSYIN_INST" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT SYIN_INST  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = 'FA' AND PZAP_APP_ID = 'BIL0' AND SYIN_STS = 'C' \\nAND SYIN_DESC = 'Batch Premium Billing Processi' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,'MM/DD/YYYY'),'MM/DD/YYYY')= TO_DATE('2/26/2018','mm/dd/yyyy')   AND SYIN_INST NOT IN (SELECT * FROM AGP.SYIN_INST) AND ROWNUM=1'"
+      },
+      "OraStageQuery" : {
+        "type" : "string",
+        "defaultValue" : "'WITH LOAD_ERR\\n     AS (SELECT                                              \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                 2828   AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 3 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                               \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828   AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 4 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                               \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828   AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 5 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                               \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828   AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 6 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                             \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828  AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 7 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                              \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828   AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 8 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         UNION\\n         SELECT                                               \\n                DISTINCT\\n                A.ID AS ID1,\\n                D.ID AS ID2,\\n                TO_DATE ('2/26/2018',\\n                         'mm/dd/yyyy')\\n                   AS RUN_DATE,\\n                2828  AS BATCH_ID,\\n                A.ERR_DATA AS FACETS_ERROR,\\n                B.ERR_DATA AS RETURN_CODE,\\n                C.ERR_DATA AS ERROR_CODE,\\n                D.ERR_DATA AS ERROR_MESSAGE\\n           FROM AGP.LOAD_ERR_FILE A\\n                JOIN AGP.LOAD_ERR_FILE B ON A.ID + 1 = B.ID\\n                JOIN AGP.LOAD_ERR_FILE C ON A.ID + 2 = C.ID\\n                JOIN AGP.LOAD_ERR_FILE D ON A.ID + 9 = D.ID\\n          WHERE A.ERR_DATA LIKE 'Facets - Error:%'\\n         ORDER BY 1, 2),\\n     LOAD_LOG\\n     AS (  SELECT                                          \\n                 ID1,\\n                  RUN_DATE,\\n                  BATCH_ID,\\n                  FACETS_ERROR,\\n                  RETURN_CODE,\\n                  ERROR_CODE,\\n                  LISTAGG (ERROR_MESSAGE, ' ') WITHIN GROUP (ORDER BY ID2)\\n                     AS ERROR_MESSAGE\\n             FROM LOAD_ERR\\n         GROUP BY ID1,\\n                  RUN_DATE,\\n                  FACETS_ERROR,\\n                  RETURN_CODE,\\n                  ERROR_CODE,\\n                  BATCH_ID)\\nSELECT                                                       \\n      ID1,\\n       RUN_DATE,\\n       FACETS_ERROR,\\n       RETURN_CODE,\\n       ERROR_CODE,\\n       CASE\\n          WHEN SUBSTR (ERROR_MESSAGE,\\n                       1,\\n                       (INSTR (ERROR_MESSAGE, 'Solution:', 1)) - 1)\\n                  IS NULL\\n          THEN\\n             ERROR_MESSAGE\\n          ELSE\\n             SUBSTR (ERROR_MESSAGE,\\n                     1,\\n                     (INSTR (ERROR_MESSAGE, 'Solution:', 1)) - 1)\\n       END\\n          AS ERR_MESSAGE,\\n       BATCH_ID\\n  FROM LOAD_LOG'"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "BatchDt" : {
+        "type" : "string",
+        "defaultValue" : "'2/27/2018'"
+      },
+      "VarForLoopQuery" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT COUNT(*)  FROM FACETS.CER_SYIN_INST WHERE PZPZ_ID = 'FA' AND PZAP_APP_ID = 'BIL0' AND SYIN_STS = 'C' \\nAND SYIN_DESC = 'Batch Premium Billing Processi' AND TO_DATE(TO_CHAR(SYIN_CREATE_DTM,'MM/DD/YYYY'),'MM/DD/YYYY')= TO_DATE('2/26/2018','mm/dd/yyyy')'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "VarFolderPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\apps\\\\Facets\\\\Dev\\\\TZG\\\\Logs\\\\FAC6D\\\\'"
+      },
+      "VarForLoopCount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "BatchDate" : {
+        "type" : "string",
+        "defaultValue" : "'2/26/2018'"
+      }
+    }
+  }
+}

@@ -1,0 +1,1530 @@
+{
+  "name" : "ppl_financeunearnedinbound",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_ArchiveFullPath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_ArchiveFullPath",
+        "value" : {
+          "value" : "@concat(variables('gv_ArchivePath'), variables('gv_StartTime_YYYY_MM_DD_HHMMSS'), '\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectFailure",
+        "value" : {
+          "value" : "@concat('Billing Finance FIS UnEarned Inbound Process Terminated Abnormally in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EmailSubjectSuccess",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EmailSubjectSuccess",
+        "value" : {
+          "value" : "@concat('Billing Finance FIS UnEarned Inbound Process Completed Successfully in the ', variables('gv_Environment'), ' Environment on ', variables('gv_OracleDS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_EndBatchQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_EndBatchQuery",
+        "value" : {
+          "value" : "@concat('\"\nBEGIN\n\tAGP.PKG_FIS_UNEARNED_INBOUND.UPDATE_BATCH_STATUS(\"', string(variables('gv_BatchID')), '\", 9, NULL );\nEND;\n\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_InputBALFilePattern",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_InputBALFilePattern",
+        "value" : {
+          "value" : "@concat(variables('gv_InputFilePattern'), '.bal')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_InputDATFilePattern",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_InputDATFilePattern",
+        "value" : {
+          "value" : "@concat(variables('gv_InputFilePattern'), '.dat')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "value" : {
+          "value" : "@concat(string(formatDateTime(pipeline().TriggerTime, 'yyyy')), '-', substring(concat('0', string(formatDateTime(pipeline().TriggerTime, 'MM'))), sub(length(concat('0', string(formatDateTime(pipeline().TriggerTime, 'MM')))), 2), 2), '-', substring(concat('0', string(dayOfMonth(pipeline().TriggerTime))), sub(length(concat('0', string(dayOfMonth(pipeline().TriggerTime)))), 2), 2), '_', substring(concat('0', string(formatDateTime(pipeline().TriggerTime, 'HH'))), sub(length(concat('0', string(formatDateTime(pipeline().TriggerTime, 'HH')))), 2), 2), substring(concat('0', string(formatDateTime(pipeline().TriggerTime, 'mm'))), sub(length(concat('0', string(formatDateTime(pipeline().TriggerTime, 'mm')))), 2), 2), substring(concat('0', string(formatDateTime(pipeline().TriggerTime, 'ss'))), sub(length(concat('0', string(formatDateTime(pipeline().TriggerTime, 'ss')))), 2), 2))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_STTExtractQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_STTExtractQuery",
+        "value" : {
+          "value" : "@concat(variables('gv_PR_STT_GBD_BLSB_Unearned_Extract'), ' ''', string(variables('gv_InvoiceFromDate')), ''',''', string(variables('gv_InvoiceThruDate')), '''')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_UnearnedInboundDiscQuery",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_UnearnedInboundDiscQuery",
+        "value" : {
+          "value" : "\"INSERT INTO AGP.FIS_UN_INBOUND_DISC\nWITH EXT AS (SELECT DISTINCT EXT.BLEI_CK, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, EXT.PDBL_ID FROM AGP.STT_GBD_BLSB_Extract EXT \nINNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = EXT.GRGR_CK\nWHERE GRGR.GRGR_ID LIKE ''%SUP%''),\nFIS AS(SELECT DISTINCT BLEI_CK, ITEM, CREATE_DATE, PDBL_ID FROM AGP.FIS_UNEARNED_INBOUND_DETAIL FIS\nWHERE FIS.INBOUND_SUMMARY_ID IN  \n(SELECT DISTINCT BATCH_ID FROM AGP.FIS_UNEARNED_INBOUND_BATCH)\nAND CA_PARENT_GRP_ID LIKE ''%SUP%''\nAND MONTHS_BETWEEN(CA_COVERAGE_TO_DT, CA_COVERAGE_FRM_DT) > 0)\nSELECT EXT.BLEI_CK, EXT.PDBL_ID, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, SYSDATE, SYSDATE, 2 FROM EXT WHERE (EXT.BLIV_ID, EXT.PDBL_ID) NOT IN (SELECT FIS.ITEM, FIS.PDBL_ID FROM FIS)\nUNION\nSELECT FIS.BLEI_CK, FIS.PDBL_ID, FIS.ITEM, TO_CHAR(FIS.CREATE_DATE, ''YYYY/MM/DD HH:MI:SS''), SYSDATE, SYSDATE, 2 FROM FIS WHERE (FIS.ITEM, FIS.PDBL_ID) NOT IN (SELECT EXT.BLIV_ID, EXT.PDBL_ID FROM EXT)\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS FF_SRC_INBOUND_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS FF_SRC_INBOUND_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FF_SRC_INBOUND_FILE_FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS FF_SRC_INBOUND_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_INBOUND_TABLE_ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS OLEDB_DEST_INBOUND_TABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_INBOUND_TABLE_FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS OLEDB_DEST_INBOUND_TABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLEDB_DEST_INBOUND_TABLE_FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA') AS OLEDB_DEST_INBOUND_TABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_DATA01_source_ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA01') AS DFT-LOAD_DATA01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_DATA01_source_FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA01') AS DFT-LOAD_DATA01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_DATA01_source_FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA01') AS DFT-LOAD_DATA01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_DATA01_sink_SchemaName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA01') AS DFT-LOAD_DATA01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_DATA01_sink_TableName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_DATA01') AS DFT-LOAD_DATA01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_BLSB_Extract01_source_ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract01') AS DFT-LOAD_BLSB_Extract01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_BLSB_Extract01_source_FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract01') AS DFT-LOAD_BLSB_Extract01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_BLSB_Extract01_source_FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract01') AS DFT-LOAD_BLSB_Extract01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_BLSB_Extract01_sink_SchemaName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract01') AS DFT-LOAD_BLSB_Extract01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT-LOAD_BLSB_Extract01_sink_TableName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'DFT-LOAD_BLSB_Extract01') AS DFT-LOAD_BLSB_Extract01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-CREATE_ARCHIVE_DIRECTORYDELETE_') AS FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__ContainerName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__FileName' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-ARCHIVE_FILESDELETE__FilePath' AND PIPELINE_NAME = 'FinanceUnEarnedInbound' AND DATAFLOW_NAME = 'FST-ARCHIVE_FILESDELETE_') AS FST-ARCHIVE_FILESDELETE__FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SC-FLOW",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_UnearnedInboundDiscQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_ArchiveFullPath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EmailSubjectSuccess",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_EndBatchQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_InputBALFilePattern",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_InputDATFilePattern",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_StartTime_YYYY_MM_DD_HHMMSS",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_STTExtractQuery",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_PRE_VALIDATION",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST_PRE_VALIDATION",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_PRE_VALIDATION",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@variables('gv_IsFileExist')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY_sink_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "FST-CREATE_ARCHIVE_DIRECTORYDELETE_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_COPYDATA_FST-CREATE_ARCHIVE_DIRECTORY",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-CREATE_ARCHIVE_DIRECTORYDELETE__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "ST_ARCHIVE_BAL_FILES",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "FST-CREATE_ARCHIVE_DIRECTORYDELETE_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST_ARCHIVE_BAL_FILES",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "ESQLT-AGP_FIS_UNEARNED_INBOUND_BATCH_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_ARCHIVE_BAL_FILES",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_TruncateFIS_UNEARNED_INBOUND_BATCH"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "FOREACH_FELC-PROCESS_FILES",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ESQLT-AGP_FIS_UNEARNED_INBOUND_BATCH_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('ESQLT-AGP_FIS_UNEARNED_INBOUND_BATCH_SCRIPT').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "ST_CREATE_BATCH",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "ST_CREATE_BATCH",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "DFT-LOAD_DATA0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "ST_CREATE_BATCH",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "DFT-LOAD_DATA"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "DFT-LOAD_DATA",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-LOAD_DATA0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "dft-load_data",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "gv_OraclePassword" : {
+                      "type" : "Expression",
+                      "value" : "'B1l#actc'"
+                    },
+                    "gv_ArchiveFullPath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_Archive\\\\2025-04-15_160029\\\\'"
+                    },
+                    "gv_InvoiceThruDate" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_SQLDataSource" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+                    },
+                    "gv_CreateBatch" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_EmailFrom" : {
+                      "type" : "Expression",
+                      "value" : "'noreply@anthem.com'"
+                    },
+                    "gv_FilesToProcess" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "gv_InputBALFilePattern" : {
+                      "type" : "Expression",
+                      "value" : "'fis_unearn_gbd*.bal'"
+                    },
+                    "gv_TruncateFIS_UNEARNED_INBOUND_BATCH" : {
+                      "type" : "Expression",
+                      "value" : "'BEGIN AGP.PKG_FIS_UNEARNED_INBOUND.TRUNCATE_FIS_UN_INBOUND_BATCH; END;'"
+                    },
+                    "gv_EmailSmtpServer" : {
+                      "type" : "Expression",
+                      "value" : "'smtpinternal.wellpoint.com'"
+                    },
+                    "gv_FileToProcess" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\fis_unearn_gbd_20160401_20160400.dat'"
+                    },
+                    "gv_EmailSubjectSuccess" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS UnEarned Inbound Process Completed Successfully in the DEV Environment on GBFAC05D'"
+                    },
+                    "gv_OracleUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BILL'"
+                    },
+                    "gv_OracleDS" : {
+                      "type" : "Expression",
+                      "value" : "'GBFAC05D'"
+                    },
+                    "gv_EmailMessage" : {
+                      "type" : "Expression",
+                      "value" : "'Success message'"
+                    },
+                    "gv_SQLProvider" : {
+                      "type" : "Expression",
+                      "value" : "'SQLNCLI11.1'"
+                    },
+                    "gv_ArchivePath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_Archive\\\\'"
+                    },
+                    "gv_FileName" : {
+                      "type" : "Expression",
+                      "value" : "'fis_unearn_gbd_20160401_20160402.dat'"
+                    },
+                    "gv_InvoiceFromDate" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "gv_AppName" : {
+                      "type" : "Expression",
+                      "value" : "'FIS_UNEARNED_INBOUND'"
+                    },
+                    "gv_EndBatchQuery" : {
+                      "type" : "Expression",
+                      "value" : "' BEGIN \tAGP.PKG_FIS_UNEARNED_INBOUND.UPDATE_BATCH_STATUS(0, 9, NULL ); END; '"
+                    },
+                    "gv_SQLUserID" : {
+                      "type" : "Expression",
+                      "value" : "'APP_BOSS'"
+                    },
+                    "gv_UnearnedInboundDiscQuery" : {
+                      "type" : "Expression",
+                      "value" : "'INSERT INTO AGP.FIS_UN_INBOUND_DISC WITH EXT AS (SELECT DISTINCT EXT.BLEI_CK, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, EXT.PDBL_ID FROM AGP.STT_GBD_BLSB_Extract EXT  INNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = EXT.GRGR_CK WHERE GRGR.GRGR_ID LIKE '%SUP%'), FIS AS(SELECT DISTINCT BLEI_CK, ITEM, CREATE_DATE, PDBL_ID FROM AGP.FIS_UNEARNED_INBOUND_DETAIL FIS WHERE FIS.INBOUND_SUMMARY_ID IN   (SELECT DISTINCT BATCH_ID FROM AGP.FIS_UNEARNED_INBOUND_BATCH) AND CA_PARENT_GRP_ID LIKE '%SUP%' AND MONTHS_BETWEEN(CA_COVERAGE_TO_DT, CA_COVERAGE_FRM_DT) > 0) SELECT EXT.BLEI_CK, EXT.PDBL_ID, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, SYSDATE, SYSDATE, 2 FROM EXT WHERE (EXT.BLIV_ID, EXT.PDBL_ID) NOT IN (SELECT FIS.ITEM, FIS.PDBL_ID FROM FIS) UNION SELECT FIS.BLEI_CK, FIS.PDBL_ID, FIS.ITEM, TO_CHAR(FIS.CREATE_DATE, 'YYYY/MM/DD HH:MI:SS'), SYSDATE, SYSDATE, 2 FROM FIS WHERE (FIS.ITEM, FIS.PDBL_ID) NOT IN (SELECT EXT.BLIV_ID, EXT.PDBL_ID FROM EXT)'"
+                    },
+                    "gv_EmailSubjectFailure" : {
+                      "type" : "Expression",
+                      "value" : "'Billing Finance FIS UnEarned Inbound Process Terminated Abnormally in the DEV Environment on GBFAC05D'"
+                    },
+                    "gv_StartTime_YYYY_MM_DD_HHMMSS" : {
+                      "type" : "Expression",
+                      "value" : "'2025-04-15_160029'"
+                    },
+                    "gv_InputDATFilePattern" : {
+                      "type" : "Expression",
+                      "value" : "'fis_unearn_gbd*.dat'"
+                    },
+                    "gv_LogPath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_SSIS_Logs\\\\'"
+                    },
+                    "gv_SQLInitialCatalog" : {
+                      "type" : "Expression",
+                      "value" : "'BOSS'"
+                    },
+                    "gv_PR_STT_GBD_BLSB_Unearned_Extract" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [Finance].[PR_STT_GBD_BLSB_Unearned_Extract]'"
+                    },
+                    "gv_JobRunDate" : {
+                      "type" : "Expression",
+                      "value" : "'2025-04-15'"
+                    },
+                    "gv_InboundPath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\'"
+                    },
+                    "gv_IsFileExist" : {
+                      "type" : "Expression",
+                      "value" : "true()"
+                    },
+                    "gv_InputFilePattern" : {
+                      "type" : "Expression",
+                      "value" : "'fis_unearn_gbd*'"
+                    },
+                    "gv_TruncateSTT_GBD_BLSB_EXTRACT" : {
+                      "type" : "Expression",
+                      "value" : "'BEGIN AGP.PKG_FIS_UNEARNED_INBOUND.TRUNCATE_STT_GBD_BLSB_EXTRACT; END;'"
+                    },
+                    "gv_EmailTo" : {
+                      "type" : "Expression",
+                      "value" : "'Dl-GBDFinanceALL@anthem.com'"
+                    },
+                    "gv_OracleProvider" : {
+                      "type" : "Expression",
+                      "value" : "'OraOLEDB.Oracle.1'"
+                    },
+                    "gv_Environment" : {
+                      "type" : "Expression",
+                      "value" : "'DEV'"
+                    },
+                    "gv_BatchID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "gv_SQLPassword" : {
+                      "type" : "Expression",
+                      "value" : "'0s-dyekDSD40Jg'"
+                    },
+                    "gv_STTExtractQuery" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [Finance].[PR_STT_GBD_BLSB_Unearned_Extract] '','''"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "OLEDBDESTINBOUNDTABLE" : {
+                      "TableName" : {
+                        "value" : "\"FIS_UNEARNED_INBOUND_DETAIL\"",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDESTINBOUNDTABLE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDESTINBOUNDTABLE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDESTINBOUNDTABLE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "FFSRCINBOUNDFILE" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCINBOUNDFILE_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCINBOUNDFILE_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.FFSRCINBOUNDFILE_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "DFT-LOAD_DATA01",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT-LOAD_DATA",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_DATA01_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_DATA01_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_DATA01_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_DATA01_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_DATA01_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "ST-VOID_IF_FILE_ALREADY_PROCESSED",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "DFT-LOAD_DATA01",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "ST-VOID_IF_FILE_ALREADY_PROCESSED",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "ESQLT-END_BATCH_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "ST-VOID_IF_FILE_ALREADY_PROCESSED",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "gv_EndBatchQuery"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "COPYDATA_FST-ARCHIVE_FILES",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "ESQLT-END_BATCH_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_sink_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_sink_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_FST-ARCHIVE_FILES_sink_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ]
+            }, {
+              "name" : "FST-ARCHIVE_FILESDELETE_",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "COPYDATA_FST-ARCHIVE_FILES",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "Container" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-ARCHIVE_FILESDELETE__ContainerName",
+                      "type" : "Expression"
+                    },
+                    "FileName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-ARCHIVE_FILESDELETE__FileName",
+                      "type" : "Expression"
+                    },
+                    "Directory" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-ARCHIVE_FILESDELETE__FilePath",
+                      "type" : "Expression"
+                    },
+                    "ColumnDelimiter" : null
+                  }
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "ESQLT-TRUNC_AGP_STT_GBD_BLSB_EXTRACT_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FOREACH_FELC-PROCESS_FILES",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_TruncateSTT_GBD_BLSB_EXTRACT"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ESQLT-FETCH_INVOICE_DATE_RANGE_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ESQLT-TRUNC_AGP_STT_GBD_BLSB_EXTRACT_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT TO_CHAR(MIN(CREATE_DATE),'YYYY-MM-DD') AS MINDATE, TO_CHAR(MAX(CREATE_DATE),'YYYY-MM-DD') AS MAXDATE FROM AGP.FIS_UNEARNED_INBOUND_DETAIL \nWHERE INBOUND_SUMMARY_ID IN  \n(SELECT DISTINCT ID FROM AGP.FIS_UNEARNED_INBOUND_SUMMARY\nWHERE TO_CHAR(LOAD_DTM, 'DD-MON-YY') IN TO_CHAR(SYSDATE, 'DD-MON-YY') AND STATUS_ID = 9)\nAND CA_PARENT_GRP_ID LIKE '%SUP%'\nAND MONTHS_BETWEEN(CA_COVERAGE_TO_DT, CA_COVERAGE_FRM_DT) > 0"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ESQLT-FETCH_INVOICE_DATE_RANGE_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ESQLT-FETCH_INVOICE_DATE_RANGE_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_InvoiceFromDate",
+            "value" : "@activity('ESQLT-FETCH_INVOICE_DATE_RANGE_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "ESQLT-FETCH_INVOICE_DATE_RANGE_VA_0_1",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ESQLT-FETCH_INVOICE_DATE_RANGE_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_InvoiceThruDate",
+            "value" : "@activity('ESQLT-FETCH_INVOICE_DATE_RANGE_SCRIPT').output.resultSets[0].rows[1][1]"
+          }
+        }, {
+          "name" : "DFT-LOAD_BLSB_Extract0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ESQLT-FETCH_INVOICE_DATE_RANGE_VA_0_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "ESQLT-FETCH_INVOICE_DATE_RANGE_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT-LOAD_BLSB_Extract"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT-LOAD_BLSB_Extract",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT-LOAD_BLSB_Extract0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "EXEC [Finance].[pr_STT_GBD_BLSB_Unearned_Extract] + @[User::gv_InvoiceFromDate] + \", +@[User::gv_InvoiceThruDate]"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT-LOAD_BLSB_Extract01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT-LOAD_BLSB_Extract",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT-LOAD_BLSB_Extract01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "ESQLT-LOAD_FIS_UN_INBOUND_DISC_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT-LOAD_BLSB_Extract01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_UnearnedInboundDiscQuery"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ESQLT-UPDATE_FIS_UN_INBOUND_DISC_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ESQLT-LOAD_FIS_UN_INBOUND_DISC_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE AGP.FIS_UN_INBOUND_DISC\nSET UPDATE_DATE = SYSDATE, STATUS = 1\nWHERE (BLEI_CK, BLIV_ID, PDBL_ID) IN \n(SELECT DISTINCT DET.BLEI_CK, DET.ITEM, DET.PDBL_ID FROM AGP.FIS_UNEARNED_INBOUND_DETAIL DET\n INNER JOIN AGP.FIS_UN_INBOUND_DISC DISC ON DISC.BLIV_ID = DET.ITEM AND DISC.BLEI_CK = DET.BLEI_CK AND DISC.PDBL_ID = DET.PDBL_ID\n INNER JOIN AGP.FIS_UNEARNED_INBOUND_SUMMARY SUM ON DET.INBOUND_SUMMARY_ID = SUM.ID\n WHERE DISC.STATUS = 2 AND SUM.STATUS_ID = 9)\n AND STATUS = 2"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_SMT-FAILURE",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SMT-FAILURE",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "IFACTIVITY_ST_SET_SUCCESS_EMAIL_VALUES",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SC-FLOW",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('gv_IsFileExist')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_SET_SUCCESS_EMAIL_VALUES",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "ST_SET_SUCCESS_EMAIL_VALUES",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_ARCHIVE_ERRORED_FILES",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_SMT-FAILURE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ST_ARCHIVE_ERRORED_FILES",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "SMT-SUCCESS",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "IFACTIVITY_ST_SET_SUCCESS_EMAIL_VALUES",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'B1l#actc'"
+      },
+      "gv_ArchiveFullPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_Archive\\\\2025-04-15_160029\\\\'"
+      },
+      "gv_InvoiceThruDate" : {
+        "type" : "string"
+      },
+      "gv_SQLDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "gv_EmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@anthem.com'"
+      },
+      "gv_FilesToProcess" : {
+        "type" : "string"
+      },
+      "gv_InputBALFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'fis_unearn_gbd*.bal'"
+      },
+      "gv_TruncateFIS_UNEARNED_INBOUND_BATCH" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN AGP.PKG_FIS_UNEARNED_INBOUND.TRUNCATE_FIS_UN_INBOUND_BATCH; END;'"
+      },
+      "gv_EmailSmtpServer" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_FileToProcess" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\fis_unearn_gbd_20160401_20160400.dat'"
+      },
+      "gv_EmailSubjectSuccess" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance FIS UnEarned Inbound Process Completed Successfully in the DEV Environment on GBFAC05D'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BILL'"
+      },
+      "gv_OracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC05D'"
+      },
+      "gv_EmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "'Success message'"
+      },
+      "gv_SQLProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "gv_ArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_Archive\\\\'"
+      },
+      "gv_FileName" : {
+        "type" : "string",
+        "defaultValue" : "'fis_unearn_gbd_20160401_20160402.dat'"
+      },
+      "gv_InvoiceFromDate" : {
+        "type" : "string"
+      },
+      "gv_AppName" : {
+        "type" : "string",
+        "defaultValue" : "'FIS_UNEARNED_INBOUND'"
+      },
+      "gv_EndBatchQuery" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN\\n\tAGP.PKG_FIS_UNEARNED_INBOUND.UPDATE_BATCH_STATUS(0, 9, NULL );\\nEND;'"
+      },
+      "gv_SQLUserID" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_UnearnedInboundDiscQuery" : {
+        "type" : "string",
+        "defaultValue" : "'INSERT INTO AGP.FIS_UN_INBOUND_DISC\\nWITH EXT AS (SELECT DISTINCT EXT.BLEI_CK, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, EXT.PDBL_ID FROM AGP.STT_GBD_BLSB_Extract EXT \\nINNER JOIN FACETS.CMC_GRGR_GROUP GRGR ON GRGR.GRGR_CK = EXT.GRGR_CK\\nWHERE GRGR.GRGR_ID LIKE '%SUP%'),\\nFIS AS(SELECT DISTINCT BLEI_CK, ITEM, CREATE_DATE, PDBL_ID FROM AGP.FIS_UNEARNED_INBOUND_DETAIL FIS\\nWHERE FIS.INBOUND_SUMMARY_ID IN  \\n(SELECT DISTINCT BATCH_ID FROM AGP.FIS_UNEARNED_INBOUND_BATCH)\\nAND CA_PARENT_GRP_ID LIKE '%SUP%'\\nAND MONTHS_BETWEEN(CA_COVERAGE_TO_DT, CA_COVERAGE_FRM_DT) > 0)\\nSELECT EXT.BLEI_CK, EXT.PDBL_ID, EXT.BLIV_ID, EXT.BLSH_INVOICE_DTM, SYSDATE, SYSDATE, 2 FROM EXT WHERE (EXT.BLIV_ID, EXT.PDBL_ID) NOT IN (SELECT FIS.ITEM, FIS.PDBL_ID FROM FIS)\\nUNION\\nSELECT FIS.BLEI_CK, FIS.PDBL_ID, FIS.ITEM, TO_CHAR(FIS.CREATE_DATE, 'YYYY/MM/DD HH:MI:SS'), SYSDATE, SYSDATE, 2 FROM FIS WHERE (FIS.ITEM, FIS.PDBL_ID) NOT IN (SELECT EXT.BLIV_ID, EXT.PDBL_ID FROM EXT)'"
+      },
+      "gv_EmailSubjectFailure" : {
+        "type" : "string",
+        "defaultValue" : "'Billing Finance FIS UnEarned Inbound Process Terminated Abnormally in the DEV Environment on GBFAC05D'"
+      },
+      "gv_StartTime_YYYY_MM_DD_HHMMSS" : {
+        "type" : "string",
+        "defaultValue" : "'2025-04-15_160029'"
+      },
+      "gv_InputDATFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'fis_unearn_gbd*.dat'"
+      },
+      "gv_LogPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\Unearned_FIS_Inbound_SSIS_Logs\\\\'"
+      },
+      "gv_SQLInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "gv_PR_STT_GBD_BLSB_Unearned_Extract" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [Finance].[PR_STT_GBD_BLSB_Unearned_Extract]'"
+      },
+      "gv_InboundPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\Va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\Finance\\\\UnearnedReport\\\\Unearned_FIS_Inbound\\\\'"
+      },
+      "gv_IsFileExist" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "gv_InputFilePattern" : {
+        "type" : "string",
+        "defaultValue" : "'fis_unearn_gbd*'"
+      },
+      "gv_TruncateSTT_GBD_BLSB_EXTRACT" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN AGP.PKG_FIS_UNEARNED_INBOUND.TRUNCATE_STT_GBD_BLSB_EXTRACT; END;'"
+      },
+      "gv_EmailTo" : {
+        "type" : "string",
+        "defaultValue" : "'Dl-GBDFinanceALL@anthem.com'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Environment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "gv_BatchID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "gv_SQLPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_STTExtractQuery" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [Finance].[PR_STT_GBD_BLSB_Unearned_Extract] '','''"
+      }
+    }
+  }
+}

@@ -1,0 +1,830 @@
+{
+  "name" : "ppl_healthlinkaccountterm",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ErrorLogFilePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ErrorLogFilePath",
+        "value" : {
+          "value" : "@concat(variables('RootDirPath'), 'HL_ErrorLog.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "InactiveAccountListFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "InactiveAccountListFileName",
+        "value" : {
+          "value" : "@concat('HL_Inactive_Account_', string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), substring(concat('0', string(formatDateTime(utcNow(), 'dd'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'dd')))), 2), 2), '.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LogFileArchivePath",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LogFileArchivePath",
+        "value" : {
+          "value" : "@concat(variables('RootDirPath'), 'Archive\\\\')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LogFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "LogFileName",
+        "value" : {
+          "value" : "@concat(string(formatDateTime(utcNow(), 'yyyy')), substring(concat('0', string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0', string(formatDateTime(utcNow(), 'MM')))), 2), 2), '_HL_Acc_Termination_Log.txt')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'List_of_Inactive_Account_File_Source_ContainerName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Load_Inactive_Account_List_File_Into_Record_Set') AS List_of_Inactive_Account_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'List_of_Inactive_Account_File_Source_FileName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Load_Inactive_Account_List_File_Into_Record_Set') AS List_of_Inactive_Account_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'List_of_Inactive_Account_File_Source_FilePath' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Load_Inactive_Account_List_File_Into_Record_Set') AS List_of_Inactive_Account_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_FileDELETE__ContainerName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Archive_FileDELETE_') AS Archive_FileDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_FileDELETE__FileName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Archive_FileDELETE_') AS Archive_FileDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_FileDELETE__FilePath' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'Archive_FileDELETE_') AS Archive_FileDELETE__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Archive_Logs_Age_30_SchemaName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'GETMETADATA_Archive_Logs_Age_30') AS GETMETADATA_Archive_Logs_Age_30_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Archive_Logs_Age_30_TableName' AND PIPELINE_NAME = 'HealthLinkAccountTerm' AND DATAFLOW_NAME = 'GETMETADATA_Archive_Logs_Age_30') AS GETMETADATA_Archive_Logs_Age_30_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "GETMETADATA_Archive_Logs_Age_30",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LogFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ErrorLogFilePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "InactiveAccountListFileName",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LogFileArchivePath",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Archive_Logs_Age_30_TableName",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Archive_Logs_Age_30_SchemaName",
+              "type" : "Expression"
+            }
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FILTER_Archive_Logs_Age_30",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GETMETADATA_Archive_Logs_Age_30",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GETMETADATA_Archive_Logs_Age_30').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '_HL_Acc_Termination_Log.txt'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Archive_Logs_Age_30",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FILTER_Archive_Logs_Age_30",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FILTER_Archive_Logs_Age_30').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SET_FileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "LogFileToCheck",
+            "value" : {
+              "value" : "@concat('\\\\agpcorp\\files\\VA1\\Private\\ITS-TechServices\\AMS\\MedSvcs\\MedServicesAccounTerm\\\\', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Check_A_Log_File_To_Move_Into_Archive",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SET_FileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Check_A_Log_File_To_Move_Into_Archive",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "IFACTIVITY_COPYDATA_Archive_File",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Check_A_Log_File_To_Move_Into_Archive",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@variables('LogFileShouldArchive')",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "COPYDATA_Archive_File",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_sink_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_sink_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Archive_File_sink_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "Archive_FileDELETE_",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "IFACTIVITY_COPYDATA_Archive_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_FileDELETE__ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_FileDELETE__FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_FileDELETE__FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Filitering_Account",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Archive_Logs_Age_30",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Create_Inactive_Account_List_File",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Create a file that will store accounts that needs to be terminated",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Create_Inactive_Account_List_File",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "Get_All_Active_Health_Link_Account_0",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Create_Inactive_Account_List_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "SELECT \n\t[LoginName] \nFROM \n\t[useradm].[Users] \nWHERE \n\t[Active] = 1\nORDER BY [LoginName]",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Check_Health_Link_Accounts_Active_Status_I",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_All_Active_Health_Link_Account_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Get_All_Active_Health_Link_Account_0').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Check_And_Save_Accounts_That_Needs_To_Be_Terminate",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Check_And_Save_Accounts_That_Needs_To_Be_Terminate",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "Load_Inactive_Account_List_File_Into_Record_Set0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Filitering_Account",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Load_Inactive_Account_List_File_Into_Record_Set"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Load_Inactive_Account_List_File_Into_Record_Set",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Inactive_Account_List_File_Into_Record_Set0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "load_inactive_account_list_file_into_record_set",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ErrorLogFilePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\HL_ErrorLog.txt'"
+            },
+            "InactiveAccountRecordset" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "HL_DB" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LogFileShouldArchive" : {
+              "type" : "Expression",
+              "value" : "true()"
+            },
+            "WebServiceUrl" : {
+              "type" : "Expression",
+              "value" : "'https://va22dwviss322.us.ad.wellpoint.com/CheckAD'"
+            },
+            "HL_SRVR" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "SamID" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "InactiveAccountListFileName" : {
+              "type" : "Expression",
+              "value" : "'HL_Inactive_Account_20250127.txt'"
+            },
+            "LogFileName" : {
+              "type" : "Expression",
+              "value" : "'202501_HL_Acc_Termination_Log.txt'"
+            },
+            "HL_USER" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "LogFileArchivePath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\Archive\\\\'"
+            },
+            "LogFileToCheck" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "Environment" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "HL_PWD" : {
+              "type" : "Expression",
+              "value" : "''"
+            },
+            "InactiveAccountSamIDResultSet" : {
+              "type" : "Expression",
+              "value" : "'                                                                                                                                                                                    '"
+            },
+            "RootDirPath" : {
+              "type" : "Expression",
+              "value" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\'"
+            }
+          },
+          "datasetParameters" : {
+            "ListofInactiveAccountFileSource" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ListofInactiveAccountFileSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ListofInactiveAccountFileSource_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.ListofInactiveAccountFileSource_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Clear_Inactive_Account_List_File",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Load_Inactive_Account_List_File_Into_Record_Set",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Clear_Inactive_Account_List_File",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Log_Account_Count_That_Are_Going_To_Be_Terminated",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Clear_Inactive_Account_List_File",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Log_Account_Count_That_Are_Going_To_Be_Terminated",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "FOREACH_Terminate_Accounts_That_Are_Inactive_Or_No",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Log_Account_Count_That_Are_Going_To_Be_Terminated",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Log_Account_Count_That_Are_Going_To_Be_Terminated').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Execute_Update_Satus_Script_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE [useradm].[Users] SET [Active] = 0 WHERE LoginName = @SamID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Log_Account_SAMID_To_File",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Execute_Update_Satus_Script_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Log_Account_SAMID_To_File",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "parameters" : {
+      "BasePath" : {
+        "type" : "string",
+        "defaultValue" : "''"
+      }
+    },
+    "variables" : {
+      "ErrorLogFilePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\HL_ErrorLog.txt'"
+      },
+      "InactiveAccountRecordset" : {
+        "type" : "string"
+      },
+      "HL_DB" : {
+        "type" : "string"
+      },
+      "LogFileShouldArchive" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "WebServiceUrl" : {
+        "type" : "string",
+        "defaultValue" : "'https://va22dwviss322.us.ad.wellpoint.com/CheckAD'"
+      },
+      "HL_SRVR" : {
+        "type" : "string"
+      },
+      "SamID" : {
+        "type" : "string"
+      },
+      "InactiveAccountListFileName" : {
+        "type" : "string",
+        "defaultValue" : "'HL_Inactive_Account_20250127.txt'"
+      },
+      "LogFileName" : {
+        "type" : "string",
+        "defaultValue" : "'202501_HL_Acc_Termination_Log.txt'"
+      },
+      "HL_USER" : {
+        "type" : "string"
+      },
+      "LogFileArchivePath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\Archive\\\\'"
+      },
+      "LogFileToCheck" : {
+        "type" : "string"
+      },
+      "Environment" : {
+        "type" : "string"
+      },
+      "HL_PWD" : {
+        "type" : "string"
+      },
+      "InactiveAccountSamIDResultSet" : {
+        "type" : "string"
+      },
+      "RootDirPath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\agpcorp\\\\files\\\\VA1\\\\Private\\\\ITS-TechServices\\\\AMS\\\\MedSvcs\\\\MedServicesAccounTerm\\\\\\\\'"
+      }
+    }
+  }
+}

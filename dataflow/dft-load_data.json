@@ -1,0 +1,31 @@
+{
+  "name" : "dft-load_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FFSRCINBOUNDFILE",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDESTINBOUNDTABLE"
+      } ],
+      "transformations" : [ {
+        "name" : "DCTRANSFORM"
+      } ],
+      "script" : "parameters{\n\tgv_AppName as string (),\n\tgv_ArchiveFullPath as string (),\n\tgv_ArchivePath as string (),\n\tgv_BatchID as integer (),\n\tgv_CreateBatch as string (),\n\tgv_EmailFrom as string (),\n\tgv_EmailMessage as string (),\n\tgv_EmailSmtpServer as string (),\n\tgv_EmailSubjectFailure as string (),\n\tgv_EmailSubjectSuccess as string (),\n\tgv_EmailTo as string (),\n\tgv_EndBatchQuery as string (),\n\tgv_Environment as string (),\n\tgv_FileName as string (),\n\tgv_FilesToProcess as string (),\n\tgv_FileToProcess as string (),\n\tgv_InboundPath as string (),\n\tgv_InputBALFilePattern as string (),\n\tgv_InputDATFilePattern as string (),\n\tgv_InputFilePattern as string (),\n\tgv_InvoiceFromDate as string (),\n\tgv_InvoiceThruDate as string (),\n\tgv_IsFileExist as boolean (),\n\tgv_JobRunDate as string (),\n\tgv_LogPath as string (),\n\tgv_OracleDS as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_PR_STT_GBD_BLSB_Unearned_Extract as string (),\n\tgv_SQLDataSource as string (),\n\tgv_SQLInitialCatalog as string (),\n\tgv_SQLPassword as string (),\n\tgv_SQLProvider as string (),\n\tgv_SQLUserID as string (),\n\tgv_StartTime_YYYY_MM_DD_HHMMSS as string (),\n\tgv_STTExtractQuery as string (),\n\tgv_TruncateFIS_UNEARNED_INBOUND_BATCH as string (),\n\tgv_TruncateSTT_GBD_BLSB_EXTRACT as string (),\n\tgv_UnearnedInboundDiscQuery as string ()\n}\n\nsource(output(\n\t\tBUSINESS_UNIT as string,\n\t\tCUST_ID as string,\n\t\tITEM as string,\n\t\tCA_ITEM_DTL_LN_NUM as string,\n\t\tDUE_DT as string,\n\t\tCA_COVERAGE_FRM_DT as string,\n\t\tCA_COVERAGE_TO_DT as string,\n\t\tCA_LINE_OF_BUS as string,\n\t\tCA_PRODUCT_ID as string,\n\t\tFISCAL_YEAR as string,\n\t\tACCOUNTING_PERIOD as string,\n\t\tORIGIN_ID as string,\n\t\tENTRY_AMT as string,\n\t\tJOURNAL_ID as string,\n\t\tJOURNAL_DATE as string,\n\t\tBUSINESS_UNIT_GL as string,\n\t\tOPERATING_UNIT as string,\n\t\tACCOUNT as string,\n\t\tCLASS_FLD as string,\n\t\tPROGRAM_CODE as string,\n\t\tCHARTFIELD2 as string,\n\t\tCHARTFIELD1 as string,\n\t\tAFFILIATE as string,\n\t\tPRODUCT as string,\n\t\tFUND_CODE as string,\n\t\tCHARTFIELD3 as string,\n\t\tCREATE_DATE as string,\n\t\tADD_DTTM as string,\n\t\tCA_PARENT_GRP_ID as string,\n\t\tBLEI_CK as string,\n\t\tPDBL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FFSRCINBOUNDFILE\nFFSRCINBOUNDFILE derive(INBOUND_SUMMARY_ID = $gv_BatchID,\n\t\tCLASS_FLD = iif(length(trim(CLASS_FLD)) == 0, toString(null()), CLASS_FLD),\n\t\tCHARTFIELD3 = iif(length(trim(CHARTFIELD3)) == 0, toString(null()), CHARTFIELD3),\n\t\tCA_LINE_OF_BUS = iif(length(trim(CA_LINE_OF_BUS)) == 0, toString(null()), CA_LINE_OF_BUS),\n\t\tCHARTFIELD2 = iif(length(trim(CHARTFIELD2)) == 0, toString(null()), CHARTFIELD2),\n\t\tCHARTFIELD1 = iif(length(trim(CHARTFIELD1)) == 0, toString(null()), CHARTFIELD1),\n\t\tCREATE_DATE = substring(toString((CREATE_DATE)), toInteger(1), toInteger(10)) + ' ' + substring(toString((CREATE_DATE)), toInteger(12), toInteger(8)),\n\t\tAFFILIATE = iif(length(trim(AFFILIATE)) == 0, toString(null()), AFFILIATE),\n\t\tADD_DTTM = substring(toString((ADD_DTTM)), toInteger(1), toInteger(4)) + '/' + substring(toString((ADD_DTTM)), toInteger(5), toInteger(2)) + '/' + substring(toString((ADD_DTTM)), toInteger(7), toInteger(2))) ~> DCTRANSFORM\nDCTRANSFORM sink(input(\n\t\tJOURNAL_DATE as timestamp 'dd-MM-yyyy',\n\t\tCLASS_FLD as string,\n\t\tCUST_ID as string,\n\t\tDUE_DT as timestamp 'dd-MM-yyyy',\n\t\tBUSINESS_UNIT_GL as string,\n\t\tACCOUNT as string,\n\t\tACCOUNTING_PERIOD as integer,\n\t\tPROGRAM_CODE as string,\n\t\tPRODUCT as string,\n\t\tCA_ITEM_DTL_LN_NUM as integer,\n\t\tCA_LINE_OF_BUS as string,\n\t\tCA_PARENT_GRP_ID as string,\n\t\tORIGIN_ID as string,\n\t\tENTRY_AMT as integer,\n\t\tFUND_CODE as string,\n\t\tBLEI_CK as integer,\n\t\tOPERATING_UNIT as string,\n\t\tAFFILIATE as string,\n\t\tCA_PRODUCT_ID as string,\n\t\tBUSINESS_UNIT as string,\n\t\tJOURNAL_ID as string,\n\t\tCHARTFIELD3 as string,\n\t\tITEM as string,\n\t\tCHARTFIELD2 as string,\n\t\tCHARTFIELD1 as string,\n\t\tCREATE_DATE as timestamp 'dd-MM-yyyy',\n\t\tCA_COVERAGE_FRM_DT as timestamp 'dd-MM-yyyy',\n\t\tFISCAL_YEAR as integer,\n\t\tCA_COVERAGE_TO_DT as timestamp 'dd-MM-yyyy',\n\t\tPDBL_ID as string,\n\t\tINBOUND_SUMMARY_ID as string,\n\t\tADD_DTTM as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tJOURNAL_DATE,\n\t\tCLASS_FLD,\n\t\tCUST_ID,\n\t\tDUE_DT,\n\t\tBUSINESS_UNIT_GL,\n\t\tACCOUNT,\n\t\tACCOUNTING_PERIOD,\n\t\tPROGRAM_CODE,\n\t\tPRODUCT,\n\t\tCA_ITEM_DTL_LN_NUM,\n\t\tCA_LINE_OF_BUS,\n\t\tCA_PARENT_GRP_ID,\n\t\tORIGIN_ID,\n\t\tENTRY_AMT,\n\t\tFUND_CODE,\n\t\tBLEI_CK,\n\t\tOPERATING_UNIT,\n\t\tAFFILIATE,\n\t\tCA_PRODUCT_ID,\n\t\tBUSINESS_UNIT,\n\t\tJOURNAL_ID,\n\t\tCHARTFIELD3,\n\t\tITEM,\n\t\tCHARTFIELD2,\n\t\tCHARTFIELD1,\n\t\tCREATE_DATE,\n\t\tCA_COVERAGE_FRM_DT,\n\t\tFISCAL_YEAR,\n\t\tCA_COVERAGE_TO_DT,\n\t\tPDBL_ID,\n\t\tINBOUND_SUMMARY_ID,\n\t\tADD_DTTM)) ~> OLEDBDESTINBOUNDTABLE"
+    }
+  }
+}

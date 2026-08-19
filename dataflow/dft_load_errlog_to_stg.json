@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_errlog_to_stg",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OraSrc",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OutputPlaceHolderOraDest"
+      } ],
+      "transformations" : [ {
+        "name" : "OraDataconversion"
+      } ],
+      "script" : "parameters{\n\tArchDelDate as timestamp (),\n\tBatchDate as timestamp (),\n\tBatchDt as timestamp (),\n\tBatchId as integer (),\n\tForLoop as integer (),\n\tgv_OracleArch as string (),\n\tgv_OracleDeleteArch as string (),\n\tgv_OracleDeleteStage as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strOracleDS as string (),\n\tOraStageQuery as string (),\n\tstrDataSource as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrUserName as string (),\n\tSYIN_INST as decimal(0,0) (),\n\tVarFileName as string (),\n\tVarFilePath as string (),\n\tVarFolderPath as string (),\n\tVarForLoopCount as integer (),\n\tVarForLoopQuery as string (),\n\tVariable as string (),\n\tVariable1 as integer (),\n\tVarSYIN_INST as string ()\n}\n\nsource(output(\n\t\tRUN_DATE as timestamp,\n\t\tFACETS_ERROR as string,\n\t\tRETURN_CODE as string,\n\t\tERROR_CODE as string,\n\t\tID1 as string,\n\t\tERR_MESSAGE as string,\n\t\tBATCH_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'User::OraStageQuery',\n\tformat: 'query',\n\tstaged:false) ~> OraSrc\nOraSrc derive({Copy of BATCH_ID} = toInteger(BATCH_ID),\n\t\t{Copy of RUN_DATE} = toString(RUN_DATE)) ~> OraDataconversion\nOraDataconversion sink(input(\n\t\t{Copy of RUN_DATE} as string,\n\t\t{Copy of BATCH_ID} as integer,\n\t\tRUN_DATE as timestamp 'dd-MM-yyyy',\n\t\tBATCH_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\t{Copy of RUN_DATE},\n\t\t{Copy of BATCH_ID},\n\t\tRUN_DATE,\n\t\tBATCH_ID)) ~> OutputPlaceHolderOraDest"
+    }
+  }
+}

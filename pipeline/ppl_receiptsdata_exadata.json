@@ -1,0 +1,1255 @@
+{
+  "name" : "ppl_receiptsdata_exadata",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "str_SelectReceiptData",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "str_SelectReceiptData",
+        "value" : {
+          "value" : "@concat('\"SELECT  R.[ReceiptId]\n      ,R.[BatchId]\n      ,R.[ReceiptReason]\n      ,R.[GroupId]\n   ,cast(ltrim(rtrim(R.[SubscriberId])) as varchar(9)) as [SubscriberId]\n      ,cast(ltrim(rtrim(R.[BillingGroupId])) as varchar(8)) as [BillingGroupId] \n      ,R.[Amount]\n      ,ISNULL(R.[CheckNum],'''') [CheckNum]\n      ,R.[ReceivedDate]\n      ,R.[Source]\n \n  FROM [Receipts].[Receipt] R\n  JOIN [Receipts].Batch B\n  ON B.BatchId=R.BatchId\n  AND B.BatchStatusId IN (SELECT BatchStatusId FROM [Receipts].[BatchStatus] \nWHERE UPPER(BatchStatus) IN (''TRANSMITTED'',''POSTING''))\n where R.[FACReceiptId]  is null and B.BatchDate > getdate()-\"', string(variables('gv_LookBackDays')), '  order by R.ReceivedDate desc')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "str_SelectReceiptDataFromOracle",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "str_SelectReceiptDataFromOracle",
+        "value" : {
+          "value" : "@concat('select RECEIPTID, FACRECEIPTID, GROUPID, SUBSCRIBERID, RECEIVEDDATE, AMOUNT,CHECKNUM,FACRECEIPTDATE,BATCHID  from ', variables('gv_LookupTable'), ' where facreceiptid is not null')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_1') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_1') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_1') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_1') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_1') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_Oracle_Lookup_Receipt_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_1') AS OLE_Oracle_Lookup_Receipt_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_Oracle_Lookup_Receipt_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_1') AS OLE_Oracle_Lookup_Receipt_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_1') AS OLE_DB_Destination_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_1') AS OLE_DB_Destination_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_1_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_1') AS OLE_DB_Destination_1_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_Staging_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_1') AS Facets_Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_Staging_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_1') AS Facets_Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_1') AS Facets_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_1') AS Facets_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_1') AS Facets_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_Staging_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_1') AS Facets_Staging_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_Staging_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_1') AS Facets_Staging_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_1') AS Facets_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_1') AS Facets_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Facets_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_1') AS Facets_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_1') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_1') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_1') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_1') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_1') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_DELTA_LD_101_source_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_101') AS DFT_DELTA_LD_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_DELTA_LD_101_source_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_101') AS DFT_DELTA_LD_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_DELTA_LD_101_source_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_101') AS DFT_DELTA_LD_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_DELTA_LD_101_sink_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_101') AS DFT_DELTA_LD_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_DELTA_LD_101_sink_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_DELTA_LD_101') AS DFT_DELTA_LD_101_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_FULL_LD_101_source_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_101') AS DFT_FULL_LD_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_FULL_LD_101_source_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_101') AS DFT_FULL_LD_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_FULL_LD_101_source_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_101') AS DFT_FULL_LD_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_FULL_LD_101_sink_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_101') AS DFT_FULL_LD_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_FULL_LD_101_sink_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_FULL_LD_101') AS DFT_FULL_LD_101_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101_source_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101') AS DFT_Populate_Oracle_lookup_receipt_table_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101_source_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101') AS DFT_Populate_Oracle_lookup_receipt_table_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101_source_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101') AS DFT_Populate_Oracle_lookup_receipt_table_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101_sink_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101') AS DFT_Populate_Oracle_lookup_receipt_table_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101_sink_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_Oracle_lookup_receipt_table_101') AS DFT_Populate_Oracle_lookup_receipt_table_101_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_statging_postback_lookup_table_101_source_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_101') AS DFT_Populate_statging_postback_lookup_table_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_statging_postback_lookup_table_101_source_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_101') AS DFT_Populate_statging_postback_lookup_table_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_statging_postback_lookup_table_101_source_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_101') AS DFT_Populate_statging_postback_lookup_table_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_statging_postback_lookup_table_101_sink_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_101') AS DFT_Populate_statging_postback_lookup_table_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_statging_postback_lookup_table_101_sink_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_statging_postback_lookup_table_101') AS DFT_Populate_statging_postback_lookup_table_101_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_ContainerName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101') AS DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FileName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101') AS DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FilePath' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101') AS DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_SchemaName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101') AS DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_TableName' AND PIPELINE_NAME = 'ReceiptsData_ExaData' AND DATAFLOW_NAME = 'DFT_Populate_BOSS_RECEIPT_DATA_table_101') AS DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQL_DEL_OracleReceiptTable_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "str_SelectReceiptDataFromOracle",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "str_SelectReceiptData",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "BEGIN AGP.PR_Trunc_RCPT_Key_Lookup;\nEND;"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "DFT_SQL_ReceiptsData",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQL_DEL_OracleReceiptTable_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DFT_Populate_Oracle_lookup_receipt_table_10",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_Populate_Oracle_lookup_receipt_table_1"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_Populate_Oracle_lookup_receipt_table_1",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_Oracle_lookup_receipt_table_10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "SELECT [RECEIPTID] ,R.[BATCHID] ,[FACRECEIPTID] ,[PAYMENTTYPEID] ,[PAYMENTTYPE] ,[RECEIPTREASONID] ,[RECEIPTREASON] ,[PAYMETHODID] ,[PAYMETHOD] ,[VENDORREFID] ,[GROUPID] ,[SUBGROUPID] ,CAST(LTRIM(RTRIM([SUBSCRIBERID])) AS VARCHAR(9)) AS [SUBSCRIBERID] ,CAST(LTRIM(RTRIM([BILLINGGROUPID])) AS VARCHAR(8)) AS [BILLINGGROUPID] ,[AFAID] ,[AMOUNT] ,ISNULL([CHECKNUM],'') [CHECKNUM] ,[RECEIVEDDATE] ,[HOLDINGACCT] ,[INVOICEID] ,[RETURNREASON] ,[FREQUENCY] ,[TRANTYPE] ,[FACRECEIPTDATE] ,R.[SOURCE] ,[GROUPIND] ,[EXCLUDEIND] ,CAST(BatchId as DOUBLE) AS {Copy of BatchId},CAST(ReceivedDate as VARCHAR) AS {Copy of ReceivedDate},CAST(Amount as INTEGER) AS {Copy of Amount},CAST(ReceiptId as DOUBLE) AS {Copy of ReceiptId} FROM [RECEIPTS].[RECEIPT] R JOIN [RECEIPTS].BATCH B ON B.BATCHID=R.BATCHID AND B.BATCHSTATUSID IN (SELECT BATCHSTATUSID FROM [RECEIPTS].[BATCHSTATUS] WHERE UPPER(BATCHSTATUS) IN ('TRANSMITTED','POSTING')) WHERE [FACRECEIPTID] IS NULL AND R.BATCHID = '1528' ORDER BY R.RECEIVEDDATE DESC"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_1_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_1_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_1_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_1_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_1_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_Populate_Oracle_lookup_receipt_table_101",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_Oracle_lookup_receipt_table_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_101_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_101_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_101_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_101_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_Oracle_lookup_receipt_table_101_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SQL_Refresh_Lookup_Table_Stats_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_Oracle_lookup_receipt_table_101",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\nAGP.PR_GATHER_TABLE_STATS('RECEIPT_KEYWORD_LOOKUP');\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_UNI_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_Refresh_Lookup_Table_Stats_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_UNI"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_Refresh_Temp_Table_Stats_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_UNI_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\nAGP.PR_GATHER_TABLE_STATS('RECEIPT_KEYWORD_TEMP');\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_FACReceiptId_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_Refresh_Temp_Table_Stats_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN AGP.PR_UPDATE_FACRCPTID_DATE;\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_DEL_TEMP_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_FACReceiptId_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN AGP.PR_Trunc_RCPT_Key_Temp;\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_DUL_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_DEL_TEMP_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_DUL"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_Refresh_Temp_Table_Stats_2_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_DUL_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN\nAGP.PR_GATHER_TABLE_STATS('RECEIPT_KEYWORD_TEMP');\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_FACReceiptId_DUL_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_Refresh_Temp_Table_Stats_2_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "BEGIN AGP.PR_UPDATE_FACRCPTID_DATE_DUL;\nEND;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_TruncateStagingReceiptTable_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_FACReceiptId_DUL_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE Receipts.PostBackLookupReceipt"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_Populate_statging_postback_lookup_table_10",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_TruncateStagingReceiptTable_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_Populate_statging_postback_lookup_table_1"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_Populate_statging_postback_lookup_table_1",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_statging_postback_lookup_table_10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "SELECT * ,CAST(AMOUNT as DECIMAL) AS {Copy of Amount},CAST(RECEIPTID as INTEGER) AS {Copy of ReceiptId} FROM AGP.RECEIPT_KEYWORD_LOOKUP WHERE FACRECEIPTID IS NOT NULL"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_1_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_1_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_1_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_1_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_1_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_Populate_statging_postback_lookup_table_101",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_statging_postback_lookup_table_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_101_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_101_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_101_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_101_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_statging_postback_lookup_table_101_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SQL_Update_Staging_Receipt_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_statging_postback_lookup_table_101",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "update rcpt \nset rcpt.FACReceiptId =post.FACReceiptId,\nrcpt.FACReceiptDate=post.FACReceiptDate\n from  Receipts.Receipt rcpt\n join Receipts.PostBackLookupReceipt post\n on rcpt.ReceiptId = post.ReceiptId\n and post.FACReceiptId not in (select distinct FACReceiptId from Receipts.Receipt where FACReceiptId is not null)\n;"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_UpdateStageStats_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_Update_Staging_Receipt_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "UPDATE STATISTICS Receipts.PostBackLookupReceipt\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "DFT_Populate_BOSS_RECEIPT_DATA_table_10",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_UpdateStageStats_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_Populate_BOSS_RECEIPT_DATA_table_1"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_Populate_BOSS_RECEIPT_DATA_table_1",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_BOSS_RECEIPT_DATA_table_10",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "SELECT RCPT.BATCHID ,RCPT.[FACRECEIPTID],RCPT.[RECEIPTID],GETDATE() AS CREATEDATE,GETDATE() AS UPDATEDATE,RCPT.VENDORREFID, (CASE WHEN RCPT.FREQUENCY=1 THEN 'ONE TIME' WHEN RCPT.FREQUENCY=2 THEN 'RECURRING' END) AS FREQUENCY1,RCPT.FILLER,RCPT.KY_HCID  FROM RECEIPTS.RECEIPT RCPT JOIN RECEIPTS.POSTBACKLOOKUPRECEIPT LKP ON LKP.RECEIPTID= RCPT.RECEIPTID WHERE RCPT.[FACRECEIPTID] IS NOT NULL;"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_1_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_1_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_1_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_1_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_1_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "DFT_Populate_BOSS_RECEIPT_DATA_table_101",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_BOSS_RECEIPT_DATA_table_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_101_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_Populate_BOSS_RECEIPT_DATA_table_101_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SQL_GET_RECCOUNT_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_Populate_BOSS_RECEIPT_DATA_table_101",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "SELECT NVL(COUNT(*),0)   FROM AGP.BOSS_RECEIPT_GRS_DATA"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_RECCOUNT_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_RECCOUNT_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_Reccount",
+            "value" : "@activity('SQL_GET_RECCOUNT_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "IFACTIVITY_DFT_DELTA_LD_1",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_RECCOUNT_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@greater(variables('gv_Reccount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT_DELTA_LD_10",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "DFT_DELTA_LD_1"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "DFT_DELTA_LD_1",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_DELTA_LD_10",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "Parquetsource",
+                  "sqlReaderQuery" : "SELECT RCPT.BATCHID ,RCPT.[FACRECEIPTID],RCPT.[RECEIPTID],GETDATE() AS CREATEDATE,GETDATE() AS UPDATEDATE,RCPT.VENDORREFID, (CASE WHEN RCPT.FREQUENCY=1 THEN 'ONE TIME' WHEN RCPT.FREQUENCY=2 THEN 'RECURRING' END) AS FREQUENCY1,RCPT.FILLER,RCPT.KY_HCID  FROM RECEIPTS.RECEIPT RCPT JOIN RECEIPTS.POSTBACKLOOKUPRECEIPT LKP ON LKP.RECEIPTID= RCPT.RECEIPTID WHERE RCPT.[FACRECEIPTID] IS NOT NULL AND ( RCPT.BILLINGGROUPID LIKE 'GRS%' OR RCPT.BILLINGGROUPID LIKE 'GRX%' )"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink",
+                  "writeBehavior" : "insert",
+                  "sqlWriterUseTableLock" : false
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_1_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_1_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_1_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ""
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_1_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_1_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "DFT_DELTA_LD_101",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_DELTA_LD_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_101_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_101_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_101_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_101_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_DELTA_LD_101_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        }, {
+          "name" : "IFACTIVITY_DFT_FULL_LD_1",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_RECCOUNT_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(variables('gv_Reccount'),0)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "DFT_FULL_LD_10",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "DFT_FULL_LD_1"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "DFT_FULL_LD_1",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_FULL_LD_10",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "Parquetsource",
+                  "sqlReaderQuery" : "select DT.* FROM AGP.BOSS_RECEIPT_DATA DT WHERE RCPT_ID IN (SELECT DISTINCT RCPT_ID FROM  CMC_RCPT_RECEIPTS RCPT WHERE RCPT.RCPT_INPUT_BGBG_ID IN (SELECT DISTINCT BGBG_ID FROM AGP.BILLING_EGR_BGBG_XWALK ))"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink",
+                  "writeBehavior" : "insert",
+                  "sqlWriterUseTableLock" : false
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_1_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_1_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_1_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ""
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_1_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_1_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "DFT_FULL_LD_101",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "DFT_FULL_LD_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_101_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_101_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_101_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_101_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_FULL_LD_101_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            } ]
+          }
+        } ]
+      }
+    }, {
+      "name" : "SQL_Update_Batch_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DFT_SQL_ReceiptsData",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "EXEC [Receipts].[Pr_UpdateBatchDetails] @gv_LookBackDays"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_OraclePassword" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "strsqlServerProvider" : {
+        "type" : "string",
+        "defaultValue" : "'SQLNCLI11.1'"
+      },
+      "str_SelectReceiptDataFromOracle" : {
+        "type" : "string",
+        "defaultValue" : "'select RECEIPTID, FACRECEIPTID, GROUPID, SUBSCRIBERID, RECEIVEDDATE, AMOUNT,CHECKNUM,FACRECEIPTDATE,BATCHID  from AGP.Receipt_Keyword_Lookup where facreceiptid is not null'"
+      },
+      "gv_DUL" : {
+        "type" : "string",
+        "defaultValue" : "'INSERT INTO AGP.RECEIPT_KEYWORD_TEMP(rownumbersql,BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src)\\nSELECT ROW_NUMBER () OVER (PARTITION BY SUBSCRIBERID, GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON ORDER BY receiveddate desc) AS rownumbersql,\\n        BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n    FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n    WHERE SUBSCRIBERID IS NOT NULL\\n    AND (SUBSCRIBERID,GROUPID, RECEIVEDDATE,nvl(CHECKNUM,0), AMOUNT,RECEIPT_REASON)  IN (\\nSELECT DISTINCT SUBSCRIBERID,GROUPID, RECEIVEDDATE,nvl(CHECKNUM,0), AMOUNT,RECEIPT_REASON FROM\\n(\\n  SELECT ROW_NUMBER() OVER (PARTITION BY SUBSCRIBERID, GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON order by receiveddate) as rownumbersql,\\n       BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n  FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n  WHERE SUBSCRIBERID <> ' '\\n  AND FACRECEIPTID IS NULL\\n  GROUP BY BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n)T WHERE T.rownumbersql > 1\\n)\\nGROUP BY BATCHID,\\n    FACRECEIPTID,\\n    FACRECEIPTDATE,\\n    groupid,\\n    subscriberid,\\n    receiveddate,\\n    billinggroupid,\\n    amount,\\n    RECEIPT_REASON,\\n    checknum,\\n    receiptid,\\n    src \\n    \\n    \\n    \\nUNION\\n\\n\\nSELECT ROW_NUMBER () OVER (PARTITION BY billinggroupid , receiveddate,checknum,amount,RECEIPT_REASON ORDER BY receiveddate) AS rownumbersql,\\n        BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n    FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n     WHERE BILLINGGROUPID IS NOT NULL\\n    AND (BILLINGGROUPID,receiveddate, nvl(CHECKNUM,0),amount,RECEIPT_REASON )  IN(\\nSELECT DISTINCT BILLINGGROUPID,receiveddate, nvl(CHECKNUM,0),amount,RECEIPT_REASON  FROM\\n(\\n  SELECT ROW_NUMBER() OVER (PARTITION BY billinggroupid , receiveddate,checknum,amount,RECEIPT_REASON order by receiveddate) as rownumbersql,\\n       BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n  FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n  WHERE BILLINGGROUPID <> ' '\\n  AND FACRECEIPTID IS NULL\\n  GROUP BY BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n)T\\nWHERE T.rownumbersql > 1\\n)\\nGROUP BY BATCHID,\\n    FACRECEIPTID,\\n    FACRECEIPTDATE,\\n    groupid,\\n    subscriberid,\\n    receiveddate,\\n    billinggroupid,\\n    amount,\\n    RECEIPT_REASON,\\n    checknum,\\n    receiptid,\\n    src'"
+      },
+      "strDataSource" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_APPS6.devad.wellpoint.com\\\\APPS6D,40311'"
+      },
+      "strInitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'BOSS'"
+      },
+      "strPassword" : {
+        "type" : "string",
+        "defaultValue" : "'0s-dyekDSD40Jg'"
+      },
+      "gv_OracleUserID" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_UNI" : {
+        "type" : "string",
+        "defaultValue" : "'INSERT INTO AGP.RECEIPT_KEYWORD_TEMP(rownumbersql,BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src)\\nSELECT ROW_NUMBER () OVER (PARTITION BY SUBSCRIBERID, GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON ORDER BY receiveddate desc) AS rownumbersql,\\n        BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n    FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n    WHERE SUBSCRIBERID IS NOT NULL\\n    AND (SUBSCRIBERID,GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON) not IN (\\nSELECT DISTINCT SUBSCRIBERID,GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON FROM\\n(\\n  SELECT ROW_NUMBER() OVER (PARTITION BY SUBSCRIBERID, GROUPID, RECEIVEDDATE,CHECKNUM, AMOUNT,RECEIPT_REASON order by receiveddate) as rownumbersql,\\n       BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n  FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n  WHERE SUBSCRIBERID <> ' '\\n  AND FACRECEIPTID IS NULL\\n  GROUP BY BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,SUBSCRIBERID,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n)T WHERE T.rownumbersql > 1\\n)\\nGROUP BY BATCHID,\\n    FACRECEIPTID,\\n    FACRECEIPTDATE,\\n    groupid,\\n    subscriberid,\\n    receiveddate,\\n    billinggroupid,\\n    amount,\\n    RECEIPT_REASON,\\n    checknum,\\n    receiptid,\\n    src \\n    \\n    \\n    \\nUNION\\n\\n\\nSELECT ROW_NUMBER () OVER (PARTITION BY billinggroupid , receiveddate,checknum,amount,RECEIPT_REASON ORDER BY receiveddate) AS rownumbersql,\\n        BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n    FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n     WHERE BILLINGGROUPID IS NOT NULL\\n    AND (BILLINGGROUPID,receiveddate, checknum,amount,RECEIPT_REASON ) not IN(\\nSELECT DISTINCT BILLINGGROUPID,receiveddate, checknum,amount,RECEIPT_REASON  FROM\\n(\\n  SELECT ROW_NUMBER() OVER (PARTITION BY billinggroupid , receiveddate,checknum,amount,RECEIPT_REASON order by receiveddate) as rownumbersql,\\n       BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n  FROM AGP.RECEIPT_KEYWORD_LOOKUP\\n  WHERE BILLINGGROUPID <> ' '\\n  AND FACRECEIPTID IS NULL\\n  GROUP BY BATCHID,FACRECEIPTID,FACRECEIPTDATE,receiptid,groupid,subscriberid,receiveddate,billinggroupid,amount,RECEIPT_REASON,checknum,src    \\n)T\\nWHERE T.rownumbersql > 1\\n)\\nGROUP BY BATCHID,\\n    FACRECEIPTID,\\n    FACRECEIPTDATE,\\n    groupid,\\n    subscriberid,\\n    receiveddate,\\n    billinggroupid,\\n    amount,\\n    RECEIPT_REASON,\\n    checknum,\\n    receiptid,\\n    src'"
+      },
+      "gv_ReceiptDataTable" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.BOSS_RECEIPT_DATA'"
+      },
+      "gv_LookBackDays" : {
+        "type" : "Integer",
+        "defaultValue" : "9"
+      },
+      "strUserName" : {
+        "type" : "string",
+        "defaultValue" : "'APP_BOSS'"
+      },
+      "gv_strOracleDS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "str_SelectReceiptData" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT  R.[ReceiptId]\\n      ,R.[BatchId]\\n      ,R.[ReceiptReason]\\n      ,R.[GroupId]\\n   ,cast(ltrim(rtrim(R.[SubscriberId])) as varchar(9)) as [SubscriberId]\\n      ,cast(ltrim(rtrim(R.[BillingGroupId])) as varchar(8)) as [BillingGroupId] \\n      ,R.[Amount]\\n      ,ISNULL(R.[CheckNum],'') [CheckNum]\\n      ,R.[ReceivedDate]\\n      ,R.[Source]\\n \\n  FROM [Receipts].[Receipt] R\\n  JOIN [Receipts].Batch B\\n  ON B.BatchId=R.BatchId\\n  AND B.BatchStatusId IN (SELECT BatchStatusId FROM [Receipts].[BatchStatus] \\nWHERE UPPER(BatchStatus) IN ('TRANSMITTED','POSTING'))\\n where R.[FACReceiptId]  is null and B.BatchDate > getdate()-9  order by R.ReceivedDate desc'"
+      },
+      "gv_OracleProvider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_LookupTable" : {
+        "type" : "string",
+        "defaultValue" : "'AGP.Receipt_Keyword_Lookup'"
+      },
+      "gv_Reccount" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

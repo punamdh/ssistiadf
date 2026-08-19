@@ -1,0 +1,563 @@
+{
+  "name" : "ppl_nc_dsnp_incm",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_Failure_Email_Sub",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Failure_Email_Sub",
+        "value" : {
+          "value" : "@concat('NC DSNP Income file Process Completed Abnormally in the ', variables('gv_Job_Env'), ' Environment on ', variables('gv_Oracle_DS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Failure_Message",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Failure_Message",
+        "value" : {
+          "value" : "\"The NC DSNP Income File Process failed. Please refer the logs.\n=======================================\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\n=======================================\n\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. \"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Incm_Stg_Query",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Incm_Stg_Query",
+        "value" : {
+          "value" : "@concat('\"BEGIN\n\tAGP.PKG_NC_DSNP_INCM.PR_NC_DSNP_INCM_LOAD ( NULL,''\"', string((variables('gv_Run_Date'))), ''',''', string(variables('gv_Job_Env')), '\"'' );\nEND;\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Success_Email_Sub",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Success_Email_Sub",
+        "value" : {
+          "value" : "@concat('NC DSNP Income file Process Completed Successfully in the ', variables('gv_Job_Env'), ' Environment on ', variables('gv_Oracle_DS'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "gv_Success_Message",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Success_Message",
+        "value" : {
+          "value" : "\"The NC DSNP Income File Process executed successfully.\n=======================================\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\n=======================================\n\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. \"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_INCM_STG_SchemaName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE') AS SRC_OLEDB_INCM_STG_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SRC_OLEDB_INCM_STG_TableName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE') AS SRC_OLEDB_INCM_STG_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_INCM_FILE_ContainerName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE') AS DST_FF_INCM_FILE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_INCM_FILE_FileName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE') AS DST_FF_INCM_FILE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DST_FF_INCM_FILE_FilePath' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE') AS DST_FF_INCM_FILE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_GENERATE_FILE01_source_ContainerName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE01') AS DFT_GENERATE_FILE01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_GENERATE_FILE01_source_FileName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE01') AS DFT_GENERATE_FILE01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_GENERATE_FILE01_source_FilePath' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE01') AS DFT_GENERATE_FILE01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_GENERATE_FILE01_sink_SchemaName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE01') AS DFT_GENERATE_FILE01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DFT_GENERATE_FILE01_sink_TableName' AND PIPELINE_NAME = 'NC_DSNP_INCM' AND DATAFLOW_NAME = 'DFT_GENERATE_FILE01') AS DFT_GENERATE_FILE01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "SQ_GENERATE_INCM_FILE",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_Success_Message",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Failure_Email_Sub",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Failure_Message",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Incm_Stg_Query",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "gv_Success_Email_Sub",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_LOAD_INCM_STG_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_Incm_Stg_Query"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_FILE_NAME_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_LOAD_INCM_STG_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "WITH CTE_BATCH AS (SELECT MAX(BATCH_ID) AS BATCH_ID FROM AGP.MB_NC_DSNP_BATCH )\nSELECT FILENAME FROM AGP.MB_NC_DSNP_BATCH  WHERE BATCH_ID = (SELECT BATCH_ID FROM CTE_BATCH)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SQL_GET_FILE_NAME_VA_0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_FILE_NAME_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "gv_File_Name",
+            "value" : "@activity('SQL_GET_FILE_NAME_SCRIPT').output.resultSets[0].rows[0][0]"
+          }
+        }, {
+          "name" : "DFT_GENERATE_FILE0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SQL_GET_FILE_NAME_VA_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "DFT_GENERATE_FILE"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "DFT_GENERATE_FILE",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GENERATE_FILE0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "dft_generate_file",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "gv_Failure_Message" : {
+                  "type" : "Expression",
+                  "value" : "'The NC DSNP Income File Process failed. Please refer the logs. ======================================= NOTE: THIS IS AN AUTO GENERATED EMAIL. =======================================  CONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. '"
+                },
+                "gv_Oracle_Provider" : {
+                  "type" : "Expression",
+                  "value" : "'OraOLEDB.Oracle.1'"
+                },
+                "gv_Oracle_User" : {
+                  "type" : "Expression",
+                  "value" : "'AGP'"
+                },
+                "gv_File_Path" : {
+                  "type" : "Expression",
+                  "value" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\NC_DSNP\\\\'"
+                },
+                "gv_To_List" : {
+                  "type" : "Expression",
+                  "value" : "'ragachand.mandadi2@anthem.com'"
+                },
+                "gv_Success_Email_Sub" : {
+                  "type" : "Expression",
+                  "value" : "'NC DSNP Income file Process Completed Successfully in the TEST Environment on GBFAC06D'"
+                },
+                "gv_Incm_Stg_Query" : {
+                  "type" : "Expression",
+                  "value" : "'BEGIN \tAGP.PKG_NC_DSNP_INCM.PR_NC_DSNP_INCM_LOAD ( NULL,'10/04/2020','TEST' ); END;'"
+                },
+                "gv_File_Name" : {
+                  "type" : "Expression",
+                  "value" : "'ANTHEM_BCBSNC_DSNP_INC_FULL_TEST_20200927_060952.txt'"
+                },
+                "gv_Oracle_Pwd" : {
+                  "type" : "Expression",
+                  "value" : "'yeL0wp#N'"
+                },
+                "gv_Success_Message" : {
+                  "type" : "Expression",
+                  "value" : "'The NC DSNP Income File Process executed successfully. ======================================= NOTE: THIS IS AN AUTO GENERATED EMAIL. =======================================  CONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored. '"
+                },
+                "gv_Job_Env" : {
+                  "type" : "Expression",
+                  "value" : "'TEST'"
+                },
+                "gv_Oracle_DS" : {
+                  "type" : "Expression",
+                  "value" : "'GBFAC06D'"
+                },
+                "gv_From_List" : {
+                  "type" : "Expression",
+                  "value" : "'noreply@anthem.com'"
+                },
+                "gv_SMTP" : {
+                  "type" : "Expression",
+                  "value" : "'smtpinternal.wellpoint.com'"
+                },
+                "gv_Failure_Email_Sub" : {
+                  "type" : "Expression",
+                  "value" : "'NC DSNP Income file Process Completed Abnormally in the TEST Environment on GBFAC06D'"
+                },
+                "gv_Run_Date" : {
+                  "type" : "Expression",
+                  "value" : "'10/04/2020'"
+                }
+              },
+              "datasetParameters" : {
+                "DSTFFINCMFILE" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFINCMFILE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFINCMFILE_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DSTFFINCMFILE_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "SRCOLEDBINCMSTG" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBINCMSTG_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.SRCOLEDBINCMSTG_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "SRC_OLEDB_INCM_STG",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "DFT_GENERATE_FILE01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DFT_GENERATE_FILE",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_GENERATE_FILE01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_GENERATE_FILE01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_GENERATE_FILE01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_GENERATE_FILE01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DFT_GENERATE_FILE01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    }, {
+      "name" : "SM_SUCCESS_EMAIL",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQ_GENERATE_INCM_FILE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    }, {
+      "name" : "SM_FAILURE_EMAIL",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQ_GENERATE_INCM_FILE",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_Failure_Message" : {
+        "type" : "string",
+        "defaultValue" : "'The NC DSNP Income File Process failed. Please refer the logs.\\n=======================================\\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\\n=======================================\\n\\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored.'"
+      },
+      "gv_Oracle_Provider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Oracle_User" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_File_Path" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\va33dfs001.devad.wellpoint.com\\\\apps\\\\Billing\\\\DEV\\\\NC_DSNP\\\\'"
+      },
+      "gv_To_List" : {
+        "type" : "string",
+        "defaultValue" : "'ragachand.mandadi2@anthem.com'"
+      },
+      "gv_Success_Email_Sub" : {
+        "type" : "string",
+        "defaultValue" : "'NC DSNP Income file Process Completed Successfully in the TEST Environment on GBFAC06D'"
+      },
+      "gv_Incm_Stg_Query" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN\\n\tAGP.PKG_NC_DSNP_INCM.PR_NC_DSNP_INCM_LOAD ( NULL,'10/04/2020','TEST' );\\nEND;'"
+      },
+      "gv_File_Name" : {
+        "type" : "string",
+        "defaultValue" : "'ANTHEM_BCBSNC_DSNP_INC_FULL_TEST_20200927_060952.txt'"
+      },
+      "gv_Oracle_Pwd" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "gv_Success_Message" : {
+        "type" : "string",
+        "defaultValue" : "'The NC DSNP Income File Process executed successfully.\\n=======================================\\nNOTE: THIS IS AN AUTO GENERATED EMAIL.\\n=======================================\\n\\nCONFIDENTIALITY NOTICE: This e-mail and any files transmitted with it are for the sole use of the intended recipient(s) and may contain confidential and privileged information. If you are not the intended recipient(s), please reply to the sender and destroy all copies of the original message. Any unauthorized review, use, disclosure, dissemination, forwarding, printing or copying of this email, and/or any action taken in reliance on the contents of this e-mail is strictly prohibited and may be unlawful. Where permitted by applicable law, this e-mail and other e-mail communications sent to and from Anthem e-mail addresses may be monitored.'"
+      },
+      "gv_Job_Env" : {
+        "type" : "string",
+        "defaultValue" : "'TEST'"
+      },
+      "gv_Oracle_DS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC06D'"
+      },
+      "gv_From_List" : {
+        "type" : "string",
+        "defaultValue" : "'noreply@anthem.com'"
+      },
+      "gv_SMTP" : {
+        "type" : "string",
+        "defaultValue" : "'smtpinternal.wellpoint.com'"
+      },
+      "gv_Failure_Email_Sub" : {
+        "type" : "string",
+        "defaultValue" : "'NC DSNP Income file Process Completed Abnormally in the TEST Environment on GBFAC06D'"
+      },
+      "gv_Run_Date" : {
+        "type" : "string",
+        "defaultValue" : "'10/04/2020'"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "create_log_file_for_member_loaded_from_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tHEALTHLINK_DATASOURCE as string (),\n\tHEALTHLINK_DB as string (),\n\tHEALTHLINK_PWD as string (),\n\tHEALTHLINK_USER as string (),\n\tRPT_DATASOURCE as string (),\n\tRPT_DB as string (),\n\tRPT_PWD as string (),\n\tRPT_USER as string (),\n\tv_CntExistingMember as integer (),\n\tv_CntNewMember as integer (),\n\tv_CntNewMemberInserted as integer (),\n\tv_cntTotalMember as integer (),\n\tv_createUserID as integer (),\n\tv_fileDestination as string (),\n\tv_fileExists as boolean (),\n\tv_loadDate as timestamp (),\n\tv_logFileFolder as string (),\n\tv_logPackageScript as string (),\n\tv_log_EventDate as string (),\n\tv_memberSourceID as integer (),\n\tv_stratFileFolder as string (),\n\tv_stratFileName as string (),\n\tv_stratLevelSourceID as integer ()\n}\n\nsource(output(\n\t\tSBSB_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT SBSB_ID   FROM  [APP_DMCCU].[TNHEALTHLINK_NONEXISTING_MEMBER] UNION ALL SELECT DISTINCT 999999999 AS SBSB_ID',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(dc_fileName = $v_stratFileName,\n\t\tdc_lodaDate = $v_log_EventDate) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as date 'dd-MM-yyyy',\n\t\tSBSB_ID as string,\n\t\tFileLoadedFrom as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = dc_lodaDate,\n\t\tSBSB_ID,\n\t\tFileLoadedFrom = dc_fileName)) ~> FlatFileDestination"
+    }
+  }
+}

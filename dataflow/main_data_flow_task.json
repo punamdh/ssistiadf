@@ -1,0 +1,49 @@
+{
+  "name" : "main_data_flow_task",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExecutePRUMEMBERCONCEPTETLonConnectionCAERPTUTILA01",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupCONCEPTKEYLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTTERMDATESTAGE"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "TargetA01"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupCONCEPTKEY"
+      }, {
+        "name" : "LookupCONCEPTKEYSelect"
+      }, {
+        "name" : "LookupCONCEPTKEYIsMatch"
+      }, {
+        "name" : "ConSplitforTERMDATEupdate"
+      } ],
+      "script" : "parameters{\n\tCID_Chunks as integer (),\n\tCID_Readers as integer (),\n\tCtlFlow00_LogETLStart as boolean (),\n\tCtlFlow01_UpdateLocalLookup as boolean (),\n\tCtlFlow02_TruncateTarget as boolean (),\n\tCtlFlow03_Delta_TargetKeysDisable as boolean (),\n\tCtlFlow03_TargetKeysDisable as boolean (),\n\tCtlFlow04_RunETL as boolean (),\n\tCtlFlow05_Delta_TargetKeysEnable as boolean (),\n\tCtlFlow05_TargetKeysEnable as boolean (),\n\tCtlFlow06_LogETLComplete as boolean (),\n\tCtlFlow07_Delta_TermSTGTruncate as boolean (),\n\tCtlFlow08_Delta_TermDateUpdate as boolean (),\n\tDELTA as boolean (),\n\tSourceA_DataSource as string (),\n\tSourceA_InitialCatalog as string (),\n\tSourceA_PacketSize as string (),\n\tSourceA_Pwd as string (),\n\tSourceA_UserName as string (),\n\tTargetA_DataSource as string (),\n\tTargetA_InitialCatalog as string (),\n\tTargetA_PacketSize as string (),\n\tTargetA_Pwd as string (),\n\tTargetA_UserName as string (),\n\tTHREAD_GROUP_Begin as integer (),\n\tTHREAD_GROUP_End as integer (),\n\tTHREAD_Reader as integer (),\n\tTruncETLLog as boolean (),\n\tUPDATE_TIME as string ()\n}\n\nsource(output(\n\t\tMEME_CK as integer,\n\t\tGROUP_CK as integer,\n\t\tCONCEPT_ID as integer,\n\t\tUSER_ID as long,\n\t\tEFF_DATE as integer,\n\t\tEFF_TIME as integer,\n\t\tTERM_DATE as integer,\n\t\tTERM_TIME as integer,\n\t\tANSWER as string,\n\t\tTERMDate_Change as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'exec [APP_CAEDM].[PR_U_MEMBER_CONCEPT_ETL]  \t\t@THREAD_GROUP = ?, \t\t@NO_OF_BATCHES = ?, \t\t@BATCH_NUMBER = ?, \t\t@INC_UMCV = 1, \t\t@INC_UMCVL = 1, \t\t@CID_BEG=?, \t\t@CID_END=?,                                       @DELTA=?,                                       @UPDATE_TIME=? WITH RESULT SETS (  (  MEME_CK  INT, GROUP_CK INT,\t CONCEPT_ID INT, ANSWER VARCHAR(4000),\t USER_ID INT, EFF_DATE INT, EFF_TIME INT,\t\t TERM_DATE INT, TERM_TIME INT,\t  TERMDate_Change INT  )  )',\n\tformat: 'query',\n\tstaged:false) ~> ExecutePRUMEMBERCONCEPTETLonConnectionCAERPTUTILA01\tsource(output(\n\t\tCONCEPT_ID as integer,\n\t\tCONCEPT_KEY as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT     ddc.CONCEPT_ID,     MIN(ddc.CONCEPT_KEY) CONCEPT_KEY FROM     APP_CAEDM.DW_DIM_CONCEPT ddc WITH (NOLOCK)  JOIN     APP_CAEDM.DW_DIM_MEMBER_CONCEPT_LOOKUP ddmcl   WITH (NOLOCK)  ON ddc.CONCEPT_ID = ddmcl.CONCEPT_ID  GROUP BY     ddc.CONCEPT_ID ORDER BY ddc.CONCEPT_ID',\n\tformat: 'query',\n\tstaged:false) ~> LookupCONCEPTKEYLKPTABLE\nExecutePRUMEMBERCONCEPTETLonConnectionCAERPTUTILA01,LookupCONCEPTKEYLKPTABLE lookup(ExecutePRUMEMBERCONCEPTETLonConnectionCAERPTUTILA01@CONCEPT_ID == LookupCONCEPTKEYLKPTABLE@CONCEPT_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupCONCEPTKEY\nLookupCONCEPTKEY select(mapColumn(\n\t\tMEME_CK = MEME_CK,\n\t\tGROUP_CK = GROUP_CK,\n\t\tCONCEPT_ID = ExecutePRUMEMBERCONCEPTETLonConnectionCAERPTUTILA01@CONCEPT_ID,\n\t\tUSER_ID = USER_ID,\n\t\tEFF_DATE = EFF_DATE,\n\t\tEFF_TIME = EFF_TIME,\n\t\tTERM_DATE = TERM_DATE,\n\t\tTERM_TIME = TERM_TIME,\n\t\tANSWER = ANSWER,\n\t\tTERMDate_Change = TERMDate_Change,\n\t\tCONCEPT_KEY = CONCEPT_KEY\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupCONCEPTKEYSelect\nLookupCONCEPTKEYSelect split(isMatch(), disjoint: true) ~> LookupCONCEPTKEYIsMatch@(Match,NotMatch)\nLookupCONCEPTKEYIsMatch@Match split(TermDate_Change == 0, disjoint: true) ~> ConSplitforTERMDATEupdate@(TERMDATE,TERMDATE2099)\nConSplitforTERMDATEupdate@TERMDATE sink(input(\n\t\tCONCEPT_KEY as integer,\n\t\tANSWER as string,\n\t\tTERM_DATE as integer,\n\t\tUSER_ID as integer,\n\t\tMEME_CK as integer,\n\t\tEFF_DATE as integer,\n\t\tTERM_TIME as integer,\n\t\tGROUP_CK as integer,\n\t\tEFF_TIME as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCONCEPT_KEY,\n\t\tANSWER,\n\t\tTERM_DATE,\n\t\tUSER_ID,\n\t\tMEME_CK,\n\t\tEFF_DATE,\n\t\tTERM_TIME,\n\t\tGROUP_CK,\n\t\tEFF_TIME)) ~> TargetA01\nConSplitforTERMDATEupdate@TERMDATE2099 sink(input(\n\t\tCONCEPT_KEY as integer,\n\t\tCONCEPT_ID as integer,\n\t\tTERM_DATE as integer,\n\t\tUSER_ID as long,\n\t\tMEME_CK as integer,\n\t\tEFF_DATE as integer,\n\t\tTERM_TIME as integer,\n\t\tGROUP_CK as integer,\n\t\tEFF_TIME as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCONCEPT_KEY,\n\t\tCONCEPT_ID,\n\t\tTERM_DATE,\n\t\tUSER_ID,\n\t\tMEME_CK,\n\t\tEFF_DATE,\n\t\tTERM_TIME,\n\t\tGROUP_CK,\n\t\tEFF_TIME)) ~> DSTTERMDATESTAGE"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name" : "load_stratification_data_for_all_file_members_in_s",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PHLStratyyyymmddfileload1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupForMemberIDLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "InsertStratificatinrecordforeachinput"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupForMemberID"
+      }, {
+        "name" : "FilterLookupForMemberID"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tHEALTHLINK_DATASOURCE as string (),\n\tHEALTHLINK_DB as string (),\n\tHEALTHLINK_PWD as string (),\n\tHEALTHLINK_USER as string (),\n\tRPT_DATASOURCE as string (),\n\tRPT_DB as string (),\n\tRPT_PWD as string (),\n\tRPT_USER as string (),\n\tv_CntExistingMember as integer (),\n\tv_CntNewMember as integer (),\n\tv_CntNewMemberInserted as integer (),\n\tv_cntTotalMember as integer (),\n\tv_createUserID as integer (),\n\tv_fileDestination as string (),\n\tv_fileExists as boolean (),\n\tv_loadDate as timestamp (),\n\tv_logFileFolder as string (),\n\tv_logPackageScript as string (),\n\tv_log_EventDate as string (),\n\tv_memberSourceID as integer (),\n\tv_stratFileFolder as string (),\n\tv_stratFileName as string (),\n\tv_stratLevelSourceID as integer ()\n}\n\nsource(output(\n\t\tSBSBID as string,\n\t\tHealthLinkStratID as string,\n\t\tProgram as string,\n\t\tHealthLinkStratDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PHLStratyyyymmddfileload1\tsource(output(\n\t\tSubscriberID as string,\n\t\tMemberID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT DISTINCT SubscriberID, MemberID from member.Member',\n\tformat: 'query',\n\tstaged:false) ~> LookupForMemberIDLKPTABLE\nPHLStratyyyymmddfileload1,LookupForMemberIDLKPTABLE lookup(SBSBID == SubscriberID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupForMemberID\nLookupForMemberID filter(isMatch()) ~> FilterLookupForMemberID\nFilterLookupForMemberID derive(dc_StratLevelTypeID = substring(toString(ltrim(toString(HealthLinkStratID),' ')), toInteger(1), toInteger(3)),\n\t\tdc_StratLevelDate = iif(isNull(HealthLinkStratDate) || length(HealthLinkStratDate) == 0, toString(notConvertedectfunctiondategetdatef()), trim(HealthLinkStratDate)),\n\t\tdc_StratLevelSourceID = $v_stratLevelSourceID,\n\t\tdc_CreateUserID = $v_createUserID,\n\t\tdc_LoadDate = $v_loadDate) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tdc_StratLevelDate as string,\n\t\tdc_StratLevelSourceID as integer,\n\t\tdc_LoadDate as date 'dd-MM-yyyy',\n\t\tMemberID as integer,\n\t\tdc_StratLevelTypeID as string,\n\t\tdc_CreateUserID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tdc_StratLevelDate = _StratLevelDate,\n\t\tdc_StratLevelSourceID = _StratLevelSourceID,\n\t\tdc_LoadDate = _LoadDate,\n\t\tMemberID = _MemberID,\n\t\tdc_StratLevelTypeID = _StratLevelTypeID,\n\t\tdc_CreateUserID = _CreateUserID)) ~> InsertStratificatinrecordforeachinput"
+    }
+  }
+}

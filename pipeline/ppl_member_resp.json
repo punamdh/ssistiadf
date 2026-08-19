@@ -1,0 +1,105 @@
+{
+  "name" : "ppl_member_resp",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "gv_Incm_Stg_Query",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "gv_Incm_Stg_Query",
+        "value" : {
+          "value" : "@concat('\"BEGIN\n\tAGP.PKG_MEMRESP_LOAD.PR_MEMRESP_LOAD  ( NULL,''\"', string((variables('gv_Batch_Type'))), ''',''', string((variables('gv_Start_Date'))), ''',''', string((variables('gv_End_Date'))), '\"'' );\nEND;\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SQ_GENERATE_MEMBER_RESPONSE",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "gv_Incm_Stg_Query",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SQL_LOAD_MEMBER_RESP_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "gv_Incm_Stg_Query"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "parameters" : { },
+    "variables" : {
+      "gv_Oracle_Pwd" : {
+        "type" : "string",
+        "defaultValue" : "'yeL0wp#N'"
+      },
+      "gv_End_Date" : {
+        "type" : "string",
+        "defaultValue" : "'12/31/9999'"
+      },
+      "gv_Start_Date" : {
+        "type" : "string",
+        "defaultValue" : "'12/31/9999'"
+      },
+      "gv_Oracle_DS" : {
+        "type" : "string",
+        "defaultValue" : "'GBFAC02D'"
+      },
+      "gv_Oracle_Provider" : {
+        "type" : "string",
+        "defaultValue" : "'OraOLEDB.Oracle.1'"
+      },
+      "gv_Oracle_User" : {
+        "type" : "string",
+        "defaultValue" : "'AGP'"
+      },
+      "gv_Incm_Stg_Query" : {
+        "type" : "string",
+        "defaultValue" : "'BEGIN\\n\tAGP.PKG_MEMRESP_LOAD.PR_MEMRESP_LOAD  ( NULL,'WIC','12/31/9999','12/31/9999' );\\nEND;'"
+      },
+      "gv_Batch_Type" : {
+        "type" : "string",
+        "defaultValue" : "'WIC'"
+      }
+    }
+  }
+}

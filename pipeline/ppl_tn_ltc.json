@@ -1,0 +1,1095 @@
+{
+  "name" : "ppl_tn_ltc",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQLAddressAfter",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQLAddressAfter",
+        "value" : {
+          "value" : "@concat('\"SELECT DISTINCT\n    SBAD.HIST_CREATE_DTM,\n    SBAD.SBSB_CK,\n    SBAD.SBAD_TYPE,\n    SBAD.SBAD_ADDR1,\n    SBAD.SBAD_ADDR2,\n    SBAD.SBAD_ADDR3,\n    SBAD.SBAD_CITY,\n    SBAD.SBAD_STATE,\n    SBAD.SBAD_ZIP,\n    SBAD.SBAD_COUNTY,\n    SBAD.SBAD_PHONE,\n    SBAD.TXN1_ROW_ID\nFROM\n    FACETS.AU_CMC_SBAD_ADDR SBAD\n    INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK\n    INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK\nWHERE\n    UPPER(SBAD.HIST_IMAGE_CD) = ''A''\n    AND UPPER(SBAD.HIST_LOG_ACT_CD) = ''U''\n    AND SBAD.GRGR_CK = 13\n    AND MEPE.GRGR_CK = 13\n    AND UPPER(SBAD.HIST_USUS_ID) = ''FAAPP''\n    AND MEPE.MEPE_ELIG_IND = ''Y''\n    AND (SYSDATE - \"', string(variables('DaysBack')), '\") BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT\n    AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)\n    AND MEPE.CSCS_ID = ''PL02''\n    AND SBAD.HIST_CREATE_DTM >= (SYSDATE - \"', string(variables('DaysBack')), '\")\nORDER BY\n    SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SQLAddressBefore",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SQLAddressBefore",
+        "value" : {
+          "value" : "@concat('\"SELECT DISTINCT\n    SBAD.HIST_CREATE_DTM,\n    SBAD.SBSB_CK,\n    SBAD.SBAD_TYPE,\n    SBAD.SBAD_ADDR1,\n    SBAD.SBAD_ADDR2,\n    SBAD.SBAD_ADDR3,\n    SBAD.SBAD_CITY,\n    SBAD.SBAD_STATE,\n    SBAD.SBAD_ZIP,\n    SBAD.SBAD_COUNTY,\n    SBAD.SBAD_PHONE,\n    SBAD.TXN1_ROW_ID\nFROM\n    FACETS.AU_CMC_SBAD_ADDR SBAD\n    INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK\n    INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK\nWHERE\n    UPPER(SBAD.HIST_IMAGE_CD) = ''B''\n    AND UPPER(SBAD.HIST_LOG_ACT_CD) = ''U''\n    AND SBAD.GRGR_CK = 13\n    AND MEPE.GRGR_CK = 13\n    AND UPPER(SBAD.HIST_USUS_ID) = ''FAAPP''\n    AND MEPE.MEPE_ELIG_IND = ''Y''\n    AND (SYSDATE - \"', string(variables('DaysBack')), '\") BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT\n    AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)\n    AND MEPE.CSCS_ID = ''PL02''\n    AND SBAD.HIST_CREATE_DTM >= (SYSDATE - \"', string(variables('DaysBack')), '\")\nORDER BY\n    SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID\"')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_After_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Source_After_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_After_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Source_After_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_Before_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Source_Before_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_Before_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Source_Before_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Patient_UR_data01_source_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data01') AS Import_Patient_UR_data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Patient_UR_data01_source_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data01') AS Import_Patient_UR_data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Patient_UR_data01_source_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data01') AS Import_Patient_UR_data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Patient_UR_data01_sink_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data01') AS Import_Patient_UR_data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Import_Patient_UR_data01_sink_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Import_Patient_UR_data01') AS Import_Patient_UR_data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Assessments_Data01_source_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data01') AS Populate_Assessments_Data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Assessments_Data01_source_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data01') AS Populate_Assessments_Data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Assessments_Data01_source_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data01') AS Populate_Assessments_Data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Assessments_Data01_sink_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data01') AS Populate_Assessments_Data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Assessments_Data01_sink_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Assessments_Data01') AS Populate_Assessments_Data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case_Manager_Table01_source_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table01') AS Populate_Case_Manager_Table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case_Manager_Table01_source_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table01') AS Populate_Case_Manager_Table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case_Manager_Table01_source_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table01') AS Populate_Case_Manager_Table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case_Manager_Table01_sink_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table01') AS Populate_Case_Manager_Table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case_Manager_Table01_sink_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case_Manager_Table01') AS Populate_Case_Manager_Table01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case-Care_Plan_Data01_source_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data01') AS Populate_Case-Care_Plan_Data01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case-Care_Plan_Data01_source_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data01') AS Populate_Case-Care_Plan_Data01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case-Care_Plan_Data01_source_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data01') AS Populate_Case-Care_Plan_Data01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case-Care_Plan_Data01_sink_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data01') AS Populate_Case-Care_Plan_Data01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Case-Care_Plan_Data01_sink_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Case-Care_Plan_Data01') AS Populate_Case-Care_Plan_Data01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Updated_Address_table01_source_ContainerName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table01') AS Populate_Updated_Address_table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Updated_Address_table01_source_FileName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table01') AS Populate_Updated_Address_table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Updated_Address_table01_source_FilePath' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table01') AS Populate_Updated_Address_table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Updated_Address_table01_sink_SchemaName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table01') AS Populate_Updated_Address_table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Populate_Updated_Address_table01_sink_TableName' AND PIPELINE_NAME = 'TN_LTC' AND DATAFLOW_NAME = 'Populate_Updated_Address_table01') AS Populate_Updated_Address_table01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Populating_AGP_Schema_Tables",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SQLAddressBefore",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SQLAddressAfter",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Truncate_Assessments_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE AGP.TNLTC_ASSESSMENTS"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Truncate_Case_Manager_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE AGP.TNLTC_CASE_MANAGER"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Truncate_Case-Care_Plan_Table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE AGP.TNLTC_CASE_CARE_PLAN"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Truncate_Patient_Liability_Target_table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE AGP.TNLTC_PATIENT_UR"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Truncate_Updated_Address_table_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "DELETE AGP.TNLTC_UPDATED_ADDRESS\nWHERE HIST_CREATE_DTM >= (SYSDATE - @DaysBack)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Populate_Assessments_Data0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Truncate_Assessments_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Populate_Assessments_Data"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Populate_Case_Manager_Table0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Truncate_Case_Manager_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Populate_Case_Manager_Table"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Populate_Case-Care_Plan_Data0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Truncate_Case-Care_Plan_Table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Populate_Case-Care_Plan_Data"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Execute_Get_Patient_Liability_procedure_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Truncate_Patient_Liability_Target_table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "sp_TNLTC_GetMemberURData"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Populate_Updated_Address_table0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Truncate_Updated_Address_table_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Populate_Updated_Address_table"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Populate_Assessments_Data",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Assessments_Data0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "EXEC [APP_RPTS].[PR_TNLTC_EXPORT_ASSESSMENTS]"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Populate_Case_Manager_Table",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Case_Manager_Table0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "EXEC [APP_RPTS].[PR_TNLTC_EXPORT_CASE_MANAGER]"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Populate_Case-Care_Plan_Data",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Case-Care_Plan_Data0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "EXEC [APP_RPTS].[PR_TNLTC_EXPORT_CASE_CAREPLAN]"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_Patient_UR_data0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Execute_Get_Patient_Liability_procedure_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@utcnow()"
+              },
+              "Dataflow_Name" : {
+                "type" : "string",
+                "value" : "Import_Patient_UR_data"
+              },
+              "FilePath_Date" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@pipeline().Pipeline"
+              }
+            }
+          }
+        }, {
+          "name" : "Populate_Updated_Address_table",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Updated_Address_table0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "populate_updated_address_table",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "ENRL_InitialCatalog" : {
+                  "type" : "Expression",
+                  "value" : "'Enroll'"
+                },
+                "CAERPTS_SRVR" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_CAERPT1\\\\CAERPT1D'"
+                },
+                "SQLAddressAfter" : {
+                  "type" : "Expression",
+                  "value" : "'SELECT DISTINCT     SBAD.HIST_CREATE_DTM,     SBAD.SBSB_CK,     SBAD.SBAD_TYPE,     SBAD.SBAD_ADDR1,     SBAD.SBAD_ADDR2,     SBAD.SBAD_ADDR3,     SBAD.SBAD_CITY,     SBAD.SBAD_STATE,     SBAD.SBAD_ZIP,     SBAD.SBAD_COUNTY,     SBAD.SBAD_PHONE,     SBAD.TXN1_ROW_ID FROM     FACETS.AU_CMC_SBAD_ADDR SBAD     INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK     INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK WHERE     UPPER(SBAD.HIST_IMAGE_CD) = 'A'     AND UPPER(SBAD.HIST_LOG_ACT_CD) = 'U'     AND SBAD.GRGR_CK = 13     AND MEPE.GRGR_CK = 13     AND UPPER(SBAD.HIST_USUS_ID) = 'FAAPP'     AND MEPE.MEPE_ELIG_IND = 'Y'     AND (SYSDATE - 365) BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT     AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)     AND MEPE.CSCS_ID = 'PL02'     AND SBAD.HIST_CREATE_DTM >= (SYSDATE - 365) ORDER BY     SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID'"
+                },
+                "DaysBack" : {
+                  "type" : "Expression",
+                  "value" : "365"
+                },
+                "ENRL_SRVR" : {
+                  "type" : "Expression",
+                  "value" : "'DBD_ENRL\\\\ENRL1D'"
+                },
+                "FAC_SRVR" : {
+                  "type" : "Expression",
+                  "value" : "'FAC6D'"
+                },
+                "CAERPTS_InitialCatalog" : {
+                  "type" : "Expression",
+                  "value" : "'CAE_RPT_UTIL6D'"
+                },
+                "SQLAddressBefore" : {
+                  "type" : "Expression",
+                  "value" : "'SELECT DISTINCT     SBAD.HIST_CREATE_DTM,     SBAD.SBSB_CK,     SBAD.SBAD_TYPE,     SBAD.SBAD_ADDR1,     SBAD.SBAD_ADDR2,     SBAD.SBAD_ADDR3,     SBAD.SBAD_CITY,     SBAD.SBAD_STATE,     SBAD.SBAD_ZIP,     SBAD.SBAD_COUNTY,     SBAD.SBAD_PHONE,     SBAD.TXN1_ROW_ID FROM     FACETS.AU_CMC_SBAD_ADDR SBAD     INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK     INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK WHERE     UPPER(SBAD.HIST_IMAGE_CD) = 'B'     AND UPPER(SBAD.HIST_LOG_ACT_CD) = 'U'     AND SBAD.GRGR_CK = 13     AND MEPE.GRGR_CK = 13     AND UPPER(SBAD.HIST_USUS_ID) = 'FAAPP'     AND MEPE.MEPE_ELIG_IND = 'Y'     AND (SYSDATE - 365) BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT     AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)     AND MEPE.CSCS_ID = 'PL02'     AND SBAD.HIST_CREATE_DTM >= (SYSDATE - 365) ORDER BY     SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID'"
+                },
+                "CAERPTS_USER" : {
+                  "type" : "Expression",
+                  "value" : "'APP_RPTS'"
+                },
+                "CAERPTS_PWD" : {
+                  "type" : "Expression",
+                  "value" : "'rpt5_d3v!!'"
+                },
+                "ENRL_USER" : {
+                  "type" : "Expression",
+                  "value" : "'APP_TN_LTC_RPTS'"
+                },
+                "FAC_USER" : {
+                  "type" : "Expression",
+                  "value" : "'APP_LTC'"
+                },
+                "FAC_PWD" : {
+                  "type" : "Expression",
+                  "value" : "'appltc'"
+                },
+                "ENRL_PWD" : {
+                  "type" : "Expression",
+                  "value" : "'AppR3p0rt$'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBSourceAfter" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceAfter_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceAfter_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source After",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBSourceBefore" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceBefore_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSourceBefore_SchemaName",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "OLE DB Source Before",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "\"TNLTC_UPDATED_ADDRESS\"",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "Populate_Assessments_Data01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Assessments_Data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Assessments_Data01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Populate_Case_Manager_Table01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Case_Manager_Table",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case_Manager_Table01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Populate_Case-Care_Plan_Data01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Case-Care_Plan_Data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Case-Care_Plan_Data01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_Patient_UR_data",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_Patient_UR_data0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "Parquetsource",
+              "sqlReaderQuery" : "exec sp_TNLTC_GetMemberLiabilityData"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink",
+              "writeBehavior" : "insert",
+              "sqlWriterUseTableLock" : false
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ""
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Populate_Updated_Address_table01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Populate_Updated_Address_table",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Updated_Address_table01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Updated_Address_table01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Updated_Address_table01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Updated_Address_table01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Populate_Updated_Address_table01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "Import_Patient_UR_data01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Import_Patient_UR_data",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Import_Patient_UR_data01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "ENRL_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'Enroll'"
+      },
+      "CAERPTS_SRVR" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CAERPT1\\\\CAERPT1D'"
+      },
+      "SQLAddressAfter" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT\\n    SBAD.HIST_CREATE_DTM,\\n    SBAD.SBSB_CK,\\n    SBAD.SBAD_TYPE,\\n    SBAD.SBAD_ADDR1,\\n    SBAD.SBAD_ADDR2,\\n    SBAD.SBAD_ADDR3,\\n    SBAD.SBAD_CITY,\\n    SBAD.SBAD_STATE,\\n    SBAD.SBAD_ZIP,\\n    SBAD.SBAD_COUNTY,\\n    SBAD.SBAD_PHONE,\\n    SBAD.TXN1_ROW_ID\\nFROM\\n    FACETS.AU_CMC_SBAD_ADDR SBAD\\n    INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK\\n    INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK\\nWHERE\\n    UPPER(SBAD.HIST_IMAGE_CD) = 'A'\\n    AND UPPER(SBAD.HIST_LOG_ACT_CD) = 'U'\\n    AND SBAD.GRGR_CK = 13\\n    AND MEPE.GRGR_CK = 13\\n    AND UPPER(SBAD.HIST_USUS_ID) = 'FAAPP'\\n    AND MEPE.MEPE_ELIG_IND = 'Y'\\n    AND (SYSDATE - 365) BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT\\n    AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)\\n    AND MEPE.CSCS_ID = 'PL02'\\n    AND SBAD.HIST_CREATE_DTM >= (SYSDATE - 365)\\nORDER BY\\n    SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID'"
+      },
+      "DaysBack" : {
+        "type" : "Integer",
+        "defaultValue" : "365"
+      },
+      "ENRL_SRVR" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_ENRL\\\\ENRL1D'"
+      },
+      "FAC_SRVR" : {
+        "type" : "string",
+        "defaultValue" : "'FAC6D'"
+      },
+      "CAERPTS_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : "'CAE_RPT_UTIL6D'"
+      },
+      "SQLAddressBefore" : {
+        "type" : "string",
+        "defaultValue" : "'SELECT DISTINCT\\n    SBAD.HIST_CREATE_DTM,\\n    SBAD.SBSB_CK,\\n    SBAD.SBAD_TYPE,\\n    SBAD.SBAD_ADDR1,\\n    SBAD.SBAD_ADDR2,\\n    SBAD.SBAD_ADDR3,\\n    SBAD.SBAD_CITY,\\n    SBAD.SBAD_STATE,\\n    SBAD.SBAD_ZIP,\\n    SBAD.SBAD_COUNTY,\\n    SBAD.SBAD_PHONE,\\n    SBAD.TXN1_ROW_ID\\nFROM\\n    FACETS.AU_CMC_SBAD_ADDR SBAD\\n    INNER JOIN FACETS.CMC_MEME_MEMBER MEME ON MEME.SBSB_CK = SBAD.SBSB_CK\\n    INNER JOIN FACETS.CMC_MEPE_PRCS_ELIG MEPE ON MEPE.MEME_CK = MEME.MEME_CK\\nWHERE\\n    UPPER(SBAD.HIST_IMAGE_CD) = 'B'\\n    AND UPPER(SBAD.HIST_LOG_ACT_CD) = 'U'\\n    AND SBAD.GRGR_CK = 13\\n    AND MEPE.GRGR_CK = 13\\n    AND UPPER(SBAD.HIST_USUS_ID) = 'FAAPP'\\n    AND MEPE.MEPE_ELIG_IND = 'Y'\\n    AND (SYSDATE - 365) BETWEEN MEPE.MEPE_EFF_DT AND MEPE.MEPE_TERM_DT\\n    AND MEPE.CSPI_ID IN (SELECT CSPI_ID FROM AGP.TNLTC_PLANS)\\n    AND MEPE.CSCS_ID = 'PL02'\\n    AND SBAD.HIST_CREATE_DTM >= (SYSDATE - 365)\\nORDER BY\\n    SBAD.SBSB_CK, SBAD.SBAD_TYPE, SBAD.HIST_CREATE_DTM, SBAD.TXN1_ROW_ID'"
+      },
+      "CAERPTS_USER" : {
+        "type" : "string",
+        "defaultValue" : "'APP_RPTS'"
+      },
+      "CAERPTS_PWD" : {
+        "type" : "string",
+        "defaultValue" : "'rpt5_d3v!!'"
+      },
+      "ENRL_USER" : {
+        "type" : "string",
+        "defaultValue" : "'APP_TN_LTC_RPTS'"
+      },
+      "FAC_USER" : {
+        "type" : "string",
+        "defaultValue" : "'APP_LTC'"
+      },
+      "FAC_PWD" : {
+        "type" : "string",
+        "defaultValue" : "'appltc'"
+      },
+      "ENRL_PWD" : {
+        "type" : "string",
+        "defaultValue" : "'AppR3p0rt$'"
+      }
+    }
+  }
+}

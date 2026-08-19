@@ -1,0 +1,2643 @@
+{
+  "name" : "ppl_pharmacytaskload",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "InputFileFullyQualified",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "InputFileFullyQualified",
+        "value" : {
+          "value" : "@concat(variables('INPUT_DIR'), '\\\\', variables('InputFileName'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "TaskTransformationSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TaskTransformationSQL",
+        "value" : {
+          "value" : "@concat('EXEC ', variables('TASK_TRANSFORM_SP'), ' @INPUT_FILE_NAME=''', variables('InputFileName'), '''')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "varInputFileArchive",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "varInputFileArchive",
+        "value" : {
+          "value" : "@concat(variables('INPUT_DIR'), '\\\\', 'Processed')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "WBAutoTaskSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "WBAutoTaskSQL",
+        "value" : {
+          "value" : "@concat('EXEC [APP_CPLS].[PR_PHARMACY_WB_AUTO_TASK]', ' @PHARMACY_DATA_LOAD_ID=', variables('PHARMACY_DATA_LOAD_ID'), ',@LOOKBACK_DAYS=', '10')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "WBTransformationSQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "WBTransformationSQL",
+        "value" : {
+          "value" : "@concat('EXEC ', variables('WB_TRANSFORM_SP'), ' @INPUT_FILE_NAME=''', variables('InputFileName'), '''', ',@WB_SOURCE=', variables('WB_SOURCE'), ',@WB_FORM_ID=', variables('WB_FORM_ID'), ',@WB_USER_ID=', variables('WB_USER_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_CREATE_TASK_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG') AS PHARMACY_CREATE_TASK_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_CREATE_TASK_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG') AS PHARMACY_CREATE_TASK_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_CREATE_TASK_LOG_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG') AS PHARMACY_CREATE_TASK_LOG_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_CREATE_TASK_LOG_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG') AS PHARMACY_CREATE_TASK_LOG_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_CREATE_TASK_LOG_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG') AS PHARMACY_CREATE_TASK_LOG_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'LKP__CID_Added_for_Task_LKP_TABLE_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS LKP__CID_Added_for_Task_LKP_TABLE_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'LKP__CID_Added_for_Task_LKP_TABLE_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS LKP__CID_Added_for_Task_LKP_TABLE_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pharmacy_Flat_File_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS Pharmacy_Flat_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pharmacy_Flat_File_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS Pharmacy_Flat_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Pharmacy_Flat_File_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS Pharmacy_Flat_File_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_DATA_LOAD_RAW_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS PHARMACY_DATA_LOAD_RAW_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_DATA_LOAD_RAW_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS PHARMACY_DATA_LOAD_RAW_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'PHARMACY_DATA_LOAD_RAW_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW') AS PHARMACY_DATA_LOAD_RAW_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CPM_WB_FORM_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table') AS CPM_WB_FORM_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CPM_WB_FORM_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table') AS CPM_WB_FORM_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CPM_WB_FORM_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table') AS CPM_WB_FORM_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task01_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task01') AS Load_Pharmacy_Task01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task01_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task01') AS Load_Pharmacy_Task01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task01_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task01') AS Load_Pharmacy_Task01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task01_sink_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task01') AS Load_Pharmacy_Task01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task01_sink_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task01') AS Load_Pharmacy_Task01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_sink_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_sink_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Input_File_to_Archive_0_sink_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Copy_Input_File_to_Archive_0') AS Copy_Input_File_to_Archive_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task_Table01_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table01') AS Load_Pharmacy_Task_Table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task_Table01_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table01') AS Load_Pharmacy_Task_Table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task_Table01_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table01') AS Load_Pharmacy_Task_Table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task_Table01_sink_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table01') AS Load_Pharmacy_Task_Table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_Task_Table01_sink_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_Task_Table01') AS Load_Pharmacy_Task_Table01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_WB_Table01_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table01') AS Load_WB_Table01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_WB_Table01_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table01') AS Load_WB_Table01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_WB_Table01_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table01') AS Load_WB_Table01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_WB_Table01_sink_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table01') AS Load_WB_Table01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_WB_Table01_sink_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_WB_Table01') AS Load_WB_Table01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_RAW01_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW01') AS Load_Pharmacy_RAW01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_RAW01_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW01') AS Load_Pharmacy_RAW01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_RAW01_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW01') AS Load_Pharmacy_RAW01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_RAW01_sink_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW01') AS Load_Pharmacy_RAW01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Pharmacy_RAW01_sink_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Load_Pharmacy_RAW01') AS Load_Pharmacy_RAW01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01') AS Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01') AS Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01') AS Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01') AS Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Completed_Task_to_PHARMACY_CREATE_TASK_LOG01') AS Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_processed_fileDELETE__ContainerName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Move_processed_fileDELETE_') AS Move_processed_fileDELETE__ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_processed_fileDELETE__FileName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Move_processed_fileDELETE_') AS Move_processed_fileDELETE__FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_processed_fileDELETE__FilePath' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'Move_processed_fileDELETE_') AS Move_processed_fileDELETE__FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Pharmacy_Input_File_SchemaName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Pharmacy_Input_File') AS GETMETADATA_Foreach_Pharmacy_Input_File_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GETMETADATA_Foreach_Pharmacy_Input_File_TableName' AND PIPELINE_NAME = 'PharmacyTaskLoad' AND DATAFLOW_NAME = 'GETMETADATA_Foreach_Pharmacy_Input_File') AS GETMETADATA_Foreach_Pharmacy_Input_File_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Log_Package_Begin_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "WBTransformationSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "InputFileFullyQualified",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "TaskTransformationSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "varInputFileArchive",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "WBAutoTaskSQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "INSERT INTO APP_CPLS.PHARMACY_ETL_LOG(EVENT,EVENT_MSG) VALUES ('BEGIN',@PackageName)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Query_CFG_Table_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Log_Package_Begin_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : " SELECT \n       [PHARMACY_DATA_LOAD_ID]\n      ,[ACTIVE_YN]\n      ,[INPUT_DIR]\n      ,[CREATE_FORM_YN]\n      ,CAST([WB_SOURCE] as VARCHAR(10)) WB_SOURCE\n      ,CAST([WB_FORM_ID] as varchar(10)) WB_FORM_ID\n      ,CAST([WB_USER_ID] as varchar(10)) WB_USER_ID\n      ,WB_TRANSFORM_SP\n      ,[CREATE_TASK_YN]\n      ,CAST([TASK_USER_ID] as varchar(10)) TASK_USER_ID\n      ,[TASK_VERBIAGE_HTML]\n      ,[TASK_NAME]\n      ,[TASK_SUBJECT_PREFIX]\n      ,CAST([TASK_PRIORITY_NUM] as VARCHAR(10)) TASK_PRIORITY_NUM\n      ,[TASK_PRIORITY_NAME]\n      ,[TASK_METADATA_GUID]\n      ,[TASK_RECIPIENT_NAME]\n      ,[INTERFACE_TYPE]\n      ,[TASK_TRANSFORM_SP]\n  FROM [APP_CPLS].[PHARMACY_DATA_LOAD_CFG]\nWHERE \nACTIVE_YN = 'Y'",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "DELETE_MAIL_LIST_AND_UPDATE_ERROR_LOG_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Query_CFG_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM [APP_CPLS].[PHARMACY_MMP_DAILYLOAD_MAIL] \n\nUPDATE [APP_CPLS].[PHARMACY_ERROR_LOG] SET PROCESSED='P' WHERE PROCESSED IS NULL"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Pharmacy_Interface_Dir",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DELETE_MAIL_LIST_AND_UPDATE_ERROR_LOG_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Query_CFG_Table_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Log_Interface_Dir_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO APP_CPLS.PHARMACY_ETL_LOG(EVENT,EVENT_MSG) VALUES ('Processing Interface Dir',@INPUT_DIR)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "GETMETADATA_Foreach_Pharmacy_Input_File",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Log_Interface_Dir_SCRIPT",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Pharmacy_Input_File_TableName",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Foreach_Pharmacy_Input_File_SchemaName",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FILTER_Foreach_Pharmacy_Input_File",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GETMETADATA_Foreach_Pharmacy_Input_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_Foreach_Pharmacy_Input_File').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@equals(item().type, 'File')",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Foreach_Pharmacy_Input_File",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_Foreach_Pharmacy_Input_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_Foreach_Pharmacy_Input_File').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Log_File_Name_Start_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO APP_CPLS.PHARMACY_ETL_LOG(EVENT,EVENT_MSG) VALUES ('BEGIN InputFileName',@item.name)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Log_Archive_File_Name_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Log_File_Name_Start_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO APP_CPLS.PHARMACY_ETL_LOG(EVENT,EVENT_MSG) VALUES ('ArchiveFileName',@item.name)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Copy_Input_File_to_Archive_0",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Log_Archive_File_Name_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_sink_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_sink_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Input_File_to_Archive_0_sink_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ]
+            }, {
+              "name" : "Del_RAW_Target_Recs_with_Same_Input_File_Name_SCRI",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Copy_Input_File_to_Archive_0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "  DELETE FROM \n  [APP_CPLS].[PHARMACY_DATA_LOAD_RAW]\n  WHERE INPUT_FILE_NAME = @item.name"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Load_Pharmacy_RAW0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Del_RAW_Target_Recs_with_Same_Input_File_Name_SCRI",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Pharmacy_RAW"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "Load_Pharmacy_RAW",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_RAW0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pharmacy_raw",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "PHARMACY_DATA_LOAD_RAW_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "CPM_WB_FORM_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "QueryPharmacyTaskRemoveResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "AppWBUsr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPMA'"
+                    },
+                    "AppCAEUsr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPLS'"
+                    },
+                    "TASK_PRIORITY_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "ErrorFilepath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA1\\\\shared\\\\Healthcare Management Operations\\\\Pharmacy\\\\CareCompassInterfaces\\\\DEV\\\\ErrorFile\\\\'"
+                    },
+                    "PHARMACY_TASK_CREATE_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TaskTransformationSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_P05_TASK] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv''"
+                    },
+                    "WBTransformationSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_90_DAY_FAX] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv',@WB_SOURCE=60,@WB_FORM_ID=500914,@WB_USER_ID=11601'"
+                    },
+                    "WB_FORM_ID" : {
+                      "type" : "Expression",
+                      "value" : "'500914'"
+                    },
+                    "APPCPMAusr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPMA'"
+                    },
+                    "TASK_USER_ID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "InputFileName" : {
+                      "type" : "Expression",
+                      "value" : "'tblExtract_MMP_CommaQuote_20160303.csv'"
+                    },
+                    "TaskCreate_CID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TASK_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "ACTIVE_YN" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveUserID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "WB_USER_ID" : {
+                      "type" : "Expression",
+                      "value" : "'11601'"
+                    },
+                    "INPUT_DIR" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\'"
+                    },
+                    "TASK_SUBJECT_PREFIX" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveDataLoadID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TaskRemoveSubject" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveTaskID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "PHARMACY_DATA_LOAD_ID" : {
+                      "type" : "Expression",
+                      "value" : "'1'"
+                    },
+                    "APPCPMApwd" : {
+                      "type" : "Expression",
+                      "value" : "'a99_cpma_DEV'"
+                    },
+                    "WBAutoTaskSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_WB_AUTO_TASK] @PHARMACY_DATA_LOAD_ID=1,@LOOKBACK_DAYS=10'"
+                    },
+                    "TaskCreate_ID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "INTERFACE_TYPE" : {
+                      "type" : "Expression",
+                      "value" : "'FORM_TASK'"
+                    },
+                    "LOOKBACK_DAYS" : {
+                      "type" : "Expression",
+                      "value" : "'5'"
+                    },
+                    "TASK_VERBIAGE_HTML" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TASK_RECIPIENT_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskCreate_PHARMACY_LOAD_ID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppWBDb" : {
+                      "type" : "Expression",
+                      "value" : "'CAREPLUS_MOBILE2D'"
+                    },
+                    "ENV" : {
+                      "type" : "Expression",
+                      "value" : "'2D'"
+                    },
+                    "ErrorCount" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TASK_PRIORITY_NUM" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "InputFileFullyQualified" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\ blExtract_MMP_CommaQuote_20160303.csv'"
+                    },
+                    "TASK_TRANSFORM_SP" : {
+                      "type" : "Expression",
+                      "value" : "'[APP_CPLS].[PR_PHARMACY_P05_TASK]'"
+                    },
+                    "CREATE_FORM_YN" : {
+                      "type" : "Expression",
+                      "value" : "'Y'"
+                    },
+                    "AppWBSrc" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                    },
+                    "TASK_METADATA_GUID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppCAESrc" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_CAEOLTP1\\\\CAEOLTP1D'"
+                    },
+                    "QueryPharmacyTaskCreateResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "PharmacyCreateTaskSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_CREATE_TASK] '"
+                    },
+                    "QueryCFGTableResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "TaskRemoveCID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "WB_SOURCE" : {
+                      "type" : "Expression",
+                      "value" : "'60'"
+                    },
+                    "TaskRemovePriority" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "AppCAEPwd" : {
+                      "type" : "Expression",
+                      "value" : "'App_69!s'"
+                    },
+                    "CREATE_TASK_YN" : {
+                      "type" : "Expression",
+                      "value" : "'Y'"
+                    },
+                    "WB_TRANSFORM_SP" : {
+                      "type" : "Expression",
+                      "value" : "'[APP_CPLS].[PR_PHARMACY_90_DAY_FAX]'"
+                    },
+                    "AppCAEDb" : {
+                      "type" : "Expression",
+                      "value" : "'CAE_OLTP_UTIL6D'"
+                    },
+                    "MailListLoaded" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppWBPwd" : {
+                      "type" : "Expression",
+                      "value" : "'a99_cpma_DEV'"
+                    },
+                    "TaskRemoveInputFileName" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varInputFileArchive" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\\\\\Processed'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "PHARMACYDATALOADRAW" : {
+                      "TableName" : {
+                        "value" : "PHARMACY_DATA_LOAD_RAW",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PHARMACYDATALOADRAW_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PHARMACYDATALOADRAW_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PHARMACYDATALOADRAW_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "PharmacyFlatFile" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PharmacyFlatFile_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PharmacyFlatFile_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.PharmacyFlatFile_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Load_Pharmacy_RAW01",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_RAW",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_RAW01_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_RAW01_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_RAW01_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_RAW01_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_RAW01_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "Load_Pharmacy_RAW_Row_Count",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_RAW01",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "PHARMACY_DATA_LOAD_RAW_RecsLoaded",
+                "value" : "@int(activity('Load_Pharmacy_RAW').output.runStatus.output.RowCountCACHESINK.value[0].rowCount)"
+              }
+            }, {
+              "name" : "IFACTIVITY_Load_Pharmacy_Task_Table",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_RAW_Row_Count",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Load_Pharmacy_Task_Table0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : {
+                      "SysDatetime" : {
+                        "type" : "Expression",
+                        "value" : "@utcnow()"
+                      },
+                      "Dataflow_Name" : {
+                        "type" : "string",
+                        "value" : "Load_Pharmacy_Task_Table"
+                      },
+                      "FilePath_Date" : {
+                        "type" : "Expression",
+                        "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                      },
+                      "Pipeline_Name" : {
+                        "type" : "Expression",
+                        "value" : "@pipeline().Pipeline"
+                      }
+                    }
+                  }
+                }, {
+                  "name" : "Load_Pharmacy_Task_Table",
+                  "type" : "ExecuteDataFlow",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Pharmacy_Task_Table0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "dataflow" : {
+                      "referenceName" : "load_pharmacy_task_table",
+                      "type" : "DataFlowReference",
+                      "parameters" : {
+                        "PHARMACY_DATA_LOAD_RAW_RecsLoaded" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "CPM_WB_FORM_RecsLoaded" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "QueryPharmacyTaskRemoveResultSet" : {
+                          "type" : "Expression",
+                          "value" : "'                                                                                                                                                                                    '"
+                        },
+                        "AppWBUsr" : {
+                          "type" : "Expression",
+                          "value" : "'APP_CPMA'"
+                        },
+                        "AppCAEUsr" : {
+                          "type" : "Expression",
+                          "value" : "'APP_CPLS'"
+                        },
+                        "TASK_PRIORITY_NAME" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "ErrorFilepath" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA1\\\\shared\\\\Healthcare Management Operations\\\\Pharmacy\\\\CareCompassInterfaces\\\\DEV\\\\ErrorFile\\\\'"
+                        },
+                        "PHARMACY_TASK_CREATE_RecsLoaded" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "TaskTransformationSQL" : {
+                          "type" : "Expression",
+                          "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_P05_TASK] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv''"
+                        },
+                        "WBTransformationSQL" : {
+                          "type" : "Expression",
+                          "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_90_DAY_FAX] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv',@WB_SOURCE=60,@WB_FORM_ID=500914,@WB_USER_ID=11601'"
+                        },
+                        "WB_FORM_ID" : {
+                          "type" : "Expression",
+                          "value" : "'500914'"
+                        },
+                        "APPCPMAusr" : {
+                          "type" : "Expression",
+                          "value" : "'APP_CPMA'"
+                        },
+                        "TASK_USER_ID" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "InputFileName" : {
+                          "type" : "Expression",
+                          "value" : "'tblExtract_MMP_CommaQuote_20160303.csv'"
+                        },
+                        "TaskCreate_CID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "TASK_NAME" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "ACTIVE_YN" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "TaskRemoveUserID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "WB_USER_ID" : {
+                          "type" : "Expression",
+                          "value" : "'11601'"
+                        },
+                        "INPUT_DIR" : {
+                          "type" : "Expression",
+                          "value" : "'C: mp\\\\'"
+                        },
+                        "TASK_SUBJECT_PREFIX" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "TaskRemoveDataLoadID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "TaskRemoveSubject" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "TaskRemoveTaskID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "PHARMACY_DATA_LOAD_ID" : {
+                          "type" : "Expression",
+                          "value" : "'1'"
+                        },
+                        "APPCPMApwd" : {
+                          "type" : "Expression",
+                          "value" : "'a99_cpma_DEV'"
+                        },
+                        "WBAutoTaskSQL" : {
+                          "type" : "Expression",
+                          "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_WB_AUTO_TASK] @PHARMACY_DATA_LOAD_ID=1,@LOOKBACK_DAYS=10'"
+                        },
+                        "TaskCreate_ID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "INTERFACE_TYPE" : {
+                          "type" : "Expression",
+                          "value" : "'FORM_TASK'"
+                        },
+                        "LOOKBACK_DAYS" : {
+                          "type" : "Expression",
+                          "value" : "'5'"
+                        },
+                        "TASK_VERBIAGE_HTML" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "TASK_RECIPIENT_NAME" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "TaskCreate_PHARMACY_LOAD_ID" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "AppWBDb" : {
+                          "type" : "Expression",
+                          "value" : "'CAREPLUS_MOBILE2D'"
+                        },
+                        "ENV" : {
+                          "type" : "Expression",
+                          "value" : "'2D'"
+                        },
+                        "ErrorCount" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "TASK_PRIORITY_NUM" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "InputFileFullyQualified" : {
+                          "type" : "Expression",
+                          "value" : "'C: mp\\\\ blExtract_MMP_CommaQuote_20160303.csv'"
+                        },
+                        "TASK_TRANSFORM_SP" : {
+                          "type" : "Expression",
+                          "value" : "'[APP_CPLS].[PR_PHARMACY_P05_TASK]'"
+                        },
+                        "CREATE_FORM_YN" : {
+                          "type" : "Expression",
+                          "value" : "'Y'"
+                        },
+                        "AppWBSrc" : {
+                          "type" : "Expression",
+                          "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                        },
+                        "TASK_METADATA_GUID" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "AppCAESrc" : {
+                          "type" : "Expression",
+                          "value" : "'DBD_CAEOLTP1\\\\CAEOLTP1D'"
+                        },
+                        "QueryPharmacyTaskCreateResultSet" : {
+                          "type" : "Expression",
+                          "value" : "'                                                                                                                                                                                    '"
+                        },
+                        "PharmacyCreateTaskSQL" : {
+                          "type" : "Expression",
+                          "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_CREATE_TASK] '"
+                        },
+                        "QueryCFGTableResultSet" : {
+                          "type" : "Expression",
+                          "value" : "'                                                                                                                                                                                    '"
+                        },
+                        "TaskRemoveCID" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "WB_SOURCE" : {
+                          "type" : "Expression",
+                          "value" : "'60'"
+                        },
+                        "TaskRemovePriority" : {
+                          "type" : "Expression",
+                          "value" : "0"
+                        },
+                        "AppCAEPwd" : {
+                          "type" : "Expression",
+                          "value" : "'App_69!s'"
+                        },
+                        "CREATE_TASK_YN" : {
+                          "type" : "Expression",
+                          "value" : "'Y'"
+                        },
+                        "WB_TRANSFORM_SP" : {
+                          "type" : "Expression",
+                          "value" : "'[APP_CPLS].[PR_PHARMACY_90_DAY_FAX]'"
+                        },
+                        "AppCAEDb" : {
+                          "type" : "Expression",
+                          "value" : "'CAE_OLTP_UTIL6D'"
+                        },
+                        "MailListLoaded" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "AppWBPwd" : {
+                          "type" : "Expression",
+                          "value" : "'a99_cpma_DEV'"
+                        },
+                        "TaskRemoveInputFileName" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "varInputFileArchive" : {
+                          "type" : "Expression",
+                          "value" : "'C: mp\\\\\\\\Processed'"
+                        }
+                      },
+                      "datasetParameters" : {
+                        "OLEDBSource" : {
+                          "TableName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "OLE DB Source",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : null,
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "OLEDBDestination" : {
+                          "TableName" : {
+                            "value" : "PHARMACY_CREATE_TASK",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "dbo",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        }
+                      }
+                    },
+                    "compute" : null,
+                    "staging" : { }
+                  }
+                }, {
+                  "name" : "Load_Pharmacy_Task_Table01",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_Pharmacy_Task_Table",
+                    "dependencyConditions" : [ "SUCCESSFUL" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "ParquetSource"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "genric_parquet",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task_Table01_source_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task_Table01_source_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task_Table01_source_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task_Table01_sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task_Table01_sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                }, {
+                  "name" : "Load_Pharmacy_Task_Table_Row_Count",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ {
+                    "activity" : "Load_Pharmacy_Task_Table01",
+                    "dependencyConditions" : [ "SUCCESSFUL" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "PHARMACY_TASK_CREATE_RecsLoaded",
+                    "value" : "@int(activity('Load_Pharmacy_Task_Table').output.runStatus.output.RowCountCACHESINK.value[0].rowCount)"
+                  }
+                } ]
+              }
+            }, {
+              "name" : "IFACTIVITY_Load_WB_Table",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_RAW_Row_Count",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Load_WB_Table0",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : {
+                      "SysDatetime" : {
+                        "type" : "Expression",
+                        "value" : "@utcnow()"
+                      },
+                      "Dataflow_Name" : {
+                        "type" : "string",
+                        "value" : "Load_WB_Table"
+                      },
+                      "FilePath_Date" : {
+                        "type" : "Expression",
+                        "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                      },
+                      "Pipeline_Name" : {
+                        "type" : "Expression",
+                        "value" : "@pipeline().Pipeline"
+                      }
+                    }
+                  }
+                }, {
+                  "name" : "Load_WB_Table",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_WB_Table0",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "Parquetsource",
+                      "sqlReaderQuery" : "SELECT SOURCE, CID, FORM_ID, CONCEPT_ID, USER_ID, UPDATE_DATE, TRANSFER_STATUS, TEXT FROM OLEDBSource"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink",
+                      "writeBehavior" : "insert",
+                      "sqlWriterUseTableLock" : false
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "genric_parquet",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table_source_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table_source_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table_source_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ""
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table_sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table_sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                }, {
+                  "name" : "Load_WB_Table01",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_WB_Table",
+                    "dependencyConditions" : [ "SUCCESSFUL" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "ParquetSource"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "genric_parquet",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table01_source_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table01_source_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table01_source_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table01_sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_WB_Table01_sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                }, {
+                  "name" : "Load_WB_Table_Row_Count",
+                  "type" : "SetVariable",
+                  "policy" : {
+                    "timeout" : "00:30:00",
+                    "retry" : 0,
+                    "retryIntervalInSeconds" : 0,
+                    "secureOutput" : false,
+                    "secureInput" : false
+                  },
+                  "dependsOn" : [ {
+                    "activity" : "Load_WB_Table01",
+                    "dependencyConditions" : [ "SUCCESSFUL" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "variableName" : "CPM_WB_FORM_RecsLoaded",
+                    "value" : "@int(activity('Load_WB_Table').output.runStatus.output.RowCountCACHESINK.value[0].rowCount)"
+                  }
+                } ]
+              }
+            }, {
+              "name" : "Del_RAW_Target_Recs_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "IFACTIVITY_Load_Pharmacy_Task_Table",
+                "dependencyConditions" : [ "Succeeded" ]
+              }, {
+                "activity" : "IFACTIVITY_Load_WB_Table",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "  DELETE FROM \n  [APP_CPLS].[PHARMACY_DATA_LOAD_RAW]\n  WHERE INPUT_FILE_NAME = @item.name"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "Log_File_Name_End_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Del_RAW_Target_Recs_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "INSERT INTO APP_CPLS.PHARMACY_ETL_LOG(EVENT,EVENT_MSG) VALUES ('END InputFileName',@item.name)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            }, {
+              "name" : "COPYDATA_Move_processed_file",
+              "type" : "Copy",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Log_File_Name_End_SCRIPT",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "DelimitedTextSource"
+                },
+                "sink" : {
+                  "type" : "DelimitedTextSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "Generic_File_SRC",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_File_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_sink_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_sink_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.COPYDATA_Move_processed_file_sink_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ]
+            }, {
+              "name" : "Move_processed_fileDELETE_",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "COPYDATA_Move_processed_file",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "Container" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_processed_fileDELETE__ContainerName",
+                      "type" : "Expression"
+                    },
+                    "FileName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_processed_fileDELETE__FileName",
+                      "type" : "Expression"
+                    },
+                    "Directory" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_processed_fileDELETE__FilePath",
+                      "type" : "Expression"
+                    },
+                    "ColumnDelimiter" : null
+                  }
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            }, {
+              "name" : "Script_Task",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Move_processed_fileDELETE_",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Script_Task",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            } ],
+            "isSequential" : true
+          }
+        }, {
+          "name" : "Stage_Tasks_based_on_Previous_Writebacks",
+          "type" : "IfCondition",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FOREACH_Foreach_Pharmacy_Input_File",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "expression" : {
+              "value" : "@equals(1,1)",
+              "type" : "Expression"
+            },
+            "ifFalseActivities" : [ ],
+            "ifTrueActivities" : [ {
+              "name" : "Load_Pharmacy_Task0",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@utcnow()"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "string",
+                    "value" : "Load_Pharmacy_Task"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@pipeline().Pipeline"
+                  }
+                }
+              }
+            }, {
+              "name" : "Load_Pharmacy_Task",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_Task0",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "load_pharmacy_task",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "PHARMACY_DATA_LOAD_RAW_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "CPM_WB_FORM_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "QueryPharmacyTaskRemoveResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "AppWBUsr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPMA'"
+                    },
+                    "AppCAEUsr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPLS'"
+                    },
+                    "TASK_PRIORITY_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "ErrorFilepath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA1\\\\shared\\\\Healthcare Management Operations\\\\Pharmacy\\\\CareCompassInterfaces\\\\DEV\\\\ErrorFile\\\\'"
+                    },
+                    "PHARMACY_TASK_CREATE_RecsLoaded" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TaskTransformationSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_P05_TASK] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv''"
+                    },
+                    "WBTransformationSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_90_DAY_FAX] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv',@WB_SOURCE=60,@WB_FORM_ID=500914,@WB_USER_ID=11601'"
+                    },
+                    "WB_FORM_ID" : {
+                      "type" : "Expression",
+                      "value" : "'500914'"
+                    },
+                    "APPCPMAusr" : {
+                      "type" : "Expression",
+                      "value" : "'APP_CPMA'"
+                    },
+                    "TASK_USER_ID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "InputFileName" : {
+                      "type" : "Expression",
+                      "value" : "'tblExtract_MMP_CommaQuote_20160303.csv'"
+                    },
+                    "TaskCreate_CID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TASK_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "ACTIVE_YN" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveUserID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "WB_USER_ID" : {
+                      "type" : "Expression",
+                      "value" : "'11601'"
+                    },
+                    "INPUT_DIR" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\'"
+                    },
+                    "TASK_SUBJECT_PREFIX" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveDataLoadID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TaskRemoveSubject" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskRemoveTaskID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "PHARMACY_DATA_LOAD_ID" : {
+                      "type" : "Expression",
+                      "value" : "'1'"
+                    },
+                    "APPCPMApwd" : {
+                      "type" : "Expression",
+                      "value" : "'a99_cpma_DEV'"
+                    },
+                    "WBAutoTaskSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_WB_AUTO_TASK] @PHARMACY_DATA_LOAD_ID=1,@LOOKBACK_DAYS=10'"
+                    },
+                    "TaskCreate_ID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "INTERFACE_TYPE" : {
+                      "type" : "Expression",
+                      "value" : "'FORM_TASK'"
+                    },
+                    "LOOKBACK_DAYS" : {
+                      "type" : "Expression",
+                      "value" : "'5'"
+                    },
+                    "TASK_VERBIAGE_HTML" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TASK_RECIPIENT_NAME" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "TaskCreate_PHARMACY_LOAD_ID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppWBDb" : {
+                      "type" : "Expression",
+                      "value" : "'CAREPLUS_MOBILE2D'"
+                    },
+                    "ENV" : {
+                      "type" : "Expression",
+                      "value" : "'2D'"
+                    },
+                    "ErrorCount" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "TASK_PRIORITY_NUM" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "InputFileFullyQualified" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\ blExtract_MMP_CommaQuote_20160303.csv'"
+                    },
+                    "TASK_TRANSFORM_SP" : {
+                      "type" : "Expression",
+                      "value" : "'[APP_CPLS].[PR_PHARMACY_P05_TASK]'"
+                    },
+                    "CREATE_FORM_YN" : {
+                      "type" : "Expression",
+                      "value" : "'Y'"
+                    },
+                    "AppWBSrc" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_CTRAN2\\\\CTRAN2D'"
+                    },
+                    "TASK_METADATA_GUID" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppCAESrc" : {
+                      "type" : "Expression",
+                      "value" : "'DBD_CAEOLTP1\\\\CAEOLTP1D'"
+                    },
+                    "QueryPharmacyTaskCreateResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "PharmacyCreateTaskSQL" : {
+                      "type" : "Expression",
+                      "value" : "'EXEC [APP_CPLS].[PR_PHARMACY_CREATE_TASK] '"
+                    },
+                    "QueryCFGTableResultSet" : {
+                      "type" : "Expression",
+                      "value" : "'                                                                                                                                                                                    '"
+                    },
+                    "TaskRemoveCID" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "WB_SOURCE" : {
+                      "type" : "Expression",
+                      "value" : "'60'"
+                    },
+                    "TaskRemovePriority" : {
+                      "type" : "Expression",
+                      "value" : "0"
+                    },
+                    "AppCAEPwd" : {
+                      "type" : "Expression",
+                      "value" : "'App_69!s'"
+                    },
+                    "CREATE_TASK_YN" : {
+                      "type" : "Expression",
+                      "value" : "'Y'"
+                    },
+                    "WB_TRANSFORM_SP" : {
+                      "type" : "Expression",
+                      "value" : "'[APP_CPLS].[PR_PHARMACY_90_DAY_FAX]'"
+                    },
+                    "AppCAEDb" : {
+                      "type" : "Expression",
+                      "value" : "'CAE_OLTP_UTIL6D'"
+                    },
+                    "MailListLoaded" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "AppWBPwd" : {
+                      "type" : "Expression",
+                      "value" : "'a99_cpma_DEV'"
+                    },
+                    "TaskRemoveInputFileName" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varInputFileArchive" : {
+                      "type" : "Expression",
+                      "value" : "'C: mp\\\\\\\\Processed'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "OLEDBDestination" : {
+                      "TableName" : {
+                        "value" : "PHARMACY_CREATE_TASK",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "LKPCIDAddedforTaskLKPTABLE" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.LKPCIDAddedforTaskLKPTABLE_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.LKPCIDAddedforTaskLKPTABLE_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "LKP  CID Added for Task",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "OLEDBSource" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "OLE DB Source",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : null,
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "Load_Pharmacy_Task01",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_Task",
+                "dependencyConditions" : [ "SUCCESSFUL" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task01_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task01_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task01_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task01_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Pharmacy_Task01_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "Load_Pharmacy_Task_Row_Count",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Load_Pharmacy_Task01",
+                "dependencyConditions" : [ "SUCCESSFUL" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "CPM_WB_FORM_RecsLoaded",
+                "value" : "@int(activity('Load_Pharmacy_Task').output.runStatus.output.RowCountCACHESINK.value[0].rowCount)"
+              }
+            } ]
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Query_COMPLETE_TASK_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Pharmacy_Interface_Dir",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : ";WITH TASKRemoveCTE AS\n(SELECT DISTINCT\n\t\t LTRIM(RTRIM(TASK_NAME))TASK_NAME \n\t\t ,C.TASK_USER_ID\n\t\t ,C.PHARMACY_DATA_LOAD_ID\t\t\n\tFROM [APP_CPLS].[PHARMACY_CREATE_TASK] T with(nolock) \n\tJOIN APP_CPLS.PHARMACY_DATA_LOAD_CFG C with(nolock) \n\t\tON T.PHARMACY_DATA_LOAD_ID=C.PHARMACY_DATA_LOAD_ID\n\t\tWHERE TRANSFER_STATUS ='P'\n)\n\nSELECT\n\tMC.CID,\n\tT.USER_ID,\n\tT.ID AS TASK_ID,\n\tTRC.TASK_NAME,\n\tT.PRIORITY,\n\tCONVERT(INT,TRC.PHARMACY_DATA_LOAD_ID) PHARMACY_DATA_LOAD_ID\n\tFROM\t\n\tCKOLTP.ORG_TASK T WITH (NOLOCK)\n\tINNER JOIN CKOLTP.ORG_INFO I WITH (NOLOCK) ON T.INFO_ID = I.ID\n\tINNER JOIN CKOLTP.ORG_PATIENT P WITH (NOLOCK) ON T.PATIENT_ID = P.ID AND COALESCE(P.DELETED, 0) != 1\n\tINNER JOIN CKOLTP.MEMBER_COVERAGE MC WITH (NOLOCK) ON\tP.CID = MC.CID\n\tINNER JOIN TASKRemoveCTE  TRC ON TRC.TASK_NAME =I.subject AND TRC.TASK_USER_ID=T.USER_ID\n\n\t--INNER JOIN CKOLTP.ORG_INFO OI WITH (NOLOCK) ON OI.subject = TRC.TASK_NAME\n\tWHERE \n\tT.STATUS & 18 != 0 -- ONLY SHOW OPEN (2) AND RE-OPEN (16)\n\tAND T.TYPE_ID = 1 --ONLY SHOW REMINDER TASKS\n\tORDER BY P.CID\n",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_TASK_COMPLETE",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Query_COMPLETE_TASK_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Query_COMPLETE_TASK_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "PR_PHARMACY_COMPLETE_TASK_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [APP_CPLS].[PR_PHARMACY_COMPLETE_TASK] @TaskRemoveCID,@TaskRemoveUserID,@TaskRemoveTaskID,@TaskRemoveSubject,@TaskRemovePriority,@TaskRemoveDataLoadID"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Query_PHARMACY_CREATE_TASK_Table_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_TASK_COMPLETE",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT ID,CID FROM [APP_CPLS].[PHARMACY_CREATE_TASK]\nWHERE TRANSFER_STATUS = 'P'",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "FOREACH_Foreach_Loop_CREATE_TASK",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Query_PHARMACY_CREATE_TASK_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Query_PHARMACY_CREATE_TASK_Table_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Iterate_create_task_records_and_call_task_writeba_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "EXEC [APP_CPLS].[PR_PHARMACY_CREATE_TASK] @TaskCreate_ID,@ENV"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FOREACH_Foreach_Loop_CREATE_TASK",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT [ID]       ,[CID]       ,[PHARMACY_DATA_LOAD_ID]       ,[ERROR_DESC]       ,[RETURN_CODE]       ,GETDATE() AS [LOG_DATE]       ,[TRANSFER_STATUS]   FROM [APP_CPLS].[PHARMACY_CREATE_TASK] WITH(NOLOCK) WHERE [TRANSFER_STATUS] !='P'"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Completed_Task_to_PHARMACY_CREATE_TASK_LOG01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "DELETE_NON-PENDING_TASKS_FROMPHARMACY_CREATE_TASK_",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Completed_Task_to_PHARMACY_CREATE_TASK_LOG01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM [APP_CPLS].[PHARMACY_CREATE_TASK] WHERE [TRANSFER_STATUS] !='P'"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "IFACTIVITY_MailList_Loaded_SCRIPT",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DELETE_NON-PENDING_TASKS_FROMPHARMACY_CREATE_TASK_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('MailListLoaded'),''))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "MailList_Loaded_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "INSERT INTO [APP_CPLS].[PHARMACY_MMP_DAILYLOAD_MAIL] (INPUT_FILENAME,ERROR_PATH) VALUES(@MailListLoaded,@ErrorFilepath)"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "PHARMACY_DATA_LOAD_RAW_RecsLoaded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "CPM_WB_FORM_RecsLoaded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "QueryPharmacyTaskRemoveResultSet" : {
+        "type" : "string"
+      },
+      "AppWBUsr" : {
+        "type" : "string",
+        "defaultValue" : "'APP_CPMA'"
+      },
+      "AppCAEUsr" : {
+        "type" : "string",
+        "defaultValue" : "'APP_CPLS'"
+      },
+      "TASK_PRIORITY_NAME" : {
+        "type" : "string"
+      },
+      "ErrorFilepath" : {
+        "type" : "string",
+        "defaultValue" : "'\\\\\\\\AGPCORP\\\\Files\\\\VA1\\\\shared\\\\Healthcare Management Operations\\\\Pharmacy\\\\CareCompassInterfaces\\\\DEV\\\\ErrorFile\\\\'"
+      },
+      "PHARMACY_TASK_CREATE_RecsLoaded" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TaskTransformationSQL" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [APP_CPLS].[PR_PHARMACY_P05_TASK] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv''"
+      },
+      "WBTransformationSQL" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [APP_CPLS].[PR_PHARMACY_90_DAY_FAX] @INPUT_FILE_NAME='tblExtract_MMP_CommaQuote_20160303.csv',@WB_SOURCE=60,@WB_FORM_ID=500914,@WB_USER_ID=11601'"
+      },
+      "WB_FORM_ID" : {
+        "type" : "string",
+        "defaultValue" : "'500914'"
+      },
+      "APPCPMAusr" : {
+        "type" : "string",
+        "defaultValue" : "'APP_CPMA'"
+      },
+      "TASK_USER_ID" : {
+        "type" : "string"
+      },
+      "InputFileName" : {
+        "type" : "string",
+        "defaultValue" : "'tblExtract_MMP_CommaQuote_20160303.csv'"
+      },
+      "TaskCreate_CID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TASK_NAME" : {
+        "type" : "string"
+      },
+      "ACTIVE_YN" : {
+        "type" : "string"
+      },
+      "TaskRemoveUserID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "WB_USER_ID" : {
+        "type" : "string",
+        "defaultValue" : "'11601'"
+      },
+      "INPUT_DIR" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\tmp\\\\'"
+      },
+      "TASK_SUBJECT_PREFIX" : {
+        "type" : "string"
+      },
+      "TaskRemoveDataLoadID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "TaskRemoveSubject" : {
+        "type" : "string"
+      },
+      "TaskRemoveTaskID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "PHARMACY_DATA_LOAD_ID" : {
+        "type" : "string",
+        "defaultValue" : "'1'"
+      },
+      "APPCPMApwd" : {
+        "type" : "string",
+        "defaultValue" : "'a99_cpma_DEV'"
+      },
+      "WBAutoTaskSQL" : {
+        "type" : "string",
+        "defaultValue" : "'EXEC [APP_CPLS].[PR_PHARMACY_WB_AUTO_TASK] @PHARMACY_DATA_LOAD_ID=1,@LOOKBACK_DAYS=10'"
+      },
+      "TaskCreate_ID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "INTERFACE_TYPE" : {
+        "type" : "string",
+        "defaultValue" : "'FORM_TASK'"
+      },
+      "TASK_VERBIAGE_HTML" : {
+        "type" : "string"
+      },
+      "TASK_RECIPIENT_NAME" : {
+        "type" : "string"
+      },
+      "AppWBDb" : {
+        "type" : "string",
+        "defaultValue" : "'CAREPLUS_MOBILE2D'"
+      },
+      "ENV" : {
+        "type" : "string",
+        "defaultValue" : "'2D'"
+      },
+      "TASK_PRIORITY_NUM" : {
+        "type" : "string"
+      },
+      "InputFileFullyQualified" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\tmp\\\\\\\\tblExtract_MMP_CommaQuote_20160303.csv'"
+      },
+      "TASK_TRANSFORM_SP" : {
+        "type" : "string",
+        "defaultValue" : "'[APP_CPLS].[PR_PHARMACY_P05_TASK]'"
+      },
+      "CREATE_FORM_YN" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "AppWBSrc" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CTRAN2\\\\CTRAN2D'"
+      },
+      "TASK_METADATA_GUID" : {
+        "type" : "string"
+      },
+      "AppCAESrc" : {
+        "type" : "string",
+        "defaultValue" : "'DBD_CAEOLTP1\\\\CAEOLTP1D'"
+      },
+      "QueryPharmacyTaskCreateResultSet" : {
+        "type" : "string"
+      },
+      "QueryCFGTableResultSet" : {
+        "type" : "string"
+      },
+      "TaskRemoveCID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "WB_SOURCE" : {
+        "type" : "string",
+        "defaultValue" : "'60'"
+      },
+      "TaskRemovePriority" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "AppCAEPwd" : {
+        "type" : "string",
+        "defaultValue" : "'App_69!s'"
+      },
+      "CREATE_TASK_YN" : {
+        "type" : "string",
+        "defaultValue" : "'Y'"
+      },
+      "WB_TRANSFORM_SP" : {
+        "type" : "string",
+        "defaultValue" : "'[APP_CPLS].[PR_PHARMACY_90_DAY_FAX]'"
+      },
+      "AppCAEDb" : {
+        "type" : "string",
+        "defaultValue" : "'CAE_OLTP_UTIL6D'"
+      },
+      "MailListLoaded" : {
+        "type" : "string"
+      },
+      "AppWBPwd" : {
+        "type" : "string",
+        "defaultValue" : "'a99_cpma_DEV'"
+      },
+      "varInputFileArchive" : {
+        "type" : "string",
+        "defaultValue" : "'C:\\\\tmp\\\\\\\\Processed'"
+      }
+    }
+  }
+}

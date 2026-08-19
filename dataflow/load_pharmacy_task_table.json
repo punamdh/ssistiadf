@@ -1,0 +1,36 @@
+{
+  "name" : "load_pharmacy_task_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCountAGGREGATE"
+      } ],
+      "script" : "parameters{\n\tACTIVE_YN as string (),\n\tAppCAEDb as string (),\n\tAppCAEPwd as string (),\n\tAppCAESrc as string (),\n\tAppCAEUsr as string (),\n\tAPPCPMApwd as string (),\n\tAPPCPMAusr as string (),\n\tAppWBDb as string (),\n\tAppWBPwd as string (),\n\tAppWBSrc as string (),\n\tAppWBUsr as string (),\n\tCPM_WB_FORM_RecsLoaded as integer (),\n\tCREATE_FORM_YN as string (),\n\tCREATE_TASK_YN as string (),\n\tENV as string (),\n\tErrorCount as integer (),\n\tErrorFilepath as string (),\n\tInputFileFullyQualified as string (),\n\tInputFileName as string (),\n\tINPUT_DIR as string (),\n\tINTERFACE_TYPE as string (),\n\tLOOKBACK_DAYS as string (),\n\tMailListLoaded as string (),\n\tPharmacyCreateTaskSQL as string (),\n\tPHARMACY_DATA_LOAD_ID as string (),\n\tPHARMACY_DATA_LOAD_RAW_RecsLoaded as integer (),\n\tPHARMACY_TASK_CREATE_RecsLoaded as integer (),\n\tQueryCFGTableResultSet as string (),\n\tQueryPharmacyTaskCreateResultSet as string (),\n\tQueryPharmacyTaskRemoveResultSet as string (),\n\tTaskCreate_CID as integer (),\n\tTaskCreate_ID as integer (),\n\tTaskCreate_PHARMACY_LOAD_ID as string (),\n\tTaskRemoveCID as integer (),\n\tTaskRemoveDataLoadID as integer (),\n\tTaskRemoveInputFileName as string (),\n\tTaskRemovePriority as integer (),\n\tTaskRemoveSubject as string (),\n\tTaskRemoveTaskID as integer (),\n\tTaskRemoveUserID as integer (),\n\tTaskTransformationSQL as string (),\n\tTASK_METADATA_GUID as string (),\n\tTASK_NAME as string (),\n\tTASK_PRIORITY_NAME as string (),\n\tTASK_PRIORITY_NUM as string (),\n\tTASK_RECIPIENT_NAME as string (),\n\tTASK_SUBJECT_PREFIX as string (),\n\tTASK_TRANSFORM_SP as string (),\n\tTASK_USER_ID as string (),\n\tTASK_VERBIAGE_HTML as string (),\n\tvarInputFileArchive as string (),\n\tWBAutoTaskSQL as string (),\n\tWBTransformationSQL as string (),\n\tWB_FORM_ID as string (),\n\tWB_SOURCE as string (),\n\tWB_TRANSFORM_SP as string (),\n\tWB_USER_ID as string ()\n}\n\nsource(output(\n\t\tCID as integer,\n\t\tExtractDate as string,\n\t\tSUBSCRIBER_ID as string,\n\t\tTRANSFER_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tprocedureName: '[PR_PHARMACY_90_DAY_FAX]\n\t\t@INPUT_FILE_NAME =',\n\tschemaName: '[APP_CPLS]',\n\tresultSet: true,\n\tformat: 'procedure',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource derive(PHARMACY_DATA_LOAD_ID = toInteger($PHARMACY_DATA_LOAD_ID)) ~> DerivedColumn\nOLEDBSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCountAGGREGATE\nDerivedColumn sink(input(\n\t\tPHARMACY_DATA_LOAD_ID as integer,\n\t\tTRANSFER_STATUS as string,\n\t\tCID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tPHARMACY_DATA_LOAD_ID,\n\t\tTRANSFER_STATUS,\n\t\tCID)) ~> OLEDBDestination\nRowCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

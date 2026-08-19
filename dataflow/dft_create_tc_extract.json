@@ -1,0 +1,43 @@
+{
+  "name" : "dft_create_tc_extract",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSRCTCXML",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "SRCOLEDBPSDCNT",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTFFPSDCNT"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FFDSTTCXML"
+      } ],
+      "transformations" : [ {
+        "name" : "DCTCXML"
+      } ],
+      "script" : "parameters{\n\tApplicationId as integer (),\n\tBatchCategoryID as integer (),\n\tBatchId as integer (),\n\tBatchListResultSet as string (),\n\tBatchStatus as string (),\n\tBLIVCreateDttm as timestamp (),\n\tEBillPreferenceFileExtractArchievePath as string (),\n\tEBillPreferenceFileExtractFileName as string (),\n\tEBillPreferenceFileExtractPath as string (),\n\tEBillSkippedMemebersSQL as string (),\n\tExtractFileName as string (),\n\tExtractFileNameFinal as string (),\n\tExtractFileNamePrefix as string (),\n\tExtractFilePath as string (),\n\tgv_bgbgsql as string (),\n\tgv_BLIVDate as timestamp (),\n\tgv_INDISql as string (),\n\tgv_INPASql as string (),\n\tgv_INSBSql as string (),\n\tgv_LookupTable as string (),\n\tgv_MEMDSql as string (),\n\tgv_MEMESql as string (),\n\tgv_MEPESql as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_SBSBSql as string (),\n\tgv_SqlDualSubscribers as string (),\n\tgv_SqlLoadBatch as string (),\n\tgv_strOracleDS as string (),\n\tgv_TruncLkpTbl as string (),\n\tMailFrom as string (),\n\tNoFileEmail as string (),\n\tRowCount as integer (),\n\tSMTP as string (),\n\tsqlCDS_INID_INVOICE as string (),\n\tSsrsDatabase as string (),\n\tSsrsDataSource as string (),\n\tSsrsSubscriptionId as string (),\n\tstrDataSource as string (),\n\tstrErrorLogPath as string (),\n\tstrInitialCatalog as string (),\n\tstrPassword as string (),\n\tstrSqlServerProvider as string (),\n\tstrUserName as string (),\n\tVarBatchCount as integer (),\n\tVarDummyFile as string ()\n}\n\nsource(output(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: '[Invoice].[Pr_GenerateXML_MAInv_PSD] \t@BatchId = ?',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSRCTCXML\tsource(output(\n\t\tCOUNT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT CAST(TOTALRECCOUNT AS INT)  AS COUNT FROM [BOSS].[INVOICE].[TCFILETRAILER] WHERE BATCHID= ?',\n\tformat: 'query',\n\tstaged:false) ~> SRCOLEDBPSDCNT\nOLEDBSRCTCXML derive({Copy of COL_XML} = toString(COL_XML)) ~> DCTCXML\nSRCOLEDBPSDCNT sink(input(\n\t\tCOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOUNT)) ~> DSTFFPSDCNT\nDCTCXML sink(input(\n\t\tCOL_XML as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCOL_XML = {Copy of COL_XML})) ~> FFDSTTCXML"
+    }
+  }
+}

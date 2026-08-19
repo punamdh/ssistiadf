@@ -1,0 +1,53 @@
+{
+  "name" : "df_src_ma_hra_callattempts",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "XLSMAHRACallAttempts",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LKPCALLATTEMPTSLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCMINITIALOUTREACHSTAGE"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCMINITIALOUTREACHSTAGEEXISTS"
+      } ],
+      "transformations" : [ {
+        "name" : "DCSUBSCRIBERID"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "LKPCALLATTEMPTS"
+      }, {
+        "name" : "LKPCALLATTEMPTSSelect"
+      }, {
+        "name" : "LKPCALLATTEMPTSIsMatch"
+      }, {
+        "name" : "DCEXISTS"
+      } ],
+      "script" : "parameters{\n\tCAERPTS_DATASOURCE as string (),\n\tCAERPTS_DB as string (),\n\tCAERPTS_PWD as string (),\n\tCAERPTS_USER as string (),\n\tMOBILE_DATASOURCE as string (),\n\tMOBILE_DB as string (),\n\tMOBILE_PWD as string (),\n\tMOBILE_USER as string (),\n\tOLTP_DATASOURCE as string (),\n\tOLTP_DB as string (),\n\tOLTP_PWD as string (),\n\tOLTP_USER as string (),\n\tv_Archive as string (),\n\tv_ExcelSQL as string (),\n\tv_FileExists as string (),\n\tv_IsArchive as integer (),\n\tv_MonthDecrement as integer (),\n\tv_SourceID as integer (),\n\tv_SRCFile as string (),\n\tv_SRCFileArchive as string (),\n\tv_SRCFileName as string (),\n\tv_SRCFilePath as string (),\n\tv_SRCFolder as string ()\n}\n\nsource(output(\n\t\tMEMBER_MEMBERNUMBER as string,\n\t\tCALL_DATE as timestamp 'ect.format.datetime.hypen.4year2month2day2hour24mmnute2secondsdot6nanoseconds'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> XLSMAHRACallAttempts\tsource(output(\n\t\tSUBSCRIBER_ID as string,\n\t\tATTEMPT_DATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT SUBSCRIBER_ID,ATTEMPT_DATE FROM APP_RPTS.MA_HRA_CALLATTEMPTS WITH (NOLOCK) ORDER BY SUBSCRIBER_ID,ATTEMPT_DATE',\n\tformat: 'query',\n\tstaged:false) ~> LKPCALLATTEMPTSLKPTABLE\nXLSMAHRACallAttempts derive(SUBSCRIBER_ID = substring(toString(MEMBER_MEMBERNUMBER), toInteger(1), toInteger(9))) ~> DCSUBSCRIBERID\nDCSUBSCRIBERID derive(DC_SUBSCRIBER_ID = toString(SUBSCRIBER_ID),\n\t\tDC_CALL_DATE = CALL_DATE) ~> DataConversion\nDataConversion,LKPCALLATTEMPTSLKPTABLE lookup(DC_CALL_DATE == ATTEMPT_DATE && DC_SUBSCRIBER_ID == LKPCALLATTEMPTSLKPTABLE@SUBSCRIBER_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LKPCALLATTEMPTS\nLKPCALLATTEMPTS select(mapColumn(\n\t\tDC_SUBSCRIBER_ID = DC_SUBSCRIBER_ID,\n\t\tDC_CALL_DATE = DC_CALL_DATE,\n\t\tCALL_DATE = CALL_DATE,\n\t\tSUBSCRIBER_ID = LKPCALLATTEMPTSLKPTABLE@SUBSCRIBER_ID,\n\t\tMEMBER_MEMBERNUMBER = MEMBER_MEMBERNUMBER,\n\t\tATTEMPT_DATE = ATTEMPT_DATE\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LKPCALLATTEMPTSSelect\nLKPCALLATTEMPTSSelect split(isMatch(), disjoint: true) ~> LKPCALLATTEMPTSIsMatch@(Match,NotMatch)\nLKPCALLATTEMPTSIsMatch@Match derive(EXIST = 1) ~> DCEXISTS\nLKPCALLATTEMPTSIsMatch@NotMatch sink(input(\n\t\tCALL_DATETIME as timestamp 'dd-MM-yyyy',\n\t\tSUBSCRIBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALL_DATETIME = DC_CALL_DATE,\n\t\tSUBSCRIBER_ID = DC_SUBSCRIBER_ID)) ~> OLEDBCMINITIALOUTREACHSTAGE\nDCEXISTS sink(input(\n\t\tCALL_DATETIME as timestamp 'dd-MM-yyyy',\n\t\tEXIST as boolean,\n\t\tSUBSCRIBER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tCALL_DATETIME = DC_CALL_DATE,\n\t\tEXIST,\n\t\tSUBSCRIBER_ID = DC_SUBSCRIBER_ID)) ~> OLEDBCMINITIALOUTREACHSTAGEEXISTS"
+    }
+  }
+}

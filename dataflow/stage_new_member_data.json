@@ -1,0 +1,58 @@
+{
+  "name" : "stage_new_member_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance_Punam/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "PHLStratyyyymmddfileload",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "NewMemberCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "APPDMCCUTNHEALTHLINKNONEXISTINGMEMBER"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort1"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "LookupIsMatch"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "NewMemberCountAGGREGATE"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoinREFORMAT1"
+      } ],
+      "script" : "parameters{\n\tHEALTHLINK_DATASOURCE as string (),\n\tHEALTHLINK_DB as string (),\n\tHEALTHLINK_PWD as string (),\n\tHEALTHLINK_USER as string (),\n\tRPT_DATASOURCE as string (),\n\tRPT_DB as string (),\n\tRPT_PWD as string (),\n\tRPT_USER as string (),\n\tv_CntExistingMember as integer (),\n\tv_CntNewMember as integer (),\n\tv_CntNewMemberInserted as integer (),\n\tv_cntTotalMember as integer (),\n\tv_createUserID as integer (),\n\tv_fileDestination as string (),\n\tv_fileExists as boolean (),\n\tv_loadDate as timestamp (),\n\tv_logFileFolder as string (),\n\tv_logPackageScript as string (),\n\tv_log_EventDate as string (),\n\tv_memberSourceID as integer (),\n\tv_stratFileFolder as string (),\n\tv_stratFileName as string (),\n\tv_stratLevelSourceID as integer ()\n}\n\nsource(output(\n\t\tSBSB_ID as string,\n\t\tMEME_LAST_NAME as string,\n\t\tMEME_FIRST_NAME as string,\n\t\tMEME_MID_INIT as string,\n\t\tMEME_SEX as string,\n\t\tMEME_BIRTH_DT as timestamp,\n\t\tMEPE_EFF_DT as timestamp,\n\t\tMEPE_TERM_DT as timestamp,\n\t\tSGSG_MCTR_TYPE as string,\n\t\tPDPD_ID as string,\n\t\tMEPE_ELIG_IND as string,\n\t\tCSPI_ID as string,\n\t\tMEME_WRK_PHONE as string,\n\t\tLOADDATE as string,\n\t\tMaxEligRow as long,\n\t\tExitInFile as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  \t\tSBSB_ID,  \tMEME_LAST_NAME,  \tMEME_FIRST_NAME,  \tMEME_MID_INIT,  \tMEME_SEX,  \tMEME_BIRTH_DT,  \tMEPE_EFF_DT,  \tMEPE_TERM_DT,  \tSGSG_MCTR_TYPE,  \tPDPD_ID,  \tLTRIM(RTRIM(MEPE_ELIG_IND)) as MEPE_ELIG_IND,  \tCSPI_ID, MEME_WRK_PHONE,  \t\t\\'No\\' AS ExitInFile, \tMaxEligRow, CONVERT(VARCHAR(10),GETDATE(),101) AS LOADDATE \t\tFROM ( \t\tSELECT  \t\tx.SBSB_ID, m.MEME_LAST_NAME, m.MEME_FIRST_NAME, m.MEME_MID_INIT, m.MEME_SEX, m.MEME_BIRTH_DT,  \t\tme.MEPE_EFF_DT, me.MEPE_TERM_DT, sg.SGSG_MCTR_TYPE, me.PDPD_ID, me.MEPE_ELIG_IND,  \t\tme.CSPI_ID, m.MEME_WRK_PHONE,  \t\tROW_NUMBER() OVER(PARTITION BY x.SBSB_ID ORDER BY me.MEPE_EFF_DT DESC) AS MaxEligRow  \t\tFROM APP_RPTS.CID_MEMBER_SUBSCRIBER_XWALK x \t\tJOIN APP_RPTS.CMC_MEME_MEMBER m WITH (NOLOCK) ON x.MEME_CK = m.MEME_CK \t\tJOIN APP_RPTS.CMC_MEPE_PRCS_ELIG me WITH (NOLOCK) ON m.MEME_CK = me.MEME_CK \t\t\t\tJOIN APP_RPTS.CMC_SGSG_SUB_GROUP sg WITH (NOLOCK) ON me.SGSG_CK = sg.SGSG_CK \t\t\t\t\t\tWHERE me.GRGR_CK = 13 \t) x \t \tWHERE MaxEligRow = 1--latest',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tSBSBID as string,\n\t\tHealthLinkStratID as string,\n\t\tProgram as string,\n\t\tHealthLinkStratDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PHLStratyyyymmddfileload\tsource(output(\n\t\tSubscriberID as string,\n\t\tMemberID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT  DISTINCT SubscriberID, MemberID  FROM member.Member',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nOLEDBSource sort(asc(SBSB_ID, false)) ~> Sort1\nPHLStratyyyymmddfileload,LookupLKPTABLE lookup(SBSBID == SubscriberID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@NotMatch sort(asc(SBSBID, false)) ~> Sort\nLookupIsMatch@NotMatch aggregate(groupBy(),\n\trowcount = count(1)) ~> NewMemberCountAGGREGATE\nSort,Sort1 join(SBSBID == SBSB_ID,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nNewMemberCountAGGREGATE sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> NewMemberCountCACHESINK\nMergeJoin derive(SBSB_ID = SBSB_ID,\n\t\tMEME_LAST_NAME = MEME_LAST_NAME,\n\t\tMEME_FIRST_NAME = MEME_FIRST_NAME,\n\t\tMEME_MID_INIT = MEME_MID_INIT,\n\t\tMEME_SEX = MEME_SEX,\n\t\tMEME_BIRTH_DT = MEME_BIRTH_DT,\n\t\tMEPE_EFF_DT = MEPE_EFF_DT,\n\t\tMEPE_TERM_DT = MEPE_TERM_DT,\n\t\tSGSG_MCTR_TYPE = SGSG_MCTR_TYPE,\n\t\tPDPD_ID = PDPD_ID,\n\t\tMEPE_ELIG_IND = MEPE_ELIG_IND,\n\t\tCSPI_ID = CSPI_ID,\n\t\tMEME_WRK_PHONE = MEME_WRK_PHONE,\n\t\tLOADDATE = LOADDATE,\n\t\tExitInFile = ExitInFile) ~> MergeJoinREFORMAT1\nMergeJoinREFORMAT1 sink(input(\n\t\tMEME_WRK_PHONE as string,\n\t\tMEPE_TERM_DT as timestamp 'dd-MM-yyyy',\n\t\tMEME_FIRST_NAME as string,\n\t\tSBSB_ID as string,\n\t\tSGSG_MCTR_TYPE as string,\n\t\tMEPE_EFF_DT as timestamp 'dd-MM-yyyy',\n\t\tExitInFile as string,\n\t\tMEME_SEX as string,\n\t\tPDPD_ID as string,\n\t\tMEPE_ELIG_IND as string,\n\t\tMEME_LAST_NAME as string,\n\t\tMEME_BIRTH_DT as timestamp 'dd-MM-yyyy',\n\t\tMEME_MID_INIT as string,\n\t\tLOADDATE as timestamp 'dd-MM-yyyy',\n\t\tCSPI_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tMEME_WRK_PHONE,\n\t\tMEPE_TERM_DT,\n\t\tMEME_FIRST_NAME,\n\t\tSBSB_ID,\n\t\tSGSG_MCTR_TYPE,\n\t\tMEPE_EFF_DT,\n\t\tExitInFile,\n\t\tMEME_SEX,\n\t\tPDPD_ID,\n\t\tMEPE_ELIG_IND,\n\t\tMEME_LAST_NAME,\n\t\tMEME_BIRTH_DT,\n\t\tMEME_MID_INIT,\n\t\tLOADDATE,\n\t\tCSPI_ID)) ~> APPDMCCUTNHEALTHLINKNONEXISTINGMEMBER"
+    }
+  }
+}
