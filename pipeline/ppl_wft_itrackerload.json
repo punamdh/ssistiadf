@@ -1,0 +1,367 @@
+{
+  "name" : "ppl_wft_itrackerload",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'iTracker__SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization') AS iTracker__SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'iTracker__TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization') AS iTracker__TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load') AS WFT_iTracker_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load') AS WFT_iTracker_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load') AS OLE_DB_Destination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load') AS OLE_DB_Destination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Counts_Normalization01_source_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization01') AS Counts_Normalization01_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Counts_Normalization01_source_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization01') AS Counts_Normalization01_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Counts_Normalization01_sink_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization01') AS Counts_Normalization01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Counts_Normalization01_sink_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'Counts_Normalization01') AS Counts_Normalization01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_Load01_source_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load01') AS WFT_iTracker_Load01_source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_Load01_source_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load01') AS WFT_iTracker_Load01_source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_Load01_sink_SchemaName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load01') AS WFT_iTracker_Load01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'WFT_iTracker_Load01_sink_TableName' AND PIPELINE_NAME = 'WFT_iTrackerLoad' AND DATAFLOW_NAME = 'WFT_iTracker_Load01') AS WFT_iTracker_Load01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "Execute_SQL_Task_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "truncate table [dbo].[WFT_iTracker]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "WFT_iTracker_Load0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_Generic_db_replication",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "WFT_iTracker_Load"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "WFT_iTracker_Load",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "WFT_iTracker_Load0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   COUNT(COMBID) INSTANCES, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating, solutionstatus,                        Title,                       SolutionGroup  \t    \t       FROM [cooiTracker2].[dbo].[vSORFeedsPrimary] (NOLOCK) a   where CAST(validateddate AS DATE) BETWEEN cast(getdate()-395  as date ) AND CAST(GETDATE() AS DATE) or validateddate is null       GROUP BY  \t   SN_CIO, \t   Server_WFGUID, \t   App_WFGUID, \t   ResponsibleParty, \t   [STATUS], \t   a.FeedType, \t   FirstDetected, \t   ConsequenceModelEscalationDate, \t   DueDate, \t   APPResponsibleDate, \t   TargetVersion, \t   ValidatedDate,                       Rating,solutionstatus,Title,                       SolutionGroup"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "WFT_iTracker_Load01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "WFT_iTracker_Load",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.WFT_iTracker_Load01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Counts_Normalization0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "WFT_iTracker_Load01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "ppl_Generic_db_replication",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@utcnow()"
+          },
+          "Dataflow_Name" : {
+            "type" : "string",
+            "value" : "Counts_Normalization"
+          },
+          "FilePath_Date" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(utcnow(),'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
+          }
+        }
+      }
+    }, {
+      "name" : "Counts_Normalization",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Counts_Normalization0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES ,GETDATE() AS import_date FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE ='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) , CTE2 AS ( SELECT TOP (12) REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(A.SOLUTIONGROUP,'MW CONFIG - ',''),'APP PRODUCTS PATCH - ',''),'DB CONFIG - ',''), 'QUALYS PATH ' ,''),'MW EOL - ',''),'MW PATCHING - ',''),'DB EOL - ',''),'APP PRODUCTS EOL - ','') SOLUTIONGROUP, SUM(INSTANCES) TOTALINSTANCES FROM [PLHS].[DBO].[VW_WFT_TCOO_ITRACKER_METRICS_TOPCOUNTS_LASTMONTH] A WHERE RESPONSIBLEPARTY IN ('APPLICATION TEAM','ASSIGNED PRODUCT/PLATFORM') AND FEEDTYPE !='QUALYS' GROUP BY SOLUTIONGROUP ORDER BY TOTALINSTANCES DESC ) SELECT *, 'QUALYS' SOURCESYSTEM FROM CTE1 UNION ALL SELECT *, 'NON-QUALYS' SOURCESYSTEM FROM CTE2"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "Counts_Normalization01",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Counts_Normalization",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource",
+          "dataset" : {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference"
+          }
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "dataset" : {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference"
+          }
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization01_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization01_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization01_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization01_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Counts_Normalization01_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "wells-fargo/COO_VulnPackages"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

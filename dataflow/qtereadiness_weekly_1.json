@@ -1,0 +1,31 @@
+{
+  "name" : "qtereadiness_weekly_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wells-fargo/TCOO_QTEReadiness"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "QTESources",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tvarQTEArchiveDestFullPath as string (),\n\tvarQTEArchiveFolder as string (),\n\tvarQTEFileDateString as string (),\n\tvarQTEFileName as string (),\n\tvarQTEFilePrefix as string (),\n\tvarQTEFullFileName as string (),\n\tvarQTELatestSourceFileName as string (),\n\tvarQTELatestSourceFullPath as string (),\n\tvarQTELogFilePath as string (),\n\tvarQTERecDate as timestamp (),\n\tvarQTERenamedDestFullPath as string (),\n\tvarQTEReportDate as string (),\n\tvarQTESourceFolder as string ()\n}\n\nsource(output(\n\t\tPhase as double,\n\t\tAppId as string,\n\t\tLOB as string,\n\t\tCIO as string,\n\t\tCDAE as string,\n\t\t{Testing Lead} as string,\n\t\t{BAM CIO} as string,\n\t\ttarget_landing_Zone as string,\n\t\tMAP_CIO as string,\n\t\t{Test Status} as string,\n\t\tApp_Override as string,\n\t\tApp_Override_Requester as string,\n\t\tApp_Override_Rationale as string,\n\t\t{App_Override_Evidence Link} as string,\n\t\tPriority as double,\n\t\tProcess_Date as date 'dd-MM-yyyy',\n\t\t{Override Cleanup} as string,\n\t\t{Asset Check} as string,\n\t\t{Asset Count} as double,\n\t\treadiness_tag as string,\n\t\tchange_tranche as double,\n\t\ttrtc_tranche as double,\n\t\tchange_tranche_desc as string,\n\t\ttrtc_tranche_desc as string,\n\t\tPROD_DATE as date 'dd-MM-yyyy',\n\t\tDAYS_UNTIL as double,\n\t\tScope as string,\n\t\tExecution_Flag as string,\n\t\t{Test Events #} as double,\n\t\tCoverage as string,\n\t\t{Expected Test Cases} as double,\n\t\tCCP_Scope as string,\n\t\tperformance_test as string,\n\t\tCompletion_Date as string,\n\t\tDCMS_25_SCOPE as string,\n\t\tDCMS_26_SCOPE as string,\n\t\tAll_DCMS_TCI_App_Status as string,\n\t\toperational_status_description as string,\n\t\tapplication_name as string,\n\t\tbam_app_status as string,\n\t\tHyperExecute as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> QTESources\nQTESources derive(RECDATE = Process_Date) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tperformance_test as string,\n\t\tCCP_Scope as string,\n\t\tPhase as double,\n\t\tOverride_Cleanup as string,\n\t\tTesting_Lead as string,\n\t\ttrtc_tranche as double,\n\t\tAsset_Check as string,\n\t\tApp_Override as string,\n\t\tTest_Status as string,\n\t\tchange_tranche as double,\n\t\tRECDATE as date 'dd-MM-yyyy',\n\t\tMAP_CIO as string,\n\t\tCDAE as string,\n\t\tExpected_Test_Cases as double,\n\t\tLOB as string,\n\t\tApp_Override_Evidence_Link as string,\n\t\tchange_tranche_desc as string,\n\t\tTest_Events__ as string,\n\t\ttrtc_tranche_desc as string,\n\t\tPROD_DATE as timestamp 'dd-MM-yyyy',\n\t\tPriority as double,\n\t\tCIO as string,\n\t\tDAYS_UNTIL as double,\n\t\tCoverage as string,\n\t\tApp_Override_Rationale as string,\n\t\treadiness_tag as string,\n\t\tApp_Override_Requester as string,\n\t\tApp_Status as string,\n\t\tDCMS_25_SCOPE as string,\n\t\tDCMS_26_SCOPE as string,\n\t\tAppId as string,\n\t\tScope as string,\n\t\ttarget_landing_Zone as string,\n\t\tBAM_CIO as string,\n\t\tAsset_Count as double,\n\t\tProcess_Date as timestamp 'dd-MM-yyyy',\n\t\tExecution_Flag as string,\n\t\tCompletion_Date as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tperformance_test,\n\t\tCCP_Scope,\n\t\tPhase,\n\t\tOverride_Cleanup = {Override Cleanup},\n\t\tTesting_Lead = {Testing Lead},\n\t\ttrtc_tranche,\n\t\tAsset_Check = {Asset Check},\n\t\tApp_Override,\n\t\tTest_Status = {Test Status},\n\t\tchange_tranche,\n\t\tRECDATE,\n\t\tMAP_CIO,\n\t\tCDAE,\n\t\tExpected_Test_Cases = {Expected Test Cases},\n\t\tLOB,\n\t\tApp_Override_Evidence_Link = {App_Override_Evidence Link},\n\t\tchange_tranche_desc,\n\t\tTest_Events__ = {Test Events #},\n\t\ttrtc_tranche_desc,\n\t\tPROD_DATE,\n\t\tPriority,\n\t\tCIO,\n\t\tDAYS_UNTIL,\n\t\tCoverage,\n\t\tApp_Override_Rationale,\n\t\treadiness_tag,\n\t\tApp_Override_Requester,\n\t\tApp_Status = All_DCMS_TCI_App_Status,\n\t\tDCMS_25_SCOPE,\n\t\tDCMS_26_SCOPE,\n\t\tAppId,\n\t\tScope,\n\t\ttarget_landing_Zone,\n\t\tBAM_CIO = {BAM CIO},\n\t\tAsset_Count = {Asset Count},\n\t\tProcess_Date,\n\t\tExecution_Flag,\n\t\tCompletion_Date)) ~> OLEDBDestination"
+    }
+  }
+}

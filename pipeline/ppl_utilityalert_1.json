@@ -1,0 +1,207 @@
+{
+  "name" : "ppl_utilityalert_1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Delete_alerts_older_than_2_months_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Get_alerts_that_need_to_be_sent_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Delete_alerts_older_than_2_months_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "Select ID, [To],[Subject],isnull([body],'') as Body,BodyFormat, ISNULL(CC,'') CC FROM PLHS.dbo.tbl_ssis_utility where [To] != ' ' and SendDate is null",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "IFACTIVITY_FOREACH_Foreach_Loop_Container",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_alerts_that_need_to_be_sent_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FOREACH_Foreach_Loop_Container",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('Get_alerts_that_need_to_be_sent_0').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Script_Task",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Script_Task",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "Mark_Record_as_Sent_SCRIPT",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "Script_Task",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "Query",
+                  "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @iID)"
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "Failure_Mail",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Get_alerts_that_need_to_be_sent_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Delete_alerts_older_than_2_months_SCRIPT",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "IFACTIVITY_FOREACH_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : { }
+      }
+    } ],
+    "folder" : {
+      "name" : "wells-fargo/PLHS_Monthly_Metrics"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sBody" : {
+        "type" : "string",
+        "defaultValue" : "'Please Check the Table.'"
+      },
+      "sCC" : {
+        "type" : "string"
+      },
+      "rsFile" : {
+        "type" : "string"
+      },
+      "sSubject" : {
+        "type" : "string",
+        "defaultValue" : "'UtilityAlert'"
+      },
+      "iID" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "sRAndSEmailAddress" : {
+        "type" : "string",
+        "defaultValue" : "'do-not-reply@wellsfargo.com'"
+      },
+      "iBodyFormat" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "string",
+        "defaultValue" : "'DEV'"
+      },
+      "sTO" : {
+        "type" : "string",
+        "defaultValue" : "'WFSRS@wellsfargo.com'"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "load_coo_tech_app_disp_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wells-fargo/TCOO_QTEReadiness"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "xlCOOTechAppDisp",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SQLqtecootechappdisp"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tvarQTEArchiveDestFullPath as string (),\n\tvarQTEArchiveFolder as string (),\n\tvarQTEFileDateString as string (),\n\tvarQTEFileName as string (),\n\tvarQTEFilePrefix as string (),\n\tvarQTEFullFileName as string (),\n\tvarQTELatestSourceFileName as string (),\n\tvarQTELatestSourceFullPath as string (),\n\tvarQTELogFilePath as string (),\n\tvarQTERecDate as timestamp (),\n\tvarQTERenamedDestFullPath as string (),\n\tvarQTEReportDate as string (),\n\tvarQTESourceFolder as string ()\n}\n\nsource(output(\n\t\tCIODirectSizing as string,\n\t\tTechStack as string,\n\t\t{DISP PLAN Year} as double,\n\t\t{BAM App Name} as string,\n\t\tL2 as string,\n\t\tL3 as string,\n\t\tL4 as string,\n\t\tL5 as string,\n\t\t{BAM APP ID} as string,\n\t\tBEAMS_BAM_Prev_TargetPlatform_Refined as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> xlCOOTechAppDisp\nxlCOOTechAppDisp sink(input(\n\t\tApp_Sizing as string,\n\t\tTechStack as string,\n\t\tPLAN__Year_ as double,\n\t\tBAM_App_Name as string,\n\t\tL2 as string,\n\t\tL3 as string,\n\t\tL4 as string,\n\t\tL5 as string,\n\t\tBAM_APP_ID as string,\n\t\tBEAMS_BAM_Final_DISP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tApp_Sizing = CIODirectSizing,\n\t\tTechStack,\n\t\tPLAN__Year_ = {DISP PLAN Year},\n\t\tBAM_App_Name = {BAM App Name},\n\t\tL2,\n\t\tL3,\n\t\tL4,\n\t\tL5,\n\t\tBAM_APP_ID = {BAM APP ID},\n\t\tBEAMS_BAM_Final_DISP = BEAMS_BAM_Prev_TargetPlatform_Refined)) ~> SQLqtecootechappdisp"
+    }
+  }
+}
