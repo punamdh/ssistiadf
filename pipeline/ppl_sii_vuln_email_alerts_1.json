@@ -128,7 +128,26 @@
           "value" : "@equals(1,1)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
+        "ifFalseActivities" : [ {
+          "name" : "Only_Send_once_a_week_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
         "ifTrueActivities" : [ {
           "name" : "Collect_Daily_SII_Metric_10",
           "type" : "ExecutePipeline",
@@ -177,7 +196,7 @@
           "typeProperties" : {
             "source" : {
               "type" : "Parquetsource",
-              "sqlReaderQuery" : "SELECT TotlInst, EmergencyCount, HMLCount_App, HMLCount_ProdPlat, Non_HMLCount_App, Non_HMLCount_ProdPlat, TechnicalManager_App1, Senior_Lead_Supplimented, CIO_Direct_Supplimented, Email_Level, subject_, EMHAstatement, HMLAPP, HML_ProdPlat, Non_HML_App, Non_HML_ProdPlat, SrMngrEmail, CIOdirEmail, TechMngrEmail,CAST(DATEADD(\"day\",1,GETDATE()) as DATE) AS Import_Date FROM dbo.vw_SII_EmailAlerts_Details"
+              "sqlReaderQuery" : "SELECT * ,CAST(DATEADD(\"day\",1,GETDATE()) as DATE) AS Import_Date FROM DBO.VW_SII_EMAILALERTS_DETAILS"
             },
             "sink" : {
               "type" : "AzureSqlSink",
@@ -272,31 +291,9 @@
           } ]
         } ]
       }
-    }, {
-      "name" : "Only_Send_once_a_week_SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Daily_SII_Metric",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
     } ],
     "folder" : {
-      "name" : "Elevance_Punam/PLHS_Monthly_Metrics"
+      "name" : "wellsfargo_Punam_10_09/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {

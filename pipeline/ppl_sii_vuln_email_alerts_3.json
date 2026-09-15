@@ -128,7 +128,26 @@
           "value" : "@equals(1,1)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
+        "ifFalseActivities" : [ {
+          "name" : "Only_Send_once_a_week_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
         "ifTrueActivities" : [ {
           "name" : "Collect_Daily_SII_Metric_30",
           "type" : "ExecutePipeline",
@@ -272,31 +291,9 @@
           } ]
         } ]
       }
-    }, {
-      "name" : "Only_Send_once_a_week_SCRIPT",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Daily_SII_Metric",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
     } ],
     "folder" : {
-      "name" : "Elevance_Punam/Vulnerability_ETL_v2022"
+      "name" : "wellsfargo_Punam_10_09/Vulnerability_ETL_v2022"
     },
     "parameters" : { },
     "variables" : {

@@ -95,7 +95,587 @@
           "value" : "@equals(1,1)",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
+        "ifFalseActivities" : [ {
+          "name" : "GETMETADATA_Check_File_and_Execute",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Check_File_and_Execute_TableName",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Check_File_and_Execute_SchemaName",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FILTER_Check_File_and_Execute",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GETMETADATA_Check_File_and_Execute",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GETMETADATA_Check_File_and_Execute').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@and(equals(item().type, 'File'), equals(item().name, 'QTE.ReadinessReport.xlsx'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "FOREACH_Check_File_and_Execute",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FILTER_Check_File_and_Execute",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('FILTER_Check_File_and_Execute').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "SET_FileName",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "varQTERenamedDestFullPath",
+                "value" : {
+                  "value" : "@concat('\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\', item().name)",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "QTEReadiness_Weekly_10",
+              "type" : "ExecutePipeline",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SET_FileName",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : null,
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "pipeline" : {
+                  "referenceName" : "Generic_db_replication_ppl",
+                  "type" : "PipelineReference"
+                },
+                "waitOnCompletion" : false,
+                "parameters" : {
+                  "SysDatetime" : {
+                    "type" : "Expression",
+                    "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+                  },
+                  "Dataflow_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+                  },
+                  "FilePath_Date" : {
+                    "type" : "string",
+                    "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+                  },
+                  "Pipeline_Name" : {
+                    "type" : "Expression",
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+                  }
+                }
+              }
+            }, {
+              "name" : "QTEReadiness_Weekly_1",
+              "type" : "ExecuteDataFlow",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "QTEReadiness_Weekly_10",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataflow" : {
+                  "referenceName" : "qtereadiness_weekly_1",
+                  "type" : "DataFlowReference",
+                  "parameters" : {
+                    "varQTEFileName" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+                    },
+                    "varQTEFileDateString" : {
+                      "type" : "Expression",
+                      "value" : "'11042025'"
+                    },
+                    "varQTEArchiveFolder" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
+                    },
+                    "varQTELatestSourceFullPath" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varQTERenamedDestFullPath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+                    },
+                    "varQTELatestSourceFileName" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varQTESourceFolder" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
+                    },
+                    "varQTELogFilePath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
+                    },
+                    "varQTEFilePrefix" : {
+                      "type" : "Expression",
+                      "value" : "'QTE.ReadinessReport'"
+                    },
+                    "varQTEReportDate" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varQTEFullFileName" : {
+                      "type" : "Expression",
+                      "value" : "''"
+                    },
+                    "varQTERecDate" : {
+                      "type" : "Expression",
+                      "value" : "toTimestamp('11/4/2025')"
+                    },
+                    "varQTEArchiveDestFullPath" : {
+                      "type" : "Expression",
+                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
+                    }
+                  },
+                  "datasetParameters" : {
+                    "OLEDBDestination" : {
+                      "TableName" : {
+                        "value" : "qte_automation",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "dbo",
+                        "type" : "Expression"
+                      },
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    },
+                    "QTESources" : {
+                      "TableName" : null,
+                      "Schema" : null,
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  }
+                },
+                "compute" : null,
+                "staging" : { }
+              }
+            }, {
+              "name" : "QTEReadiness_Weekly_101",
+              "type" : "Copy",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "QTEReadiness_Weekly_1",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "source" : {
+                  "type" : "ParquetSource"
+                },
+                "sink" : {
+                  "type" : "AzureSqlSink"
+                }
+              },
+              "inputs" : [ {
+                "referenceName" : "genric_parquet",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              } ],
+              "outputs" : [ {
+                "referenceName" : "Generic_OLEDB_DS_TGT",
+                "type" : "DatasetReference",
+                "parameters" : {
+                  "TableName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_sink_TableName",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_sink_SchemaName",
+                    "type" : "Expression"
+                  }
+                }
+              } ]
+            }, {
+              "name" : "SC_COO_Tech_App_Disp",
+              "type" : "IfCondition",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "QTEReadiness_Weekly_101",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "expression" : {
+                  "value" : "@equals(1,1)",
+                  "type" : "Expression"
+                },
+                "ifFalseActivities" : [ ],
+                "ifTrueActivities" : [ {
+                  "name" : "Truncate_COO_Tech_App_Disp_SCRIPT",
+                  "type" : "Script",
+                  "policy" : null,
+                  "dependsOn" : [ ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "linkedServiceName" : {
+                    "referenceName" : "AzureSqlDatabase1",
+                    "type" : "LinkedServiceReference"
+                  },
+                  "typeProperties" : {
+                    "scripts" : [ {
+                      "type" : "Query",
+                      "text" : "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
+                    } ],
+                    "scriptBlockExecutionTimeout" : null
+                  }
+                }, {
+                  "name" : "Load_COO_Tech_App_Disp_10",
+                  "type" : "ExecutePipeline",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Truncate_COO_Tech_App_Disp_SCRIPT",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "userProperties" : null,
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "pipeline" : {
+                      "referenceName" : "Generic_db_replication_ppl",
+                      "type" : "PipelineReference"
+                    },
+                    "waitOnCompletion" : false,
+                    "parameters" : {
+                      "SysDatetime" : {
+                        "type" : "Expression",
+                        "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+                      },
+                      "Dataflow_Name" : {
+                        "type" : "Expression",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+                      },
+                      "FilePath_Date" : {
+                        "type" : "string",
+                        "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+                      },
+                      "Pipeline_Name" : {
+                        "type" : "Expression",
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+                      }
+                    }
+                  }
+                }, {
+                  "name" : "Load_COO_Tech_App_Disp_1",
+                  "type" : "ExecuteDataFlow",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_COO_Tech_App_Disp_10",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "dataflow" : {
+                      "referenceName" : "load_coo_tech_app_disp_1",
+                      "type" : "DataFlowReference",
+                      "parameters" : {
+                        "varQTEFileName" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+                        },
+                        "varQTEFileDateString" : {
+                          "type" : "Expression",
+                          "value" : "'11042025'"
+                        },
+                        "varQTEArchiveFolder" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
+                        },
+                        "varQTELatestSourceFullPath" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "varQTERenamedDestFullPath" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+                        },
+                        "varQTELatestSourceFileName" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "varQTESourceFolder" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
+                        },
+                        "varQTELogFilePath" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
+                        },
+                        "varQTEFilePrefix" : {
+                          "type" : "Expression",
+                          "value" : "'QTE.ReadinessReport'"
+                        },
+                        "varQTEReportDate" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "varQTEFullFileName" : {
+                          "type" : "Expression",
+                          "value" : "''"
+                        },
+                        "varQTERecDate" : {
+                          "type" : "Expression",
+                          "value" : "toTimestamp('11/4/2025')"
+                        },
+                        "varQTEArchiveDestFullPath" : {
+                          "type" : "Expression",
+                          "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
+                        }
+                      },
+                      "datasetParameters" : {
+                        "SQLqtecootechappdisp" : {
+                          "TableName" : {
+                            "value" : "dbo",
+                            "type" : "Expression"
+                          },
+                          "Schema" : {
+                            "value" : "dbo",
+                            "type" : "Expression"
+                          },
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_FilePath",
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        },
+                        "xlCOOTechAppDisp" : {
+                          "TableName" : null,
+                          "Schema" : null,
+                          "Container" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_ContainerName",
+                            "type" : "Expression"
+                          },
+                          "FileName" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_FileName",
+                            "type" : "Expression"
+                          },
+                          "Directory" : {
+                            "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_FilePath",
+                            "type" : "Expression"
+                          },
+                          "ColumnDelimiter" : ","
+                        }
+                      }
+                    },
+                    "compute" : null,
+                    "staging" : { }
+                  }
+                }, {
+                  "name" : "Load_COO_Tech_App_Disp_101",
+                  "type" : "Copy",
+                  "policy" : null,
+                  "dependsOn" : [ {
+                    "activity" : "Load_COO_Tech_App_Disp_1",
+                    "dependencyConditions" : [ "Succeeded" ]
+                  } ],
+                  "state" : null,
+                  "description" : null,
+                  "onInactiveMarkAs" : null,
+                  "typeProperties" : {
+                    "source" : {
+                      "type" : "ParquetSource"
+                    },
+                    "sink" : {
+                      "type" : "AzureSqlSink"
+                    }
+                  },
+                  "inputs" : [ {
+                    "referenceName" : "genric_parquet",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "Container" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_ContainerName",
+                        "type" : "Expression"
+                      },
+                      "FileName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_FileName",
+                        "type" : "Expression"
+                      },
+                      "Directory" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_FilePath",
+                        "type" : "Expression"
+                      },
+                      "ColumnDelimiter" : ","
+                    }
+                  } ],
+                  "outputs" : [ {
+                    "referenceName" : "Generic_OLEDB_DS_TGT",
+                    "type" : "DatasetReference",
+                    "parameters" : {
+                      "TableName" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_sink_TableName",
+                        "type" : "Expression"
+                      },
+                      "Schema" : {
+                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_sink_SchemaName",
+                        "type" : "Expression"
+                      }
+                    }
+                  } ]
+                } ]
+              }
+            }, {
+              "name" : "DELETE_Remove_Processed_File",
+              "type" : "Delete",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "QTEReadiness_Weekly_101",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "userProperties" : [ ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "dataset" : {
+                  "referenceName" : "Generic_File_SRC",
+                  "type" : "DatasetReference",
+                  "parameters" : {
+                    "Container" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_ContainerName",
+                      "type" : "Expression"
+                    },
+                    "FileName" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_FileName",
+                      "type" : "Expression"
+                    },
+                    "Directory" : {
+                      "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_FilePath",
+                      "type" : "Expression"
+                    },
+                    "ColumnDelimiter" : null
+                  }
+                },
+                "enableLogging" : false,
+                "storeSettings" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ],
         "ifTrueActivities" : [ {
           "name" : "FindLatestQTEFile",
           "type" : "AzureFunctionActivity",
@@ -314,592 +894,9 @@
           }
         } ]
       }
-    }, {
-      "name" : "GETMETADATA_Check_File_and_Execute",
-      "type" : "GetMetadata",
-      "policy" : {
-        "timeout" : "0.12:00:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 30,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "Prepare_Source_File",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "fieldList" : [ "childItems" ],
-        "dataset" : {
-          "referenceName" : "Generic_OLEDB_DS_SRC",
-          "type" : "DatasetReference",
-          "parameters" : {
-            "TableName" : {
-              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Check_File_and_Execute_TableName",
-              "type" : "Expression"
-            },
-            "Schema" : {
-              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GETMETADATA_Check_File_and_Execute_SchemaName",
-              "type" : "Expression"
-            }
-          }
-        },
-        "storeSettings" : {
-          "type" : "AzureBlobStorageReadSettings",
-          "enablePartitionDiscovery" : false
-        },
-        "formatSettings" : {
-          "type" : "DelimitedTextReadSettings"
-        }
-      }
-    }, {
-      "name" : "FILTER_Check_File_and_Execute",
-      "type" : "Filter",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "GETMETADATA_Check_File_and_Execute",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "items" : {
-          "value" : "@activity('GETMETADATA_Check_File_and_Execute').output.childItems",
-          "type" : "Expression"
-        },
-        "condition" : {
-          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'QTE.ReadinessReport.xlsx'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
-      "name" : "FOREACH_Check_File_and_Execute",
-      "type" : "ForEach",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "FILTER_Check_File_and_Execute",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "items" : {
-          "value" : "@activity('FILTER_Check_File_and_Execute').output.value",
-          "type" : "Expression"
-        },
-        "activities" : [ {
-          "name" : "SET_FileName",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "varQTERenamedDestFullPath",
-            "value" : {
-              "value" : "@concat('\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\', item().name)",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "QTEReadiness_Weekly_10",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SET_FileName",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "Generic_db_replication_ppl",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : {
-              "SysDatetime" : {
-                "type" : "Expression",
-                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-              },
-              "Dataflow_Name" : {
-                "type" : "Expression",
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-              },
-              "FilePath_Date" : {
-                "type" : "string",
-                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-              },
-              "Pipeline_Name" : {
-                "type" : "Expression",
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-              }
-            }
-          }
-        }, {
-          "name" : "QTEReadiness_Weekly_1",
-          "type" : "ExecuteDataFlow",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly_10",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "dataflow" : {
-              "referenceName" : "qtereadiness_weekly_1",
-              "type" : "DataFlowReference",
-              "parameters" : {
-                "varQTEFileName" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                },
-                "varQTEFileDateString" : {
-                  "type" : "Expression",
-                  "value" : "'11042025'"
-                },
-                "varQTEArchiveFolder" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
-                },
-                "varQTELatestSourceFullPath" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTERenamedDestFullPath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                },
-                "varQTELatestSourceFileName" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTESourceFolder" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
-                },
-                "varQTELogFilePath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
-                },
-                "varQTEFilePrefix" : {
-                  "type" : "Expression",
-                  "value" : "'QTE.ReadinessReport'"
-                },
-                "varQTEReportDate" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTEFullFileName" : {
-                  "type" : "Expression",
-                  "value" : "''"
-                },
-                "varQTERecDate" : {
-                  "type" : "Expression",
-                  "value" : "toTimestamp('11/4/2025')"
-                },
-                "varQTEArchiveDestFullPath" : {
-                  "type" : "Expression",
-                  "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
-                }
-              },
-              "datasetParameters" : {
-                "QTESources" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTESources_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "qte_automation",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                }
-              }
-            },
-            "compute" : null,
-            "staging" : { }
-          }
-        }, {
-          "name" : "QTEReadiness_Weekly_101",
-          "type" : "Copy",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly_1",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "source" : {
-              "type" : "ParquetSource"
-            },
-            "sink" : {
-              "type" : "AzureSqlSink"
-            }
-          },
-          "inputs" : [ {
-            "referenceName" : "genric_parquet",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_source_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          } ],
-          "outputs" : [ {
-            "referenceName" : "Generic_OLEDB_DS_TGT",
-            "type" : "DatasetReference",
-            "parameters" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_sink_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.QTEReadiness_Weekly_101_sink_SchemaName",
-                "type" : "Expression"
-              }
-            }
-          } ]
-        }, {
-          "name" : "SC_COO_Tech_App_Disp",
-          "type" : "IfCondition",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly_101",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "expression" : {
-              "value" : "@equals(1,1)",
-              "type" : "Expression"
-            },
-            "ifFalseActivities" : [ ],
-            "ifTrueActivities" : [ {
-              "name" : "Truncate_COO_Tech_App_Disp_SCRIPT",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureSqlDatabase1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "Query",
-                  "text" : "TRUNCATE TABLE [plhs].[dbo].[qte_coo_tech_app_disp]"
-                } ],
-                "scriptBlockExecutionTimeout" : null
-              }
-            }, {
-              "name" : "Load_COO_Tech_App_Disp_10",
-              "type" : "ExecutePipeline",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "Truncate_COO_Tech_App_Disp_SCRIPT",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "userProperties" : null,
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "pipeline" : {
-                  "referenceName" : "Generic_db_replication_ppl",
-                  "type" : "PipelineReference"
-                },
-                "waitOnCompletion" : false,
-                "parameters" : {
-                  "SysDatetime" : {
-                    "type" : "Expression",
-                    "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-                  },
-                  "Dataflow_Name" : {
-                    "type" : "Expression",
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-                  },
-                  "FilePath_Date" : {
-                    "type" : "string",
-                    "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-                  },
-                  "Pipeline_Name" : {
-                    "type" : "Expression",
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-                  }
-                }
-              }
-            }, {
-              "name" : "Load_COO_Tech_App_Disp_1",
-              "type" : "ExecuteDataFlow",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "Load_COO_Tech_App_Disp_10",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "dataflow" : {
-                  "referenceName" : "load_coo_tech_app_disp_1",
-                  "type" : "DataFlowReference",
-                  "parameters" : {
-                    "varQTEFileName" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                    },
-                    "varQTEFileDateString" : {
-                      "type" : "Expression",
-                      "value" : "'11042025'"
-                    },
-                    "varQTEArchiveFolder" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
-                    },
-                    "varQTELatestSourceFullPath" : {
-                      "type" : "Expression",
-                      "value" : "''"
-                    },
-                    "varQTERenamedDestFullPath" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
-                    },
-                    "varQTELatestSourceFileName" : {
-                      "type" : "Expression",
-                      "value" : "''"
-                    },
-                    "varQTESourceFolder" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
-                    },
-                    "varQTELogFilePath" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
-                    },
-                    "varQTEFilePrefix" : {
-                      "type" : "Expression",
-                      "value" : "'QTE.ReadinessReport'"
-                    },
-                    "varQTEReportDate" : {
-                      "type" : "Expression",
-                      "value" : "''"
-                    },
-                    "varQTEFullFileName" : {
-                      "type" : "Expression",
-                      "value" : "''"
-                    },
-                    "varQTERecDate" : {
-                      "type" : "Expression",
-                      "value" : "toTimestamp('11/4/2025')"
-                    },
-                    "varQTEArchiveDestFullPath" : {
-                      "type" : "Expression",
-                      "value" : "'\\\\ ccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
-                    }
-                  },
-                  "datasetParameters" : {
-                    "xlCOOTechAppDisp" : {
-                      "TableName" : null,
-                      "Schema" : null,
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.xlCOOTechAppDisp_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    },
-                    "SQLqtecootechappdisp" : {
-                      "TableName" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
-                      "Schema" : {
-                        "value" : "dbo",
-                        "type" : "Expression"
-                      },
-                      "Container" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_ContainerName",
-                        "type" : "Expression"
-                      },
-                      "FileName" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_FileName",
-                        "type" : "Expression"
-                      },
-                      "Directory" : {
-                        "value" : "@activity('LKP_Fetch_Param').output.firstRow.SQLqtecootechappdisp_FilePath",
-                        "type" : "Expression"
-                      },
-                      "ColumnDelimiter" : ","
-                    }
-                  }
-                },
-                "compute" : null,
-                "staging" : { }
-              }
-            }, {
-              "name" : "Load_COO_Tech_App_Disp_101",
-              "type" : "Copy",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "Load_COO_Tech_App_Disp_1",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "source" : {
-                  "type" : "ParquetSource"
-                },
-                "sink" : {
-                  "type" : "AzureSqlSink"
-                }
-              },
-              "inputs" : [ {
-                "referenceName" : "genric_parquet",
-                "type" : "DatasetReference",
-                "parameters" : {
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_source_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                }
-              } ],
-              "outputs" : [ {
-                "referenceName" : "Generic_OLEDB_DS_TGT",
-                "type" : "DatasetReference",
-                "parameters" : {
-                  "TableName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_sink_TableName",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_COO_Tech_App_Disp_101_sink_SchemaName",
-                    "type" : "Expression"
-                  }
-                }
-              } ]
-            } ]
-          }
-        }, {
-          "name" : "DELETE_Remove_Processed_File",
-          "type" : "Delete",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "QTEReadiness_Weekly_101",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "dataset" : {
-              "referenceName" : "Generic_File_SRC",
-              "type" : "DatasetReference",
-              "parameters" : {
-                "Container" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_ContainerName",
-                  "type" : "Expression"
-                },
-                "FileName" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_FileName",
-                  "type" : "Expression"
-                },
-                "Directory" : {
-                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELETE_Remove_Processed_File_FilePath",
-                  "type" : "Expression"
-                },
-                "ColumnDelimiter" : null
-              }
-            },
-            "enableLogging" : false,
-            "storeSettings" : null
-          }
-        } ],
-        "isSequential" : true
-      }
     } ],
     "folder" : {
-      "name" : "Elevance_Punam/TCOO_QTEReadiness"
+      "name" : "wellsfargo_Punam_10_09/TCOO_QTEReadiness"
     },
     "parameters" : {
       "BasePath" : {
@@ -910,11 +907,11 @@
     "variables" : {
       "varQTELogFilePath" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\scripts\\\\QTE.Readiness.log'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\scripts\\QTE.Readiness.log'"
       },
       "varQTEFileName" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\QTE.ReadinessReport.xlsx'"
       },
       "varQTEFileDateString" : {
         "type" : "string",
@@ -925,25 +922,25 @@
       },
       "varQTEArchiveFolder" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive'"
       },
       "varQTELatestSourceFullPath" : {
         "type" : "string"
       },
       "varQTERenamedDestFullPath" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\QTE.ReadinessReport.xlsx'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\QTE.ReadinessReport.xlsx'"
       },
       "varQTEArchiveDestFullPath" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files\\\\archive\\\\'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files\\archive\\'"
       },
       "varQTELatestSourceFileName" : {
         "type" : "string"
       },
       "varQTESourceFolder" : {
         "type" : "string",
-        "defaultValue" : "'\\\\\\\\nccc822nvs1.wellsfargo.com\\\\C_TCO_Groups\\\\TCOO_Platform_Services\\\\Platform_Lifecycle_Health_Services\\\\TechRefresh\\\\data\\\\qte\\\\files'"
+        "defaultValue" : "'\\\\nccc822nvs1.wellsfargo.com\\C_TCO_Groups\\TCOO_Platform_Services\\Platform_Lifecycle_Health_Services\\TechRefresh\\data\\qte\\files'"
       }
     }
   }
