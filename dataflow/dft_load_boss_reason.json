@@ -1,0 +1,45 @@
+{
+  "name" : "dft_load_boss_reason",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "Elevance/PACKAGES"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "SQLSTAGERECEIPTREASON"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "LookupIsMatch"
+      } ],
+      "script" : "parameters{\n\tgv_BalanceFileName as string (),\n\tgv_BalanceFilePath as string (),\n\tgv_BatchId as integer (),\n\tgv_BatchType as string (),\n\tgv_ErrorCount as integer (),\n\tgv_ErrorCountRFDDupes as integer (),\n\tgv_ExtractName as string (),\n\tgv_ExtractPath as string (),\n\tgv_FromDate as string (),\n\tgv_FromDateOverride as boolean (),\n\tgv_FTP_PATH as string (),\n\tgv_GetOracleStagingData as string (),\n\tgv_HRAEmailList as string (),\n\tgv_HRAEmailMessage as string (),\n\tgv_HRAEmailSubject as string (),\n\tgv_HRARowCount as integer (),\n\tgv_HRA_FINAL_PATH as string (),\n\tgv_MedSuppSelectQuery as string (),\n\tgv_MLRBatchGroup as string (),\n\tgv_MLREmailList as string (),\n\tgv_MLREmailMessage as string (),\n\tgv_MLRGroupResult as string (),\n\tgv_MLRGrpKey as string (),\n\tgv_MLRGrpKeyList as string (),\n\tgv_MLRRefundReason as string (),\n\tgv_MLRSelectQuery as string (),\n\tgv_OraclePassword as string (),\n\tgv_OracleProvider as string (),\n\tgv_OracleUserID as string (),\n\tgv_ProcessCommandPath as string (),\n\tgv_SelectQuery as string (),\n\tgv_SMTPServer as string (),\n\tgv_SourceFiles as string (),\n\tgv_SqlServerProvider as string (),\n\tgv_strDataSource as string (),\n\tgv_strInitialCatalog as string (),\n\tgv_strOracleDS as string (),\n\tgv_strPassword as string (),\n\tgv_strUserName as string (),\n\tgv_ToDate as timestamp (),\n\tgv_ToDateString as string (),\n\tgv_ValidationEmailFrom as string (),\n\tgv_ValidationEmailSubject as string (),\n\tgv_ValidationEmailTo as string (),\n\tgv_ValidationErrorFolderPath as string (),\n\tgv_ValidationErrorList as string (),\n\tgv_ValidationErrorRFDDupes as string ()\n}\n\nsource(output(\n\t\tRECEIPTREASON as string,\n\t\tRECEIPTREASONCD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'Select DISTINCT TRIM(rs.mctr_desc)  as ReceiptReason, rs.MCTR_VALUE as ReceiptReasonCd FROM CMC_MCTR_CD_TRANS RS WHERE RS.MCTR_ENTITY = \\'RCPT\\' AND  RS.MCTR_TYPE = \\'RSN\\'',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tReceiptReasonId as integer,\n\t\tReceiptReasonCd as string,\n\t\tReceiptReason as string,\n\t\tReceiptReasonDesc as string,\n\t\tIsValid as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select * from Receipts.ReceiptReason',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(OLEDBSource@RECEIPTREASONCD == LookupLKPTABLE@ReceiptReasonCd,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@Match sink(input(\n\t\tRECEIPTREASON as string,\n\t\tReceiptReasonCd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tRECEIPTREASON = Param_0,\n\t\tReceiptReasonCd = Param_1)) ~> OLEDBCommand\nLookupIsMatch@NotMatch sink(input(\n\t\tReceiptReasonCd as string,\n\t\tReceiptReason as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tReceiptReasonCd = RECEIPTREASONCD,\n\t\tReceiptReason = RECEIPTREASON)) ~> SQLSTAGERECEIPTREASON"
+    }
+  }
+}
