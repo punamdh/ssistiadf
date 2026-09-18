@@ -4,27 +4,6 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "sFileName",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "sFileName",
-        "value" : {
-          "value" : "@replace(variables('sSearchFileName'),variables('sSearchDirectory'),'')",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -63,9 +42,6 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "sFileName",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -225,6 +201,29 @@
                 }
               },
               "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : "tbl_TCOOPE_DRD_Server_QID_Mapping_v2",
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "LookupLKPTABLE" : {
                   "TableName" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.LookupLKPTABLE_TableName",
@@ -261,29 +260,6 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.FoundFile_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "TableName" : {
-                    "value" : "tbl_TCOOPE_DRD_Server_QID_Mapping_v2",
-                    "type" : "Expression"
-                  },
-                  "Schema" : {
-                    "value" : "dbo",
-                    "type" : "Expression"
-                  },
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
