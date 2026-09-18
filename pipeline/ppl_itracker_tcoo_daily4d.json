@@ -32,6 +32,20 @@
         }
       }
     }, {
+      "name" : "Get_Time_Stamp_Execution_Path",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
       "name" : "Get_Time_Stamp_Execution_Path_SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -54,32 +68,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SETVAR_ExecuteSeriesFlag",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_SCRIPT",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "ExecuteSeriesFlag",
-        "value" : "@activity('Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows"
-      }
-    }, {
       "name" : "Delete_sameday_Load_Table_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_ExecuteSeriesFlag",
+        "activity" : "Get_Time_Stamp_Execution_Path",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -101,7 +94,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_ExecuteSeriesFlag",
+        "activity" : "Get_Time_Stamp_Execution_Path",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -227,29 +220,6 @@
               },
               "ColumnDelimiter" : ","
             },
-            "iTrackerQuery" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "iTracker_Query",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "LastValidatedLookupLKPTABLE" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
@@ -265,6 +235,29 @@
               },
               "FileName" : {
                 "value" : "Last Validated Lookup",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "iTrackerQuery" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "iTracker_Query",
                 "type" : "Expression"
               },
               "Directory" : {
@@ -438,8 +431,8 @@
         }
       } ]
     }, {
-      "name" : "All_App_Responsible0_SCRIPT",
-      "type" : "Script",
+      "name" : "All_App_Responsible0",
+      "type" : "Wait",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "iTracker_Validated_Data01",
@@ -448,16 +441,8 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "update iTracker_Active_SN_CIO\nset ResponsibleParty ='APP'\nwhere cast(importdate as date) =cast( getdate()  as date)\n"
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "waitTimeInSeconds" : 10
       }
     }, {
       "name" : "SETVAR_CountRowsToInsert",
@@ -518,34 +503,6 @@
               "value" : "''",
               "type" : "Expression"
             }
-          }
-        }
-      }
-    }, {
-      "name" : "Failure_Mail",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_ExecuteSeriesFlag",
-        "dependencyConditions" : [ "Failed" ]
-      }, {
-        "activity" : "All_App_Responsible0_SCRIPT",
-        "dependencyConditions" : [ "Failed" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_email",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@pipeline().Pipeline"
           }
         }
       }
@@ -618,45 +575,35 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "IFACTIVITY_Failure_Mail",
-      "type" : "IfCondition",
+      "name" : "Failure_Mail",
+      "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
+        "activity" : "Get_Time_Stamp_Execution_Path",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
         "activity" : "All_App_Responsible_SCRIPT",
         "dependencyConditions" : [ "Completed" ]
+      }, {
+        "activity" : "All_App_Responsible0",
+        "dependencyConditions" : [ "Failed" ]
       } ],
+      "userProperties" : null,
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@not(equals(variables('CountInsertedRecords'),variables('CountRowsToInsert')))",
-          "type" : "Expression"
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Failure_Mail",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "Generic_email",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : false,
-            "parameters" : {
-              "Pipeline_Name" : {
-                "type" : "Expression",
-                "value" : "@pipeline().Pipeline"
-              }
-            }
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@pipeline().Pipeline"
           }
-        } ]
+        }
       }
     } ],
     "folder" : {

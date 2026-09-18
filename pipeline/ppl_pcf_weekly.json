@@ -32,8 +32,8 @@
         }
       }
     }, {
-      "name" : "TodaysDate_File_1_SCRIPT",
-      "type" : "Script",
+      "name" : "TodaysDate_File_1",
+      "type" : "Wait",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "LKP_Fetch_Param",
@@ -42,23 +42,15 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : "DELETE  from [Sharepoint_TAS_Buildpacks]"
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "waitTimeInSeconds" : 10
       }
     }, {
       "name" : "TodaysDate_File_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_1_SCRIPT",
+        "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -76,32 +68,25 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SETVAR_sFileDate",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "TodaysDate_File",
+      "type" : "Wait",
+      "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_SCRIPT",
+        "activity" : "TodaysDate_File_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "sFileDate",
-        "value" : "@activity('TodaysDate_File_SCRIPT').output.resultSets[0].rows"
+        "waitTimeInSeconds" : 10
       }
     }, {
       "name" : "New_PCF_File_Format0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_sFileDate",
+        "activity" : "TodaysDate_File",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,

@@ -112,29 +112,6 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "tbl_Prisma_Enriched_TCOO_TDATA",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "vwPrismaEnrichedInfraDateFiltered" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaEnrichedInfraDateFiltered_TableName",
@@ -154,6 +131,29 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Prisma_Enriched_TCOO_TDATA",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -216,6 +216,20 @@
         }
       } ]
     }, {
+      "name" : "Check_Source_Availability",
+      "type" : "Wait",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Prisma_ETL01",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "waitTimeInSeconds" : 10
+      }
+    }, {
       "name" : "Check_Source_Availability_SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -275,25 +289,18 @@
         }
       }
     }, {
-      "name" : "SETVAR_RegistryCount",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "Truncate_PrismaRegistry_Enriched",
+      "type" : "Wait",
+      "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Check_Source_Availability_SCRIPT",
+        "activity" : "Check_Source_Availability",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "RegistryCount",
-        "value" : "@activity('Check_Source_Availability_SCRIPT').output.resultSets[0].rows"
+        "waitTimeInSeconds" : 10
       }
     }, {
       "name" : "Prisma_ETL_1",
@@ -317,29 +324,6 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "tbl_Prisma_Enriched_CIO_TECHCOO",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "vwPrismaEnrichedInfraDateFiltered" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaEnrichedInfraDateFiltered_TableName",
@@ -362,6 +346,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Prisma_Enriched_CIO_TECHCOO",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -369,42 +376,41 @@
         "staging" : { }
       }
     }, {
-      "name" : "IFACTIVITY_Truncate_PrismaRegistry_Enriched_SCRIPT",
-      "type" : "IfCondition",
+      "name" : "ETL_PrismaRegistry0",
+      "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_RegistryCount",
+        "activity" : "Truncate_PrismaRegistry_Enriched",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
+      "userProperties" : null,
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@greater(variables('RegistryCount'),0)",
-          "type" : "Expression"
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "Truncate_PrismaRegistry_Enriched_SCRIPT",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureSqlDatabase1",
-            "type" : "LinkedServiceReference"
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
           },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : "TRUNCATE TABLE dbo.tbL_PrismaRegistry_Enriched"
-            } ],
-            "scriptBlockExecutionTimeout" : null
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
           }
-        } ]
+        }
       }
     }, {
       "name" : "Prisma_ETL_101",
@@ -459,43 +465,6 @@
         }
       } ]
     }, {
-      "name" : "ETL_PrismaRegistry0",
-      "type" : "ExecutePipeline",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "IFACTIVITY_Truncate_PrismaRegistry_Enriched_SCRIPT",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "userProperties" : null,
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
-      }
-    }, {
       "name" : "ETL_PrismaRegistry",
       "type" : "ExecuteDataFlow",
       "policy" : null,
@@ -517,29 +486,6 @@
             }
           },
           "datasetParameters" : {
-            "vwPrismaRegistryEnrichedInfraDateFiltered" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "vwPrismaRegistry_Enriched_Infra_DateFiltered",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "dbo",
@@ -559,6 +505,29 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "vwPrismaRegistryEnrichedInfraDateFiltered" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "vwPrismaRegistry_Enriched_Infra_DateFiltered",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
