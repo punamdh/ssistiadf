@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+      "name" : "Truncate_Daily_Vuln_Table_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,30 +49,16 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+          "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static_stage]"
         } ],
         "scriptBlockExecutionTimeout" : null
-      }
-    }, {
-      "name" : "Truncate_Daily_Vuln_Table",
-      "type" : "Wait",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "waitTimeInSeconds" : 10
       }
     }, {
       "name" : "Load_Daily_Vuln_from_View_40",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Truncate_Daily_Vuln_Table",
+        "activity" : "Truncate_Daily_Vuln_Table_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -233,8 +219,8 @@
         "value" : "@int(coalesce(activity('Load_Daily_Vuln_from_View_4').output.runStatus.metrics?.OLE_DB_Destination?.rowsWritten, 0))"
       }
     }, {
-      "name" : "delete_data_from_Static_to_load_from_stage",
-      "type" : "Wait",
+      "name" : "IFACTIVITY_delete_data_from_Static_to_load_from_st",
+      "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "SETVAR_StageViewCount",
@@ -244,14 +230,38 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "expression" : {
+          "value" : "@greater(variables('StageViewCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "delete_data_from_Static_to_load_from_stage_SCRIPT",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
       }
     }, {
       "name" : "Load_Daily_Vuln_from_Stage_90",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "delete_data_from_Static_to_load_from_stage",
+        "activity" : "IFACTIVITY_delete_data_from_Static_to_load_from_st",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -391,8 +401,8 @@
         }
       } ]
     }, {
-      "name" : "MultiLoad_Clean_Up",
-      "type" : "Wait",
+      "name" : "MultiLoad_Clean_Up_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Load_Daily_Vuln_from_Stage_901",
@@ -401,15 +411,23 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE FROM  [PLHS].[dbo].[tbl_VulnActive_Daily_PIT_MetricsSource_dev]\nWHERE PIT_Date = CAST(GETDATE() AS DATE) "
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "Load_Daily_Vuln_from_Stage_80",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "MultiLoad_Clean_Up",
+        "activity" : "MultiLoad_Clean_Up_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -455,7 +473,7 @@
       "typeProperties" : {
         "source" : {
           "type" : "Parquetsource",
-          "sqlReaderQuery" : "SELECT IssueId, ResearchTeamID, RemediationTypeID, ResultsPath, SourceID, Port, FirstDetected, LastDetected, PWExceptionID, PWOverallStatus, PWExpirationDate, RAMOSClean, RAMSystemRole, RAMSttaus, PAAPAI, TechManagerContact, ResearchTeam, RemediationType, TargetDate, CRNumber, JiraNumber, Comments, status, App_WFGUID, Server_WFGUID, FeedTypeID, WAMSourceID, CombID, SolutionGroup, SolutionCategory, GamePlan, SolutionStatus, Rating, ResponsibleParty, RAMCIName, RAMAPPSupport, HardwareSupport, DatabaseSupport, MiddlewareSupport, OSPatchSupport, OSSupport, RTDecomDate, RAMOwnedBy, RAMOwnedBy_LOB, RAMOwnedBy_SUBLOB, SN_CIO, SN_CTO, RAMApplicationNames, DMANPrimary, WAMDistributedID, TechManagerADENT, CTOADENT, iTrackerEntryDate, CreatedBy, ModifiedBy, ModifiedDate, WAMApplicationName, TechManagerELID, TechManagerName, PortfolioOwnerELID, PortfolioOwnerName, GroupCIO1DownELID, GroupCIO1DownName, GroupCIO1DownADENT, GroupCIO2DownELID, GroupCIO2DownName, Level1ManagerELID, Level1ManagerName, Level1ManagerADENT, CTOELID, CTOName, Age, DueDate, LoadModifiedDate, LoadModifiedBy, IsPastDue, Review, FeedType, MajorVersion, CurrentVersion, TargetVersion, Priority, Title, ThreatScore, ValidatedDate, ActivatedDate, APPResponsibleDate, ConsequenceModelEscalationDate, ComplianceDueDate, ValidationReason, HAction, ImportDate, AdjustedConsequenceModelEscalationDate, {Overall Status}, {Expiration Date}, {Adj Consequence Model Escalation Date}, CIO_CP, CIO_Direct_CP, SeniorLead_CP, TechnicalManager_App1, ApplicationStatus_App1, ApplicationName_App1, AppLeaderKey_SN, CMAdjust_Import_date, iTracker_Import_date, APP1_Import_date, CommonProfile_Import_date, App1Cio, App1SrLead, App1TechMngr, DEVICE_WF_GUID, HOST_NAME, LEVEL_1_REPORT_NAME, LEVEL_2_REPORT_NAME, LEVEL_3_REPORT_NAME, LEVEL_4_REPORT_NAME, EDL_SeniorLead, EDL_TechManager, CIO_Direct_Supplimented, Senior_Lead_Supplimented, Rating_Order, AppDistID, EDL_Flag, DRDJiraNumber, RequestedDeferredRemediationDate, DRDStatus, ApprovedDRDDate, RatingDueDate, {Platform LOB}, ServerMngrEmail, AppMngrEmail, TCOOActions, TCOOActions_Primary, TCOODueDate, DueDateReasoning, SolutionGroup_Short, UID, PLHsOnboardedApp, {PLHS Onboarding Status}, ExceptionFlag, Rating_Summary, ScheduledStatus, STATE_DESCRIPTION, CLOSE_CODE, CLOSED_AT, START_DATE, VulnActions2, TCOOEscalation_Level, is_Patch, is_Configuration, Submission_Action, DestinationAppID, Ownershipflag, {Cluster Type}, Import_Date, SecurityVuln,CAST(GETDATE() as VARCHAR) AS PIT_Date FROM dbo.tbl_VulnActive_Daily_Static"
+          "sqlReaderQuery" : "SELECT * ,CAST(GETDATE() as VARCHAR) AS PIT_Date FROM DBO.TBL_VULNACTIVE_DAILY_STATIC"
         },
         "sink" : {
           "type" : "AzureSqlSink",
@@ -549,8 +567,8 @@
         }
       } ]
     }, {
-      "name" : "Get_Time_Stamp_Execution_Path",
-      "type" : "Wait",
+      "name" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Load_Daily_Vuln_from_Stage_801",
@@ -559,36 +577,81 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Clear_Current_Data",
-      "type" : "Wait",
-      "policy" : null,
+      "name" : "SETVAR_ExecutionFlag",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path",
+        "activity" : "Get_Time_Stamp_Execution_Path_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "variableName" : "ExecutionFlag",
+        "value" : "@activity('Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows"
       }
     }, {
-      "name" : "Load_tbl_Vuln_Metrics_Monthly_Reduced_Detail",
-      "type" : "Wait",
+      "name" : "Clear_Current_Data_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Clear_Current_Data",
+        "activity" : "SETVAR_ExecutionFlag",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_tbl_Vuln_Metrics_Monthly_Reduced_Detail_SCRIP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Clear_Current_Data_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n "
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {

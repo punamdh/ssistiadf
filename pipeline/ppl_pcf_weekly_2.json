@@ -32,21 +32,7 @@
         }
       }
     }, {
-      "name" : "TodaysDate_File_1",
-      "type" : "Wait",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "waitTimeInSeconds" : 10
-      }
-    }, {
-      "name" : "TodaysDate_File_SCRIPT",
+      "name" : "TodaysDate_File_1_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -63,7 +49,7 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+          "text" : "DELETE  from [Sharepoint_TAS_Buildpacks]"
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -105,18 +91,26 @@
         }
       }
     }, {
-      "name" : "TodaysDate_File",
-      "type" : "Wait",
+      "name" : "TodaysDate_File_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_1",
+        "activity" : "TodaysDate_File_1_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "PCF_All_data_1",
@@ -186,41 +180,25 @@
         "staging" : { }
       }
     }, {
-      "name" : "New_PCF_File_Format_10",
-      "type" : "ExecutePipeline",
-      "policy" : null,
+      "name" : "SETVAR_sFileDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File",
+        "activity" : "TodaysDate_File_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
-      "userProperties" : null,
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "pipeline" : {
-          "referenceName" : "Generic_db_replication_ppl",
-          "type" : "PipelineReference"
-        },
-        "waitOnCompletion" : false,
-        "parameters" : {
-          "SysDatetime" : {
-            "type" : "Expression",
-            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
-          },
-          "Dataflow_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
-          },
-          "FilePath_Date" : {
-            "type" : "string",
-            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
-          },
-          "Pipeline_Name" : {
-            "type" : "Expression",
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
-          }
-        }
+        "variableName" : "sFileDate",
+        "value" : "@activity('TodaysDate_File_SCRIPT').output.resultSets[0].rows"
       }
     }, {
       "name" : "PCF_All_data_101",
@@ -275,71 +253,41 @@
         }
       } ]
     }, {
-      "name" : "New_PCF_File_Format_1",
-      "type" : "ExecuteDataFlow",
+      "name" : "New_PCF_File_Format_10",
+      "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "New_PCF_File_Format_10",
+        "activity" : "SETVAR_sFileDate",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
+      "userProperties" : null,
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "new_pcf_file_format_1",
-          "type" : "DataFlowReference",
-          "parameters" : {
-            "sFileDate" : {
-              "type" : "Expression",
-              "value" : "@variables('sFileDate')"
-            }
-          },
-          "datasetParameters" : {
-            "FilefromPCFDropzone" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "SharepointTASBuildpacks" : {
-              "TableName" : {
-                "value" : "Sharepoint_TAS_Buildpacks",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
         },
-        "compute" : null,
-        "staging" : { }
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
       }
     }, {
       "name" : "Last_Available_BP_Names0",
@@ -377,6 +325,140 @@
             "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
           }
         }
+      }
+    }, {
+      "name" : "New_PCF_File_Format_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "New_PCF_File_Format_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "new_pcf_file_format_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "sFileDate" : {
+              "type" : "Expression",
+              "value" : "@variables('sFileDate')"
+            }
+          },
+          "datasetParameters" : {
+            "SharepointTASBuildpacks" : {
+              "TableName" : {
+                "value" : "Sharepoint_TAS_Buildpacks",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FilefromPCFDropzone" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
+      }
+    }, {
+      "name" : "Last_Available_BP_Names",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Last_Available_BP_Names0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "last_available_bp_names",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "sFileDate" : {
+              "type" : "Expression",
+              "value" : "@variables('sFileDate')"
+            }
+          },
+          "datasetParameters" : {
+            "LastBPAvail" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "PCF_LatestAvail_BP",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : { }
       }
     }, {
       "name" : "New_PCF_File_Format_101",
@@ -430,73 +512,6 @@
           }
         }
       } ]
-    }, {
-      "name" : "Last_Available_BP_Names",
-      "type" : "ExecuteDataFlow",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Last_Available_BP_Names0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : "Inactive",
-      "description" : null,
-      "onInactiveMarkAs" : "Succeeded",
-      "typeProperties" : {
-        "dataflow" : {
-          "referenceName" : "last_available_bp_names",
-          "type" : "DataFlowReference",
-          "parameters" : {
-            "sFileDate" : {
-              "type" : "Expression",
-              "value" : "@variables('sFileDate')"
-            }
-          },
-          "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "PCF_LatestAvail_BP",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "LastBPAvail" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastBPAvail_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            }
-          }
-        },
-        "compute" : null,
-        "staging" : { }
-      }
     }, {
       "name" : "Last_Available_BP_Names01",
       "type" : "Copy",

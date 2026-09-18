@@ -32,20 +32,6 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_1",
-      "type" : "Wait",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "waitTimeInSeconds" : 10
-      }
-    }, {
       "name" : "Execute_SQL_Task_1_SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -68,25 +54,54 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Insert_Records_into_Email_Alerts_Tbl",
-      "type" : "Wait",
-      "policy" : null,
+      "name" : "SETVAR_TodaysData",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_1",
+        "activity" : "Execute_SQL_Task_1_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "variableName" : "TodaysData",
+        "value" : "@activity('Execute_SQL_Task_1_SCRIPT').output.resultSets[0].rows"
+      }
+    }, {
+      "name" : "Insert_Records_into_Email_Alerts_Tbl_SCRIPT",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_TodaysData",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,[CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "Collect_Daily_SII_Metric_20",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Insert_Records_into_Email_Alerts_Tbl",
+        "activity" : "Insert_Records_into_Email_Alerts_Tbl_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -132,7 +147,7 @@
       "typeProperties" : {
         "source" : {
           "type" : "Parquetsource",
-          "sqlReaderQuery" : "SELECT * ,CAST(DATEADD(\"day\",0,GETDATE()) as DATE) AS Import_Date FROM DBO.VW_SII_EMAILALERTS_DETAILS"
+          "sqlReaderQuery" : "SELECT TotlInst, EmergencyCount, HMLCount_App, HMLCount_ProdPlat, Non_HMLCount_App, Non_HMLCount_ProdPlat, TechnicalManager_App1, Senior_Lead_Supplimented, CIO_Direct_Supplimented, Email_Level, subject_, EMHAstatement, HMLAPP, HML_ProdPlat, Non_HML_App, Non_HML_ProdPlat, SrMngrEmail, CIOdirEmail, TechMngrEmail,CAST(DATEADD(\"day\",0,GETDATE()) as DATE) AS Import_Date FROM dbo.vw_SII_EmailAlerts_Details"
         },
         "sink" : {
           "type" : "AzureSqlSink",
@@ -226,8 +241,8 @@
         }
       } ]
     }, {
-      "name" : "Only_Send_once_a_week",
-      "type" : "Wait",
+      "name" : "Only_Send_once_a_week_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "Collect_Daily_SII_Metric_201",
@@ -236,8 +251,16 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n"
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {

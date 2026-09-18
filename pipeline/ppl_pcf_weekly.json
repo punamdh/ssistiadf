@@ -32,8 +32,8 @@
         }
       }
     }, {
-      "name" : "TodaysDate_File_1",
-      "type" : "Wait",
+      "name" : "TodaysDate_File_1_SCRIPT",
+      "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "LKP_Fetch_Param",
@@ -42,15 +42,23 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : "DELETE  from [Sharepoint_TAS_Buildpacks]"
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "TodaysDate_File_SCRIPT",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
+        "activity" : "TodaysDate_File_1_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -68,25 +76,32 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "TodaysDate_File",
-      "type" : "Wait",
-      "policy" : null,
+      "name" : "SETVAR_sFileDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_1",
+        "activity" : "TodaysDate_File_SCRIPT",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "waitTimeInSeconds" : 10
+        "variableName" : "sFileDate",
+        "value" : "@activity('TodaysDate_File_SCRIPT').output.resultSets[0].rows"
       }
     }, {
       "name" : "New_PCF_File_Format0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File",
+        "activity" : "SETVAR_sFileDate",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -140,23 +155,6 @@
             }
           },
           "datasetParameters" : {
-            "FilefromPCFDropzone" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "SharepointTASBuildpacks" : {
               "TableName" : {
                 "value" : "Sharepoint_TAS_Buildpacks",
@@ -176,6 +174,23 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.SharepointTASBuildpacks_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "FilefromPCFDropzone" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","

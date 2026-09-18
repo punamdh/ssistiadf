@@ -32,20 +32,6 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task",
-      "type" : "Wait",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "LKP_Fetch_Param",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "waitTimeInSeconds" : 10
-      }
-    }, {
       "name" : "Execute_SQL_Task_SCRIPT",
       "type" : "Script",
       "policy" : null,
@@ -68,11 +54,32 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
+      "name" : "SETVAR_sFileDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Execute_SQL_Task_SCRIPT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sFileDate",
+        "value" : "@activity('Execute_SQL_Task_SCRIPT').output.resultSets[0].rows"
+      }
+    }, {
       "name" : "PCF_All_data0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task",
+        "activity" : "SETVAR_sFileDate",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -126,6 +133,23 @@
             }
           },
           "datasetParameters" : {
+            "PCFBuildPacksAllMappings" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "PCF_BuildPack_Mapping_All",
@@ -145,23 +169,6 @@
               },
               "Directory" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
-            "PCFBuildPacksAllMappings" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
