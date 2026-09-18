@@ -54,7 +54,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Get_Time_Stamp_Execution_Path_VA_0",
+      "name" : "SETVAR_ExecuteSeriesFlag",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -79,7 +79,7 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_VA_0",
+        "activity" : "SETVAR_ExecuteSeriesFlag",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -101,7 +101,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_VA_0",
+        "activity" : "SETVAR_ExecuteSeriesFlag",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -204,29 +204,6 @@
             }
           },
           "datasetParameters" : {
-            "Validated" : {
-              "TableName" : {
-                "value" : "iTracker_Validated_SN_CIO",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "LastValidatedLookupLKPTABLE" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
@@ -246,6 +223,29 @@
               },
               "Directory" : {
                 "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "Validated" : {
+              "TableName" : {
+                "value" : "iTracker_Validated_SN_CIO",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Validated_FilePath",
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
@@ -460,7 +460,7 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "iTracker_Active_Data_iTracker_Active_SN_CIO",
+      "name" : "SETVAR_CountRowsToInsert",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -478,7 +478,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "CountRowsToInsert",
-        "value" : "@int(activity('iTracker_Active_Data').output..rowsWritten)"
+        "value" : "@int(coalesce(activity('iTracker_Active_Data').output.runStatus.metrics?.iTracker_Active_SN_CIO?.rowsWritten, 0))"
       }
     }, {
       "name" : "Count_Inserted_LOOKUP",
@@ -526,7 +526,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_VA_0",
+        "activity" : "SETVAR_ExecuteSeriesFlag",
         "dependencyConditions" : [ "Failed" ]
       }, {
         "activity" : "All_App_Responsible0_SCRIPT",
@@ -550,7 +550,7 @@
         }
       }
     }, {
-      "name" : "Count_Inserted_Todays_Inserted_Rowcount",
+      "name" : "SETVAR_CountInsertedRecords",
       "type" : "SetVariable",
       "policy" : {
         "timeout" : "00:30:00",
@@ -575,10 +575,10 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Count_Inserted_Todays_Inserted_Rowcount",
+        "activity" : "SETVAR_CountInsertedRecords",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
-        "activity" : "iTracker_Active_Data_iTracker_Active_SN_CIO",
+        "activity" : "SETVAR_CountRowsToInsert",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
