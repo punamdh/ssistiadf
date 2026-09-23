@@ -51,6 +51,35 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
     // is absent). The generation-side occurrence of the same activity/component carries the SAME
     // jobConversionStatus reference (see ConversionStatusHandler.getActivityConversionStatusForGeneratedComponents),
     // so recursing from both would collect every nested component twice.
+    //
+    // visitedJobSignatures guards against a SEPARATE duplication source: when a rule replaces a
+    // container activity (e.g. an SSIS ForEach Loop Container swapped for a GetMetadata/Filter/ForEach
+    // pattern), the replacement's own report entries can end up holding the SAME underlying
+    // JobConversionStatus object as the original container's entry (both point at the one nested
+    // subtree the Java side never cloned). JSON has no way to express that shared identity, so it
+    // gets fully re-serialized at every entry that references it - the same nested components can
+    // otherwise show up 2x, 3x or more. Since a genuine duplicate is byte-identical (same nested job
+    // name AND the same set of child component name/source pairs), a lightweight content fingerprint
+    // safely tells "the same subtree, reached twice" apart from "two different containers that
+    // happen to share a name" (which would have different children and different fingerprints).
+    const visitedJobSignatures = new Set();
+    function jobSignature(jobStatus) {
+        const childSig = (jobStatus.components || []).map((c) => c.name + ":" + c.source).join("|");
+        return (jobStatus.name || "") + "##" + childSig;
+    }
+
+    // For a shared jobConversionStatus reached from more than one component (see above), only the
+    // FIRST owner to reach a given signature actually recurses and collects its nested subtree
+    // (sigCanonicalOwner). Every later owner reaching that same signature is recorded in
+    // sigAliasOwners instead of being recursed into again - otherwise its container (e.g. the
+    // generated FOREACH_* activity that replaced the original loop container) would be left with an
+    // empty nestedComponents, which reads as "the nested loop body is missing" even though it was
+    // converted and is simply attached to the original container's card instead. Resolved below,
+    // once sourceComponentsMap exists, by pointing each alias owner at the canonical owner's already
+    // -collected nestedComponents list.
+    const sigCanonicalOwner = new Map();
+    const sigAliasOwners = new Map();
+
     function collectAllComponents(jobStatus, parentJobName, parentJobType, depth, ownerKey) {
         if (jobStatus.components && Array.isArray(jobStatus.components)) {
             jobStatus.components.forEach((component) => {
@@ -64,8 +93,17 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 });
                 const isAdoptionSide = component.source === "COMPONENT_ADOPTION" || component.source === "ACTIVITY_ADOPTION" || !component.source;
                 if (component.jobConversionStatus && isAdoptionSide) {
+                    const sig = jobSignature(component.jobConversionStatus);
+                    const thisOwnerKey = componentKey(thisJobName, component.name);
+                    if (visitedJobSignatures.has(sig)) {
+                        if (!sigAliasOwners.has(sig)) sigAliasOwners.set(sig, []);
+                        sigAliasOwners.get(sig).push(thisOwnerKey);
+                        return;
+                    }
+                    visitedJobSignatures.add(sig);
+                    sigCanonicalOwner.set(sig, thisOwnerKey);
                     collectAllComponents(component.jobConversionStatus, jobStatus.name, jobStatus.jobType,
-                        depth + 1, componentKey(thisJobName, component.name));
+                        depth + 1, thisOwnerKey);
                 }
             });
         }
@@ -94,6 +132,9 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 jobType: component.jobType || "UNKNOWN",
                 jobName: component.jobName || "Unknown Job",
                 depth: component.depth || 0,
+                // Raw .parent, kept for the replacement-rollup pass below - NOT the same as ownerKey
+                // (which is about nested-flow containment, not "this activity was replaced by that one").
+                parent: component.parent || null,
                 messages: convertMessages(component.messages || []),
                 typeProperties: component.typeProperties || [],
                 generatedComponents: [],
@@ -108,7 +149,11 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 componentType: component.type || "Unknown",
                 messages: convertMessages(component.messages || []),
                 parent: component.parent,
-                jobName: component.jobName
+                jobName: component.jobName,
+                // Carries this generated component's OWN SUCCESS-tagged properties, so the
+                // property-comparison table doesn't depend solely on the adopted entry's
+                // typeProperties still (accidentally) referencing the same live list.
+                typeProperties: component.typeProperties || []
             });
         } else if (componentSource === "GENERATION_VALIDATION") {
             // Keyed so a resource validated more than once (e.g. the same artifact written by two
@@ -124,27 +169,59 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
     });
 
     generatedComponents.forEach((genComp) => {
-        // For most components/activities, .parent is a self-reference (the adopted item's own name),
-        // so this is the key to look up. But for an ECTFlow/SubControlFlow-type activity, .parent
-        // instead names its OUTER container (e.g. the pipeline it lives in) - both its adopted and
-        // generated entries carry that same outer name, so neither can match the other through it.
-        // Fall back to matching by the generated entry's own name against an adopted entry of the
-        // same name, which is what actually ties those two together.
-        let key = componentKey(genComp.jobName, genComp.parent);
-        if (!(genComp.parent && sourceComponentsMap[key])) {
-            const nameKey = componentKey(genComp.jobName, genComp.componentName);
-            if (sourceComponentsMap[nameKey]) {
-                key = nameKey;
-            } else {
-                return;
+        // Prefer matching the generated entry to the adopted entry of the SAME name first - that's
+        // the entry a rule creates for itself (e.g. a Script/SetVariable activity, or an If Condition
+        // wrapper, a rule derives from an original task) and it's always the right match when it
+        // exists. Only fall back to matching via .parent when no same-named adopted entry exists:
+        // that covers an ECTFlow/SubControlFlow activity (whose .parent names its OUTER container,
+        // not itself) and a rule-inserted component with no adoption-time counterpart under its own
+        // name at all. Matching by .parent first would instead attach this entry to whatever OTHER
+        // adopted entry .parent happens to reference (e.g. the original activity a rule replaced),
+        // leaving the generated activity's own card with no Generated Components.
+        const nameKey = componentKey(genComp.jobName, genComp.componentName);
+        let key = sourceComponentsMap[nameKey] ? nameKey : null;
+        if (!key && genComp.parent) {
+            const parentKey = componentKey(genComp.jobName, genComp.parent);
+            if (sourceComponentsMap[parentKey]) {
+                key = parentKey;
             }
         }
+        if (!key) return;
         sourceComponentsMap[key].generatedComponents.push({
             componentName: genComp.componentName,
             componentType: genComp.componentType,
-            messages: genComp.messages
+            messages: genComp.messages,
+            typeProperties: genComp.typeProperties || []
         });
     });
+
+    // Roll up a replacement activity's own generated output onto the ORIGINAL activity it replaced,
+    // so the original doesn't read as "No Generated Components" (looks like a conversion failure)
+    // when it actually succeeded via being swapped for something else entirely (e.g. a File System
+    // Task replaced by a Delete activity, or an Execute SQL Task replaced by a Script activity).
+    // The replacement still gets its own separate card too (via its own adopted entry above) - this
+    // just ALSO surfaces its result on the original's card. Iterates to a fixed point (bounded) so a
+    // multi-hop replacement chain (original -> intermediate stand-in -> final activity) fully
+    // propagates back to the true root, not just one hop up.
+    for (let pass = 0; pass < 5; pass++) {
+        let changed = false;
+        Object.values(sourceComponentsMap).forEach((comp) => {
+            if (!comp.parent || comp.parent === comp.componentName) return;
+            if (comp.generatedComponents.length === 0) return;
+            const originalComp = sourceComponentsMap[componentKey(comp.jobName, comp.parent)];
+            if (!originalComp || originalComp === comp) return;
+            for (const gen of comp.generatedComponents) {
+                const alreadyPresent = originalComp.generatedComponents.some(
+                    (g) => g.componentName === gen.componentName && g.componentType === gen.componentType
+                );
+                if (!alreadyPresent) {
+                    originalComp.generatedComponents.push(gen);
+                    changed = true;
+                }
+            }
+        });
+        if (!changed) break;
+    }
 
     // Attach each source component to the specific item that owns its containing flow, so it renders
     // nested inside that item's own tile rather than as a separate section.
@@ -152,6 +229,22 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         if (comp.ownerKey && sourceComponentsMap[comp.ownerKey]) {
             sourceComponentsMap[comp.ownerKey].nestedComponents.push(comp);
         }
+    });
+
+    // Give every alias owner of a shared nested subtree (see sigAliasOwners above) the SAME nested
+    // list the canonical owner just collected, so e.g. both the original SSIS ForEach Loop Container
+    // and the ADF ForEach activity that replaced it show the loop body - instead of only the
+    // original, leaving the actually-generated activity looking like its nested flow is missing.
+    sigAliasOwners.forEach((aliasOwnerKeys, sig) => {
+        const canonicalOwnerKey = sigCanonicalOwner.get(sig);
+        const canonicalComp = canonicalOwnerKey && sourceComponentsMap[canonicalOwnerKey];
+        if (!canonicalComp) return;
+        aliasOwnerKeys.forEach((aliasOwnerKey) => {
+            const aliasComp = sourceComponentsMap[aliasOwnerKey];
+            if (aliasComp && aliasComp !== canonicalComp) {
+                aliasComp.nestedComponents = canonicalComp.nestedComponents;
+            }
+        });
     });
 
     const sourceComponents = Object.values(sourceComponentsMap);
@@ -172,10 +265,20 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
 
 function convertMessages(messages) {
     if (!messages || !Array.isArray(messages) || messages.length === 0) return [];
-    return messages.map(msg => ({
+    const converted = messages.map(msg => ({
         message: msg.message || "No message",
         messageCategory: convertPriorityToCategory(msg.messageType)
     }));
+    // Client-side backstop for ConversionStatusHandler.dedupeMessages (the same message text +
+    // severity showing up twice on one component) - cheap safety net on top of the server-side fix,
+    // not a replacement for it.
+    const seen = new Set();
+    return converted.filter((m) => {
+        const key = m.message + "##" + m.messageCategory;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 function convertPriorityToCategory(priority) {
@@ -245,6 +348,19 @@ function countBadgesForSrcComponent(currSrcComp) {
 // Overall summary (KPIs), computed once from the full unfiltered component list
 // ---------------------------------------------------------------------------
 
+// A source component's own typeProperties only ever carries the PARTIAL (adopted) values reliably.
+// The SUCCESS (generated) values for the SAME property name may instead live on one of its paired
+// generatedComponents' own typeProperties (each generated entry now carries its own snapshot - see
+// ConversionStatusHandler.getComponentsForGeneratedComponents) rather than on this shared array, so
+// merge both before comparing " adopted vs. generated" for a property name.
+function mergedTypeProperties(comp) {
+    const merged = (comp.typeProperties || []).slice();
+    for (const gen of (comp.generatedComponents || [])) {
+        merged.push(...(gen.typeProperties || []));
+    }
+    return merged;
+}
+
 function computeOverallSummary(allComponents) {
     const summary = {
         totalComponents: allComponents.length,
@@ -266,15 +382,22 @@ function computeOverallSummary(allComponents) {
         else if (counts.warnMessages > 0) summary.warnComponents++;
         else summary.successComponents++;
 
-        const byName = new Map();
-        for (const prop of (comp.typeProperties || [])) {
-            if (!byName.has(prop.name)) byName.set(prop.name, {});
-            if (prop.conversionStatus === "PARTIAL") byName.get(prop.name).source = prop.value;
-            else if (prop.conversionStatus === "SUCCESS") byName.get(prop.name).generated = prop.value;
+        const byKey = new Map();
+        for (const prop of mergedTypeProperties(comp)) {
+            const key = prop.key || prop.name;
+            if (!byKey.has(key)) byKey.set(key, {});
+            if (prop.conversionStatus === "PARTIAL") byKey.get(key).source = prop.value;
+            else if (prop.conversionStatus === "SUCCESS") byKey.get(key).generated = prop.value;
         }
-        byName.forEach(v => {
+        byKey.forEach(v => {
+            const hasSource = v.source !== undefined && v.source !== null && v.source !== "";
+            const hasGenerated = v.generated !== undefined && v.generated !== null && v.generated !== "";
+            // A property with no value on EITHER side is N/A for this component instance (e.g. the
+            // Sql_Query property on an OLE DB source configured for a table, not a query) - not a
+            // genuine mapping opportunity, so it shouldn't count against the mapped-property rate.
+            if (!hasSource && !hasGenerated) return;
             summary.propsTotal++;
-            if (v.source !== undefined && v.generated !== undefined) summary.propsMapped++;
+            if (hasSource && hasGenerated) summary.propsMapped++;
         });
     }
 
@@ -533,16 +656,21 @@ function renderPropertiesPanel(typeProperties) {
     const tbody = document.createElement('tbody');
     tbody.className = "divide-y divide-surface-container";
 
-    const byName = new Map();
+    const byKey = new Map();
     for (const prop of (typeProperties || [])) {
-        if (!byName.has(prop.name)) byName.set(prop.name, {});
-        if (prop.conversionStatus === "PARTIAL") byName.get(prop.name).source = prop.value;
-        else if (prop.conversionStatus === "SUCCESS") byName.get(prop.name).generated = prop.value;
+        const key = prop.key || prop.name;
+        if (!byKey.has(key)) byKey.set(key, {});
+        // Source/generated names are tracked separately (SSIS-native vs. ADF-native) even though
+        // they're paired under the same key - see ComponentProperties#getSourceParamName/getTargetParamName.
+        if (prop.conversionStatus === "PARTIAL") { byKey.get(key).source = prop.value; byKey.get(key).sourceName = prop.name; }
+        else if (prop.conversionStatus === "SUCCESS") { byKey.get(key).generated = prop.value; byKey.get(key).targetName = prop.name; }
     }
 
-    byName.forEach((values, name) => {
+    byKey.forEach((values, key) => {
         const hasSource = values.source !== undefined && values.source !== null && values.source !== "";
         const hasGenerated = values.generated !== undefined && values.generated !== null && values.generated !== "";
+        const sourceName = values.sourceName || key;
+        const targetName = values.targetName || key;
 
         let statusHtml;
         if (hasSource && hasGenerated) {
@@ -559,8 +687,8 @@ function renderPropertiesPanel(typeProperties) {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-surface-container-low transition-colors";
         tr.innerHTML = `
-          <td class="py-1.5 px-3 align-top"><div class="flex flex-col"><span class="font-semibold text-on-surface">${escapeHtml(name)}</span><span class="text-on-surface-variant">${sourceValueHtml}</span></div></td>
-          <td class="py-1.5 px-3 align-top"><div class="flex flex-col"><span class="font-semibold text-primary">${escapeHtml(name)}</span><span class="text-on-surface-variant">${generatedValueHtml}</span></div></td>
+          <td class="py-1.5 px-3 align-top"><div class="flex flex-col"><span class="font-semibold text-on-surface">${escapeHtml(sourceName)}</span><span class="text-on-surface-variant">${sourceValueHtml}</span></div></td>
+          <td class="py-1.5 px-3 align-top"><div class="flex flex-col"><span class="font-semibold text-primary">${escapeHtml(targetName)}</span><span class="text-on-surface-variant">${generatedValueHtml}</span></div></td>
           <td class="py-1.5 px-3 text-right">${statusHtml}</td>`;
         tbody.appendChild(tr);
     });
@@ -660,7 +788,7 @@ function buildComponentTile(currSrcComp, keysInView) {
 
         const sourceMessages = currSrcComp.messages || [];
         const generatedComponents = currSrcComp.generatedComponents || [];
-        const typeProperties = currSrcComp.typeProperties || [];
+        const typeProperties = mergedTypeProperties(currSrcComp);
         const counts = countBadgesForSrcComponent(currSrcComp);
 
         const tile = document.createElement('div');
