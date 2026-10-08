@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Removes_Records_for_Re-load_intra-day_SCRIPT",
+      "name" : "ST_Removes_Records_for_Re-load_intra-day_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "  delete from PLHS.dbo.Tableau_Summary530_CMAdjust\n  where cast(Import_date as date)  = cast(getdate() as date) \n;\n\n  delete from PLHS.dbo.tbl_tableau_530_505_ee_other \n  where cast(Import_date as date)  = cast(getdate() as date) \n"
+          "text" : {
+            "value" : "  delete from PLHS.dbo.Tableau_Summary530_CMAdjust\n  where cast(Import_date as date)  = cast(getdate() as date) \n;\n\n  delete from PLHS.dbo.tbl_tableau_530_505_ee_other \n  where cast(Import_date as date)  = cast(getdate() as date) \n",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -58,7 +61,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Removes_Records_for_Re-load_intra-day_SCRIPT",
+        "activity" : "ST_Removes_Records_for_Re-load_intra-day_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -91,7 +94,7 @@
         }
       }
     }, {
-      "name" : "530_Summary_Report_Import_1",
+      "name" : "DF_530_Summary_Report_Import_1",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -107,6 +110,23 @@
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
+            "CMAdjust" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "Tableau_Summary530_CMAdjust",
@@ -129,23 +149,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "CMAdjust" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.CMAdjust_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -153,11 +156,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "530_Summary_Report_Import_101",
+      "name" : "CPD_530_Summary_Report_Import_101",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "530_Summary_Report_Import_1",
+        "activity" : "DF_530_Summary_Report_Import_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -206,7 +209,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/Vulnerability_ETL"
+      "name" : "wellsfargo_Punam_08_10/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : { }

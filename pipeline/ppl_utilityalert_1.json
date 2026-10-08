@@ -4,7 +4,7 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "Delete_alerts_older_than_2_months_SCRIPT",
+      "name" : "ST_Delete_alerts_older_than_2_months_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ ],
@@ -18,12 +18,15 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())"
+          "text" : {
+            "value" : "delete from PLHS.[dbo].[tbl_ssis_utility]  WHERE ReceiveDate <= DATEADD(d, -120, getdate())",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Get_alerts_that_need_to_be_sent_0",
+      "name" : "LKP_Get_alerts_that_need_to_be_sent_0",
       "type" : "Lookup",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -33,7 +36,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Delete_alerts_older_than_2_months_SCRIPT",
+        "activity" : "ST_Delete_alerts_older_than_2_months_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -64,11 +67,11 @@
         }
       }
     }, {
-      "name" : "IFACTIVITY_FRE_Foreach_Loop_Container",
+      "name" : "Foreach_Loop_Container_0_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Get_alerts_that_need_to_be_sent_0",
+        "activity" : "LKP_Get_alerts_that_need_to_be_sent_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -81,7 +84,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "FRE_Foreach_Loop_Container",
+          "name" : "FRE_Foreach_Loop_Container_0",
           "type" : "ForEach",
           "policy" : null,
           "dependsOn" : [ ],
@@ -90,7 +93,7 @@
           "onInactiveMarkAs" : null,
           "typeProperties" : {
             "items" : {
-              "value" : "@activity('Get_alerts_that_need_to_be_sent_0').output.value",
+              "value" : "@activity('LKP_Get_alerts_that_need_to_be_sent_0').output.value",
               "type" : "Expression"
             },
             "activities" : [ {
@@ -120,7 +123,7 @@
                 "headers" : { }
               }
             }, {
-              "name" : "Mark_Record_as_Sent_SCRIPT",
+              "name" : "ST_Mark_Record_as_Sent_0",
               "type" : "Script",
               "policy" : null,
               "dependsOn" : [ {
@@ -137,7 +140,10 @@
               "typeProperties" : {
                 "scripts" : [ {
                   "type" : "Query",
-                  "text" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = @iID)"
+                  "text" : {
+                    "value" : "UPDATE tbl_ssis_utility SET SendDate = GETDATE() WHERE (ID = variables('iID'))",
+                    "type" : "Expression"
+                  }
                 } ],
                 "scriptBlockExecutionTimeout" : null
               }
@@ -151,13 +157,13 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Get_alerts_that_need_to_be_sent_0",
+        "activity" : "LKP_Get_alerts_that_need_to_be_sent_0",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "Delete_alerts_older_than_2_months_SCRIPT",
+        "activity" : "ST_Delete_alerts_older_than_2_months_0",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "IFACTIVITY_FRE_Foreach_Loop_Container",
+        "activity" : "Foreach_Loop_Container_0_0",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -179,7 +185,7 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/PLHS_Monthly_Metrics"
+      "name" : "wellsfargo_Punam_08_10/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : {

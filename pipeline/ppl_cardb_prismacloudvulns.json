@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_SCRIPT",
+      "name" : "ST_Execute_SQL_Task_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "TRUNCATE TABLE dbo.tbl_Prisma_Enriched_TCOO_TDATA"
+          "text" : {
+            "value" : "TRUNCATE TABLE dbo.tbl_Prisma_Enriched_TCOO_TDATA",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -58,7 +61,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_SCRIPT",
+        "activity" : "ST_Execute_SQL_Task_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -91,7 +94,7 @@
         }
       }
     }, {
-      "name" : "Prisma_ETL",
+      "name" : "DF_Prisma_ETL",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -105,36 +108,8 @@
         "dataflow" : {
           "referenceName" : "prisma_etl",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "RegistryCount" : {
-              "type" : "Expression",
-              "value" : "@variables('RegistryCount')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "tbl_Prisma_Enriched_TCOO_TDATA",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "vwPrismaEnrichedInfraDateFiltered" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaEnrichedInfraDateFiltered_TableName",
@@ -157,6 +132,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "tbl_Prisma_Enriched_TCOO_TDATA",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -164,11 +162,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Prisma_ETL01",
+      "name" : "CPD_Prisma_ETL01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Prisma_ETL",
+        "activity" : "DF_Prisma_ETL",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -220,7 +218,7 @@
       "type" : "Wait",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Prisma_ETL01",
+        "activity" : "CPD_Prisma_ETL01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -230,11 +228,11 @@
         "waitTimeInSeconds" : 10
       }
     }, {
-      "name" : "Check_Source_Availability_SCRIPT",
+      "name" : "ST_Check_Source_Availability_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Prisma_ETL01",
+        "activity" : "CPD_Prisma_ETL01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -247,7 +245,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT COUNT(*) as reccount \nFROM  CAR_VulnRepts.dbo.vwPrismaRegistry_VulnsEnriched_Infra_DateFiltered \"With\"(NoLock)\nWHERE        (cost_center_cio LIKE 'TECHCOO%' OR\n                         cost_center_cio LIKE 'TECHCDOT%') AND is_compliant = 'No'"
+          "text" : {
+            "value" : "SELECT COUNT(*) as reccount \nFROM  CAR_VulnRepts.dbo.vwPrismaRegistry_VulnsEnriched_Infra_DateFiltered \"With\"(NoLock)\nWHERE        (cost_center_cio LIKE 'TECHCOO%' OR\n                         cost_center_cio LIKE 'TECHCDOT%') AND is_compliant = 'No'",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -256,7 +257,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Prisma_ETL01",
+        "activity" : "CPD_Prisma_ETL01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -303,7 +304,7 @@
         "waitTimeInSeconds" : 10
       }
     }, {
-      "name" : "Prisma_ETL_1",
+      "name" : "DF_Prisma_ETL_1",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -317,12 +318,7 @@
         "dataflow" : {
           "referenceName" : "prisma_etl_1",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "RegistryCount" : {
-              "type" : "Expression",
-              "value" : "@variables('RegistryCount')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
             "OLEDBDestination" : {
               "TableName" : {
@@ -413,11 +409,11 @@
         }
       }
     }, {
-      "name" : "Prisma_ETL_101",
+      "name" : "CPD_Prisma_ETL_101",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Prisma_ETL_1",
+        "activity" : "DF_Prisma_ETL_1",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : "Inactive",
@@ -465,7 +461,7 @@
         }
       } ]
     }, {
-      "name" : "ETL_PrismaRegistry",
+      "name" : "DF_ETL_PrismaRegistry",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -479,36 +475,8 @@
         "dataflow" : {
           "referenceName" : "etl_prismaregistry",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "RegistryCount" : {
-              "type" : "Expression",
-              "value" : "@variables('RegistryCount')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "TableName" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "dbo",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "vwPrismaRegistryEnrichedInfraDateFiltered" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.vwPrismaRegistryEnrichedInfraDateFiltered_TableName",
@@ -531,6 +499,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "TableName" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "dbo",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -538,11 +529,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "ETL_PrismaRegistry01",
+      "name" : "CPD_ETL_PrismaRegistry01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ETL_PrismaRegistry",
+        "activity" : "DF_ETL_PrismaRegistry",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -591,7 +582,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/COO_VulnPackages"
+      "name" : "wellsfargo_Punam_08_10/COO_VulnPackages"
     },
     "parameters" : { },
     "variables" : {

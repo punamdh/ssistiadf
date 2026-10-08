@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_SCRIPT",
+      "name" : "ST_Execute_SQL_Task_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+          "text" : {
+            "value" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -64,7 +67,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_SCRIPT",
+        "activity" : "ST_Execute_SQL_Task_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,7 +75,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "sFileDate",
-        "value" : "@string(activity('Execute_SQL_Task_SCRIPT').output.resultSets[0].rows[0].sFileDate)"
+        "value" : "@string(activity('ST_Execute_SQL_Task_0').output.resultSets[0].rows[0].sFileDate)"
       }
     }, {
       "name" : "PCF_All_data0",
@@ -112,7 +115,7 @@
         }
       }
     }, {
-      "name" : "PCF_All_data",
+      "name" : "DF_PCF_All_data",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -126,13 +129,25 @@
         "dataflow" : {
           "referenceName" : "pcf_all_data",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "sFileDate" : {
-              "type" : "Expression",
-              "value" : "@variables('sFileDate')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
+            "PCFBuildPacksAllMappings" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : "PCF_BuildPack_Mapping_All",
@@ -155,23 +170,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "PCFBuildPacksAllMappings" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.PCFBuildPacksAllMappings_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -179,11 +177,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "PCF_All_data01",
+      "name" : "CPD_PCF_All_data01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "PCF_All_data",
+        "activity" : "DF_PCF_All_data",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -232,7 +230,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/Vulnerability_ETL"
+      "name" : "wellsfargo_Punam_08_10/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {

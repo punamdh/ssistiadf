@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Last_Refresh_Date_to_Variable_SCRIPT",
+      "name" : "ST_Last_Refresh_Date_to_Variable_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT FORMAT(MAX(update_date), 'yyyyMMdd') AS lastRefreshDateString FROM dbo.WF_People"
+          "text" : {
+            "value" : "SELECT FORMAT(MAX(update_date), 'yyyyMMdd') AS lastRefreshDateString FROM dbo.WF_People",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -64,7 +67,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Last_Refresh_Date_to_Variable_SCRIPT",
+        "activity" : "ST_Last_Refresh_Date_to_Variable_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,10 +75,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "lastRefreshDateString",
-        "value" : "@string(activity('Last_Refresh_Date_to_Variable_SCRIPT').output.resultSets[0].rows[0].lastRefreshDateString)"
+        "value" : "@string(activity('ST_Last_Refresh_Date_to_Variable_0').output.resultSets[0].rows[0].lastRefreshDateString)"
       }
     }, {
-      "name" : "Truncate_WF_People_Staging_SCRIPT",
+      "name" : "ST_Truncate_WF_People_Staging_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -92,7 +95,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "DELETE FROM dbo.WF_People_Staging;"
+          "text" : {
+            "value" : "DELETE FROM dbo.WF_People_Staging;",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -101,7 +107,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Truncate_WF_People_Staging_SCRIPT",
+        "activity" : "ST_Truncate_WF_People_Staging_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -134,7 +140,7 @@
         }
       }
     }, {
-      "name" : "Refresh_WF_People",
+      "name" : "CPD_Refresh_WF_People",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
@@ -189,11 +195,11 @@
         }
       } ]
     }, {
-      "name" : "Refresh_WF_People01",
+      "name" : "CPD_Refresh_WF_People01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Refresh_WF_People",
+        "activity" : "CPD_Refresh_WF_People",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -241,11 +247,11 @@
         }
       } ]
     }, {
-      "name" : "Merge_WF_People_SCRIPT",
+      "name" : "ST_Merge_WF_People_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Refresh_WF_People01",
+        "activity" : "CPD_Refresh_WF_People01",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -258,13 +264,16 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "MERGE dbo.WF_People AS trgt\nUSING dbo.WF_People_Staging AS src\nON src.emplId = trgt.emplId\n\nWHEN MATCHED\n    THEN UPDATE SET\n\t\t  trgt.[name] = src.[name]\n\t\t, trgt.[lastName] = src.[lastName]\n\t\t, trgt.[firstName] = src.[firstName]\n\t\t, trgt.[email] = src.[email]\n\t\t, trgt.[isTcoo] = src.[isTcoo]\n\t\t, trgt.[isPlatformAppServices] = src.[isPlatformAppServices]\n\t\t, trgt.[level3Org] = src.[level3Org]\n\t\t, trgt.[level3Mgr] = src.[level3Mgr]\n\t\t, trgt.[level3MgrEmplid] = src.[level3MgrEmplid]\n\t\t, trgt.[level4Org] = src.[level4Org]\n\t\t, trgt.[level4Mgr] = src.[level4Mgr]\n\t\t, trgt.[level4MgrEmplid] = src.[level4MgrEmplid]\n\t\t, trgt.[employeeStatus] = src.[employeeStatus]\n\t\t, trgt.[update_date] = getDate()\n\t\t, trgt.[updated_by] = 'AD-ENT\\TCOO_1TCOO_SSISD'\n\t\t, trgt.[source_name] = 'DISTRIBUTION.VW_CORE_COMMON'\n\nWHEN NOT MATCHED BY TARGET\n    THEN INSERT \n\t\t([emplId], [name], [lastName], [firstName], [email], [isTcoo], [isPlatformAppServices]\n\t\t, [level3Org], [level3Mgr], [level3MgrEmplid], [level4Org], [level4Mgr], [level4MgrEmplid]\n\t\t, [employeeStatus], [create_date], [update_date], [created_by], [updated_by], [source_name])\n\t\tVALUES\n\t\t(src.[emplId], src.[name], src.[lastName], src.[firstName], src.[email], src.[isTcoo]\n\t\t, src.[isPlatformAppServices], src.[level3Org], src.[level3Mgr], src.[level3MgrEmplid]\n\t\t, src.[level4Org], src.[level4Mgr], src.[level4MgrEmplid], src.[employeeStatus]\n\t\t, getDate(), getDate(), 'AD-ENT\\TCOO_1TCOO_SSISD', 'AD-ENT\\TCOO_1TCOO_SSISD', 'DISTRIBUTION.VW_CORE_COMMON')\n\n--\tDO NOT DELETE IF NOT MATCHED SOURCE\n--\tIt means the record was not updated in HR.\n--WHEN NOT MATCHED BY SOURCE\n--    THEN DELETE;\n;"
+          "text" : {
+            "value" : "MERGE dbo.WF_People AS trgt\nUSING dbo.WF_People_Staging AS src\nON src.emplId = trgt.emplId\n\nWHEN MATCHED\n    THEN UPDATE SET\n\t\t  trgt.[name] = src.[name]\n\t\t, trgt.[lastName] = src.[lastName]\n\t\t, trgt.[firstName] = src.[firstName]\n\t\t, trgt.[email] = src.[email]\n\t\t, trgt.[isTcoo] = src.[isTcoo]\n\t\t, trgt.[isPlatformAppServices] = src.[isPlatformAppServices]\n\t\t, trgt.[level3Org] = src.[level3Org]\n\t\t, trgt.[level3Mgr] = src.[level3Mgr]\n\t\t, trgt.[level3MgrEmplid] = src.[level3MgrEmplid]\n\t\t, trgt.[level4Org] = src.[level4Org]\n\t\t, trgt.[level4Mgr] = src.[level4Mgr]\n\t\t, trgt.[level4MgrEmplid] = src.[level4MgrEmplid]\n\t\t, trgt.[employeeStatus] = src.[employeeStatus]\n\t\t, trgt.[update_date] = getDate()\n\t\t, trgt.[updated_by] = 'AD-ENT\\TCOO_1TCOO_SSISD'\n\t\t, trgt.[source_name] = 'DISTRIBUTION.VW_CORE_COMMON'\n\nWHEN NOT MATCHED BY TARGET\n    THEN INSERT \n\t\t([emplId], [name], [lastName], [firstName], [email], [isTcoo], [isPlatformAppServices]\n\t\t, [level3Org], [level3Mgr], [level3MgrEmplid], [level4Org], [level4Mgr], [level4MgrEmplid]\n\t\t, [employeeStatus], [create_date], [update_date], [created_by], [updated_by], [source_name])\n\t\tVALUES\n\t\t(src.[emplId], src.[name], src.[lastName], src.[firstName], src.[email], src.[isTcoo]\n\t\t, src.[isPlatformAppServices], src.[level3Org], src.[level3Mgr], src.[level3MgrEmplid]\n\t\t, src.[level4Org], src.[level4Mgr], src.[level4MgrEmplid], src.[employeeStatus]\n\t\t, getDate(), getDate(), 'AD-ENT\\TCOO_1TCOO_SSISD', 'AD-ENT\\TCOO_1TCOO_SSISD', 'DISTRIBUTION.VW_CORE_COMMON')\n\n--\tDO NOT DELETE IF NOT MATCHED SOURCE\n--\tIt means the record was not updated in HR.\n--WHEN NOT MATCHED BY SOURCE\n--    THEN DELETE;\n;",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/HR Core Common"
+      "name" : "wellsfargo_Punam_08_10/HR Core Common"
     },
     "parameters" : { },
     "variables" : {

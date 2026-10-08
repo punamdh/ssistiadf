@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Truncate_Daily_Vuln_Table_SCRIPT",
+      "name" : "ST_Truncate_Daily_Vuln_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static_stage]"
+          "text" : {
+            "value" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static_stage]",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -58,7 +61,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Truncate_Daily_Vuln_Table_SCRIPT",
+        "activity" : "ST_Truncate_Daily_Vuln_Table_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -91,7 +94,7 @@
         }
       }
     }, {
-      "name" : "Load_Daily_Vuln_from_View_2",
+      "name" : "CPD_Load_Daily_Vuln_from_View_2",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
@@ -146,11 +149,11 @@
         }
       } ]
     }, {
-      "name" : "Load_Daily_Vuln_from_View_201",
+      "name" : "CPD_Load_Daily_Vuln_from_View_201",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Load_Daily_Vuln_from_View_2",
+        "activity" : "CPD_Load_Daily_Vuln_from_View_2",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -208,7 +211,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Load_Daily_Vuln_from_View_201",
+        "activity" : "CPD_Load_Daily_Vuln_from_View_201",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -216,10 +219,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "StageViewCount",
-        "value" : "@int(coalesce(activity('Load_Daily_Vuln_from_View_2').output.runStatus.metrics?.OLE_DB_Destination?.rowsWritten, 0))"
+        "value" : "@int(coalesce(activity('CPD_Load_Daily_Vuln_from_View_2').output.runStatus.metrics?.OLE_DB_Destination?.rowsWritten, 0))"
       }
     }, {
-      "name" : "IFACTIVITY_delete_data_from_Static_to_load_from_st",
+      "name" : "delete_data_from_Static_to_load_from_stage_0_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
@@ -236,7 +239,7 @@
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "delete_data_from_Static_to_load_from_stage_SCRIPT",
+          "name" : "ST_delete_data_from_Static_to_load_from_stage_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -250,7 +253,10 @@
           "typeProperties" : {
             "scripts" : [ {
               "type" : "Query",
-              "text" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]"
+              "text" : {
+                "value" : "TRUNCATE TABLE  [PLHS].[dbo].[tbl_VulnActive_Daily_Static]",
+                "type" : "Expression"
+              }
             } ],
             "scriptBlockExecutionTimeout" : null
           }
@@ -259,7 +265,7 @@
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "delete_data_from_Static_to_load_from_stage_SCRIPT",
+            "activity" : "ST_delete_data_from_Static_to_load_from_stage_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : null,
@@ -292,7 +298,7 @@
             }
           }
         }, {
-          "name" : "Load_Daily_Vuln_from_Stage_5",
+          "name" : "CPD_Load_Daily_Vuln_from_Stage_5",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
@@ -347,11 +353,11 @@
             }
           } ]
         }, {
-          "name" : "Load_Daily_Vuln_from_Stage_501",
+          "name" : "CPD_Load_Daily_Vuln_from_Stage_501",
           "type" : "Copy",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "Load_Daily_Vuln_from_Stage_5",
+            "activity" : "CPD_Load_Daily_Vuln_from_Stage_5",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -401,11 +407,11 @@
         } ]
       }
     }, {
-      "name" : "MultiLoad_Clean_Up_SCRIPT",
+      "name" : "ST_MultiLoad_Clean_Up_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "IFACTIVITY_delete_data_from_Static_to_load_from_st",
+        "activity" : "delete_data_from_Static_to_load_from_stage_0_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -418,7 +424,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "DELETE FROM  [PLHS].[dbo].[tbl_VulnActive_Daily_PIT_MetricsSource_dev]\nWHERE PIT_Date = CAST(GETDATE() AS DATE) "
+          "text" : {
+            "value" : "DELETE FROM  [PLHS].[dbo].[tbl_VulnActive_Daily_PIT_MetricsSource_dev]\nWHERE PIT_Date = CAST(GETDATE() AS DATE) ",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -427,7 +436,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "MultiLoad_Clean_Up_SCRIPT",
+        "activity" : "ST_MultiLoad_Clean_Up_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -460,7 +469,7 @@
         }
       }
     }, {
-      "name" : "Load_Daily_Vuln_from_Stage_4",
+      "name" : "CPD_Load_Daily_Vuln_from_Stage_4",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
@@ -473,7 +482,7 @@
       "typeProperties" : {
         "source" : {
           "type" : "Parquetsource",
-          "sqlReaderQuery" : "SELECT * ,CAST(GETDATE() as VARCHAR) AS PIT_Date FROM DBO.TBL_VULNACTIVE_DAILY_STATIC"
+          "sqlReaderQuery" : "SELECT IssueId, ResearchTeamID, RemediationTypeID, ResultsPath, SourceID, Port, FirstDetected, LastDetected, PWExceptionID, PWOverallStatus, PWExpirationDate, RAMOSClean, RAMSystemRole, RAMSttaus, PAAPAI, TechManagerContact, ResearchTeam, RemediationType, TargetDate, CRNumber, JiraNumber, Comments, status, App_WFGUID, Server_WFGUID, FeedTypeID, WAMSourceID, CombID, SolutionGroup, SolutionCategory, GamePlan, SolutionStatus, Rating, ResponsibleParty, RAMCIName, RAMAPPSupport, HardwareSupport, DatabaseSupport, MiddlewareSupport, OSPatchSupport, OSSupport, RTDecomDate, RAMOwnedBy, RAMOwnedBy_LOB, RAMOwnedBy_SUBLOB, SN_CIO, SN_CTO, RAMApplicationNames, DMANPrimary, WAMDistributedID, TechManagerADENT, CTOADENT, iTrackerEntryDate, CreatedBy, ModifiedBy, ModifiedDate, WAMApplicationName, TechManagerELID, TechManagerName, PortfolioOwnerELID, PortfolioOwnerName, GroupCIO1DownELID, GroupCIO1DownName, GroupCIO1DownADENT, GroupCIO2DownELID, GroupCIO2DownName, Level1ManagerELID, Level1ManagerName, Level1ManagerADENT, CTOELID, CTOName, Age, DueDate, LoadModifiedDate, LoadModifiedBy, IsPastDue, Review, FeedType, MajorVersion, CurrentVersion, TargetVersion, Priority, Title, ThreatScore, ValidatedDate, ActivatedDate, APPResponsibleDate, ConsequenceModelEscalationDate, ComplianceDueDate, ValidationReason, HAction, ImportDate, AdjustedConsequenceModelEscalationDate, {Overall Status}, {Expiration Date}, {Adj Consequence Model Escalation Date}, CIO_CP, CIO_Direct_CP, SeniorLead_CP, TechnicalManager_App1, ApplicationStatus_App1, ApplicationName_App1, AppLeaderKey_SN, CMAdjust_Import_date, iTracker_Import_date, APP1_Import_date, CommonProfile_Import_date, App1Cio, App1SrLead, App1TechMngr, DEVICE_WF_GUID, HOST_NAME, LEVEL_1_REPORT_NAME, LEVEL_2_REPORT_NAME, LEVEL_3_REPORT_NAME, LEVEL_4_REPORT_NAME, EDL_SeniorLead, EDL_TechManager, CIO_Direct_Supplimented, Senior_Lead_Supplimented, Rating_Order, AppDistID, EDL_Flag, DRDJiraNumber, RequestedDeferredRemediationDate, DRDStatus, ApprovedDRDDate, RatingDueDate, {Platform LOB}, ServerMngrEmail, AppMngrEmail, TCOOActions, TCOOActions_Primary, TCOODueDate, DueDateReasoning, SolutionGroup_Short, UID, PLHsOnboardedApp, {PLHS Onboarding Status}, ExceptionFlag, Rating_Summary, ScheduledStatus, STATE_DESCRIPTION, CLOSE_CODE, CLOSED_AT, START_DATE, VulnActions2, TCOOEscalation_Level, is_Patch, is_Configuration, Submission_Action, DestinationAppID, Ownershipflag, {Cluster Type}, Import_Date, SecurityVuln,CAST(GETDATE() as VARCHAR) AS PIT_Date FROM dbo.tbl_VulnActive_Daily_Static"
         },
         "sink" : {
           "type" : "AzureSqlSink",
@@ -515,11 +524,11 @@
         }
       } ]
     }, {
-      "name" : "Load_Daily_Vuln_from_Stage_401",
+      "name" : "CPD_Load_Daily_Vuln_from_Stage_401",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Load_Daily_Vuln_from_Stage_4",
+        "activity" : "CPD_Load_Daily_Vuln_from_Stage_4",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -567,11 +576,11 @@
         }
       } ]
     }, {
-      "name" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+      "name" : "ST_Get_Time_Stamp_Execution_Path_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Load_Daily_Vuln_from_Stage_401",
+        "activity" : "CPD_Load_Daily_Vuln_from_Stage_401",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -584,7 +593,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+          "text" : {
+            "value" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 20 then 2\nelse 0 end as ExecuteSeriesFlag\n",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -599,7 +611,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+        "activity" : "ST_Get_Time_Stamp_Execution_Path_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -607,10 +619,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "ExecutionFlag",
-        "value" : "@int(activity('Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecutionFlag)"
+        "value" : "@int(activity('ST_Get_Time_Stamp_Execution_Path_0').output.resultSets[0].rows[0].ExecutionFlag)"
       }
     }, {
-      "name" : "Clear_Current_Data_SCRIPT",
+      "name" : "ST_Clear_Current_Data_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -627,16 +639,19 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n"
+          "text" : {
+            "value" : "TRUNCATE TABLE [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Load_tbl_Vuln_Metrics_Monthly_Reduced_Detail_SCRIP",
+      "name" : "ST_Load_tbl_Vuln_Metrics_Monthly_Reduced_Detail_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Clear_Current_Data_SCRIPT",
+        "activity" : "ST_Clear_Current_Data_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -649,13 +664,16 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n "
+          "text" : {
+            "value" : "\nINSERT INTO \n   [dbo].[tbl_Vuln_Metrics_Monthly_Reduced_Detail]\n\nSELECT  [CIO_Direct_Supplimented]\n      ,[Senior_Lead_Supplimented]\n      ,[TechnicalManager_App1]\n      ,[StatusFlag]\n      ,cast([FirstDetected] as date) as [FirstDetected]\n      ,cast([ValidatedDate] as date) as ValidatedDate\n      ,[TCOODueDate]\n      ,[CombID]\n      ,getdate()\n\n  FROM [PLHS].[dbo].[vw_Metrics_Detailed]\n ",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/Vulnerability_ETL"
+      "name" : "wellsfargo_Punam_08_10/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {

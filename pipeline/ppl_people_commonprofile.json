@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Execute_SQL_Task_SCRIPT",
+      "name" : "ST_Execute_SQL_Task_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "delete  FROM [PLHS].[dbo].[CommonProfile_DailyDiff]"
+          "text" : {
+            "value" : "delete  FROM [PLHS].[dbo].[CommonProfile_DailyDiff]",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -58,7 +61,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Execute_SQL_Task_SCRIPT",
+        "activity" : "ST_Execute_SQL_Task_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -91,7 +94,7 @@
         }
       }
     }, {
-      "name" : "Common_Profile_Daily_Load",
+      "name" : "DF_Common_Profile_Daily_Load",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -107,6 +110,23 @@
           "type" : "DataFlowReference",
           "parameters" : { },
           "datasetParameters" : {
+            "FlatFileDestination" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "OLEDBSource" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
@@ -129,23 +149,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "FlatFileDestination" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -153,11 +156,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "Common_Profile_Daily_Load01",
+      "name" : "CPD_Common_Profile_Daily_Load01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Common_Profile_Daily_Load",
+        "activity" : "DF_Common_Profile_Daily_Load",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -206,7 +209,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/PLHS_Monthly_Metrics"
+      "name" : "wellsfargo_Punam_08_10/PLHS_Monthly_Metrics"
     },
     "parameters" : { },
     "variables" : { }

@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "TodaysDate_File_1_SCRIPT",
+      "name" : "ST_TodaysDate_File_1_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,16 +49,19 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "DELETE  from [Sharepoint_TAS_Buildpacks]"
+          "text" : {
+            "value" : "DELETE  from [Sharepoint_TAS_Buildpacks]",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "TodaysDate_File_SCRIPT",
+      "name" : "ST_TodaysDate_File_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_1_SCRIPT",
+        "activity" : "ST_TodaysDate_File_1_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -71,7 +74,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)"
+          "text" : {
+            "value" : "SELECT \n convert(varchar(8),cast(currentdate as date),112) Friday\nFROM \ndbo.calendar\nwhere cast(Getdate() as date) = cast(currentdate as date)",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -86,7 +92,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "TodaysDate_File_SCRIPT",
+        "activity" : "ST_TodaysDate_File_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -94,7 +100,7 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "sFileDate",
-        "value" : "@string(activity('TodaysDate_File_SCRIPT').output.resultSets[0].rows[0].sFileDate)"
+        "value" : "@string(activity('ST_TodaysDate_File_0').output.resultSets[0].rows[0].sFileDate)"
       }
     }, {
       "name" : "New_PCF_File_Format0",
@@ -134,7 +140,7 @@
         }
       }
     }, {
-      "name" : "New_PCF_File_Format",
+      "name" : "DF_New_PCF_File_Format",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -148,13 +154,25 @@
         "dataflow" : {
           "referenceName" : "new_pcf_file_format",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "sFileDate" : {
-              "type" : "Expression",
-              "value" : "@variables('sFileDate')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
+            "FilefromPCFDropzone" : {
+              "TableName" : null,
+              "Schema" : null,
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
             "SharepointTASBuildpacks" : {
               "TableName" : {
                 "value" : "Sharepoint_TAS_Buildpacks",
@@ -177,23 +195,6 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
-            },
-            "FilefromPCFDropzone" : {
-              "TableName" : null,
-              "Schema" : null,
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FilefromPCFDropzone_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
             }
           }
         },
@@ -201,11 +202,11 @@
         "staging" : { }
       }
     }, {
-      "name" : "New_PCF_File_Format01",
+      "name" : "CPD_New_PCF_File_Format01",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "New_PCF_File_Format",
+        "activity" : "DF_New_PCF_File_Format",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -254,7 +255,7 @@
       } ]
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/COO_VulnPackages"
+      "name" : "wellsfargo_Punam_08_10/COO_VulnPackages"
     },
     "parameters" : { },
     "variables" : {

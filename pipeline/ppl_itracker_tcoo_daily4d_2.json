@@ -32,7 +32,7 @@
         }
       }
     }, {
-      "name" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+      "name" : "ST_Get_Time_Stamp_Execution_Path_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -49,7 +49,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n"
+          "text" : {
+            "value" : "select \ncase \nwhen DATEPART(hour,getdate() ) between 12 and 16 then 1\nwhen DATEPART(hour,getdate() )between 17 and 18 then 2\nelse 0 end as ExecuteSeriesFlag\n",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -64,7 +67,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Get_Time_Stamp_Execution_Path_SCRIPT",
+        "activity" : "ST_Get_Time_Stamp_Execution_Path_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -72,10 +75,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "ExecuteSeriesFlag",
-        "value" : "@int(activity('Get_Time_Stamp_Execution_Path_SCRIPT').output.resultSets[0].rows[0].ExecuteSeriesFlag)"
+        "value" : "@int(activity('ST_Get_Time_Stamp_Execution_Path_0').output.resultSets[0].rows[0].ExecuteSeriesFlag)"
       }
     }, {
-      "name" : "Delete_sameday_Load_Table_SCRIPT",
+      "name" : "ST_Delete_sameday_Load_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -92,12 +95,15 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+          "text" : {
+            "value" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Truncate_Table_SCRIPT",
+      "name" : "ST_Truncate_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -114,7 +120,10 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)"
+          "text" : {
+            "value" : "delete FROM [PLHS].[dbo].[iTracker_Active_SN_CIO]\n\n  where  cast(ImportDate as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
@@ -160,7 +169,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Delete_sameday_Load_Table_SCRIPT",
+        "activity" : "ST_Delete_sameday_Load_Table_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -197,7 +206,7 @@
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Truncate_Table_SCRIPT",
+        "activity" : "ST_Truncate_Table_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
@@ -230,7 +239,7 @@
         }
       }
     }, {
-      "name" : "iTracker_Validated_Data_2",
+      "name" : "DF_iTracker_Validated_Data_2",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
@@ -244,48 +253,8 @@
         "dataflow" : {
           "referenceName" : "itracker_validated_data_2",
           "type" : "DataFlowReference",
-          "parameters" : {
-            "ExecuteSeriesFlag" : {
-              "type" : "Expression",
-              "value" : "@variables('ExecuteSeriesFlag')"
-            },
-            "sRAndSEmailAddress" : {
-              "type" : "Expression",
-              "value" : "@variables('sRAndSEmailAddress')"
-            },
-            "CountRowsToInsert" : {
-              "type" : "Expression",
-              "value" : "@variables('CountRowsToInsert')"
-            },
-            "CountInsertedRecords" : {
-              "type" : "Expression",
-              "value" : "@variables('CountInsertedRecords')"
-            }
-          },
+          "parameters" : { },
           "datasetParameters" : {
-            "LastValidatedLookupLKPTABLE" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "Last Validated Lookup",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "iTrackerQuery" : {
               "TableName" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.iTrackerQuery_TableName",
@@ -331,6 +300,29 @@
                 "type" : "Expression"
               },
               "ColumnDelimiter" : ","
+            },
+            "LastValidatedLookupLKPTABLE" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LastValidatedLookupLKPTABLE_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "Last Validated Lookup",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
             }
           }
         },
@@ -338,7 +330,7 @@
         "staging" : { }
       }
     }, {
-      "name" : "iTracker_Active_Data_3",
+      "name" : "CPD_iTracker_Active_Data_3",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
@@ -393,7 +385,7 @@
         }
       } ]
     }, {
-      "name" : "iTracker_Active_Data_4",
+      "name" : "CPD_iTracker_Active_Data_4",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
@@ -448,11 +440,11 @@
         }
       } ]
     }, {
-      "name" : "iTracker_Validated_Data_201",
+      "name" : "CPD_iTracker_Validated_Data_201",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "iTracker_Validated_Data_2",
+        "activity" : "DF_iTracker_Validated_Data_2",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "state" : null,
@@ -500,11 +492,11 @@
         }
       } ]
     }, {
-      "name" : "iTracker_Active_Data_301",
+      "name" : "CPD_iTracker_Active_Data_301",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "iTracker_Active_Data_3",
+        "activity" : "CPD_iTracker_Active_Data_3",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -552,11 +544,11 @@
         }
       } ]
     }, {
-      "name" : "iTracker_Active_Data_401",
+      "name" : "CPD_iTracker_Active_Data_401",
       "type" : "Copy",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "iTracker_Active_Data_4",
+        "activity" : "CPD_iTracker_Active_Data_4",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -611,7 +603,7 @@
         "activity" : "SETVAR_ExecuteSeriesFlag",
         "dependencyConditions" : [ "Failed" ]
       }, {
-        "activity" : "iTracker_Validated_Data_201",
+        "activity" : "CPD_iTracker_Validated_Data_201",
         "dependencyConditions" : [ "Failed" ]
       } ],
       "userProperties" : null,
@@ -642,7 +634,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "iTracker_Active_Data_301",
+        "activity" : "CPD_iTracker_Active_Data_301",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -650,10 +642,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "CountRowsToInsert",
-        "value" : "@int(coalesce(activity('iTracker_Active_Data_3').output.runStatus.metrics?.iTracker_Active_SN_CIO?.rowsWritten, 0))"
+        "value" : "@int(coalesce(activity('CPD_iTracker_Active_Data_3').output.runStatus.metrics?.iTracker_Active_SN_CIO?.rowsWritten, 0))"
       }
     }, {
-      "name" : "Count_Inserted_2_LOOKUP",
+      "name" : "LKP_Count_Inserted_2_LOOKUP",
       "type" : "Lookup",
       "policy" : {
         "timeout" : "0.12:00:00",
@@ -663,7 +655,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "iTracker_Active_Data_301",
+        "activity" : "CPD_iTracker_Active_Data_301",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -704,7 +696,7 @@
         "secureInput" : false
       },
       "dependsOn" : [ {
-        "activity" : "Count_Inserted_2_LOOKUP",
+        "activity" : "LKP_Count_Inserted_2_LOOKUP",
         "dependencyConditions" : [ "SUCCESSFUL" ]
       } ],
       "state" : null,
@@ -712,10 +704,10 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "variableName" : "CountInsertedRecords",
-        "value" : "@int(activity('Count_Inserted_2_LOOKUP').output.firstRow.cnt)"
+        "value" : "@int(activity('LKP_Count_Inserted_2_LOOKUP').output.firstRow.cnt)"
       }
     }, {
-      "name" : "Update_Rating_to_Normalize_SCRIPT",
+      "name" : "ST_Update_Rating_to_Normalize_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
@@ -735,16 +727,19 @@
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
-          "text" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;"
+          "text" : {
+            "value" : "\n  update \n  [PLHS].[dbo].[iTracker_Active_SN_CIO]\n  set Rating =   replace(replace(replace(Rating,'; High; High','High'),'; High','High'),'0','Low')\n  where cast(ImportDate as date) = cast(getdate() as date)\n\n;",
+            "type" : "Expression"
+          }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "IFACTIVITY_Failure_Mail",
+      "name" : "Failure_Mail_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "Update_Rating_to_Normalize_SCRIPT",
+        "activity" : "ST_Update_Rating_to_Normalize_0",
         "dependencyConditions" : [ "Completed" ]
       } ],
       "state" : null,
@@ -782,7 +777,7 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_10_09/Vulnerability_ETL"
+      "name" : "wellsfargo_Punam_08_10/Vulnerability_ETL"
     },
     "parameters" : { },
     "variables" : {

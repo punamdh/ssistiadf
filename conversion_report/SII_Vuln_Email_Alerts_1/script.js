@@ -146,6 +146,9 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         } else if (componentSource === "COMPONENT_GENERATION" || componentSource === "ACTIVITY_GENERATION") {
             generatedComponents.push({
                 componentName: component.name,
+                // Name in the generated artifact when the generator renamed it (e.g. ADF naming
+                // standardization); componentName stays the source-side name used for matching.
+                displayName: component.generatedName || component.name,
                 componentType: component.type || "Unknown",
                 messages: convertMessages(component.messages || []),
                 parent: component.parent,
@@ -189,6 +192,7 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         if (!key) return;
         sourceComponentsMap[key].generatedComponents.push({
             componentName: genComp.componentName,
+            displayName: genComp.displayName,
             componentType: genComp.componentType,
             messages: genComp.messages,
             typeProperties: genComp.typeProperties || []
@@ -499,7 +503,9 @@ function filterData() {
 
     if (searchTerm) {
         const lower = searchTerm.toLowerCase();
-        tempComponents = tempComponents.filter(x => x.componentName.toLowerCase().includes(lower));
+        // Also match a generated counterpart's renamed (e.g. prefix-standardized) name.
+        tempComponents = tempComponents.filter(x => x.componentName.toLowerCase().includes(lower)
+            || (x.generatedComponents || []).some(g => (g.displayName || "").toLowerCase().includes(lower)));
     }
 
     populateComponentDetails(tempComponents);
@@ -631,7 +637,7 @@ function renderMessageComparison(sourceMessages, generatedComponents) {
             const nameEl = document.createElement('div');
             nameEl.className = "flex flex-col min-w-0";
             // Name over type, matching how the source component is presented.
-            nameEl.innerHTML = `<span class="componentName font-mono font-semibold text-[13px] text-on-surface">${escapeHtml(genComp.componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(genComp.componentType || "Unknown")}</span>`;
+            nameEl.innerHTML = `<span class="componentName font-mono font-semibold text-[13px] text-on-surface">${escapeHtml(genComp.displayName || genComp.componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(genComp.componentType || "Unknown")}</span>`;
             rightPanel.appendChild(nameEl);
             appendMessageList(genComp.messages, rightPanel);
         });
@@ -720,10 +726,17 @@ function renderValidationSection(validationResults) {
     section.style.display = "flex";
     container.innerHTML = '';
 
+    // A broken data flow graph (see DataFlowGraphValidator - a component with no incoming/outgoing
+    // connection) means the generated artifact can't run at all, which is a more urgent class of
+    // problem than a schema nitpick from the Azure SDK's own validate() - surface it ahead of
+    // everything else so it's the first thing a developer sees and fixes.
+    const isBrokenGraph = v => v.resourceType === "DATAFLOW_GRAPH";
     const failed = validationResults.filter(v => v.conversionStatus === "FAIL").length;
+    const broken = validationResults.filter(v => v.conversionStatus === "FAIL" && isBrokenGraph(v)).length;
     const passed = validationResults.length - failed;
     if (summaryEl) {
-        summaryEl.textContent = `${passed}/${validationResults.length} artifact(s) passed`
+        summaryEl.textContent = (broken > 0 ? `${broken} broken data flow graph(s) - fix these first. ` : "")
+            + `${passed}/${validationResults.length} artifact(s) passed`
             + (failed > 0 ? ` — ${failed} need(s) manual review` : "");
     }
 
@@ -740,17 +753,22 @@ function renderValidationSection(validationResults) {
     const tbody = document.createElement('tbody');
     tbody.className = "divide-y divide-surface-container";
 
-    // Failures first - they're the actionable rows.
+    // Broken graphs first (they're unrunnable, not just schema-imperfect), then other failures,
+    // then passed - each tier alphabetical by resource name.
     const ordered = [...validationResults].sort((a, b) => {
-        const aFail = a.conversionStatus === "FAIL" ? 0 : 1;
-        const bFail = b.conversionStatus === "FAIL" ? 0 : 1;
-        if (aFail !== bFail) return aFail - bFail;
+        const rank = v => v.conversionStatus !== "FAIL" ? 2 : isBrokenGraph(v) ? 0 : 1;
+        const aRank = rank(a);
+        const bRank = rank(b);
+        if (aRank !== bRank) return aRank - bRank;
         return String(a.resourceName).localeCompare(String(b.resourceName));
     });
 
     for (const result of ordered) {
         const isFail = result.conversionStatus === "FAIL";
-        const statusHtml = isFail
+        const isBroken = isFail && isBrokenGraph(result);
+        const statusHtml = isBroken
+            ? `<span class="inline-flex items-center gap-1 px-2 py-[2px] rounded bg-red-100 text-error font-bold whitespace-nowrap"><span class="material-symbols-outlined text-[14px]">report</span>Broken Flow</span>`
+            : isFail
             ? `<span class="inline-flex items-center gap-1 px-2 py-[2px] rounded bg-red-50 text-error font-semibold whitespace-nowrap"><span class="material-symbols-outlined text-[14px]">error</span>Failed</span>`
             : `<span class="inline-flex items-center gap-1 px-2 py-[2px] rounded bg-emerald-50 text-tertiary font-semibold whitespace-nowrap"><span class="material-symbols-outlined text-[14px]">check_circle</span>Passed</span>`;
 
@@ -759,7 +777,7 @@ function renderValidationSection(validationResults) {
             : `<span class="placeholder-value">No findings</span>`;
 
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-surface-container-low transition-colors";
+        tr.className = "hover:bg-surface-container-low transition-colors" + (isBroken ? " bg-red-50/60 border-l-4 border-l-error" : "");
         tr.innerHTML = `
           <td class="py-1.5 px-3 align-top"><div class="flex flex-col"><span class="font-semibold text-on-surface">${escapeHtml(result.resourceName)}</span><span class="text-on-surface-variant">${escapeHtml(result.jobName)}</span></div></td>
           <td class="py-1.5 px-3 align-top whitespace-nowrap text-primary font-semibold">${escapeHtml(result.resourceType)}</td>
@@ -823,7 +841,7 @@ function buildComponentTile(currSrcComp, keysInView) {
         if (generatedComponents.length === 1) {
             // Mirror the source side's name-over-type layout so the generated component's type is
             // just as visible as the adopted one's.
-            genWrap.innerHTML = `<span class="componentName font-mono font-bold text-[14px] text-primary truncate">${escapeHtml(generatedComponents[0].componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(generatedComponents[0].componentType)}</span>`;
+            genWrap.innerHTML = `<span class="componentName font-mono font-bold text-[14px] text-primary truncate">${escapeHtml(generatedComponents[0].displayName || generatedComponents[0].componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(generatedComponents[0].componentType)}</span>`;
         } else if (generatedComponents.length === 0) {
             genWrap.innerHTML = `<span class="placeholder-value font-mono text-[12px]">${NO_GENERATED_COMPONENTS}</span>`;
         } else {
