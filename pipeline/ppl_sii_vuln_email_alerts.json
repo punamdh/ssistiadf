@@ -78,8 +78,8 @@
         "value" : "@int(activity('ST_Execute_SQL_Task_1_0').output.resultSets[0].rows[0].TodaysData)"
       }
     }, {
-      "name" : "ST_Insert_Records_into_Email_Alerts_Tbl_0",
-      "type" : "Script",
+      "name" : "Insert_Email_Records",
+      "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "SETVAR_TodaysData",
@@ -88,26 +88,42 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : {
-            "value" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t'michael.dematos@wellsfargo.com'\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,null [CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily_v2]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n",
-            "type" : "Expression"
+        "expression" : {
+          "value" : "@equals(variables('TodaysData'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Insert_Records_into_Email_Alerts_Tbl_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t'michael.dematos@wellsfargo.com'\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,null [CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily_v2]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
           }
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        } ]
       }
     }, {
       "name" : "Collect_Daily_SII_Metric0",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Insert_Records_into_Email_Alerts_Tbl_0",
+        "activity" : "Insert_Email_Records",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "userProperties" : null,
