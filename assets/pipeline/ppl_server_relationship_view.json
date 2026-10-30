@@ -1,0 +1,210 @@
+{
+  "name" : "ppl_server_relationship_view",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS OLE_DB_Source_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS OLE_DB_Source_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_ContainerName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS Server_Relationship_Static_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_FileName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS Server_Relationship_Static_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_FilePath' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_1') AS Server_Relationship_Static_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_source_ContainerName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_source_FileName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_source_FilePath' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_sink_SchemaName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_101_sink_TableName' AND PIPELINE_NAME = 'Server_Relationship_View' AND DATAFLOW_NAME = 'Data_Flow_Task_101') AS Data_Flow_Task_101_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST_Truncate_reload_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "TRUNCATE TABLE [PLHS].[dbo].[tbl_Vuln_Server_OwnerRelationship_Daily]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Data_Flow_Task_10",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_reload_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_1",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Data_Flow_Task_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT * ,GETDATE() AS Import_Date,CAST({APP CIO} as VARCHAR) AS {Derived Column 1} FROM DBO.VW_VULN_SERVER_OWNERRELATIONSHIP"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "CPD_Data_Flow_Task_101",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_101_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/COO_VulnPackages"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

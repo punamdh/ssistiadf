@@ -1,0 +1,302 @@
+{
+  "name" : "ppl_sii_vuln_email_alerts_3",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_SII_Metric_View_SchemaName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_3') AS Daily_SII_Metric_View_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Daily_SII_Metric_View_TableName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_3') AS Daily_SII_Metric_View_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_SII_Vuln_History_Alerts_ContainerName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_3') AS tbl_SII_Vuln_History_Alerts_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_SII_Vuln_History_Alerts_FileName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_3') AS tbl_SII_Vuln_History_Alerts_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_SII_Vuln_History_Alerts_FilePath' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_3') AS tbl_SII_Vuln_History_Alerts_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Collect_Daily_SII_Metric_301_source_ContainerName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_301') AS Collect_Daily_SII_Metric_301_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Collect_Daily_SII_Metric_301_source_FileName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_301') AS Collect_Daily_SII_Metric_301_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Collect_Daily_SII_Metric_301_source_FilePath' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_301') AS Collect_Daily_SII_Metric_301_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Collect_Daily_SII_Metric_301_sink_SchemaName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_301') AS Collect_Daily_SII_Metric_301_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Collect_Daily_SII_Metric_301_sink_TableName' AND PIPELINE_NAME = 'SII_Vuln_Email_Alerts_3' AND DATAFLOW_NAME = 'Collect_Daily_SII_Metric_301') AS Collect_Daily_SII_Metric_301_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_1_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select\ncase when count(*)   > 0 then 0 else 1 end as flag\nfrom tbl_SII_Vuln_History_Alerts\nwhere cast(Import_Date as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_TodaysData",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_1_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "TodaysData",
+        "value" : "@int(activity('ST_Execute_SQL_Task_1_0').output.resultSets[0].rows[0].TodaysData)"
+      }
+    }, {
+      "name" : "Insert_Email_Records",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_TodaysData",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('TodaysData'),1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Insert_Records_into_Email_Alerts_Tbl_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "  insert into [PLHS].[dbo].[tbl_ssis_utility]\n  (\t'michael.dematos@wellsfargo.com'\t[To]\n      ,[Subject]\n      ,[body]\n      ,[ReceiveDate]\n      ,[SendDate]\n      ,[BodyFormat]\n      ,null [CC]\n\t  )\n  \n  select \n  [To_],\n  [subject_],\n  [body],\n getdate() [RECEIVEDATE],\n  null,\n  2,\n  [CC]\n     \n  from \n  [PLHS].[dbo].[vw_SII_EmailAlerts_Daily_v2]\n\nwhere   [To_]  IS NOT NULL \nGO\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Collect_Daily_SII_Metric_30",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Insert_Email_Records",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : false,
+        "parameters" : {
+          "SysDatetime" : {
+            "type" : "Expression",
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+          },
+          "Dataflow_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+          },
+          "FilePath_Date" : {
+            "type" : "string",
+            "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+          },
+          "Pipeline_Name" : {
+            "type" : "Expression",
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Collect_Daily_SII_Metric_3",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Collect_Daily_SII_Metric_30",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "Parquetsource",
+          "sqlReaderQuery" : "SELECT * ,CAST(DATEADD(\"day\",0,GETDATE()) as DATE) AS Import_Date FROM DBO.VW_SII_EMAILALERTS_DETAILS"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink",
+          "writeBehavior" : "insert",
+          "sqlWriterUseTableLock" : false
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_3_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_3_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_3_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ""
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_3_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_3_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "CPD_Collect_Daily_SII_Metric_301",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Collect_Daily_SII_Metric_3",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "AzureSqlSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_301_source_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_301_source_FileName",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_301_source_FilePath",
+            "type" : "Expression"
+          },
+          "ColumnDelimiter" : ","
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_301_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Collect_Daily_SII_Metric_301_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Only_Send_once_a_week_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Collect_Daily_SII_Metric_301",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "\ndeclare @upddatedate date = (select \n\ncase \nwhen isHoliday = 0\nand DATENAME(weekday,getdate()) <> 'Monday' then CurrentDate\nelse null end as updatedate\n\nfrom Calendar\nwhere currentdate =cast( getdate() as date)\n)\n\n;\nupdate tbl_ssis_utility \nset SendDate = @upddatedate \nwhere SendDate is null \n\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/Vulnerability_ETL_v2022"
+    },
+    "parameters" : { },
+    "variables" : {
+      "TodaysData" : {
+        "type" : "Integer",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}
