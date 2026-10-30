@@ -1,0 +1,29 @@
+{
+  "name" : "generate_trailor_-_falloutmember",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetTrailerRecord",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tTrailerRow as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select \\'TRL|\\' + (SELECT RIGHT(\\'0000000\\'+ISNULL(CAST(COUNT(*)  as varchar),\\'\\'),7)  + \\'|\\'  FROM [ReverseSync].[MemberList] ML   INNER JOIN [ReverseSync].[FallOutMembers] FML ON FML.GroupID = ML.GroupID    AND FML.SubscriberID = ML.SubscriberID WHERE ML.[SubscriberID] NOT IN    ( \tSELECT DISTINCT SubscriberID FROM [ReverseSync].[MemberList] \tWHERE ISNULL(RTRIM(LTRIM([ListBillGroupNumber])),\\'\\') = \\'MULTGROUP\\'   ) ) as TrailerRow',\n\tformat: 'query',\n\tstaged:false) ~> GetTrailerRecord\nGetTrailerRecord sink(input(\n\t\tColumn_0 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tColumn_0 = TrailerRow)) ~> FlatFileDestination"
+    }
+  }
+}

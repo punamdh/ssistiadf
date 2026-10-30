@@ -9,9 +9,9 @@
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ReadFalloutMembers",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Excel1",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,8 +22,12 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "\n\nsource(output(\n\t\tSOA_Application_Attached as string,\n\t\tSOA_DCN as string,\n\t\tSOA_Products as string,\n\t\tSOA_Application_DCN as string,\n\t\tSOA_Beneficiary_Full_Name as string,\n\t\tSOA_Beneficiary_Address as string,\n\t\tSOA_Agent_Name as string,\n\t\tSOA_Beneficiary_Rep_Relationship as string,\n\t\tACN as string,\n\t\tSOA_Date_Appointment_Completed as string,\n\t\tSOA_Beneficiary_Signature_Present as string,\n\t\tSOA_Beneficiary_Phone as string,\n\t\tSOA_HICN as string,\n\t\tSOA_Agent_TIN as string,\n\t\tSOA_Contact_Method as string,\n\t\tSOA_Beneficiary_Initials_Present as string,\n\t\tSOA_Agent_Signature_Present as string,\n\t\tSOA_Signed_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tSOA_Application_Attached as string,\n\t\tSOA_DCN as string,\n\t\tSOA_Products as string,\n\t\tSOA_Application_DCN as string,\n\t\tSOA_Beneficiary_Full_Name as string,\n\t\tSOA_Beneficiary_Address as string,\n\t\tSOA_Agent_Name as string,\n\t\tSOA_Beneficiary_Rep_Relationship as string,\n\t\tACN as string,\n\t\tSOA_Date_Appointment_Completed as string,\n\t\tSOA_Beneficiary_Signature_Present as string,\n\t\tSOA_Beneficiary_Phone as string,\n\t\tSOA_HICN as string,\n\t\tSOA_Agent_TIN as string,\n\t\tSOA_Contact_Method as string,\n\t\tSOA_Beneficiary_Initials_Present as string,\n\t\tSOA_Agent_Signature_Present as string,\n\t\tSOA_Signed_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSOA_Application_Attached,\n\t\tSOA_DCN,\n\t\tSOA_Products,\n\t\tSOA_Application_DCN,\n\t\tSOA_Beneficiary_Full_Name,\n\t\tSOA_Beneficiary_Address,\n\t\tSOA_Agent_Name,\n\t\tSOA_Beneficiary_Rep_Relationship,\n\t\tACN,\n\t\tSOA_Date_Appointment_Completed,\n\t\tSOA_Beneficiary_Signature_Present,\n\t\tSOA_Beneficiary_Phone,\n\t\tSOA_HICN,\n\t\tSOA_Agent_TIN,\n\t\tSOA_Contact_Method,\n\t\tSOA_Beneficiary_Initials_Present,\n\t\tSOA_Agent_Signature_Present,\n\t\tSOA_Signed_Date)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "BatchId"
+      } ],
+      "script" : "parameters{\n\tBatchId as integer ()\n}\n\nsource(output(\n\t\tGroup as string,\n\t\tSubscriber as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ReadFalloutMembers\nReadFalloutMembers derive({Copy of Group} = Group,\n\t\t{Copy of Subscriber} = Subscriber) ~> DataConversion\nDataConversion derive(BatchId = $BatchId) ~> BatchId\nBatchId sink(input(\n\t\tSubscriberID as string,\n\t\tBatchID as integer,\n\t\tGroupID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tSubscriberID = {Copy of Subscriber},\n\t\tBatchID = BatchId,\n\t\tGroupID = {Copy of Group})) ~> OLEDBDestination"
     }
   }
 }
