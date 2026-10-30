@@ -1,0 +1,43 @@
+{
+  "name" : "dft_join",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Input1",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "Input2",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort"
+      }, {
+        "name" : "Sort1"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin0"
+      } ],
+      "script" : "\n\nsource(output(\n\t\temployee_id as string,\n\t\temployee_name as string,\n\t\tdepartment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> Input1\tsource(output(\n\t\tlkp_employee_id as string,\n\t\tlkp_employee_name as string,\n\t\tstatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table',\n\tstaged:false) ~> Input2\nInput1 sort(asc(employee_id, false)) ~> Sort\nInput2 sort(asc(lkp_employee_id, false)) ~> Sort1\nSort,Sort1 join(employee_id == lkp_employee_id,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(employee_id = employee_id,\n\t\tlkp_employee_id = lkp_employee_id,\n\t\temployee_name = employee_name,\n\t\tdepartment = department,\n\t\tstatus = status) ~> MergeJoin0\nMergeJoin0 sink(input(\n\t\tlkp_employee_id as string,\n\t\temployee_id as string,\n\t\temployee_name as string,\n\t\tdepartment as string,\n\t\tstatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlkp_employee_id,\n\t\temployee_id,\n\t\temployee_name,\n\t\tdepartment,\n\t\tstatus)) ~> FlatFileDestination"
+    }
+  }
+}
