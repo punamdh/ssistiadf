@@ -1,0 +1,881 @@
+{
+  "name" : "ppl_esims_registry_change",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS Flat_File_Source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS Flat_File_Source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS Flat_File_Source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Destination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Destination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task') AS OLE_DB_Destination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task01_source_ContainerName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task01') AS Data_Flow_Task01_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task01_source_FileName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task01') AS Data_Flow_Task01_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task01_source_FilePath' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task01') AS Data_Flow_Task01_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task01_sink_SchemaName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task01') AS Data_Flow_Task01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task01_sink_TableName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'Data_Flow_Task01') AS Data_Flow_Task01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'RenameFile_0_ContainerName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'RenameFile_0') AS RenameFile_0_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'RenameFile_0_FileName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'RenameFile_0') AS RenameFile_0_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'RenameFile_0_FilePath' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'RenameFile_0') AS RenameFile_0_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_ContainerName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'GMD_Foreach_Loop_Container') AS GMD_Foreach_Loop_Container_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FileName' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'GMD_Foreach_Loop_Container') AS GMD_Foreach_Loop_Container_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FilePath' AND PIPELINE_NAME = 'ESIMS_REGISTRY_CHANGE' AND DATAFLOW_NAME = 'GMD_Foreach_Loop_Container') AS GMD_Foreach_Loop_Container_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference"
+        }
+      }
+    }, {
+      "name" : "ST_Obtain_Parameters_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "User::StrCallParams",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Delete_older_archive_files",
+      "type" : "Custom",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Execute Process Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : null,
+      "typeProperties" : {
+        "command" : {
+          "value" : "C:\\windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy ByPass -Command \"\n$limit = (Get-Date).AddDays(- 30) ;\n$path = '\\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES\\ARCHIVE' ;\n\nGet-ChildItem -Path $path -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit } | Remove-Item -Force;\n\n\"",
+          "type" : "Expression"
+        },
+        "resourceLinkedService" : null,
+        "folderPath" : null,
+        "retentionTimeInDays" : null,
+        "referenceObjects" : {
+          "linkedServices" : [ ],
+          "datasets" : [ ]
+        }
+      }
+    }, {
+      "name" : "SETVAR_IsEnabled",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "IsEnabled",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].IsEnabled)"
+      }
+    }, {
+      "name" : "SETVAR_CanRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CanRun",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].CanRun)"
+      }
+    }, {
+      "name" : "SETVAR_SrcDBNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcDBNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcDBNAME)"
+      }
+    }, {
+      "name" : "SETVAR_SrcSCHEMANAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcSCHEMANAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcSCHEMANAME)"
+      }
+    }, {
+      "name" : "SETVAR_SrcTABLENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcTABLENAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcTABLENAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestSERVERNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestSERVERNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSERVERNAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestDBNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestDBNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestSCHEMANAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestSCHEMANAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSCHEMANAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestTABLENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestTABLENAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestTABLENAME)"
+      }
+    }, {
+      "name" : "SETVAR_SELECTSTMT",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SELECTSTMT",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SELECTSTMT)"
+      }
+    }, {
+      "name" : "SETVAR_PREDICATES",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PREDICATES",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
+      }
+    }, {
+      "name" : "ST_Log_deletion_of_archive_files_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_older_archive_files",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "User::StrCmdSQLLogArchiveFileDeletion",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Truncate_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_IsEnabled",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_CanRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcDBNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcSCHEMANAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcTABLENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestSERVERNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestDBNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestSCHEMANAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestTABLENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SELECTSTMT",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "User::StrTruncate",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GMD_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_FileName",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : null
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FLTR_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GMD_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GMD_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), equals(item().name, 'sbx_reg_changes.csv'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FRE_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FLTR_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_SET_StrRegistryFileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrRegistryFileName",
+            "value" : {
+              "value" : "@concat('\\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "Data_Flow_Task0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_SET_StrRegistryFileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : false,
+            "parameters" : {
+              "SysDatetime" : {
+                "type" : "Expression",
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')"
+              },
+              "Dataflow_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Dataflow_Name"
+              },
+              "FilePath_Date" : {
+                "type" : "string",
+                "value" : "formatDateTime(pipeline().TriggerTime,'yyyyMMdd')"
+              },
+              "Pipeline_Name" : {
+                "type" : "Expression",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Pipeline_Name"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Data_Flow_Task",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Data_Flow_Task0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "data_flow_task",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "DestDBNAME" : {
+                  "type" : "Expression",
+                  "value" : "@variables('DestDBNAME')"
+                },
+                "DestTABLENAME" : {
+                  "type" : "Expression",
+                  "value" : "@variables('DestTABLENAME')"
+                },
+                "DestSCHEMANAME" : {
+                  "type" : "Expression",
+                  "value" : "@variables('DestSCHEMANAME')"
+                },
+                "DestTable" : {
+                  "type" : "Expression",
+                  "value" : "concat(variables('DestDBNAME'),'.',variables('DestSCHEMANAME'),'.',variables('DestTABLENAME'))"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "TableName" : {
+                    "value" : null,
+                    "type" : "Expression"
+                  },
+                  "Schema" : {
+                    "value" : "dbo",
+                    "type" : "Expression"
+                  },
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : { }
+          }
+        }, {
+          "name" : "CPD_Data_Flow_Task01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Data_Flow_Task",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task01_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task01_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task01_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_RenameFile_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Data_Flow_Task01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_source_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_source_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_sink_FileName",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_sink_FilePath",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "CPD_RenameFile_0",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_RenameFile_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.RenameFile_0_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : null
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "ST_Process_Registy_Changes_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FRE_Foreach_Loop_Container_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "exec ESIMS_ETL.sbx.usp_process_registry_changes",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DestDBNAME" : {
+        "type" : "string",
+        "defaultValue" : "ESIMS_ETL"
+      },
+      "SELECTSTMT" : {
+        "type" : "string"
+      },
+      "StrCmdPwrShellDeleteOldFiles" : {
+        "type" : "string",
+        "defaultValue" : "-NoProfile -ExecutionPolicy ByPass -Command \\\"\\n$limit = (Get-Date).AddDays(- 30) ;\\n$path = '\\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES\\ARCHIVE' ;\\n\\nGet-ChildItem -Path $path -Force | Where-Object { !$_.PSIsContainer -and $_.LastWriteTime -lt $limit } | Remove-Item -Force;\\n\\n\\\""
+      },
+      "SrcTABLENAME" : {
+        "type" : "string"
+      },
+      "SrcDBNAME" : {
+        "type" : "string"
+      },
+      "PREDICATES" : {
+        "type" : "string"
+      },
+      "StrTruncate" : {
+        "type" : "string",
+        "defaultValue" : "Truncate Table ESIMS_ETL.registry_changes.stg_RegistryImport"
+      },
+      "CanRun" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "IsEnabled" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "StrRegistryFileName" : {
+        "type" : "string",
+        "defaultValue" : "sbx_reg_changes.csv"
+      },
+      "DestSCHEMANAME" : {
+        "type" : "string",
+        "defaultValue" : "registry_changes"
+      },
+      "StrDestArchive" : {
+        "type" : "string",
+        "defaultValue" : "\\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES\\ARCHIVE\\sbx_reg_changes_20240214_144445.csv"
+      },
+      "SrcSCHEMANAME" : {
+        "type" : "string"
+      },
+      "Variable1" : {
+        "type" : "string",
+        "defaultValue" : "20240214_144445"
+      },
+      "DestTABLENAME" : {
+        "type" : "string",
+        "defaultValue" : "stg_RegistryImport"
+      },
+      "StrCmdSQLLogArchiveFileDeletion" : {
+        "type" : "string",
+        "defaultValue" : "declare @S_ID int = (select S_ID from ESIMS_ETL.config.LK_TBL_EVENT_TYPE where S_DESC = 'Info');\\ndeclare @Event_Desc varchar(200) = 'Files older than 30 days deleted from \\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES\\ARCHIVE as per record categorization.'  \\n \\n\\nexec ESIMS_ETL.[log].usp_Create_Event\\n\t@ETL_ID = null   \\n\t, @P_ID = null   \\n\t, @S_ID = @S_ID   \\n\t, @Event_Desc = @Event_Desc \\n\t, @Event_Class_ID = 4   \\n\t, @CodeComponent = 'ESIMS_REGISTRY_CHANGE.dtsx'"
+      },
+      "DestSERVERNAME" : {
+        "type" : "string"
+      },
+      "DestTable" : {
+        "type" : "string",
+        "defaultValue" : "ESIMS_ETL.registry_changes.stg_RegistryImport"
+      },
+      "StrCallParams" : {
+        "type" : "string",
+        "defaultValue" : "SELECT  IsEnabled ,\\n        CanRun ,\\n        SrcDBNAME ,\\n        SrcSCHEMANAME ,\\n        SrcTABLENAME ,\\n        DestSERVERNAME ,\\n        DestDBNAME ,\\n        DestSCHEMANAME ,\\n        DestTABLENAME ,\\n        SELECTSTMT ,\\n        PREDICATES \\nFROM ESIMS_ETL.[CONFIG].[tbl_Etl_Config] WHERE   ETL_ID = 19"
+      },
+      "ETL_ID" : {
+        "type" : "string",
+        "defaultValue" : "19"
+      }
+    }
+  }
+}

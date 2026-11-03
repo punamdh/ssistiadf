@@ -1,0 +1,39 @@
+{
+  "name" : "get_metadata",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tDestDBNAME as string (),\n\tDestSCHEMANAME as string (),\n\tDestTABLENAME as string (),\n\tStrCallDestTable as string ()\n}\n\nsource(output(\n\t\tRPT_DT as timestamp,\n\t\tPLTFM_TXT as string,\n\t\tENVRN_TXT as string,\n\t\tDATABASENAME as string,\n\t\tCREATE_DT as timestamp,\n\t\tENCRYPT_CD as string,\n\t\tUSER_CT as integer,\n\t\tAPPL_ID_CT as integer,\n\t\tNON_US_BASED_USER_CT as integer,\n\t\tDB_OBJ_CT as integer,\n\t\tTBL_CT as integer,\n\t\tVIEW_CT as integer,\n\t\tMACRO_CT as integer,\n\t\tSP_CT as integer,\n\t\tPROXY_RIGHT_CT as integer,\n\t\tQRY_CT as integer,\n\t\tQRY_WNDW_DY_CT as integer,\n\t\tLAST_QRY_DT as timestamp,\n\t\tMAX_PERM_SPACE_GB as integer,\n\t\tCURRENT_PERM_SPACE_GB as integer,\n\t\tFREE_PERM_SPACE_GB as integer,\n\t\tPERM_SPACE_UTLZ_PCT as integer,\n\t\tREC_CT as integer,\n\t\tREC_CT_COLL_DT as timestamp,\n\t\tTBL_GT_90DY_CT as integer,\n\t\tLAST_TBL_DDL_CREATE_DT as timestamp,\n\t\tLAST_TBL_DDL_ALTER_DT as timestamp,\n\t\tCONTACT_EMP_ID as integer,\n\t\tCNTCT_FULL_NAME as string,\n\t\tCNTCT_EMAIL_ADDR as string,\n\t\tCNTCT_AU_NUM as integer,\n\t\tCNTCT_AU_NAME as string,\n\t\tCREATE_DTTM as timestamp,\n\t\tLAST_UPD_DTTM as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'SELECT RPT_DT       ,PLTFM_TXT       ,ENVRN_TXT       ,DATABASENAME       ,CREATE_DT       ,ENCRYPT_CD       ,USER_CT       ,APPL_ID_CT       ,NON_US_BASED_USER_CT       ,DB_OBJ_CT       ,TBL_CT       ,VIEW_CT       ,MACRO_CT       ,SP_CT       ,PROXY_RIGHT_CT       ,QRY_CT       ,QRY_WNDW_DY_CT       ,LAST_QRY_DT       ,MAX_PERM_SPACE_GB       ,CURRENT_PERM_SPACE_GB       ,FREE_PERM_SPACE_GB       ,PERM_SPACE_UTLZ_PCT       ,REC_CT       ,REC_CT_COLL_DT       ,TBL_GT_90DY_CT       ,LAST_TBL_DDL_CREATE_DT       ,LAST_TBL_DDL_ALTER_DT       ,CONTACT_EMP_ID       ,CNTCT_FULL_NAME       ,CNTCT_EMAIL_ADDR       ,CNTCT_AU_NUM       ,CNTCT_AU_NAME       ,CREATE_DTTM       ,LAST_UPD_DTTM   FROM SBXAPP.RPT_SANDBOX_SUMMARY_FILE  /* WHERE CREATE_DTTM  BETWEEN  TRUNC(SYSDATE, \\'MM\\') and TRUNC(SYSDATE,\\'DD\\') */ WHERE RPT_DT > ADD_MONTHS(TRUNC(TO_DATE(SYSDATE), \\'MM\\'), -3)',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\tsource(output(\n\t\tsandbox_name as string,\n\t\tplatform_name as string,\n\t\tenvironment_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'select sandbox_name \t, platform_name \t, environment_name from ESIMS_ETL.sbx.tbl_sas_master_list where IsActive = 1',\n\tformat: 'query',\n\tstaged:false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(ENVRN_TXT == environment_name && PLTFM_TXT == platform_name && DATABASENAME == sandbox_name,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tAPPL_ID_CT as string,\n\t\tUSER_CT as string,\n\t\tCNTCT_AU_NAME as string,\n\t\tRPT_DT as string,\n\t\tDB_OBJ_CT as string,\n\t\tCNTCT_AU_NUM as string,\n\t\tCURRENT_PERM_SPACE_GB as string,\n\t\tCNTCT_EMAIL_ADDR as string,\n\t\tLAST_TBL_DDL_CREATE_DT as string,\n\t\tLAST_TBL_DDL_ALTER_DT as string,\n\t\tTBL_CT as string,\n\t\tENVRN_TXT as string,\n\t\tCREATE_DT as string,\n\t\tLAST_QRY_DT as string,\n\t\tMAX_PERM_SPACE_GB as string,\n\t\tPLTFM_TXT as string,\n\t\tDATABASENAME as string,\n\t\tREC_CT as string,\n\t\tCONTACT_EMP_ID as string,\n\t\tENCRYPT_CD as string,\n\t\tNON_US_BASED_USER_CT as string,\n\t\tQRY_CT as string,\n\t\tCNTCT_FULL_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tAPPL_ID_CT,\n\t\tUSER_CT,\n\t\tCNTCT_AU_NAME,\n\t\tRPT_DT,\n\t\tDB_OBJ_CT,\n\t\tCNTCT_AU_NUM,\n\t\tCURRENT_PERM_SPACE_GB,\n\t\tCNTCT_EMAIL_ADDR,\n\t\tLAST_TBL_DDL_CREATE_DT,\n\t\tLAST_TBL_DDL_ALTER_DT,\n\t\tTBL_CT,\n\t\tENVRN_TXT,\n\t\tCREATE_DT,\n\t\tLAST_QRY_DT,\n\t\tMAX_PERM_SPACE_GB,\n\t\tPLTFM_TXT,\n\t\tDATABASENAME,\n\t\tREC_CT,\n\t\tCONTACT_EMP_ID,\n\t\tENCRYPT_CD,\n\t\tNON_US_BASED_USER_CT,\n\t\tQRY_CT,\n\t\tCNTCT_FULL_NAME)) ~> OLEDBDestination"
+    }
+  }
+}

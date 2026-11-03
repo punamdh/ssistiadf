@@ -1,0 +1,29 @@
+{
+  "name" : "populate_sas_master_list_temp_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tENVRN_TXT as string,\n\t\tIS_EUCT as boolean,\n\t\tPLTFM_TXT as string,\n\t\tSANDBOX_NAME as string,\n\t\tIS_MODEL as boolean,\n\t\tIS_SANDBOX as boolean,\n\t\tIS_DROPPED as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tENVRN_TXT as string,\n\t\tIS_EUCT as boolean,\n\t\tPLTFM_TXT as string,\n\t\tDATABASENAME as string,\n\t\tIS_MODEL as boolean,\n\t\tIS_SANDBOX as boolean,\n\t\tIS_DROPPED as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tENVRN_TXT,\n\t\tIS_EUCT,\n\t\tPLTFM_TXT,\n\t\tDATABASENAME = SANDBOX_NAME,\n\t\tIS_MODEL,\n\t\tIS_SANDBOX,\n\t\tIS_DROPPED)) ~> OLEDBDestination"
+    }
+  }
+}
