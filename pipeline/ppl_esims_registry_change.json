@@ -50,7 +50,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::StrCallParams",
+            "value" : "@variables('StrCallParams'))",
             "type" : "Expression"
           }
         } ],
@@ -319,9 +319,39 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
-      "name" : "ST_Log_deletion_of_archive_files_0",
-      "type" : "Script",
-      "policy" : null,
+      "name" : "SETVAR_StrTruncate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrTruncate",
+        "value" : {
+          "value" : "@concat('Truncate Table ', variables('DestTable'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SETVAR_StrCmdSQLLogArchiveFileDeletion",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
         "activity" : "Delete_older_archive_files",
         "dependencyConditions" : [ "Succeeded" ]
@@ -329,26 +359,19 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : {
-            "value" : "User::StrCmdSQLLogArchiveFileDeletion",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "variableName" : "StrCmdSQLLogArchiveFileDeletion",
+        "value" : {
+          "value" : "@concat('\"\ndeclare @S_ID int = (select S_ID from ESIMS_ETL.config.LK_TBL_EVENT_TYPE where S_DESC = 'Info');\ndeclare @Event_Desc varchar(200) = 'Files older than \"', pipeline().parameters.ArchiveFileAgeLimitInDays, ' days deleted from ', pipeline().parameters.Conn_RegistryChange_Files, '\"\\\\ARCHIVE as per record categorization.'  \n \n\nexec ESIMS_ETL.[log].usp_Create_Event\n\t@ETL_ID = null   \n\t, @P_ID = null   \n\t, @S_ID = @S_ID   \n\t, @Event_Desc = @Event_Desc \n\t, @Event_Class_ID = 4   \n\t, @CodeComponent = 'ESIMS_REGISTRY_CHANGE.dtsx'\n\"')",
+          "type" : "Expression"
+        }
       }
     }, {
       "name" : "ST_Truncate_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_PREDICATES",
+        "activity" : "SETVAR_StrTruncate",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "SETVAR_IsEnabled",
@@ -380,6 +403,9 @@
       }, {
         "activity" : "SETVAR_SELECTSTMT",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -392,7 +418,32 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::StrTruncate",
+            "value" : "@variables('StrTruncate'))",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_deletion_of_archive_files_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_StrCmdSQLLogArchiveFileDeletion",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "@variables('StrCmdSQLLogArchiveFileDeletion'))",
             "type" : "Expression"
           }
         } ],
@@ -573,6 +624,23 @@
                 }
               },
               "datasetParameters" : {
+                "FlatFileSource" : {
+                  "TableName" : null,
+                  "Schema" : null,
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
                 "OLEDBDestination" : {
                   "TableName" : {
                     "value" : null,
@@ -592,23 +660,6 @@
                   },
                   "Directory" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBDestination_FilePath",
-                    "type" : "Expression"
-                  },
-                  "ColumnDelimiter" : ","
-                },
-                "FlatFileSource" : {
-                  "TableName" : null,
-                  "Schema" : null,
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FileName",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.FlatFileSource_FilePath",
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","

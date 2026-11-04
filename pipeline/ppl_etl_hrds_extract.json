@@ -50,7 +50,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::StrCallParams",
+            "value" : "@variables('StrCallParams'))",
             "type" : "Expression"
           }
         } ],
@@ -288,11 +288,35 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
+      "name" : "SETVAR_vDeleteCurDay",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vDeleteCurDay",
+        "value" : {
+          "value" : "@concat('truncate table ', variables('StrCallDestTable'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "ST_Truncate_Stage_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_PREDICATES",
+        "activity" : "SETVAR_vDeleteCurDay",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "SETVAR_IsEnabled",
@@ -324,6 +348,9 @@
       }, {
         "activity" : "SETVAR_SELECTSTMT",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -336,7 +363,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::vDeleteCurDay",
+            "value" : "@variables('vDeleteCurDay'))",
             "type" : "Expression"
           }
         } ],
@@ -512,11 +539,35 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
+      "name" : "SETVAR_vMarkEndSuccessRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Update_Main_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMarkEndSuccessRun",
+        "value" : {
+          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "ST_Mark_Config_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Update_Main_Table_0",
+        "activity" : "SETVAR_vMarkEndSuccessRun",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -530,7 +581,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::vMarkEndSuccessRun",
+            "value" : "@variables('vMarkEndSuccessRun'))",
             "type" : "Expression"
           }
         } ],

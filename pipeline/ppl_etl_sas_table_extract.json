@@ -50,7 +50,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::StrCallParams",
+            "value" : "@variables('StrCallParams'))",
             "type" : "Expression"
           }
         } ],
@@ -288,11 +288,35 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
+      "name" : "SETVAR_vDeleteCurDay",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vDeleteCurDay",
+        "value" : {
+          "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "ST_Truncate_Destination_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_PREDICATES",
+        "activity" : "SETVAR_vDeleteCurDay",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "SETVAR_IsEnabled",
@@ -324,6 +348,9 @@
       }, {
         "activity" : "SETVAR_SELECTSTMT",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -336,7 +363,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::vDeleteCurDay",
+            "value" : "@variables('vDeleteCurDay'))",
             "type" : "Expression"
           }
         } ],
@@ -421,29 +448,6 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBSource" : {
-              "TableName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
-                "type" : "Expression"
-              },
-              "Schema" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
-                "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OLE_DB_Source",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
-            },
             "OLEDBDestination" : {
               "TableName" : {
                 "value" : null,
@@ -482,6 +486,29 @@
               },
               "FileName" : {
                 "value" : "Lookup",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : null,
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBSource" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.OLEDBSource_SchemaName",
+                "type" : "Expression"
+              },
+              "Container" : {
+                "value" : "",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "OLE_DB_Source",
                 "type" : "Expression"
               },
               "Directory" : {
@@ -548,9 +575,15 @@
         }
       } ]
     }, {
-      "name" : "ST_Update_decimal_values_0",
-      "type" : "Script",
-      "policy" : null,
+      "name" : "SETVAR_vUpdateDecimalValues",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
         "activity" : "CPD_Get_Metadata_101",
         "dependencyConditions" : [ "Succeeded" ]
@@ -558,26 +591,19 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "Query",
-          "text" : {
-            "value" : "User::vUpdateDecimalValues",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "variableName" : "vUpdateDecimalValues",
+        "value" : {
+          "value" : "@concat('update ', variables('StrCallDestTable'), '\" \nset CURRENT_PERM_MB = cast(CURRENT_PERM_MB as numeric(38, 2))\n\"')",
+          "type" : "Expression"
+        }
       }
     }, {
-      "name" : "ST_Mark_Config_Table_0",
+      "name" : "ST_Update_decimal_values_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Update_decimal_values_0",
+        "activity" : "SETVAR_vUpdateDecimalValues",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -591,7 +617,56 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::vMarkEndSuccessRun",
+            "value" : "@variables('vUpdateDecimalValues'))",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_vMarkEndSuccessRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Update_decimal_values_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMarkEndSuccessRun",
+        "value" : {
+          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Mark_Config_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vMarkEndSuccessRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "@variables('vMarkEndSuccessRun'))",
             "type" : "Expression"
           }
         } ],

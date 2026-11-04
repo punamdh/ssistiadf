@@ -50,7 +50,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "User::StrCallParams",
+            "value" : "@variables('StrCallParams'))",
             "type" : "Expression"
           }
         } ],
@@ -288,11 +288,35 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
+      "name" : "SETVAR_vDeleteCurDay",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vDeleteCurDay",
+        "value" : {
+          "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "ST_Truncate_Destination_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_PREDICATES",
+        "activity" : "SETVAR_vDeleteCurDay",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "SETVAR_IsEnabled",
@@ -324,6 +348,9 @@
       }, {
         "activity" : "SETVAR_SELECTSTMT",
         "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
       "description" : null,
@@ -334,9 +361,9 @@
       },
       "typeProperties" : {
         "scripts" : [ {
-          "type" : "NonQuery",
+          "type" : "Query",
           "text" : {
-            "value" : "User::vDeleteCurDay",
+            "value" : "@variables('vDeleteCurDay'))",
             "type" : "Expression"
           }
         } ],
@@ -359,7 +386,7 @@
       },
       "typeProperties" : {
         "scripts" : [ {
-          "type" : "NonQuery",
+          "type" : "Query",
           "text" : {
             "value" : "SET QUERY_BAND = 'name=DUMPS_MASTER;' FOR SESSION VOLATILE;",
             "type" : "Expression"
@@ -512,9 +539,15 @@
         }
       } ]
     }, {
-      "name" : "ST_Update_decimal_values_0",
-      "type" : "Script",
-      "policy" : null,
+      "name" : "SETVAR_vUpdateDecimalValues",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ {
         "activity" : "CPD_Get_TD_Metadata01",
         "dependencyConditions" : [ "Succeeded" ]
@@ -522,26 +555,19 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
-        "type" : "LinkedServiceReference"
-      },
       "typeProperties" : {
-        "scripts" : [ {
-          "type" : "NonQuery",
-          "text" : {
-            "value" : "User::vUpdateDecimalValues",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
+        "variableName" : "vUpdateDecimalValues",
+        "value" : {
+          "value" : "@concat('update ', variables('StrCallDestTable'), '\" \nset MAX_PERM_SPACE_GB = case when MAX_PERM_SPACE_GB like '%E-%' then cast(MAX_PERM_SPACE_GB as float) else MAX_PERM_SPACE_GB end\n, CURRENT_PERM_SPACE_GB = case when CURRENT_PERM_SPACE_GB like '%E-%' then cast(CURRENT_PERM_SPACE_GB as float) else CURRENT_PERM_SPACE_GB end\n\"')",
+          "type" : "Expression"
+        }
       }
     }, {
-      "name" : "ST_Mark_Config_Table_0",
+      "name" : "ST_Update_decimal_values_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Update_decimal_values_0",
+        "activity" : "SETVAR_vUpdateDecimalValues",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -553,9 +579,58 @@
       },
       "typeProperties" : {
         "scripts" : [ {
-          "type" : "NonQuery",
+          "type" : "Query",
           "text" : {
-            "value" : "User::vMarkEndSuccessRun",
+            "value" : "@variables('vUpdateDecimalValues'))",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_vMarkEndSuccessRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Update_decimal_values_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMarkEndSuccessRun",
+        "value" : {
+          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Mark_Config_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vMarkEndSuccessRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "@variables('vMarkEndSuccessRun'))",
             "type" : "Expression"
           }
         } ],
@@ -563,7 +638,7 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_sandesh/"
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
     },
     "parameters" : { },
     "variables" : {
