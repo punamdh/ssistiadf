@@ -135,6 +135,9 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 // Raw .parent, kept for the replacement-rollup pass below - NOT the same as ownerKey
                 // (which is about nested-flow containment, not "this activity was replaced by that one").
                 parent: component.parent || null,
+                // ADD means a rule synthesized this item (e.g. a SetVariable materialized from a variable);
+                // used by the workaround-nesting pass below to tuck it under its parent's card.
+                modificationStatus: component.modificationStatus || "NONE",
                 messages: convertMessages(component.messages || []),
                 typeProperties: component.typeProperties || [],
                 generatedComponents: [],
@@ -233,6 +236,29 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         if (comp.ownerKey && sourceComponentsMap[comp.ownerKey]) {
             sourceComponentsMap[comp.ownerKey].nestedComponents.push(comp);
         }
+    });
+
+    // Nest rule-ADDed workaround activities (e.g. a SetVariable materialized from a variable, which has
+    // no real SSIS activity behind it) under the parent activity they were derived from/attached to,
+    // instead of letting them render as their own separate top-level parent card. These are real graph
+    // vertices, so they each already got their own source entry above; here we tuck that entry inside
+    // its parent's card by giving it the same ownerKey the nested-flow machinery uses (which also makes
+    // populateComponentDetails' top-level filter drop it from the top level). Skip anything already
+    // nested via a true nested flow, and anything whose parent isn't a real sibling card in this job.
+    Object.values(sourceComponentsMap).forEach((comp) => {
+        if (comp.ownerKey) return;
+        // Scope this strictly to rule-synthesized SetVariable workarounds (modificationStatus ADD +
+        // SetVariable type), NOT every ADD activity - replacement activities (e.g. Script for Execute
+        // SQL) and rule-inserted If-condition wrappers are also ADD, and they are meant to keep their
+        // own top-level card.
+        if (comp.modificationStatus !== "ADD") return;
+        if (String(comp.componentType || "").toUpperCase() !== "SETVARIABLE") return;
+        if (!comp.parent || comp.parent === comp.componentName) return;
+        const parentKey = componentKey(comp.jobName, comp.parent);
+        const parentComp = sourceComponentsMap[parentKey];
+        if (!parentComp || parentComp === comp) return;
+        comp.ownerKey = parentKey;
+        parentComp.nestedComponents.push(comp);
     });
 
     // Give every alias owner of a shared nested subtree (see sigAliasOwners above) the SAME nested
