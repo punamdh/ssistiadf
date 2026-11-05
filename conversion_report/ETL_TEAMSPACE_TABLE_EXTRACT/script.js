@@ -12,6 +12,11 @@ const NO_GENERATED_COMPONENTS = "No Generated Components";
 
 let currentStatusFilter = "All"; // 'All' | 'Error' | 'Warning' | 'Success'
 
+// Percentages always show one decimal place (60 -> 60.0).
+function fmtPct(v) {
+    return Number(v).toFixed(1);
+}
+
 function escapeHtml(str) {
     if (str === undefined || str === null) return '';
     return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -297,7 +302,9 @@ function convertMessages(messages) {
     if (!messages || !Array.isArray(messages) || messages.length === 0) return [];
     const converted = messages.map(msg => ({
         message: msg.message || "No message",
-        messageCategory: convertPriorityToCategory(msg.messageType)
+        // A message flagged unsupported (no target equivalent, e.g. unknown component/task) is
+        // highlighted as an error so the component lands under "Manual Review".
+        messageCategory: msg.unsupported ? "Error" : convertPriorityToCategory(msg.messageType)
     }));
     // Client-side backstop for ConversionStatusHandler.dedupeMessages (the same message text +
     // severity showing up twice on one component) - cheap safety net on top of the server-side fix,
@@ -392,6 +399,9 @@ function mergedTypeProperties(comp) {
 }
 
 function computeOverallSummary(allComponents) {
+    // Counts cover the source ETL components only - rule-added entries (modificationStatus ADD, e.g.
+    // replacement activities) are generated artifacts, not part of the source package.
+    allComponents = allComponents.filter(c => c.modificationStatus !== "ADD");
     const summary = {
         totalComponents: allComponents.length,
         errorComponents: 0, warnComponents: 0, successComponents: 0,
@@ -434,16 +444,22 @@ function computeOverallSummary(allComponents) {
     return summary;
 }
 
+// Weighted conversion summary computed in Java (ConversionPercentageCalculator) from the external weightage config.
+function weightedSummary() {
+    return (typeof jobConversionData !== 'undefined' && jobConversionData && jobConversionData.summary) || null;
+}
+
 function renderStatusBar(summary) {
     const bar = document.getElementById("statusBar");
     if (!bar) return;
     let label, dot, textColor, bg;
     if (summary.errorComponents > 0) { label = "Completed with Errors"; dot = "bg-error"; textColor = "text-error"; bg = "bg-red-50"; }
-    else if (summary.warnComponents > 0) { label = "Completed with Warnings"; dot = "bg-amber-500"; textColor = "text-amber-700"; bg = "bg-amber-50"; }
+    else if (summary.warnComponents > 0) { label = "Completed with Workarounds Applied"; dot = "bg-amber-500"; textColor = "text-amber-700"; bg = "bg-amber-50"; }
     else { label = "Completed Successfully"; dot = "bg-tertiary"; textColor = "text-tertiary"; bg = "bg-emerald-50"; }
-    const successPct = summary.totalComponents ? Math.round((summary.successComponents / summary.totalComponents) * 1000) / 10 : 0;
+    // Warnings mean a workaround was applied (no direct target mapping), so they count as converted.
+    const successPct = weightedSummary() ? weightedSummary().conversionPercentage : (summary.totalComponents ? Math.round(((summary.successComponents + summary.warnComponents) / summary.totalComponents) * 1000) / 10 : 0);
     bar.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-[3px] rounded ${bg} ${textColor} font-mono text-[12px] font-semibold"><span class="w-2 h-2 rounded-full ${dot}"></span>${label}</span>
-        <span class="font-mono text-[12px] text-on-surface-variant">${successPct}% of components clean (no errors/warnings)</span>`;
+        <span class="font-mono text-[12px] text-on-surface-variant">${fmtPct(successPct)}% weighted conversion</span>`;
 }
 
 function kpiCard(label, value, sub, extraHtml) {
@@ -460,21 +476,33 @@ function renderKpiCards(summary) {
     if (!container) return;
     container.innerHTML = '';
 
-    const successPct = summary.totalComponents ? Math.round((summary.successComponents / summary.totalComponents) * 1000) / 10 : 0;
+    // Warnings mean a workaround was applied (no direct target mapping), so they count as converted.
+    const successPct = summary.totalComponents ? Math.round(((summary.successComponents + summary.warnComponents) / summary.totalComponents) * 1000) / 10 : 0;
     const propsPct = summary.propsTotal ? Math.round((summary.propsMapped / summary.propsTotal) * 1000) / 10 : null;
     const totalMsgs = summary.totalMessages.error + summary.totalMessages.warn + summary.totalMessages.info + summary.totalMessages.success;
 
-    container.appendChild(kpiCard("Total Components", summary.totalComponents, "Converted",
-        `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Success: <strong class="text-tertiary">${summary.successComponents}</strong></span><span>Warnings: <strong class="text-amber-600">${summary.warnComponents}</strong></span><span>Errors: <strong class="text-error">${summary.errorComponents}</strong></span></div>`));
+    const ws = weightedSummary();
+    if (ws) {
+        container.appendChild(kpiCard("Conversion Percentage", fmtPct(ws.conversionPercentage) + "%", "",
+            `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Converted: <strong class="text-tertiary">${ws.convertedCount}</strong></span><span>Partial: <strong class="text-amber-600">${ws.partialCount}</strong></span><span>Unsupported: <strong class="text-error">${ws.unsupportedCount}</strong></span></div>`));
+    }
 
-    container.appendChild(kpiCard("Component Success Rate", successPct + "%", "No warnings/errors",
+    container.appendChild(kpiCard("Total Components", summary.totalComponents, "Converted",
+        `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Success: <strong class="text-tertiary">${summary.successComponents}</strong></span><span>Workarounds: <strong class="text-amber-600">${summary.warnComponents}</strong></span><span>Errors: <strong class="text-error">${summary.errorComponents}</strong></span></div>`));
+
+    if (ws && ws.dataFlowPercentage !== null && ws.dataFlowPercentage !== undefined) {
+        container.appendChild(kpiCard("Data Flow Conversion", fmtPct(ws.dataFlowPercentage) + "%", "",
+            `<div class="text-[12px] text-on-surface-variant">Based on ${ws.dataFlowSourceCount} data flow component(s).</div>`));
+    }
+
+    container.appendChild(kpiCard("Component Success Rate", fmtPct(successPct) + "%", "No errors",
         `<div class="text-[12px] text-on-surface-variant">Based on ${summary.totalComponents} converted component(s).</div>`));
 
-    container.appendChild(kpiCard("Message Diagnostics", totalMsgs, "Messages Logged",
-        `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${summary.totalMessages.error} Errors</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${summary.totalMessages.warn} Warnings</span><span class="px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant">${summary.totalMessages.info} Info</span></div>`));
+    container.appendChild(kpiCard("Message Diagnostics", totalMsgs, "Messages",
+        `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${summary.totalMessages.error} Errors</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${summary.totalMessages.warn} Workarounds</span><span class="px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant">${summary.totalMessages.info} Info</span></div>`));
 
     container.appendChild(kpiCard("Properties Compared", summary.propsTotal ? (summary.propsMapped + "/" + summary.propsTotal) : "—",
-        propsPct !== null ? propsPct + "% Mapped" : "Not tracked for these component types",
+        propsPct !== null ? fmtPct(propsPct) + "% Mapped" : "Not tracked for these component types",
         `<div class="text-[12px] text-on-surface-variant">Adopted vs. generated property values, where tracked.</div>`));
 }
 
@@ -485,7 +513,7 @@ function renderStatusChips(summary) {
     const chips = [
         { key: "All", label: "All", count: summary.totalComponents, dot: "bg-outline" },
         { key: "Error", label: "Manual Review", count: summary.errorComponents, dot: "bg-error" },
-        { key: "Warning", label: "Warnings", count: summary.warnComponents, dot: "bg-amber-500" },
+        { key: "Warning", label: "Workarounds Applied", count: summary.warnComponents, dot: "bg-amber-500" },
         { key: "Success", label: "Success", count: summary.successComponents, dot: "bg-tertiary" }
     ];
     chips.forEach(chip => {
@@ -569,7 +597,7 @@ function statusPill(counts) {
         label = `Manual Review (${counts.errorMessages} Error${counts.errorMessages > 1 ? 's' : ''})`;
         cls = "bg-red-50 text-error";
     } else if (counts.warnMessages > 0) {
-        label = `Converted with Warnings (${counts.warnMessages})`;
+        label = `Converted with Workarounds (${counts.warnMessages})`;
         cls = "bg-amber-50 text-amber-700";
     } else {
         label = "Converted Successfully";
@@ -588,7 +616,7 @@ function createMsgBadge(count, msgType) {
     };
     span.className = `px-1.5 py-[1px] rounded font-mono text-[10px] font-semibold ${styles[msgType] || ''} ${count === 0 ? 'opacity-40' : ''}`;
     span.textContent = count;
-    span.title = msgType + " messages";
+    span.title = (msgType === "warn" ? "workaround" : msgType) + " messages";
     return span;
 }
 
@@ -609,7 +637,7 @@ function appendMessageList(messages, container) {
     }
     const styleFor = {
         Error: ["error", "bg-red-50 text-red-900"],
-        Warning: ["warning", "bg-amber-50 text-amber-900"],
+        Warning: ["build_circle", "bg-amber-50 text-amber-900"],
         Success: ["check_circle", "bg-emerald-50 text-emerald-900"],
         Info: ["info", "bg-surface-container text-on-surface-variant"]
     };
