@@ -4,6 +4,27 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+      "name" : "SETVAR_StrCallParams",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrCallParams",
+        "value" : {
+          "value" : "@concat('\"SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM \"', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]', ' WHERE   ETL_ID = ', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -36,6 +57,9 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
+        "activity" : "SETVAR_StrCallParams",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],

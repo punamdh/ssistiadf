@@ -4,10 +4,34 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
+      "name" : "SETVAR_StrCallPowerAppLink",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrCallPowerAppLink",
+        "value" : {
+          "value" : "config.USP_DisplayPowerAppLink",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "ST_Obtain_Environment_Power_App_Link_0",
       "type" : "Script",
       "policy" : null,
-      "dependsOn" : [ ],
+      "dependsOn" : [ {
+        "activity" : "SETVAR_StrCallPowerAppLink",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
@@ -736,10 +760,34 @@
           "type" : "Expression"
         },
         "activities" : [ {
+          "name" : "SETVAR_StrGrabDynamicCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamicCount",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Check_if_Greater_than_15_SBX_0",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -779,10 +827,37 @@
             "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
           }
         }, {
+          "name" : "SETVAR_StrGrabSBXList",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabSBXList",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_list_if_needed_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabSBXList",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_SBX_User_Count_Text",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
@@ -825,10 +900,37 @@
             "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed_0').output.resultSets[0].rows[0].DynamicSection)"
           }
         }, {
+          "name" : "SETVAR_StrGrabDynamic2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic2",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_list_Check_P2_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_DynamicSection",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
@@ -871,10 +973,37 @@
             "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P2_0').output.resultSets[0].rows[0].DynamicSection2)"
           }
         }, {
+          "name" : "SETVAR_StrGrabDynamic3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic3",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_Check_p3_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_DynamicSection2",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
@@ -1071,10 +1200,34 @@
           "type" : "Expression"
         },
         "activities" : [ {
+          "name" : "SETVAR_StrGrabDynamicCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamicCount",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Check_if_Greater_than_15_SBX0_0",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -1114,10 +1267,37 @@
             "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX0_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
           }
         }, {
+          "name" : "SETVAR_StrGrabSBXList",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabSBXList",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_list_if_needed0_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabSBXList",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_SBX_User_Count_Text",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
@@ -1160,10 +1340,37 @@
             "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed0_0').output.resultSets[0].rows[0].DynamicSection)"
           }
         }, {
+          "name" : "SETVAR_StrGrabDynamic2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic2",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_list_Check_P20_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_DynamicSection",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
@@ -1206,10 +1413,37 @@
             "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P20_0').output.resultSets[0].rows[0].DynamicSection2)"
           }
         }, {
+          "name" : "SETVAR_StrGrabDynamic3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic3",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Obtain_Dynamic_Check_p30_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
             "activity" : "SETVAR_DynamicSection2",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
