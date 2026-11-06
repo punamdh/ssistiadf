@@ -1,0 +1,29 @@
+{
+  "name" : "get_metadata_4",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDestDBNAME as string (),\n\tDestSCHEMANAME as string (),\n\tDestTABLENAME as string (),\n\tStrCallDestTable as string (),\n\tStrDestSCHEMANAME as string (),\n\tStrDestTABLENAME as string ()\n}\n\nsource(output(\n\t\tLAST_DCL_DT as timestamp,\n\t\tTABLENAME as string,\n\t\tRPT_DT as timestamp,\n\t\tLAST_DQL_DT as timestamp,\n\t\tLAST_DML_DT as timestamp,\n\t\tCURRENT_PERM_MB as integer,\n\t\tENVRN_TXT as string,\n\t\tCREATE_DT as timestamp,\n\t\tCREATOR_EMAIL_ADDR as string,\n\t\tLAST_DDL_DT as timestamp,\n\t\tDATABASENAME as string,\n\t\tLAST_ALTER_DT as timestamp,\n\t\tROW_CT as integer,\n\t\tLAST_OTHER_SQL_DT as timestamp,\n\t\tCREATOR_FULL_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tquery: 'with sb as (   select o.*, dense_rank () over (order by RPT_DT desc) rn   from AWB_SCHEMA.\"OBJECT_FEED\" o ) select ENVRN_TXT   , DATABASENAME   , TABLENAME   , CREATOR_NAME   , CREATOR_EMP_ID   , CREATOR_FULL_NAME   , CREATOR_EMAIL_ADDR   , CREATE_DT   , LAST_ALTER_DT   , LAST_DCL_DT   , LAST_DDL_DT   , LAST_DML_DT   , LAST_DQL_DT   , LAST_OTHER_SQL_DT   , CURRENT_PERM_MB   , ROW_CT   , RPT_DT from sb where rn <= 3',\n\tformat: 'query',\n\tstaged:false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tLAST_DCL_DT as string,\n\t\tTABLENAME as string,\n\t\tRPT_DT as string,\n\t\tLAST_DQL_DT as string,\n\t\tLAST_DML_DT as string,\n\t\tCURRENT_PERM_MB as string,\n\t\tENVRN_TXT as string,\n\t\tCREATE_DT as string,\n\t\tCREATOR_EMAIL_ADDR as string,\n\t\tLAST_DDL_DT as string,\n\t\tDATABASENAME as string,\n\t\tLAST_ALTER_DT as string,\n\t\tROW_CT as string,\n\t\tLAST_OTHER_SQL_DT as string,\n\t\tCREATOR_FULL_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tstagingSchemaName: 'dbo',\n\tsaveOrder: 10000,\n\tinsertable:true,\n\tdeletable:false,\n\tupsertable:false,\n\tupdateable:false,\n\tkeys:[],\n\tmapColumn(\n\t\tLAST_DCL_DT,\n\t\tTABLENAME,\n\t\tRPT_DT,\n\t\tLAST_DQL_DT,\n\t\tLAST_DML_DT,\n\t\tCURRENT_PERM_MB,\n\t\tENVRN_TXT,\n\t\tCREATE_DT,\n\t\tCREATOR_EMAIL_ADDR,\n\t\tLAST_DDL_DT,\n\t\tDATABASENAME,\n\t\tLAST_ALTER_DT,\n\t\tROW_CT,\n\t\tLAST_OTHER_SQL_DT,\n\t\tCREATOR_FULL_NAME)) ~> OLEDBDestination"
+    }
+  }
+}
