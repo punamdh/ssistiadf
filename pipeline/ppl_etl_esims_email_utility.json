@@ -1,0 +1,1809 @@
+{
+  "name" : "ppl_etl_esims_email_utility",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SETVAR_StrCallPowerAppLink",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrCallPowerAppLink",
+        "value" : {
+          "value" : "config.USP_DisplayPowerAppLink",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Obtain_Environment_Power_App_Link_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_StrCallPowerAppLink",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "@variables('StrCallPowerAppLink'))",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_vPowerAppsLink",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Environment_Power_App_Link_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vPowerAppsLink",
+        "value" : "@string(activity('ST_Obtain_Environment_Power_App_Link_0').output.resultSets[0].rows[0].vPowerAppsLink)"
+      }
+    }, {
+      "name" : "ST_Compile_Recipients_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vPowerAppsLink",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "exec sbx.usp_recipientListCompiler",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "LKP_Obtain_Activity_Number_of_Emails_to_Send_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Compile_Recipients_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "select distinct CNTCT_FULL_NAME\n , isnull(CNTCT_EMAIL_ADDR,'esimsapptechteam@wellsfargo.com')CNTCT_EMAIL_ADDR\n , AsOfDate\n , EmailTitle\n , HeaderSection\n , SubHeaderSection\n , DynamicSection\n , Body1Section\n , Body2Section\n , Footer2Section\n , template_ID\n , RecipientList\n , notification_date\n ,SANDBOX_ID\n ,SANDBOX_NAME\n ,PLTFM_TXT\n ,ENVRN_TXT\n ,activity\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 7\nand isnull(RecipientList, '') <> ''",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        }
+      }
+    }, {
+      "name" : "LKP_Obtain_Emails_to_send_Universal_Intake_Emails_",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Compile_Recipients_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "select distinct CNTCT_FULL_NAME\n\n, isnull(CNTCT_EMAIL_ADDR,'esimsapptechteam@wellsfargo.com')CNTCT_EMAIL_ADDR\n\n, AsOfDate\n\n, EmailTitle\n\n, HeaderSection\n\n, SubHeaderSection\n\n, DynamicSection\n\n, Body1Section\n\n, Body2Section\n\n, Footer2Section\n\n, template_ID\n\n, RecipientList\n\n, notification_date\n\n,SANDBOX_ID\n\n,SANDBOX_NAME\n\n,PLTFM_TXT\n\n,ENVRN_TXT\n\n,activity\n\n,UIRequest\n\n,UIRejectionReason\n\n,UIOwner\n\n,UISubmittedBy\n\n,UISubmittedDate\n\n,UINeedDescription\n\n,UIPowerAppsLink\n\n,UIServerName\n\n,UIActualSandboxName\n\n,UIEntitlement_1\n\n,UIEntitlement_2\n\n,UIRequestID\nfrom sbx.vw_NotificationsInQueue\n\nwhere template_ID IN (8,9,10,11,12,13,14) \n\nand isnull(RecipientList, '') <> ''",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        }
+      }
+    }, {
+      "name" : "LKP_Obtain_Number_of_Emails_to_Send_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Compile_Recipients_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "select distinct CNTCT_FULL_NAME\n\t, isnull(CNTCT_EMAIL_ADDR,'esimsapptechteam@wellsfargo.com')CNTCT_EMAIL_ADDR\n\t, AsOfDate\n\t, EmailTitle\n\t, HeaderSection\n\t, SubHeaderSection\n\t, DynamicSection\n\t, Body1Section\n\t, Body2Section\n\t, Footer2Section\n\t, BDL_Name\n\t, BDL_Email\n\t, MGR_Name\n\t, MGR_Email\n\t, template_ID\n\t, RecipientList\n\t, notification_date\n\t, obligee_employee_id\n\t,SANDBOX_ID\n\t,SANDBOX_NAME\n\t,PLTFM_TXT\n\t,ENVRN_TXT\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID between 2 and 5\nand isnull(RecipientList, '') <> ''",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "Generic_OLEDB_DS_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        }
+      }
+    }, {
+      "name" : "ST_Get_Reminder_Day_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Compile_Recipients_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select case when isnull(SELECTSTMT, '') = datename(weekday, getdate()) then cast(1 as bit) else cast(0 as bit) end as ReminderDay\nfrom config.tbl_ETL_Config\nwhere ETL_ID = 26",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Validate_RC_for_Annual_List_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Compile_Recipients_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureSqlDatabase1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select count(*) as RC_ANNUAL\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Activity_Items_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Obtain_Activity_Number_of_Emails_to_Send_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('TemplateID'),'7')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FRE_Activity_Items_0",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('LKP_Obtain_Activity_Number_of_Emails_to_Send_0').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Send_Email",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Send_Email",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "SETVAR_StrUpdateActivityNotificationSent",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Send_Email",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "StrUpdateActivityNotificationSent",
+                "value" : {
+                  "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', variables('TemplateID'))",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "ST_Update_Case_Table_0",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SETVAR_StrUpdateActivityNotificationSent",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "NonQuery",
+                  "text" : {
+                    "value" : "@variables('StrUpdateActivityNotificationSent'))",
+                    "type" : "Expression"
+                  }
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "FRE_Activity_Items_1_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Obtain_Emails_to_send_Universal_Intake_Emails_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Emails_to_send_Universal_Intake_Emails_').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "Send_Email0",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email0",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateActivityNotificationSent",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrUpdateActivityNotificationSent",
+            "value" : {
+              "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Update_NotificationTable_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateActivityNotificationSent",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateActivityNotificationSent'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Non_Annual_Attestion_Items_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Obtain_Number_of_Emails_to_Send_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@or(or(or(equals(variables('TemplateID'),'2'), equals(variables('TemplateID'),'3')), equals(variables('TemplateID'),'4')), equals(variables('TemplateID'),'5'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "FRE_Non_Annual_Attestion_Items_0",
+          "type" : "ForEach",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('LKP_Obtain_Number_of_Emails_to_Send_0').output.value",
+              "type" : "Expression"
+            },
+            "activities" : [ {
+              "name" : "Send_Email3",
+              "type" : "AzureFunctionActivity",
+              "policy" : {
+                "timeout" : "0.12:00:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 30,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ ],
+              "state" : null,
+              "description" : "Script Task",
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureFunction1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "functionName" : {
+                  "value" : "Send_Email3",
+                  "type" : "Expression"
+                },
+                "method" : "POST",
+                "headers" : { }
+              }
+            }, {
+              "name" : "SETVAR_StrUpdateNotificationSent",
+              "type" : "SetVariable",
+              "policy" : {
+                "timeout" : "00:30:00",
+                "retry" : 0,
+                "retryIntervalInSeconds" : 0,
+                "secureOutput" : false,
+                "secureInput" : false
+              },
+              "dependsOn" : [ {
+                "activity" : "Send_Email3",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "typeProperties" : {
+                "variableName" : "StrUpdateNotificationSent",
+                "value" : {
+                  "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
+                  "type" : "Expression"
+                }
+              }
+            }, {
+              "name" : "ST_Update_Case_Table2_0",
+              "type" : "Script",
+              "policy" : null,
+              "dependsOn" : [ {
+                "activity" : "SETVAR_StrUpdateNotificationSent",
+                "dependencyConditions" : [ "Succeeded" ]
+              } ],
+              "state" : null,
+              "description" : null,
+              "onInactiveMarkAs" : null,
+              "linkedServiceName" : {
+                "referenceName" : "AzureSqlDatabase1",
+                "type" : "LinkedServiceReference"
+              },
+              "typeProperties" : {
+                "scripts" : [ {
+                  "type" : "NonQuery",
+                  "text" : {
+                    "value" : "@variables('StrUpdateNotificationSent'))",
+                    "type" : "Expression"
+                  }
+                } ],
+                "scriptBlockExecutionTimeout" : null
+              }
+            } ],
+            "isSequential" : true
+          }
+        } ]
+      }
+    }, {
+      "name" : "SETVAR_vReminderCheck",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Reminder_Day_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vReminderCheck",
+        "value" : "@bool(activity('ST_Get_Reminder_Day_0').output.resultSets[0].rows[0].ReminderDay)"
+      }
+    }, {
+      "name" : "SETVAR_RC_Annual",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Validate_RC_for_Annual_List_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RC_Annual",
+        "value" : "@string(activity('ST_Validate_RC_for_Annual_List_0').output.resultSets[0].rows[0].RC_ANNUAL)"
+      }
+    }, {
+      "name" : "Validate_RC_for_Reminder_List_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vReminderCheck",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('vReminderCheck'),true)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Validate_RC_for_Reminder_List_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "select count(*) as RC_REMINDER\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 6\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Obtain_Annual_List_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_RC_Annual",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('RC_Annual'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "LKP_Obtain_Annual_List_0",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "/*select*\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\n*/\nselect distinct CNTCT_FULL_NAME\n\t, CNTCT_EMAIL_ADDR\n\t, AsOfDate\n\t, EmailTitle\n\t, HeaderSection\n\t, SubHeaderSection\n\t, DynamicSection\n\t, Body1Section\n\t, Body2Section\n\t, Footer2Section\n\t, BDL_Name\n\t, BDL_Email\n\t, MGR_Name\n\t, MGR_Email\n\t, template_ID\n\t, RecipientList\n\t, notification_date\n\t, obligee_employee_id\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\nand isnull(RecipientList, '') <> ''",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "SETVAR_RC_Reminder",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Validate_RC_for_Reminder_List_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RC_Reminder",
+        "value" : "@string(activity('ST_Validate_RC_for_Reminder_List_0').output.resultSets[0].rows[0].RC_REMINDER)"
+      }
+    }, {
+      "name" : "FRE_Annual_Attestation_Emailer_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Obtain_Annual_List_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Annual_List_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_StrGrabDynamicCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamicCount",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Check_if_Greater_than_15_SBX_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamicCount'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_SBX_User_Count_Text",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "SBX_User_Count_Text",
+            "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabSBXList",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabSBXList",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_if_needed_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabSBXList",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SBX_User_Count_Text",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabSBXList'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic2",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_Check_P2_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic2'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection2",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P2_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic3",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_Check_p3_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic3'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_Check_p3_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection3",
+            "value" : "@string(activity('ST_Obtain_Dynamic_Check_p3_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "Send_Email1",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_DynamicSection3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email1",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateNotificationSent",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrUpdateNotificationSent",
+            "value" : {
+              "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateNotificationSent",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateNotificationSent'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Obtain_Reminder_List_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_RC_Reminder",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('RC_Reminder'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "LKP_Obtain_Reminder_List_0",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "/*select*\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\n*/\nselect distinct CNTCT_FULL_NAME\n , CNTCT_EMAIL_ADDR\n , AsOfDate\n , EmailTitle\n , HeaderSection\n , SubHeaderSection\n , DynamicSection\n , Body1Section\n , Body2Section\n , Footer2Section\n , BDL_Name\n , BDL_Email\n , MGR_Name\n , MGR_Email\n , template_ID\n , RecipientList\n-- , notification_date\n , obligee_employee_id\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 6\nand isnull(RecipientList, '') <> ''",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "Generic_OLEDB_DS_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "FRE_Attestation_Reminder_Emailer_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Obtain_Reminder_List_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Reminder_List_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_StrGrabDynamicCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamicCount",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Check_if_Greater_than_15_SBX0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamicCount'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_SBX_User_Count_Text",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "SBX_User_Count_Text",
+            "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX0_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabSBXList",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabSBXList",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_if_needed0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabSBXList",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SBX_User_Count_Text",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabSBXList'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed0_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic2",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_Check_P20_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic2'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection2",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P20_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic3",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_Check_p30_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic3'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_Check_p30_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection3",
+            "value" : "@string(activity('ST_Obtain_Dynamic_Check_p30_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "Send_Email2",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_DynamicSection3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email2",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateNotificationSent",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrUpdateNotificationSent",
+            "value" : {
+              "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table1_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateNotificationSent",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureSqlDatabase1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateNotificationSent'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+    },
+    "parameters" : { },
+    "variables" : {
+      "StrUpdateNotificationSent" : {
+        "type" : "string",
+        "defaultValue" : "update nq\\n\tset nq.IsSent = 1\\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\\n\tfrom sbx.tbl_Notifications_Queue nq\\n\tinner join sbx.vw_NotificationsInQueue vnq\\n\t\ton vnq.notification_ID = nq.Notification_ID\\nwhere vnq.obligee_employee_id = \\n and EmailTemplateID ="
+      },
+      "vEmailTo" : {
+        "type" : "string"
+      },
+      "vReminderCheck" : {
+        "type" : "Boolean",
+        "defaultValue" : "true()"
+      },
+      "StrSandboxID" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "SBX_User_Count_Text" : {
+        "type" : "string"
+      },
+      "UI_SubmittedDate" : {
+        "type" : "string"
+      },
+      "StrGrabDynamic3" : {
+        "type" : "string",
+        "defaultValue" : "exec config.usp_PullDynamicEmailAttributes ,3,"
+      },
+      "StrGrabDynamic2" : {
+        "type" : "string",
+        "defaultValue" : "exec config.usp_PullDynamicEmailAttributes ,2,"
+      },
+      "vEmailSMTPServer" : {
+        "type" : "string",
+        "defaultValue" : "mxtest.wellsfargo.com"
+      },
+      "BodySection2" : {
+        "type" : "string",
+        "defaultValue" : "<tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Escalation consequences</h2>                                    </td>                                  </tr>                                  <tr>                                    <td style=\\\"padding: 0px 0px 10px 0px;\\\">                                      <font>Failure to complete the action above could result in the following:</font>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>30 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Escalation notice to manager and BDL</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>60 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox access suspended</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>90 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox removed</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 4-->                          <!--Title 5-->                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Resources</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Contact: </b>                                                <a href=\\\"mailto:EnterpriseSandboxDataGovernance@wellsfargo.com?subject=Attestation Question\\\">EnterpriseSandboxDataGovernance@wellsfargo.com</a>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>                                                <b>Resources:</b>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                                              <ul style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                                <li>                                                  <a href=\\\"https://wellsfargo.sharepoint.com/:u:/r/sites/0303-7/SitePages/Home.aspx?csf=1&web=1&e=FwUPoe\\\">ESDG SharePoint Online</a>                                                </li>                                                <li>                                                  <a href=\\\"https://policy.wellsfargo.com/CorporatePolicy/Detail/9870\\\">Data Management Policy</a>                                                </li>                                              </ul>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>Thank you,</font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>—Enterprise Sandbox Data Governance</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <!--End of Title 5-->                        </table>                      </td>                    </tr>                    <!-- BODY : END -->"
+      },
+      "MGR_Email" : {
+        "type" : "string"
+      },
+      "BodySection1" : {
+        "type" : "string",
+        "defaultValue" : "<td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <h1></h1>                              <!-- Escalation Type -->                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-size: 14px; line-height: 24px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font> [@ReplaceOwnerName@] ,</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font>You have been identified as the owner of the following workspace(s).</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" width=\\\"100%\\\" style=\\\"padding: 0px 1px 1px 1px; text-align: left; border: none; border-collapse: collapse;\\\">                            <tbody>                              <tr bgcolor=\\\"#5A469B\\\" style=\\\"padding-left: 14px;  color: white;\\\">                                <td>ID</td>                                <td>Sandbox Name</td>                                <td>Platform</td>           <td>Environment</td>                              </tr>                              <tr style=\\\"padding-left: 4px; border-bottom: 1px solid #b5adad;\\\">                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_ID --> [@ReplaceSandboxID@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_NAME --> [@ReplaceSandboxName@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- PLATFORM --> [@ReplacePlatFormName@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- ENVIRONMENT --> [@ReplaceEnvironmentName@]                                </td>                                       </tr>                            </tbody>                          </table>                          <!--Title 2-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Background</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">              <!--Body2-->                                              <font> As part of our annual sandbox risk-based assessment, all sandbox owners are required to complete the 2024 Enterprise Sandbox Data Governance (ESDG) Sandbox Review and Attestation. Your response is critical to support Enterprise Sandbox Data Governance (ESDG) risk mitigation efforts and 100% completion is expected. </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 2-->                          <!--Title 3-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Action</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Complete your annual attestation: </b>                                                <a href=\\\"https://hop.cfapps.wellsfargo.net/esdg_sbxatt_2024\\\">2024 ESDG Sandbox Review & Attestation</a>                                              </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 3-->                          <!--Title 4-->"
+      },
+      "StrEnvironmentName" : {
+        "type" : "string"
+      },
+      "UI_ServerName" : {
+        "type" : "string"
+      },
+      "ObjReminder" : {
+        "type" : "string"
+      },
+      "UI_PowerAppsLink" : {
+        "type" : "string"
+      },
+      "DynamicSection" : {
+        "type" : "string"
+      },
+      "StrAsOfDate" : {
+        "type" : "string"
+      },
+      "vEmailSubjectWENV" : {
+        "type" : "string",
+        "defaultValue" : "***NON PROD NOTIFICATION - IGNORE*** ESIMS - ENTERPRISE SANDBOX REMEDIATION SERVICES"
+      },
+      "DynamicSection2" : {
+        "type" : "string"
+      },
+      "DynamicSection3" : {
+        "type" : "string"
+      },
+      "ObjNonAnnual" : {
+        "type" : "string"
+      },
+      "vPowerAppsLink" : {
+        "type" : "string"
+      },
+      "ObjActivity" : {
+        "type" : "string"
+      },
+      "UI_NeedDescription" : {
+        "type" : "string"
+      },
+      "SBX_User_Count" : {
+        "type" : "string"
+      },
+      "FooterSection1" : {
+        "type" : "string",
+        "defaultValue" : "<!-- FOOTER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#F4F0ED\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; font-size: 12px; line-height: 18px; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td style=\\\"padding: 40px 40px 20px 40px; text-align: left;\\\">                              <font>                                <a href=\\\"#\\\" target=\\\"_blank\\\" style=\\\"color: #3b3331; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">View this email online </a>                              </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <font> This message may contain confidential and/or privileged information. If you are not the addressee or authorized to receive this for the addressee, you must not use, copy, disclose, or take any action based on this message or any information herein. If you have received this message in error, please advise the sender immediately by reply email and delete this message. Thank you for your cooperation. </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 40px 40px; text-align: left;\\\">                              <font>&copy; 2024 Wells&nbsp;Fargo Bank, N.A. Not intended for public distribution. For internal use only.</font>                            </td>                          </tr>                        </table>                      </td>            </td>          </tr>          <!-- FOOTER : END -->        </table>        <!-- Email Body : END -->      </div>      </center>      </td>      </tr>      </table>      </div>    </body>  </html>"
+      },
+      "BDL_Email" : {
+        "type" : "string"
+      },
+      "RC_Reminder" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "UI_Owner" : {
+        "type" : "string"
+      },
+      "StrCallPowerAppLink" : {
+        "type" : "string",
+        "defaultValue" : "config.USP_DisplayPowerAppLink"
+      },
+      "vEmailFrom" : {
+        "type" : "string",
+        "defaultValue" : "ESIMSProductSupport@wellsfargo.com"
+      },
+      "UI_Request" : {
+        "type" : "string"
+      },
+      "RC_Annual" : {
+        "type" : "string",
+        "defaultValue" : "0"
+      },
+      "TemplateID" : {
+        "type" : "string"
+      },
+      "activity" : {
+        "type" : "string"
+      },
+      "notification_date" : {
+        "type" : "string"
+      },
+      "ObjAnnual" : {
+        "type" : "string"
+      },
+      "BDL_Name" : {
+        "type" : "string"
+      },
+      "UI_RejectionReason" : {
+        "type" : "string"
+      },
+      "vEmailCC" : {
+        "type" : "string",
+        "defaultValue" : "justin.mitchell@wellsfargo.com"
+      },
+      "vEmailFormate" : {
+        "type" : "string",
+        "defaultValue" : "<html>    <body style=\\\"background-color: #f9f7f6;\\\">      <div style=\\\"background-color: #f9f7f6; width: 100%;\\\">        <table bgcolor=\\\"#f9f7f6\\\" link=\\\"#5A469B\\\" alink=\\\"#5A469B\\\" vlink=\\\"#5A469B\\\" border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" width=\\\"100%\\\" style=\\\"margin: 0; mso-line-height-rule: exactly; border-collapse: collapse; width: 100%;\\\">          <tr>            <td width=\\\"100%\\\">              <center style=\\\"width: 100%; background: #f9f7f6; text-align: left;\\\">                <div style=\\\"max-width: 672px; margin: auto;\\\">                  <!--[if mso]>          <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"672\\\" align=\\\"center\\\">           <tr>            <td>             <![endif]-->                  <!-- Email Body : BEGIN -->                  <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"center\\\" width=\\\"100%\\\" style=\\\"max-width: 672px;\\\">                    <!-- PRE-HEADER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#f9f7f6\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-size: 12px; line-height: 17px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td style=\\\"padding-top: 10px; padding-bottom: 10px; text-align: left;\\\" align=\\\"left\\\">                              <font>Distributed to Sandbox 0wners</font>                            </td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- PRE-HEADER : END -->                    <!-- MASTHEAD : BEGIN -->                    <tr>                      <td bgcolor=\\\"#D71E28\\\" style=\\\"border-bottom-color: #ffcd41; border-bottom-style: solid; border-bottom-width: 4px;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td height=\\\"41\\\" valign=\\\"middle\\\" ; style=\\\"font-size: 24px; font-weight: 600; color: white; font-family: Wells Fargo Serif;\\\">WELLS FARGO</td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- MASTHEAD : END -->                    <!-- DATE : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; margin: 0; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px;\\\">                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px;text-align:right;\\\">  </td>                          <tr>                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px; text-align: right;\\\">                              <font></font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- DATE : END -->                    <!-- BARKER : BEGIN -->                    <tr bgcolor=\\\"#ffffff\\\">                      <td align=\\\"left\\\" valign=\\\"middle\\\" style=\\\"text-align: left;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"left\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; line-height: normal; color: #3b3331; margin-left: 0;\\\">                          <tr></tr>                          <tr>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: right;\\\"></td>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: left;\\\">                              <font>                                <b>Data Management & Insights</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER : END -->                    <!-- BARKER 2 : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 21px; color: #141414; font-weight: bold;\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0 40px; text-align: left;\\\">                              <font>                                <b>Enterprise Data Governance & Remediation</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER 2 : END -->                    <!-- BODY : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0px 40px; text-align: left;\\\">                              <h1>Complete 2025 Sandbox Review & Attestation</h1>                            </td>                          </tr>                          <tr><td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <h1></h1>                              <!-- Escalation Type -->                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-size: 14px; line-height: 24px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font> SbxOwnerFullname ,</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font>You have been identified as the owner of the following workspace(s).</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" width=\\\"100%\\\" style=\\\"padding: 0px 1px 1px 1px; text-align: left; border: none; border-collapse: collapse;\\\">                            <tbody>                              <tr bgcolor=\\\"#5A469B\\\" style=\\\"padding-left: 14px;  color: white;\\\">                                <td>ID</td>                                <td>Sandbox Name</td>                                <td>Platform</td>           <td>Environment</td>                              </tr>                              <tr style=\\\"padding-left: 4px; border-bottom: 1px solid #b5adad;\\\">                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_ID --> 0                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_NAME --> SbxName                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- PLATFORM -->                                 </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- ENVIRONMENT -->                                 </td>                                       </tr>                            </tbody>                          </table>                          <!--Title 2-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Background</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">              <!--Body2-->                                              <font> As part of our annual sandbox risk-based assessment, all sandbox owners are required to complete the 2024 Enterprise Sandbox Data Governance (ESDG) Sandbox Review and Attestation. Your response is critical to support Enterprise Sandbox Data Governance (ESDG) risk mitigation efforts and 100% completion is expected. </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 2-->                          <!--Title 3-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Action</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Complete your annual attestation: </b>                                                <a href=\\\"https://hop.cfapps.wellsfargo.net/esdg_sbxatt_2024\\\">2024 ESDG Sandbox Review & Attestation</a>                                              </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 3-->                          <!--Title 4--><tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Escalation consequences</h2>                                    </td>                                  </tr>                                  <tr>                                    <td style=\\\"padding: 0px 0px 10px 0px;\\\">                                      <font>Failure to complete the action above could result in the following:</font>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>30 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Escalation notice to manager and BDL</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>60 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox access suspended</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>90 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox removed</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 4-->                          <!--Title 5-->                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Resources</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Contact: </b>                                                <a href=\\\"mailto:EnterpriseSandboxDataGovernance@wellsfargo.com?subject=Attestation Question\\\">EnterpriseSandboxDataGovernance@wellsfargo.com</a>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>                                                <b>Resources:</b>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                                              <ul style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                                <li>                                                  <a href=\\\"https://wellsfargo.sharepoint.com/:u:/r/sites/0303-7/SitePages/Home.aspx?csf=1&web=1&e=FwUPoe\\\">ESDG SharePoint Online</a>                                                </li>                                                <li>                                                  <a href=\\\"https://policy.wellsfargo.com/CorporatePolicy/Detail/9870\\\">Data Management Policy</a>                                                </li>                                              </ul>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>Thank you,</font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>—Enterprise Sandbox Data Governance</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <!--End of Title 5-->                        </table>                      </td>                    </tr>                    <!-- BODY : END --><!-- FOOTER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#F4F0ED\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; font-size: 12px; line-height: 18px; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td style=\\\"padding: 40px 40px 20px 40px; text-align: left;\\\">                              <font>                                <a href=\\\"#\\\" target=\\\"_blank\\\" style=\\\"color: #3b3331; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">View this email online </a>                              </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <font> This message may contain confidential and/or privileged information. If you are not the addressee or authorized to receive this for the addressee, you must not use, copy, disclose, or take any action based on this message or any information herein. If you have received this message in error, please advise the sender immediately by reply email and delete this message. Thank you for your cooperation. </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 40px 40px; text-align: left;\\\">                              <font>&copy; 2024 Wells&nbsp;Fargo Bank, N.A. Not intended for public distribution. For internal use only.</font>                            </td>                          </tr>                        </table>                      </td>            </td>          </tr>          <!-- FOOTER : END -->        </table>        <!-- Email Body : END -->      </div>      </center>      </td>      </tr>      </table>      </div>    </body>  </html>"
+      },
+      "RecipientList" : {
+        "type" : "string"
+      },
+      "HeaderSection" : {
+        "type" : "string",
+        "defaultValue" : "<html>    <body style=\\\"background-color: #f9f7f6;\\\">      <div style=\\\"background-color: #f9f7f6; width: 100%;\\\">        <table bgcolor=\\\"#f9f7f6\\\" link=\\\"#5A469B\\\" alink=\\\"#5A469B\\\" vlink=\\\"#5A469B\\\" border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" width=\\\"100%\\\" style=\\\"margin: 0; mso-line-height-rule: exactly; border-collapse: collapse; width: 100%;\\\">          <tr>            <td width=\\\"100%\\\">              <center style=\\\"width: 100%; background: #f9f7f6; text-align: left;\\\">                <div style=\\\"max-width: 672px; margin: auto;\\\">                  <!--[if mso]>          <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"672\\\" align=\\\"center\\\">           <tr>            <td>             <![endif]-->                  <!-- Email Body : BEGIN -->                  <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"center\\\" width=\\\"100%\\\" style=\\\"max-width: 672px;\\\">                    <!-- PRE-HEADER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#f9f7f6\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-size: 12px; line-height: 17px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td style=\\\"padding-top: 10px; padding-bottom: 10px; text-align: left;\\\" align=\\\"left\\\">                              <font>Distributed to Sandbox 0wners</font>                            </td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- PRE-HEADER : END -->                    <!-- MASTHEAD : BEGIN -->                    <tr>                      <td bgcolor=\\\"#D71E28\\\" style=\\\"border-bottom-color: #ffcd41; border-bottom-style: solid; border-bottom-width: 4px;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td height=\\\"41\\\" valign=\\\"middle\\\" ; style=\\\"font-size: 24px; font-weight: 600; color: white; font-family: Wells Fargo Serif;\\\">WELLS FARGO</td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- MASTHEAD : END -->                    <!-- DATE : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; margin: 0; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px;\\\">                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px;text-align:right;\\\"> [@ReplaceDate@] </td>                          <tr>                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px; text-align: right;\\\">                              <font></font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- DATE : END -->                    <!-- BARKER : BEGIN -->                    <tr bgcolor=\\\"#ffffff\\\">                      <td align=\\\"left\\\" valign=\\\"middle\\\" style=\\\"text-align: left;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"left\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; line-height: normal; color: #3b3331; margin-left: 0;\\\">                          <tr></tr>                          <tr>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: right;\\\"></td>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: left;\\\">                              <font>                                <b>Data Management & Insights</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER : END -->                    <!-- BARKER 2 : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 21px; color: #141414; font-weight: bold;\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0 40px; text-align: left;\\\">                              <font>                                <b>Enterprise Data Governance & Remediation</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER 2 : END -->                    <!-- BODY : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0px 40px; text-align: left;\\\">                              <h1>Complete 2025 Sandbox Review & Attestation</h1>                            </td>                          </tr>                          <tr>"
+      },
+      "UI_SubmittedBy" : {
+        "type" : "string"
+      },
+      "vEmailMessage" : {
+        "type" : "string",
+        "defaultValue" : "<html>    <body style=\\\"background-color: #f9f7f6;\\\">      <div style=\\\"background-color: #f9f7f6; width: 100%;\\\">        <table bgcolor=\\\"#f9f7f6\\\" link=\\\"#5A469B\\\" alink=\\\"#5A469B\\\" vlink=\\\"#5A469B\\\" border=\\\"0\\\" cellpadding=\\\"0\\\" cellspacing=\\\"0\\\" width=\\\"100%\\\" style=\\\"margin: 0; mso-line-height-rule: exactly; border-collapse: collapse; width: 100%;\\\">          <tr>            <td width=\\\"100%\\\">              <center style=\\\"width: 100%; background: #f9f7f6; text-align: left;\\\">                <div style=\\\"max-width: 672px; margin: auto;\\\">                  <!--[if mso]>          <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"672\\\" align=\\\"center\\\">           <tr>            <td>             <![endif]-->                  <!-- Email Body : BEGIN -->                  <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"center\\\" width=\\\"100%\\\" style=\\\"max-width: 672px;\\\">                    <!-- PRE-HEADER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#f9f7f6\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-size: 12px; line-height: 17px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td style=\\\"padding-top: 10px; padding-bottom: 10px; text-align: left;\\\" align=\\\"left\\\">                              <font>Distributed to Sandbox 0wners</font>                            </td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- PRE-HEADER : END -->                    <!-- MASTHEAD : BEGIN -->                    <tr>                      <td bgcolor=\\\"#D71E28\\\" style=\\\"border-bottom-color: #ffcd41; border-bottom-style: solid; border-bottom-width: 4px;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td width=\\\"40\\\"></td>                            <td height=\\\"41\\\" valign=\\\"middle\\\" ; style=\\\"font-size: 24px; font-weight: 600; color: white; font-family: Wells Fargo Serif;\\\">WELLS FARGO</td>                            <td width=\\\"40\\\"></td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- MASTHEAD : END -->                    <!-- DATE : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; margin: 0; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px;\\\">                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px;text-align:right;\\\"> [@ReplaceDate@] </td>                          <tr>                          <tr>                            <td style=\\\"padding: 20px 40px 0 40px; text-align: right;\\\">                              <font></font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- DATE : END -->                    <!-- BARKER : BEGIN -->                    <tr bgcolor=\\\"#ffffff\\\">                      <td align=\\\"left\\\" valign=\\\"middle\\\" style=\\\"text-align: left;\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" align=\\\"left\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; line-height: normal; color: #3b3331; margin-left: 0;\\\">                          <tr></tr>                          <tr>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: right;\\\"></td>                            <td valign=\\\"middle\\\" bgcolor=\\\"#FFCD41\\\" style=\\\"padding: 5px 40px 5px 40px; text-align: left;\\\">                              <font>                                <b>Data Management & Insights</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER : END -->                    <!-- BARKER 2 : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 16px; line-height: 21px; color: #141414; font-weight: bold;\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0 40px; text-align: left;\\\">                              <font>                                <b>Enterprise Data Governance & Remediation</b>                              </font>                            </td>                          </tr>                        </table>                      </td>                    </tr>                    <!-- BARKER 2 : END -->                    <!-- BODY : BEGIN -->                    <tr>                      <td bgcolor=\\\"#ffffff\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                          <tr>                            <td style=\\\"padding: 30px 40px 0px 40px; text-align: left;\\\">                              <h1>Complete 2025 Sandbox Review & Attestation</h1>                            </td>                          </tr>                          <tr><td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <h1></h1>                              <!-- Escalation Type -->                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-size: 14px; line-height: 24px; font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font> [@ReplaceOwnerName@] ,</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                <tbody>                                  <tr>                                    <td>                                      <font>You have been identified as the owner of the following workspace(s).</font>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" width=\\\"100%\\\" style=\\\"padding: 0px 1px 1px 1px; text-align: left; border: none; border-collapse: collapse;\\\">                            <tbody>                              <tr bgcolor=\\\"#5A469B\\\" style=\\\"padding-left: 14px;  color: white;\\\">                                <td>ID</td>                                <td>Sandbox Name</td>                                <td>Platform</td>           <td>Environment</td>                              </tr>                              <tr style=\\\"padding-left: 4px; border-bottom: 1px solid #b5adad;\\\">                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_ID --> [@ReplaceSandboxID@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- SANDBOX_NAME --> [@ReplaceSandboxName@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- PLATFORM --> [@ReplacePlatFormName@]                                </td>                                <td style=\\\"border-bottom: 1px solid #b5adad;\\\">                                  <!-- ENVIRONMENT --> [@ReplaceEnvironmentName@]                                </td>                                       </tr>                            </tbody>                          </table>                          <!--Title 2-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Background</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">              <!--Body2-->                                              <font> As part of our annual sandbox risk-based assessment, all sandbox owners are required to complete the 2024 Enterprise Sandbox Data Governance (ESDG) Sandbox Review and Attestation. Your response is critical to support Enterprise Sandbox Data Governance (ESDG) risk mitigation efforts and 100% completion is expected. </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 2-->                          <!--Title 3-->                          <tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Action</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Complete your annual attestation: </b>                                                <a href=\\\"https://hop.cfapps.wellsfargo.net/esdg_sbxatt_2024\\\">2024 ESDG Sandbox Review & Attestation</a>                                              </font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 3-->                          <!--Title 4--><tr>                            <td style=\\\"padding: 0px 40px 0px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Escalation consequences</h2>                                    </td>                                  </tr>                                  <tr>                                    <td style=\\\"padding: 0px 0px 10px 0px;\\\">                                      <font>Failure to complete the action above could result in the following:</font>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>30 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Escalation notice to manager and BDL</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>60 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox access suspended</font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>90 days</font>                                            </td>                                            <td style=\\\"padding: 0px 0px 0px 0px;\\\">                                              <font>Sandbox removed</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <table role=\\\"presentation\\\" align=\\\"center\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\">                            <tr>                              <td style=\\\"border: none; border-bottom: solid #ffcd41 1.5pt; padding: 0.75pt 0.75pt 0.75pt 0.75pt;\\\"></td>                            </tr>                          </table>                          <!--End of Title 4-->                          <!--Title 5-->                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" width=\\\"100%\\\">                                <tbody>                                  <tr>                                    <td valign=\\\"top\\\">                                      <h2>Resources</h2>                                    </td>                                  </tr>                                  <tr>                                    <td>                                      <table role=\\\"presentation\\\" width=\\\"100%\\\" border=\\\"0\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                        <tbody>                                          <tr>                                            <td>                                              <font>                                                <b>Contact: </b>                                                <a href=\\\"mailto:EnterpriseSandboxDataGovernance@wellsfargo.com?subject=Attestation Question\\\">EnterpriseSandboxDataGovernance@wellsfargo.com</a>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>                                                <b>Resources:</b>                                              </font>                                            </td>                                          </tr>                                          <tr>                                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                                              <ul style=\\\"font-family: Wells Fargo Sans, Arial, Helvetica, sans-serif; font-size: 14px; line-height: 21px; color: #141414;\\\">                                                <li>                                                  <a href=\\\"https://wellsfargo.sharepoint.com/:u:/r/sites/0303-7/SitePages/Home.aspx?csf=1&web=1&e=FwUPoe\\\">ESDG SharePoint Online</a>                                                </li>                                                <li>                                                  <a href=\\\"https://policy.wellsfargo.com/CorporatePolicy/Detail/9870\\\">Data Management Policy</a>                                                </li>                                              </ul>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>Thank you,</font>                                            </td>                                          </tr>                                          <tr>                                            <td>                                              <font>—Enterprise Sandbox Data Governance</font>                                            </td>                                          </tr>                                        </tbody>                                      </table>                                    </td>                                  </tr>                                </tbody>                              </table>                            </td>                          </tr>                          <!--End of Title 5-->                        </table>                      </td>                    </tr>                    <!-- BODY : END --><!-- FOOTER : BEGIN -->                    <tr>                      <td bgcolor=\\\"#F4F0ED\\\">                        <table role=\\\"presentation\\\" cellspacing=\\\"0\\\" cellpadding=\\\"0\\\" border=\\\"0\\\" width=\\\"100%\\\" style=\\\"color: #3b3331; font-size: 12px; line-height: 18px; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">                          <tr>                            <td style=\\\"padding: 40px 40px 20px 40px; text-align: left;\\\">                              <font>                                <a href=\\\"#\\\" target=\\\"_blank\\\" style=\\\"color: #3b3331; font-family: Wells Fargo Sans Condensed, Arial, Helvetica, sans-serif;\\\">View this email online </a>                              </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 20px 40px; text-align: left;\\\">                              <font> This message may contain confidential and/or privileged information. If you are not the addressee or authorized to receive this for the addressee, you must not use, copy, disclose, or take any action based on this message or any information herein. If you have received this message in error, please advise the sender immediately by reply email and delete this message. Thank you for your cooperation. </font>                            </td>                          </tr>                          <tr>                            <td style=\\\"padding: 0px 40px 40px 40px; text-align: left;\\\">                              <font>&copy; 2024 Wells&nbsp;Fargo Bank, N.A. Not intended for public distribution. For internal use only.</font>                            </td>                          </tr>                        </table>                      </td>            </td>          </tr>          <!-- FOOTER : END -->        </table>        <!-- Email Body : END -->      </div>      </center>      </td>      </tr>      </table>      </div>    </body>  </html>"
+      },
+      "PRV_OWNER" : {
+        "type" : "string"
+      },
+      "vEmailFrom_APS" : {
+        "type" : "string",
+        "defaultValue" : "AnalyticProductServices@wellsfargo.com"
+      },
+      "Notification_ID" : {
+        "type" : "string"
+      },
+      "UI_Entitlement_2" : {
+        "type" : "string"
+      },
+      "UI_Entitlement_1" : {
+        "type" : "string"
+      },
+      "StrPlatform" : {
+        "type" : "string"
+      },
+      "StrSbxName" : {
+        "type" : "string",
+        "defaultValue" : "SbxName"
+      },
+      "obligee_employee_id" : {
+        "type" : "string"
+      },
+      "vEmailBCC" : {
+        "type" : "string",
+        "defaultValue" : "justin.mitchell@wellsfargo.com"
+      },
+      "StrUpdateNotification" : {
+        "type" : "string",
+        "defaultValue" : "update [sbx].[tbl_Notifications_Queue]  \\nset isSent = 1\\n,IsSent_DateTime_UTC = GETUTCDATE()\\nwhere notification_ID =  and EmailTemplateID ="
+      },
+      "vEmailSubject" : {
+        "type" : "string",
+        "defaultValue" : "ESIMS - ENTERPRISE SANDBOX REMEDIATION SERVICES"
+      },
+      "StrGrabDynamicCount" : {
+        "type" : "string",
+        "defaultValue" : "exec config.usp_PullDynamicEmailAttributes_Count ,"
+      },
+      "StrGrabSBXList" : {
+        "type" : "string",
+        "defaultValue" : "exec config.usp_PullDynamicEmailAttributes ,1,"
+      },
+      "StrUpdateActivityNotificationSent" : {
+        "type" : "string",
+        "defaultValue" : "update nq\\n\tset nq.IsSent = 1\\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\\n\tfrom sbx.tbl_Notifications_Queue nq\\n\tinner join sbx.vw_NotificationsInQueue vnq\\n\t\ton vnq.notification_ID = nq.Notification_ID\\nwhere  EmailTemplateID ="
+      },
+      "Obj_UniversalIntake" : {
+        "type" : "string"
+      },
+      "MGR_Name" : {
+        "type" : "string"
+      },
+      "StrOwnerEmail" : {
+        "type" : "string",
+        "defaultValue" : "SbxOwnerEmail"
+      },
+      "INT_SBX_ObligeeCount" : {
+        "type" : "string"
+      },
+      "SubHeaderSection" : {
+        "type" : "string"
+      },
+      "UI_Request_ID" : {
+        "type" : "string"
+      },
+      "UI_ActualSandboxName" : {
+        "type" : "string"
+      },
+      "StrFullName" : {
+        "type" : "string",
+        "defaultValue" : "SbxOwnerFullname"
+      }
+    }
+  }
+}

@@ -123,11 +123,28 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
     // their own report section rather than being mixed into the component list.
     const validationResultsMap = {};
 
+    // Rule-created items (modificationStatus ADD) are not part of the source package: they are listed on
+    // the generated (right) side of the activity they were derived from. Maps their key -> parent key so
+    // anything nested under them re-attaches to that parent.
+    const addedParentKey = {};
+
     allComponents.forEach((component, index) => {
         const componentSource = component.source;
         if (!component.name) return;
 
-        if (componentSource === "COMPONENT_ADOPTION" || componentSource === "ACTIVITY_ADOPTION" || !componentSource) {
+        if (component.modificationStatus === "ADD" && component.parent && component.parent !== component.name
+            && (componentSource === "COMPONENT_ADOPTION" || componentSource === "ACTIVITY_ADOPTION" || !componentSource)) {
+            addedParentKey[componentKey(component.jobName, component.name)] = componentKey(component.jobName, component.parent);
+            generatedComponents.push({
+                componentName: component.name,
+                displayName: component.generatedName || component.name,
+                componentType: component.type || "Unknown",
+                messages: convertMessages(component.messages || []),
+                parent: component.parent,
+                jobName: component.jobName,
+                typeProperties: component.typeProperties || []
+            });
+        } else if (componentSource === "COMPONENT_ADOPTION" || componentSource === "ACTIVITY_ADOPTION" || !componentSource) {
             const sourceComp = {
                 componentId: component.name + "_" + index,
                 componentKey: componentKey(component.jobName, component.name),
@@ -198,6 +215,15 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
             }
         }
         if (!key) return;
+        // An added item can be reported on both sides under one name; show it once, messages merged.
+        const dup = sourceComponentsMap[key].generatedComponents.find(
+            (g) => g.componentName === genComp.componentName && sameType(g.componentType, genComp.componentType));
+        if (dup) {
+            dup.messages = dup.messages.concat(genComp.messages);
+            // the generation entry carries the real target name (e.g. ST_ prefix); the adoption-side copy doesn't
+            if (genComp.displayName !== genComp.componentName) dup.displayName = genComp.displayName;
+            return;
+        }
         sourceComponentsMap[key].generatedComponents.push({
             componentName: genComp.componentName,
             displayName: genComp.displayName,
@@ -224,7 +250,7 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
             if (!originalComp || originalComp === comp) return;
             for (const gen of comp.generatedComponents) {
                 const alreadyPresent = originalComp.generatedComponents.some(
-                    (g) => g.componentName === gen.componentName && g.componentType === gen.componentType
+                    (g) => g.componentName === gen.componentName && sameType(g.componentType, gen.componentType)
                 );
                 if (!alreadyPresent) {
                     originalComp.generatedComponents.push(gen);
@@ -238,8 +264,13 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
     // Attach each source component to the specific item that owns its containing flow, so it renders
     // nested inside that item's own tile rather than as a separate section.
     Object.values(sourceComponentsMap).forEach((comp) => {
-        if (comp.ownerKey && sourceComponentsMap[comp.ownerKey]) {
-            sourceComponentsMap[comp.ownerKey].nestedComponents.push(comp);
+        let owner = comp.ownerKey;
+        for (let hop = 0; owner && !sourceComponentsMap[owner] && addedParentKey[owner] && hop < 5; hop++) {
+            owner = addedParentKey[owner];
+        }
+        if (owner && sourceComponentsMap[owner]) {
+            comp.ownerKey = owner;
+            sourceComponentsMap[owner].nestedComponents.push(comp);
         }
     });
 
@@ -296,6 +327,11 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         sourceComponents: sourceComponents,
         validationResults: Object.values(validationResultsMap)
     };
+}
+
+// Adoption-side types are upper-case (SCRIPT), generation-side mixed-case (Script).
+function sameType(a, b) {
+    return String(a).toLowerCase() === String(b).toLowerCase();
 }
 
 function convertMessages(messages) {
@@ -458,8 +494,7 @@ function renderStatusBar(summary) {
     else { label = "Completed Successfully"; dot = "bg-tertiary"; textColor = "text-tertiary"; bg = "bg-emerald-50"; }
     // Warnings mean a workaround was applied (no direct target mapping), so they count as converted.
     const successPct = weightedSummary() ? weightedSummary().conversionPercentage : (summary.totalComponents ? Math.round(((summary.successComponents + summary.warnComponents) / summary.totalComponents) * 1000) / 10 : 0);
-    bar.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-[3px] rounded ${bg} ${textColor} font-mono text-[12px] font-semibold"><span class="w-2 h-2 rounded-full ${dot}"></span>${label}</span>
-        <span class="font-mono text-[12px] text-on-surface-variant">${fmtPct(successPct)}% weighted conversion</span>`;
+    bar.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-[3px] rounded ${bg} ${textColor} font-mono text-[12px] font-semibold"><span class="w-2 h-2 rounded-full ${dot}"></span>${label}</span>`;
 }
 
 function kpiCard(label, value, sub, extraHtml) {
@@ -490,20 +525,11 @@ function renderKpiCards(summary) {
     container.appendChild(kpiCard("Total Components", summary.totalComponents, "Converted",
         `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Success: <strong class="text-tertiary">${summary.successComponents}</strong></span><span>Workarounds: <strong class="text-amber-600">${summary.warnComponents}</strong></span><span>Errors: <strong class="text-error">${summary.errorComponents}</strong></span></div>`));
 
-    if (ws && ws.dataFlowPercentage !== null && ws.dataFlowPercentage !== undefined) {
-        container.appendChild(kpiCard("Data Flow Conversion", fmtPct(ws.dataFlowPercentage) + "%", "",
-            `<div class="text-[12px] text-on-surface-variant">Based on ${ws.dataFlowSourceCount} data flow component(s).</div>`));
-    }
-
     container.appendChild(kpiCard("Component Success Rate", fmtPct(successPct) + "%", "No errors",
         `<div class="text-[12px] text-on-surface-variant">Based on ${summary.totalComponents} converted component(s).</div>`));
 
     container.appendChild(kpiCard("Message Diagnostics", totalMsgs, "Messages",
         `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${summary.totalMessages.error} Errors</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${summary.totalMessages.warn} Workarounds</span><span class="px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant">${summary.totalMessages.info} Info</span></div>`));
-
-    container.appendChild(kpiCard("Properties Compared", summary.propsTotal ? (summary.propsMapped + "/" + summary.propsTotal) : "—",
-        propsPct !== null ? fmtPct(propsPct) + "% Mapped" : "Not tracked for these component types",
-        `<div class="text-[12px] text-on-surface-variant">Adopted vs. generated property values, where tracked.</div>`));
 }
 
 function renderStatusChips(summary) {
@@ -765,6 +791,33 @@ function renderPropertiesPanel(typeProperties) {
 // Renders the per-artifact Azure SDK schema-validation outcomes (pipelines, dataflows, flowlets)
 // in their own section. These are NOT components - they're checks on the generated ADF JSON's
 // properties - so they deliberately live outside the component list and its property mappings.
+// KPI cards for the validation report: artifact outcomes instead of conversion figures.
+function renderValidationCards(results) {
+    const container = document.getElementById("kpiCards");
+    if (!container) return;
+    container.innerHTML = "";
+    const failed = results.filter(v => v.conversionStatus === "FAIL");
+    const broken = failed.filter(v => v.resourceType === "DATAFLOW_GRAPH").length;
+    const passed = results.length - failed.length;
+    const passPct = results.length ? Math.round(passed / results.length * 1000) / 10 : 0;
+    const byType = {};
+    results.forEach(v => { byType[v.resourceType || "Unknown"] = (byType[v.resourceType || "Unknown"] || 0) + 1; });
+    const msgs = { error: 0, warn: 0 };
+    results.forEach(v => (v.messages || []).forEach(m => {
+        if (m.messageCategory === "Error") msgs.error++;
+        else if (m.messageCategory === "Warning") msgs.warn++;
+    }));
+
+    container.appendChild(kpiCard("Artifacts Validated", results.length, "Generated artifacts",
+        `<div class="flex items-center gap-3 flex-wrap text-[11px] font-mono text-on-surface-variant">${Object.entries(byType).map(([t, n]) => `<span>${escapeHtml(t)}: <strong>${n}</strong></span>`).join("")}</div>`));
+    container.appendChild(kpiCard("Validation Pass Rate", fmtPct(passPct) + "%", "",
+        `<div class="text-[12px] text-on-surface-variant">${passed} of ${results.length} artifact(s) passed.</div>`));
+    container.appendChild(kpiCard("Need Manual Review", failed.length, "Artifacts",
+        `<div class="text-[12px] text-on-surface-variant">${broken} broken data flow graph(s).</div>`));
+    container.appendChild(kpiCard("Validation Findings", msgs.error + msgs.warn, "Messages",
+        `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${msgs.error} Errors</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${msgs.warn} Warnings</span></div>`));
+}
+
 function renderValidationSection(validationResults) {
     const section = document.getElementById("validationSection");
     const container = document.getElementById("validationResults");
@@ -1027,14 +1080,25 @@ function load() {
         if (typeSelect) typeSelect.addEventListener("change", filterData);
         if (searchInput) searchInput.addEventListener("input", filterData);
 
-        populateComponentDetails(source);
-        populateDropdowns();
+        // The validation report (validation.html) shares this script but has no component list.
+        const validationOnly = window.reportMode === "validation";
+        if (!validationOnly) {
+            populateComponentDetails(source);
+            populateDropdowns();
+        }
 
         const summary = computeOverallSummary(source);
         renderStatusBar(summary);
-        renderKpiCards(summary);
-        renderStatusChips(summary);
+        if (validationOnly) renderValidationCards(convertedReport.validationResults || []);
+        else renderKpiCards(summary);
+        if (!validationOnly) renderStatusChips(summary);
         renderValidationSection(convertedReport.validationResults);
+
+        const validationLink = document.getElementById("validationLink");
+        if (validationLink && !validationOnly && (convertedReport.validationResults || []).length > 0) {
+            validationLink.href = location.pathname.split("/").pop().replace(/\.html$/, "") .replace(/_report$/, "") + "_validation.html";
+            validationLink.style.display = "flex";
+        }
 
         const footer = document.getElementById("footerdate");
         if (footer) footer.innerHTML = "&copy; " + new Date().getFullYear() + " Bitwise. Report generated " + new Date().toLocaleString() + ".";
