@@ -269,8 +269,8 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "Activity_Items_0_0",
-      "type" : "IfCondition",
+      "name" : "FRE_Activity_Items_0",
+      "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "LKP_Obtain_Activity_Number_of_Emails_to_Send_0",
@@ -280,103 +280,87 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@equals(variables('TemplateID'),'7')",
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Activity_Number_of_Emails_to_Send_0').output.value",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "FRE_Activity_Items_0",
-          "type" : "ForEach",
-          "policy" : null,
+        "activities" : [ {
+          "name" : "Send_Email",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateActivityNotificationSent",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "items" : {
-              "value" : "@activity('LKP_Obtain_Activity_Number_of_Emails_to_Send_0').output.value",
+            "variableName" : "StrUpdateActivityNotificationSent",
+            "value" : {
+              "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', variables('TemplateID'))",
               "type" : "Expression"
-            },
-            "activities" : [ {
-              "name" : "Send_Email",
-              "type" : "AzureFunctionActivity",
-              "policy" : {
-                "timeout" : "0.12:00:00",
-                "retry" : 0,
-                "retryIntervalInSeconds" : 30,
-                "secureOutput" : false,
-                "secureInput" : false
-              },
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : "Script Task",
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureFunction1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "functionName" : {
-                  "value" : "Send_Email",
-                  "type" : "Expression"
-                },
-                "method" : "POST",
-                "headers" : { }
-              }
-            }, {
-              "name" : "SETVAR_StrUpdateActivityNotificationSent1",
-              "type" : "SetVariable",
-              "policy" : {
-                "timeout" : "00:30:00",
-                "retry" : 0,
-                "retryIntervalInSeconds" : 0,
-                "secureOutput" : false,
-                "secureInput" : false
-              },
-              "dependsOn" : [ {
-                "activity" : "Send_Email",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "variableName" : "StrUpdateActivityNotificationSent",
-                "value" : {
-                  "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', variables('TemplateID'))",
-                  "type" : "Expression"
-                }
-              }
-            }, {
-              "name" : "ST_Update_Case_Table_0",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "SETVAR_StrUpdateActivityNotificationSent1",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "OLEDB_SQLNCLI11_1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "NonQuery",
-                  "text" : {
-                    "value" : "@variables('StrUpdateActivityNotificationSent')",
-                    "type" : "Expression"
-                  }
-                } ],
-                "scriptBlockExecutionTimeout" : null
+            }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateActivityNotificationSent",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateActivityNotificationSent')",
+                "type" : "Expression"
               }
             } ],
-            "isSequential" : true
+            "scriptBlockExecutionTimeout" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "FRE_Activity_Items_1_0",
@@ -421,7 +405,7 @@
             "headers" : { }
           }
         }, {
-          "name" : "SETVAR_StrUpdateActivityNotificationSent",
+          "name" : "SETVAR_StrUpdateActivityNotificationSent1",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -449,7 +433,7 @@
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateActivityNotificationSent",
+            "activity" : "SETVAR_StrUpdateActivityNotificationSent1",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -473,8 +457,8 @@
         "isSequential" : true
       }
     }, {
-      "name" : "Non_Annual_Attestion_Items_0_0",
-      "type" : "IfCondition",
+      "name" : "FRE_Non_Annual_Attestion_Items_0",
+      "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "LKP_Obtain_Number_of_Emails_to_Send_0",
@@ -484,103 +468,87 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "expression" : {
-          "value" : "@or(or(or(equals(variables('TemplateID'),'2'), equals(variables('TemplateID'),'3')), equals(variables('TemplateID'),'4')), equals(variables('TemplateID'),'5'))",
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Number_of_Emails_to_Send_0').output.value",
           "type" : "Expression"
         },
-        "ifFalseActivities" : [ ],
-        "ifTrueActivities" : [ {
-          "name" : "FRE_Non_Annual_Attestion_Items_0",
-          "type" : "ForEach",
-          "policy" : null,
+        "activities" : [ {
+          "name" : "Send_Email3",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email3",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateNotificationSent2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "items" : {
-              "value" : "@activity('LKP_Obtain_Number_of_Emails_to_Send_0').output.value",
+            "variableName" : "StrUpdateNotificationSent",
+            "value" : {
+              "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
               "type" : "Expression"
-            },
-            "activities" : [ {
-              "name" : "Send_Email3",
-              "type" : "AzureFunctionActivity",
-              "policy" : {
-                "timeout" : "0.12:00:00",
-                "retry" : 0,
-                "retryIntervalInSeconds" : 30,
-                "secureOutput" : false,
-                "secureInput" : false
-              },
-              "dependsOn" : [ ],
-              "state" : null,
-              "description" : "Script Task",
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "AzureFunction1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "functionName" : {
-                  "value" : "Send_Email3",
-                  "type" : "Expression"
-                },
-                "method" : "POST",
-                "headers" : { }
-              }
-            }, {
-              "name" : "SETVAR_StrUpdateNotificationSent2",
-              "type" : "SetVariable",
-              "policy" : {
-                "timeout" : "00:30:00",
-                "retry" : 0,
-                "retryIntervalInSeconds" : 0,
-                "secureOutput" : false,
-                "secureInput" : false
-              },
-              "dependsOn" : [ {
-                "activity" : "Send_Email3",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "typeProperties" : {
-                "variableName" : "StrUpdateNotificationSent",
-                "value" : {
-                  "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
-                  "type" : "Expression"
-                }
-              }
-            }, {
-              "name" : "ST_Update_Case_Table2_0",
-              "type" : "Script",
-              "policy" : null,
-              "dependsOn" : [ {
-                "activity" : "SETVAR_StrUpdateNotificationSent2",
-                "dependencyConditions" : [ "Succeeded" ]
-              } ],
-              "state" : null,
-              "description" : null,
-              "onInactiveMarkAs" : null,
-              "linkedServiceName" : {
-                "referenceName" : "OLEDB_SQLNCLI11_1",
-                "type" : "LinkedServiceReference"
-              },
-              "typeProperties" : {
-                "scripts" : [ {
-                  "type" : "NonQuery",
-                  "text" : {
-                    "value" : "@variables('StrUpdateNotificationSent')",
-                    "type" : "Expression"
-                  }
-                } ],
-                "scriptBlockExecutionTimeout" : null
+            }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table2_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateNotificationSent2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateNotificationSent')",
+                "type" : "Expression"
               }
             } ],
-            "isSequential" : true
+            "scriptBlockExecutionTimeout" : null
           }
-        } ]
+        } ],
+        "isSequential" : true
       }
     }, {
       "name" : "SETVAR_vReminderCheck",
