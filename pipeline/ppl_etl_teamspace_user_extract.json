@@ -42,14 +42,24 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBSource_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBSource_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Metadata_50_sink_SchemaName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_50_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Metadata_50_sink_TableName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_50_sink_TableName;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_SchemaName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBSource_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_TableName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBSource_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_SchemaName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBDestination_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_TableName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_5_OLEDBDestination_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Metadata_50_sink_SchemaName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_50_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Metadata_50_sink_TableName' AND PIPELINE_NAME = 'ETL_TEAMSPACE_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_Metadata_5') AS Get_Metadata_50_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
         },
         "dataset" : {
           "referenceName" : "DS_Metadata",
-          "type" : "DatasetReference"
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
         }
       }
     }, {
@@ -67,14 +77,14 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
+        "referenceName" : "OLEDB_SQLNCLI11_1",
         "type" : "LinkedServiceReference"
       },
       "typeProperties" : {
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "@variables('StrCallParams'))",
+            "value" : "@variables('StrCallParams')",
             "type" : "Expression"
           }
         } ],
@@ -380,21 +390,21 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
+        "referenceName" : "OLEDB_SQLNCLI11_1",
         "type" : "LinkedServiceReference"
       },
       "typeProperties" : {
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vDeleteCurDay'))",
+            "value" : "@variables('vDeleteCurDay')",
             "type" : "Expression"
           }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "EP_REPL_Get_Metadata_5",
+      "name" : "REPL_Get_Metadata_5",
       "type" : "ExecutePipeline",
       "policy" : null,
       "dependsOn" : [ {
@@ -432,7 +442,7 @@
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "EP_REPL_Get_Metadata_5",
+        "activity" : "REPL_Get_Metadata_5",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -452,48 +462,31 @@
               "Schema" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBSource_SchemaName",
                 "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "OLE_DB_Source",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : null,
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
+              }
             },
             "OLEDBDestination" : {
               "TableName" : {
-                "value" : "TEAMSPACE_USER_EXTRACT",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_TableName",
                 "type" : "Expression"
               },
               "Schema" : {
-                "value" : "dbo",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_SchemaName",
                 "type" : "Expression"
-              },
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_FileName",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_FilePath",
-                "type" : "Expression"
-              },
-              "ColumnDelimiter" : ","
+              }
             }
           }
         },
         "compute" : null,
-        "staging" : { }
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Get_Metadata_5_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
       }
     }, {
       "name" : "CPD_Get_Metadata_50",
@@ -508,33 +501,28 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "source" : {
-          "type" : "ParquetSource"
+          "type" : "AzureSqlSource"
         },
         "sink" : {
-          "type" : "AzureSqlSink"
+          "type" : "SqlServerSink"
         }
       },
       "inputs" : [ {
-        "referenceName" : "genric_parquet",
+        "referenceName" : "Generic_OLEDB_DS_SRC",
         "type" : "DatasetReference",
         "parameters" : {
-          "Container" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_ContainerName",
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_TableName",
             "type" : "Expression"
           },
-          "FileName" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_FileName",
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_SchemaName",
             "type" : "Expression"
-          },
-          "Directory" : {
-            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_5_OLEDBDestination_FilePath",
-            "type" : "Expression"
-          },
-          "ColumnDelimiter" : ","
+          }
         }
       } ],
       "outputs" : [ {
-        "referenceName" : "Generic_OLEDB_DS_TGT",
+        "referenceName" : "Str_EFT_Conn",
         "type" : "DatasetReference",
         "parameters" : {
           "TableName" : {
@@ -583,14 +571,14 @@
       "description" : null,
       "onInactiveMarkAs" : null,
       "linkedServiceName" : {
-        "referenceName" : "AzureSqlDatabase1",
+        "referenceName" : "OLEDB_SQLNCLI11_1",
         "type" : "LinkedServiceReference"
       },
       "typeProperties" : {
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vMarkEndSuccessRun'))",
+            "value" : "@variables('vMarkEndSuccessRun')",
             "type" : "Expression"
           }
         } ],
@@ -598,93 +586,98 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_Punam_08_10/DUMPS dtsx files"
+      "name" : "Elevance/DUMPS dtsx files"
     },
-    "parameters" : { },
+    "parameters" : {
+      "Get_Metadata_5_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
     "variables" : {
       "DestDBNAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "ESIMS_ETL"
       },
       "SELECTSTMT" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "Select * from"
       },
       "vStartDate" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "2019-01-14"
       },
       "SrcTABLENAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "INDVL_CRNT"
       },
       "StrCallDestTable" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "ESIMS_ETL.sbx_stg.TEAMSPACE_USER_EXTRACT"
       },
       "SrcDBNAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "EIW_S_ASTMGMT_ACTVD_S1"
       },
       "PREDICATES" : {
-        "type" : "string"
+        "type" : "String"
       },
       "CanRun" : {
         "type" : "Boolean",
-        "defaultValue" : "true()"
+        "defaultValue" : false
       },
       "IsEnabled" : {
         "type" : "Boolean",
-        "defaultValue" : "true()"
+        "defaultValue" : false
       },
       "DestSCHEMANAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "sbx_stg"
       },
       "vPreCount" : {
-        "type" : "string"
+        "type" : "String"
       },
       "SrcSCHEMANAME" : {
-        "type" : "string"
+        "type" : "String"
       },
       "DestTABLENAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "TEAMSPACE_USER_EXTRACT"
       },
       "vDateQuery" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "Select * from"
       },
       "vMarkEndSuccessRun" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "UPDATE ESIMS_ETL.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =14"
       },
       "DestSERVERNAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "dwdl0597v1\\dl059711"
       },
       "StrDestTABLENAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "TEAMSPACE_USER_EXTRACT"
       },
       "StrDestSCHEMANAME" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "sbx_stg"
       },
       "vEndDate" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "2019-01-15"
       },
       "StrCallParams" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "SELECT  IsEnabled ,\\n        CanRun ,\\n        SrcDBNAME ,\\n        SrcSCHEMANAME ,\\n        SrcTABLENAME ,\\n        DestSERVERNAME ,\\n        DestDBNAME ,\\n        DestSCHEMANAME ,\\n        DestTABLENAME ,\\n        SELECTSTMT ,\\n        PREDICATES \\nFROM ESIMS_ETL.[CONFIG].[tbl_Etl_Config] WHERE   ETL_ID = 14"
       },
       "ETL_ID" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "14"
       },
       "vDeleteCurDay" : {
-        "type" : "string",
+        "type" : "String",
         "defaultValue" : "Truncate Table ESIMS_ETL.sbx_stg.TEAMSPACE_USER_EXTRACT --Where Convert(Date,ImportDate) =Convert(date,getdate());"
       }
     }

@@ -87,16 +87,25 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
 
     function collectAllComponents(jobStatus, parentJobName, parentJobType, depth, ownerKey) {
         if (jobStatus.components && Array.isArray(jobStatus.components)) {
+            const isAdopted = c => c.source === "COMPONENT_ADOPTION" || c.source === "ACTIVITY_ADOPTION" || !c.source;
+            const adoptedNames = new Set(jobStatus.components.filter(c => c.name && isAdopted(c)).map(c => c.name));
             jobStatus.components.forEach((component) => {
                 const thisJobName = jobStatus.name || parentJobName || "Unknown Job";
+                const isAdoptionSide = isAdopted(component);
+                // A source task/component is its own parent. One whose parent is another adopted entry of the
+                // same flow was derived by a rule (a wrapper If-condition, a Lookup split, ...): it is
+                // generated output of that parent, not a source item, and neither is anything nested in it.
+                const derived = isAdoptionSide && !!component.parent && component.parent !== component.name
+                    && adoptedNames.has(component.parent);
                 allComponents.push({
                     ...component,
                     jobType: jobStatus.jobType || parentJobType || "UNKNOWN",
                     jobName: thisJobName,
                     depth: depth,
-                    ownerKey: ownerKey || null
+                    ownerKey: ownerKey || null,
+                    derived: derived
                 });
-                const isAdoptionSide = component.source === "COMPONENT_ADOPTION" || component.source === "ACTIVITY_ADOPTION" || !component.source;
+                if (derived) return;
                 if (component.jobConversionStatus && isAdoptionSide) {
                     const sig = jobSignature(component.jobConversionStatus);
                     const thisOwnerKey = componentKey(thisJobName, component.name);
@@ -132,7 +141,8 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         const componentSource = component.source;
         if (!component.name) return;
 
-        if (component.modificationStatus === "ADD" && component.parent && component.parent !== component.name
+        const derived = !!component.derived;
+        if ((derived || component.modificationStatus === "ADD") && component.parent && component.parent !== component.name
             && (componentSource === "COMPONENT_ADOPTION" || componentSource === "ACTIVITY_ADOPTION" || !componentSource)) {
             addedParentKey[componentKey(component.jobName, component.name)] = componentKey(component.jobName, component.parent);
             generatedComponents.push({
@@ -142,6 +152,7 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 messages: convertMessages(component.messages || []),
                 parent: component.parent,
                 jobName: component.jobName,
+                derived: derived,
                 typeProperties: component.typeProperties || []
             });
         } else if (componentSource === "COMPONENT_ADOPTION" || componentSource === "ACTIVITY_ADOPTION" || !componentSource) {
@@ -191,7 +202,10 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
                 resourceType: component.type || "Unknown",
                 conversionStatus: component.conversionStatus,
                 jobName: component.jobName || "Unknown Job",
-                messages: convertMessages(component.messages || [])
+                messages: convertMessages(component.messages || []),
+                // references to datasets / linked services / data flows / pipelines (and, on the
+                // CONFIG_MAPPING entry, the connection mapping) - see renderArtifactMapping
+                typeProperties: component.typeProperties || []
             };
         }
     });
@@ -201,7 +215,7 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         // the entry a rule creates for itself (e.g. a Script/SetVariable activity, or an If Condition
         // wrapper, a rule derives from an original task) and it's always the right match when it
         // exists. Only fall back to matching via .parent when no same-named adopted entry exists:
-        // that covers an ECTFlow/SubControlFlow activity (whose .parent names its OUTER container,
+        // that covers a dataflow/SubControlFlow activity (whose .parent names its OUTER container,
         // not itself) and a rule-inserted component with no adoption-time counterpart under its own
         // name at all. Matching by .parent first would instead attach this entry to whatever OTHER
         // adopted entry .parent happens to reference (e.g. the original activity a rule replaced),
@@ -216,10 +230,18 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         }
         if (!key) return;
         // An added item can be reported on both sides under one name; show it once, messages merged.
+        // A derived adoption-side entry (source-tool type) and its generation-side twin share a name but not
+        // a type, so those match by name only.
         const dup = sourceComponentsMap[key].generatedComponents.find(
-            (g) => g.componentName === genComp.componentName && sameType(g.componentType, genComp.componentType));
+            (g) => g.componentName === genComp.componentName
+                && (g.derived || genComp.derived || sameType(g.componentType, genComp.componentType)));
         if (dup) {
             dup.messages = dup.messages.concat(genComp.messages);
+            if (dup.derived && !genComp.derived) {
+                dup.componentType = genComp.componentType;
+                dup.typeProperties = genComp.typeProperties || dup.typeProperties;
+                dup.derived = false;
+            }
             // the generation entry carries the real target name (e.g. ST_ prefix); the adoption-side copy doesn't
             if (genComp.displayName !== genComp.componentName) dup.displayName = genComp.displayName;
             return;
@@ -229,6 +251,7 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
             displayName: genComp.displayName,
             componentType: genComp.componentType,
             messages: genComp.messages,
+            derived: genComp.derived,
             typeProperties: genComp.typeProperties || []
         });
     });
@@ -325,7 +348,9 @@ function convertJobConversionStatusToReport(jobConversionStatus) {
         targetToolName: window.targetToolName || "Unknown",
         conversionStatus: conversionStatusStr,
         sourceComponents: sourceComponents,
-        validationResults: Object.values(validationResultsMap)
+        // CONFIG_MAPPING is bookkeeping for the mapping tables, not a validated artifact
+        validationResults: Object.values(validationResultsMap).filter(v => v.resourceType !== "CONFIG_MAPPING"),
+        configMapping: Object.values(validationResultsMap).find(v => v.resourceType === "CONFIG_MAPPING") || null
     };
 }
 
@@ -408,8 +433,10 @@ function countBadgesForSrcComponent(currSrcComp) {
         counts = getMessageCount(genComponent.messages, counts);
     }
 
-    if (counts.errorMessages > 0) failedComponents.add(currSrcComp.componentId);
-    else if (counts.warnMessages > 0) warningComponents.add(currSrcComp.componentId);
+    // Error = unsupported, Partial = some properties not converted, Completed = fully converted (see scoreStatus).
+    const st = scoreStatus(currSrcComp, counts);
+    if (st === "Error") failedComponents.add(currSrcComp.componentId);
+    else if (st === "Partial") warningComponents.add(currSrcComp.componentId);
     else successComponents.add(currSrcComp.componentId);
 
     if (currSrcComp.jobName) jobNames.add(currSrcComp.jobName);
@@ -454,8 +481,9 @@ function computeOverallSummary(allComponents) {
         summary.totalMessages.info += counts.infoMessages;
         summary.totalMessages.success += counts.successMessages;
 
-        if (counts.errorMessages > 0) summary.errorComponents++;
-        else if (counts.warnMessages > 0) summary.warnComponents++;
+        const st = scoreStatus(comp, counts);
+        if (st === "Error") summary.errorComponents++;
+        else if (st === "Partial") summary.warnComponents++;
         else summary.successComponents++;
 
         const byKey = new Map();
@@ -480,9 +508,29 @@ function computeOverallSummary(allComponents) {
     return summary;
 }
 
-// Weighted conversion summary computed in Java (ConversionPercentageCalculator) from the external weightage config.
+// Conversion summary computed in Java (ConversionPercentageCalculator): equal split of 100 at every level (tasks, data-flow components, properties).
 function weightedSummary() {
     return (typeof jobConversionData !== 'undefined' && jobConversionData && jobConversionData.summary) || null;
+}
+
+// The scored row (ConversionPercentageCalculator) of a source component: status, score and property results.
+let scoreRowsByKey = null;
+function scoreRow(comp) {
+    const ws = weightedSummary();
+    if (!ws || !ws.components) return null;
+    if (!scoreRowsByKey) {
+        scoreRowsByKey = new Map();
+        ws.components.forEach(d => scoreRowsByKey.set((d.container || "") + "|" + d.name, d));
+    }
+    return scoreRowsByKey.get((comp.jobName || "") + "|" + comp.componentName) || null;
+}
+
+// "Completed" | "Partial" | "Error". Falls back to the message counts when the component was not scored.
+function scoreStatus(comp, counts) {
+    const d = scoreRow(comp);
+    if (d) return d.status === "UNSUPPORTED" ? "Error" : d.status === "PARTIAL" ? "Partial" : "Completed";
+    if (counts.errorMessages > 0) return "Error";
+    return counts.warnMessages > 0 ? "Partial" : "Completed";
 }
 
 function renderStatusBar(summary) {
@@ -518,12 +566,16 @@ function renderKpiCards(summary) {
 
     const ws = weightedSummary();
     if (ws) {
-        container.appendChild(kpiCard("Conversion Percentage", fmtPct(ws.conversionPercentage) + "%", "",
-            `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Converted: <strong class="text-tertiary">${ws.convertedCount}</strong></span><span>Partial: <strong class="text-amber-600">${ws.partialCount}</strong></span><span>Unsupported: <strong class="text-error">${ws.unsupportedCount}</strong></span></div>`));
+        container.appendChild(kpiCard("Conversion Percentage", Number(ws.conversionPercentage).toFixed(2) + "%", "Converted",
+            `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-emerald-50 text-tertiary">${ws.convertedCount} Converted</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${ws.partialCount} Partial</span><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${ws.unsupportedCount} Unsupported</span></div>`));
     }
 
-    container.appendChild(kpiCard("Total Components", summary.totalComponents, "Converted",
-        `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Success: <strong class="text-tertiary">${summary.successComponents}</strong></span><span>Workarounds: <strong class="text-amber-600">${summary.warnComponents}</strong></span><span>Errors: <strong class="text-error">${summary.errorComponents}</strong></span></div>`));
+    // Tasks vs data-flow components, each as converted / total (falls back to the old counts without a weighted summary).
+    const rows = (ws && ws.components) || [];
+    const taskAll = rows.filter(x => x.task).length, compAll = rows.length - taskAll;
+    container.appendChild(kpiCard("Total Components", ws ? rows.length : summary.totalComponents, "Total",
+        ws ? `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant">${taskAll} Tasks</span><span class="px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant">${compAll} Components</span></div>`
+           : `<div class="flex items-center gap-3 text-[11px] font-mono text-on-surface-variant"><span>Success: <strong class="text-tertiary">${summary.successComponents}</strong></span><span>Workarounds: <strong class="text-amber-600">${summary.warnComponents}</strong></span><span>Errors: <strong class="text-error">${summary.errorComponents}</strong></span></div>`));
 
     container.appendChild(kpiCard("Component Success Rate", fmtPct(successPct) + "%", "No errors",
         `<div class="text-[12px] text-on-surface-variant">Based on ${summary.totalComponents} converted component(s).</div>`));
@@ -538,9 +590,9 @@ function renderStatusChips(summary) {
     container.innerHTML = '';
     const chips = [
         { key: "All", label: "All", count: summary.totalComponents, dot: "bg-outline" },
-        { key: "Error", label: "Manual Review", count: summary.errorComponents, dot: "bg-error" },
-        { key: "Warning", label: "Workarounds Applied", count: summary.warnComponents, dot: "bg-amber-500" },
-        { key: "Success", label: "Success", count: summary.successComponents, dot: "bg-tertiary" }
+        { key: "Success", label: "Completed", count: summary.successComponents, dot: "bg-tertiary" },
+        { key: "Warning", label: "Partial", count: summary.warnComponents, dot: "bg-amber-500" },
+        { key: "Error", label: "Error", count: summary.errorComponents, dot: "bg-error" }
     ];
     chips.forEach(chip => {
         const btn = document.createElement('button');
@@ -616,22 +668,41 @@ function populateDropdowns() {
 // Component tiles
 // ---------------------------------------------------------------------------
 
-function statusPill(counts) {
+function statusPill(counts, status, row) {
     const span = document.createElement('span');
     let label, cls;
-    if (counts.errorMessages > 0) {
-        label = `Manual Review (${counts.errorMessages} Error${counts.errorMessages > 1 ? 's' : ''})`;
-        cls = "bg-red-50 text-error";
-    } else if (counts.warnMessages > 0) {
-        label = `Converted with Workarounds (${counts.warnMessages})`;
-        cls = "bg-amber-50 text-amber-700";
-    } else {
-        label = "Converted Successfully";
-        cls = "bg-emerald-50 text-tertiary";
-    }
+    if (status === "Error") { label = "Error"; cls = "bg-red-50 text-error"; }
+    else if (status === "Partial") { label = "Partial"; cls = "bg-amber-50 text-amber-700"; }
+    else { label = "Completed"; cls = "bg-emerald-50 text-tertiary"; }
+    if (row) label += ` | ${Number(row.percentage).toFixed(2)}%`;
     span.className = `px-2 py-[2px] rounded font-mono text-[11px] font-semibold whitespace-nowrap ${cls}`;
     span.textContent = label;
     return span;
+}
+
+// Why a partial / unsupported component lost score: every property that did not fully convert, with its reason.
+function renderScoreDetails(row) {
+    const wrap = document.createElement('div');
+    wrap.className = "bg-surface-container-low rounded p-3 flex flex-col gap-2 text-[12px]";
+    const resCls = { PASS: "text-tertiary", PARTIAL: "text-amber-600", FAIL: "text-error", SKIPPED: "text-on-surface-variant" };
+    const resTxt = { PASS: "Converted", PARTIAL: "Partial", FAIL: "Failed" };
+    // every property of the component, converted ones included - not only those that lost points
+    // properties with no equivalent / no need in the target (SKIPPED) are left out: they neither convert nor fail
+    const rows = (row.properties || []).filter(p => p.result !== "SKIPPED");
+    const cleanReason = r => String(r || "").replace(/\s+in (the )?target ETL tool/gi, "");
+    // The component's own points are its share of the package (e.g. 2.63); each property earns its share of
+    // those points - not of 100.
+    const compPoints = Number(row.absoluteWeight != null ? row.absoluteWeight : row.weight) || 0;
+    const pts = v => (Number(v) * compPoints / 100).toFixed(2);
+    const cell = "py-1 pr-3 align-top text-[12px] leading-5";
+    wrap.innerHTML = `<div class="font-mono">Score <strong>${Number(row.percentage).toFixed(2)}%</strong> | ${row.propsConverted} of ${row.propsTotal} properties converted | weight in package ${compPoints.toFixed(2)}</div>`
+        + (rows.length ? `<table class="w-full text-left table-fixed"><colgroup><col style="width:44px"><col style="width:20%"><col style="width:20%"><col style="width:20%"><col></colgroup><thead class="text-[10px] uppercase tracking-wide text-on-surface-variant"><tr><th class="py-1 pr-3 align-top">#</th><th class="py-1 pr-3 align-top">Property</th><th class="py-1 pr-3 align-top">Status</th><th class="py-1 pr-3 align-top text-right">Points</th><th class="py-1 align-top">Reason</th></tr></thead><tbody>${
+            rows.map((p, n) => {
+                const reason = cleanReason(p.reason).trim();
+                return `<tr class="border-t border-surface-container"><td class="${cell} font-mono text-on-surface-variant">${n + 1}</td><td class="${cell} font-mono break-words">${escapeHtml(p.name)}</td><td class="${cell} font-semibold whitespace-nowrap ${resCls[p.result] || ""}">${resTxt[p.result] || escapeHtml(p.result)}</td><td class="${cell} text-right font-mono whitespace-nowrap">${pts(p.earned)} / ${pts(p.weight)}</td><td class="py-1 align-top text-[12px] leading-5 break-words">${reason ? escapeHtml(reason) : "-"}</td></tr>`;
+            }).join("")}</tbody></table>`
+            : `<div class="text-on-surface-variant">${escapeHtml(cleanReason((row.issues && row.issues[0] && row.issues[0].message) || "No target equivalent."))}</div>`);
+    return wrap;
 }
 
 function createMsgBadge(count, msgType) {
@@ -818,6 +889,194 @@ function renderValidationCards(results) {
         `<div class="flex items-center gap-2 text-[11px] font-mono"><span class="px-1.5 py-[1px] rounded bg-red-50 text-error">${msgs.error} Errors</span><span class="px-1.5 py-[1px] rounded bg-amber-50 text-amber-700">${msgs.warn} Warnings</span></div>`));
 }
 
+// ---------------------------------------------------------------------------
+// Artifact mapping / connection mapping / linked service usage (validation report)
+// ---------------------------------------------------------------------------
+
+function sectionShell(id, title, noteHtml) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    el.innerHTML = `<h2 class="text-[13px] font-semibold uppercase tracking-wide text-on-surface-variant">${escapeHtml(title)}</h2>${noteHtml || ""}`;
+    el.style.display = "flex";
+    return el;
+}
+
+function simpleTable(headers, rowsHtml, widths) {
+    const wrap = document.createElement('div');
+    wrap.className = "overflow-x-auto rounded border border-surface-container bg-surface-container-lowest shadow-sm";
+    const cols = widths ? `<colgroup>${widths.map(w => `<col style="width:${w}">`).join("")}</colgroup>` : "";
+    wrap.innerHTML = `<table class="w-full text-left border-collapse font-mono text-[11px]${widths ? " table-fixed" : ""}">${cols}<thead><tr class="bg-surface-container-high text-on-surface-variant text-[10px] uppercase tracking-wide">${headers.map(h => `<th class="py-1.5 px-3">${h}</th>`).join("")}</tr></thead><tbody class="divide-y divide-surface-container">${rowsHtml.join("")}</tbody></table>`;
+    return wrap;
+}
+
+const td = html => `<td class="py-1.5 px-3 align-top">${html}</td>`;
+const refsOf = (v, type) => (v.typeProperties || []).filter(p => p.name === type).map(p => p.value);
+const refTypeLabel = { DatasetReference: "Dataset", LinkedServiceReference: "Linked Service", DataFlowReference: "Data Flow", PipelineReference: "Pipeline" };
+// "DF_Get_Metadata_1" and "get_metadata_1" are the same artifact under different naming standards
+const normName = n => String(n || "").toLowerCase().replace(/^(df|ppl|pl|ds|st|cpd|fl)_/, "").replace(/[^a-z0-9]/g, "");
+
+// Only artifacts that exist as a physical file in the target are listed. Today that is pipelines,
+// data flows / flowlets, datasets and linked services; a task that starts producing another kind of
+// file just needs its resource type added here (it is then matched and shown automatically).
+const PHYSICAL_ARTIFACT_TYPES = new Set(["PIPELINE", "DATAFLOW", "FLOWLET", "DATASET", "LINKEDSERVICE", "LINKED_SERVICE"]);
+
+function renderArtifactMapping(report) {
+    const physical = (report.validationResults || []).filter(v => PHYSICAL_ARTIFACT_TYPES.has(String(v.resourceType).toUpperCase()));
+    // linked services are created too, but are not schema-validated: take them from the generator's list
+    const cm = report.configMapping;
+    const linkedServices = cm ? (cm.typeProperties || []).filter(p => p.name === "LINKED_SERVICE").map(p => {
+        const [name, type] = p.value.split("|");
+        return { resourceName: name, resourceType: "LINKED_SERVICE", adfType: type, typeProperties: [] };
+    }) : [];
+    const all = physical.concat(linkedServices);
+    const pipelineByName = new Map(all.filter(v => v.resourceType === "PIPELINE").map(v => [String(v.resourceName).toLowerCase(), v]));
+
+    const artifactChip = v => `<span class="text-primary font-semibold">${escapeHtml(v.resourceName)}</span> <span class="text-on-surface-variant">(${escapeHtml(v.adfType ? v.resourceType + " - " + v.adfType : v.resourceType)})</span>`;
+    // the artifact plus what it points at (data flow -> datasets, dataset -> linked service, ...)
+    const artifactHtml = v => {
+        const uses = [];
+        Object.keys(refTypeLabel).forEach(t => refsOf(v, t).forEach(n => uses.push(`${refTypeLabel[t]}: ${escapeHtml(n)}`)));
+        return `<div class="mb-1">${artifactChip(v)}${uses.length ? `<div class="text-[10px] text-on-surface-variant pl-3">uses ${uses.join(" | ")}</div>` : ""}</div>`;
+    };
+    const note = text => `<div class="text-[11px] text-amber-800 italic mb-1">${text}</div>`;
+    const nameOf = g => escapeHtml(g.displayName || g.componentName);
+
+    const used = new Set();
+    const rows = [];
+    const addRow = (srcName, srcType, targetHtml, targets) => {
+        (targets || []).forEach(t => used.add(String(t.resourceName).toLowerCase()));
+        rows.push(`<tr class="hover:bg-surface-container-low">${td(`<div class="font-semibold text-on-surface">${escapeHtml(srcName)}</div><div class="text-on-surface-variant">${escapeHtml(srcType)}</div>`)}${td(targetHtml)}</tr>`);
+    };
+
+    // package -> pipeline(s)
+    const pipelines = all.filter(v => v.resourceType === "PIPELINE");
+    const pkgKey = normName(report.jobName);
+    const pkgPipes = pipelines.filter(v => normName(v.resourceName).includes(pkgKey) || pkgKey.includes(normName(v.resourceName)));
+    const pkgTargets = pkgPipes.length ? pkgPipes : pipelines;
+    addRow(report.jobName, "Package", pkgTargets.length ? pkgTargets.map(artifactHtml).join("") : `<span class="placeholder-value">No generated artifact</span>`, pkgTargets);
+
+    // every other source task / component that has a physical artifact in the target
+    const seen = new Set();
+    (report.sourceComponents || []).forEach(c => {
+        if (seen.has(c.componentName)) return;
+        seen.add(c.componentName);
+        const generated = c.generatedComponents || [];
+        const isDataFlow = /data\s*flow/i.test(c.componentType || "");
+        const copies = generated.filter(g => /copy/i.test(g.componentType || ""));
+        const replication = generated.filter(g => /executepipeline/i.test(g.componentType || ""));
+        const keys = new Set([normName(c.componentName)].concat(generated.map(g => normName(g.displayName || g.componentName))));
+        const matched = all.filter(v => v.resourceType !== "LINKED_SERVICE" && !used.has(String(v.resourceName).toLowerCase()) && keys.has(normName(v.resourceName)));
+
+        const parts = [];
+        if (copies.length) {
+            // converted to a Copy Data activity inside the pipeline: nothing of its own is written to disk
+            parts.push(copies.map(g => `<div class="mb-1"><span class="text-primary font-semibold">${nameOf(g)}</span> <span class="text-on-surface-variant">(Copy Data activity)</span></div>`).join("")
+                + note("Only a Copy Data activity is created &mdash; no separate artifact (physical file) is created as the data flow is transformed to Copy Data."));
+        } else {
+            parts.push(matched.map(artifactHtml).join(""));
+        }
+        // a pipeline run on behalf of this task (a data flow runs through a replication pipeline; an Execute Package task calls its pipeline)
+        const calledPipelines = [];
+        replication.forEach(g => {
+            const pipe = pipelineByName.get(String(g.displayName || g.componentName).toLowerCase());
+            if (pipe && matched.includes(pipe)) return;
+            calledPipelines.push(`<div class="mb-1"><span class="text-primary font-semibold">${nameOf(g)}</span> <span class="text-on-surface-variant">(PIPELINE)</span></div>`);
+        });
+        if (calledPipelines.length) {
+            parts.push(note(isDataFlow ? "Uses a replication pipeline:" : "Calls pipeline:") + calledPipelines.join(""));
+        }
+        if (!copies.length && !matched.length && !calledPipelines.length) return; // creates no physical artifact
+        addRow(c.componentName, c.componentType, parts.join(""), matched);
+    });
+
+    // what is left (generic datasets, linked services...) is driven by the configuration, not by one source artifact
+    const rest = all.filter(v => !used.has(String(v.resourceName).toLowerCase()));
+    if (rest.length) addRow("Generic artifacts (workaround)", "Shared / generic artifacts", rest.map(artifactHtml).join(""), rest);
+
+    const el = sectionShell("artifactMapSection", "Source Artifact to Target Artifact Mapping",
+        `<div class="text-[12px] text-on-surface-variant">Only artifacts created as a physical file in the target are listed (pipelines, data flows, datasets, linked services).</div>`);
+    if (el) el.appendChild(simpleTable(["Source Artifact", "Target Artifact(s)"], rows, ["50%", "50%"]));
+}
+
+function renderConfigMapping(report) {
+    const cm = report.configMapping;
+    const mappings = cm ? (cm.typeProperties || []).filter(p => p.name === "MAPPING").map(p => p.value.split("|")) : [];
+    if (!mappings.length) return;
+    const lsTypes = new Map((cm.typeProperties || []).filter(p => p.name === "LINKED_SERVICE").map(p => p.value.split("|")));
+    const rows = mappings.map(([dir, dbs, ds, ls, lsKind, srcType]) => `<tr class="hover:bg-surface-container-low">
+        ${td(escapeHtml(dbs.split(",").join(", ") || "-"))}${td(escapeHtml(dir))}${td(escapeHtml(ds))}${td(escapeHtml(ls))}
+        ${td(escapeHtml(lsTypes.get(ls) || lsKind))}${td(escapeHtml(srcType))}</tr>`);
+    const el = sectionShell("configMapSection", "Connection to Dataset and Linked Service Mapping");
+    if (el) el.appendChild(simpleTable(["Source Connection Type", "Direction", "Dataset", "Linked Service", "Linked Service Type", "Dataset Format"], rows));
+}
+
+// Package connection -> dataset -> linked service (only present when the generator ran with useSourceConnections).
+function renderSourceConnections(report) {
+    const cm = report.configMapping;
+    const rows = cm ? (cm.typeProperties || []).filter(p => p.name === "CONNECTION").map(p => p.value.split("|")) : [];
+    if (!rows.length) return;
+    const el = sectionShell("sourceConnectionSection", "Source Connections to Dataset and Linked Service",
+        `<div class="text-[12px] text-on-surface-variant">One dataset per connection name; connections with the same connection string share one linked service. Credentials are not shown.</div>`);
+    if (!el) return;
+    el.appendChild(simpleTable(["Connection", "Dataset", "Linked Service", "Linked Service Type", "Connection String"],
+        rows.map(([conn, ds, ls, type, cs]) => `<tr class="hover:bg-surface-container-low">${td(escapeHtml(conn))}${td(escapeHtml(ds))}${td(escapeHtml(ls))}${td(escapeHtml(type || "-"))}${td(`<span class="break-all">${escapeHtml(cs || "-")}</span>`)}</tr>`)));
+}
+
+// Which dataset / linked service each component and activity uses, and whether it comes from the SSIS connection or
+// from a generic dataset / linked service used as a workaround (task with no connection in SSIS, or created by a rule).
+const CONNECTION_ORIGINS = {
+    SSIS_CONNECTION: { label: "SSIS connection", generic: false, reason: "Made from the connection the SSIS task / component uses." },
+    NO_SSIS_CONNECTION: { label: "Generic (workaround)", generic: true, reason: "The SSIS task / component has no connection." },
+    FILE_CONNECTION: { label: "Generic (workaround)", generic: true, reason: "The SSIS connection is not a database one (file, Excel, FTP ...)." },
+    RULE_CREATED: { label: "Generic (workaround)", generic: true, reason: "Created by a conversion rule - it is not in the SSIS package." },
+    STAGING_GENERIC: { label: "Generic (workaround)", generic: true, reason: "Staging dataset; the destination connection is applied on the Copy activity that follows." }
+};
+
+function renderConnectionUsage(report) {
+    const cm = report.configMapping;
+    const rows = cm ? (cm.typeProperties || []).filter(p => p.name === "CONNECTION_USAGE").map(p => p.value.split("|")) : [];
+    if (!rows.length) return;
+    const generic = rows.filter(r => (CONNECTION_ORIGINS[r[4]] || {}).generic).length;
+    const note = `<div class="text-[12px] text-on-surface-variant">${rows.length} use(s) of a dataset / linked service: ${rows.length - generic} from an SSIS connection, ${generic} from a generic dataset / linked service used as a workaround (review those - the task or component has no connection in SSIS, or was created by a rule).</div>`;
+    const el = sectionShell("connectionUsageSection", "Connections Used by Components and Activities", note);
+    if (!el) return;
+    const badge = origin => {
+        const o = CONNECTION_ORIGINS[origin] || { label: origin, generic: true, reason: "" };
+        const cls = o.generic ? "bg-amber-50 text-amber-900 border-amber-300" : "bg-green-50 text-green-900 border-green-300";
+        return `<span class="inline-block rounded border px-1.5 py-0.5 ${cls}" title="${escapeHtml(o.reason)}">${escapeHtml(o.label)}</span>`;
+    };
+    const dash = v => v ? escapeHtml(v) : `<span class="placeholder-value">-</span>`;
+    const sorted = rows.slice().sort((a, b) => ((CONNECTION_ORIGINS[a[4]] || {}).generic ? 1 : 0) - ((CONNECTION_ORIGINS[b[4]] || {}).generic ? 1 : 0) || a[1].localeCompare(b[1]));
+    el.appendChild(simpleTable(["Component / Activity", "Type", "SSIS Name", "SSIS Connection", "Dataset", "Linked Service", "Source of the Connection"],
+        sorted.map(([kind, name, ssisName, conn, origin, ds, ls]) => `<tr class="hover:bg-surface-container-low">
+            ${td(`<span class="font-semibold text-on-surface">${escapeHtml(name)}</span>`)}${td(escapeHtml(kind))}${td(dash(ssisName === name ? "" : ssisName))}
+            ${td(dash(conn))}${td(dash(ds))}${td(dash(ls))}${td(`${badge(origin)}<div class="text-on-surface-variant mt-0.5">${escapeHtml((CONNECTION_ORIGINS[origin] || {}).reason || "")}</div>`)}</tr>`)));
+}
+
+function renderLinkedServiceUsage(report) {
+    const results = report.validationResults || [];
+    const cm = report.configMapping;
+    const lsTypes = new Map(cm ? (cm.typeProperties || []).filter(p => p.name === "LINKED_SERVICE").map(p => p.value.split("|")) : []);
+    const usage = new Map(); // linked service -> { datasets: Set, others: Set }
+    results.forEach(v => refsOf(v, "LinkedServiceReference").forEach(ls => {
+        if (!usage.has(ls)) usage.set(ls, { datasets: new Set(), others: new Set() });
+        (v.resourceType === "DATASET" ? usage.get(ls).datasets : usage.get(ls).others).add(v.resourceName);
+    }));
+    if (!usage.size) return;
+    // pipelines / data flows that use a linked service only through one of its datasets
+    results.filter(v => v.resourceType !== "DATASET").forEach(v => refsOf(v, "DatasetReference").forEach(dsName => {
+        usage.forEach(u => { if ([...u.datasets].some(d => d.toLowerCase() === dsName.toLowerCase())) u.others.add(v.resourceName); });
+    }));
+    const list = names => names.size ? [...names].map(n => `<div>${escapeHtml(n)}</div>`).join("") : `<span class="placeholder-value">-</span>`;
+    const rows = [...usage.entries()].map(([ls, u]) => `<tr class="hover:bg-surface-container-low">
+        ${td(`<span class="font-semibold text-on-surface">${escapeHtml(ls)}</span>`)}${td(escapeHtml(lsTypes.get(ls) || "-"))}
+        ${td(list(u.datasets))}${td(list(u.others))}
+        ${td(`<span class="font-semibold">${u.datasets.size + u.others.size}</span>`)}</tr>`);
+    const note = `<div class="flex items-start gap-2 rounded border border-amber-300 bg-amber-50 text-amber-900 p-3 text-[12px]"><span class="material-symbols-outlined text-[18px]">warning</span><span><strong>Disclaimer:</strong> if a linked service is changed (renamed or replaced), every place that refers to it must be updated as well &mdash; the datasets that use it, and the pipelines and data flows that use those datasets (or the linked service directly) listed below.</span></div>`;
+    const el = sectionShell("linkedServiceSection", "Linked Services Used in this Package", note);
+    if (el) el.appendChild(simpleTable(["Linked Service", "Type", "Datasets Using It", "Pipelines / Data Flows Using It", "Instances"], rows));
+}
+
 function renderValidationSection(validationResults) {
     const section = document.getElementById("validationSection");
     const container = document.getElementById("validationResults");
@@ -920,28 +1179,25 @@ function buildComponentTile(currSrcComp, keysInView) {
         tile.className = "bg-surface-container-lowest rounded shadow-sm overflow-hidden";
 
         const header = document.createElement('div');
-        header.className = "p-3 bg-surface-container-low flex flex-col md:flex-row md:items-center justify-between gap-2 cursor-pointer select-none";
-
-        const left = document.createElement('div');
-        left.className = "flex items-center gap-2 min-w-0";
+        header.className = "p-3 bg-surface-container-low grid items-center gap-3 cursor-pointer select-none text-left";
+        // chevron + five columns in a fixed 25 / 10 / 25 / 20 / 20 ratio so every tile lines up
+        header.style.gridTemplateColumns = "24px 25fr 10fr 25fr 20fr 20fr";
 
         const chevron = document.createElement('span');
         chevron.className = "material-symbols-outlined text-primary text-[20px] shrink-0";
         chevron.textContent = "chevron_right";
-        left.appendChild(chevron);
 
-        const namesWrap = document.createElement('div');
-        namesWrap.className = "flex items-center gap-2 min-w-0 flex-wrap";
+        // Data flows / containers: show how many components sit inside (all nesting levels).
+        const countNested = c => (c.nestedComponents || []).reduce((n, x) => n + 1 + countNested(x), 0);
+        const innerCount = countNested(currSrcComp);
 
         const srcWrap = document.createElement('div');
         srcWrap.className = "flex flex-col min-w-0";
-        srcWrap.innerHTML = `<span class="componentName font-mono font-bold text-[14px] text-on-surface truncate">${escapeHtml(currSrcComp.componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(currSrcComp.componentType)}</span>`;
-        namesWrap.appendChild(srcWrap);
+        srcWrap.innerHTML = `<span class="componentName font-mono font-bold text-[14px] text-on-surface truncate">${escapeHtml(currSrcComp.componentName)}</span><span class="componentType font-mono text-[11px] text-on-surface-variant">${escapeHtml(currSrcComp.componentType)}${innerCount > 0 ? ` <span class="ml-1 px-1.5 py-[1px] rounded bg-surface-container text-on-surface-variant whitespace-nowrap" title="Components inside this ${escapeHtml(currSrcComp.componentType || "container")}">${innerCount} ${innerCount === 1 ? "component" : "components"}</span>` : ""}</span>`;
 
         const arrow = document.createElement('span');
-        arrow.className = "material-symbols-outlined text-outline text-[16px]";
+        arrow.className = "material-symbols-outlined text-outline text-[16px] justify-self-start";
         arrow.textContent = "trending_flat";
-        namesWrap.appendChild(arrow);
 
         const genWrap = document.createElement('div');
         genWrap.className = "flex flex-col min-w-0";
@@ -957,26 +1213,32 @@ function buildComponentTile(currSrcComp, keysInView) {
             const distinctTypes = [...new Set(generatedComponents.map(g => g.componentType).filter(Boolean))];
             genWrap.innerHTML = `<span class="componentName font-mono font-bold text-[14px] text-primary">${generatedComponents.length} Generated Components</span><span class="componentType font-mono text-[11px] text-on-surface-variant truncate">${escapeHtml(distinctTypes.join(", "))}</span>`;
         }
-        namesWrap.appendChild(genWrap);
 
-        left.appendChild(namesWrap);
-
-        const right = document.createElement('div');
-        right.className = "flex items-center gap-2 flex-wrap";
-        right.appendChild(statusPill(counts));
+        const status = scoreStatus(currSrcComp, counts);
+        const pillCell = document.createElement('div');
+        pillCell.className = "flex items-center min-w-0";
+        pillCell.appendChild(statusPill(counts, status, scoreRow(currSrcComp)));
         const badgeWrap = document.createElement('div');
-        badgeWrap.className = "flex items-center gap-1";
+        badgeWrap.className = "flex items-center gap-1 min-w-0";
         badgeWrap.appendChild(createMsgBadge(counts.errorMessages, "error"));
         badgeWrap.appendChild(createMsgBadge(counts.warnMessages, "warn"));
         badgeWrap.appendChild(createMsgBadge(counts.infoMessages, "info"));
         badgeWrap.appendChild(createMsgBadge(counts.successMessages, "success"));
-        right.appendChild(badgeWrap);
 
-        header.appendChild(left);
-        header.appendChild(right);
+        header.appendChild(chevron);
+        header.appendChild(srcWrap);
+        header.appendChild(arrow);
+        header.appendChild(genWrap);
+        header.appendChild(pillCell);
+        header.appendChild(badgeWrap);
 
         const body = document.createElement('div');
         body.className = "hidden p-4 flex flex-col gap-4 border-t border-surface-container";
+        const scored = scoreRow(currSrcComp);
+        if (scored) {
+            body.appendChild(sectionLabel("Converted Properties"));
+            body.appendChild(renderScoreDetails(scored));
+        }
         body.appendChild(sectionLabel("Messages"));
         body.appendChild(renderMessageComparison(sourceMessages, generatedComponents));
         if (typeProperties.length > 0) {
@@ -1069,6 +1331,55 @@ function load() {
         const sourcetoolEl = document.getElementById("sourcetool");
         const targettoolEl = document.getElementById("targettool");
         if (jobnameEl) jobnameEl.textContent = convertedReport.jobName || "Unknown";
+        // Package switcher: packages.js (written next to this report) lists every converted package.
+        const pkgs = Array.isArray(window.ectPackages) ? window.ectPackages : [];
+        if (jobnameEl && pkgs.length > 1) {
+            // Searchable package picker: type to filter the list, pick a package to open its report.
+            const current = convertedReport.jobName;
+            const wrapEl = document.createElement("span");
+            const select = document.createElement("input");
+            const list = document.createElement("datalist");
+            list.id = "packageList";
+            pkgs.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.name;
+                list.appendChild(opt);
+            });
+            select.id = "packageSelect";
+            select.type = "text";
+            select.value = current;
+            select.setAttribute("list", list.id);
+            select.title = "Search / switch package";
+            select.placeholder = "Search package";
+            select.className = "h-7 px-2 rounded border border-surface-container-high bg-surface-container-lowest text-[12px] font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary w-64";
+            // clear on focus so the list is not filtered down to the current package
+            select.addEventListener("focus", () => { select.value = ""; });
+            select.addEventListener("blur", () => { if (!select.value) select.value = current; });
+            select.addEventListener("input", () => {
+                const target = pkgs.find(p => p.name === select.value);
+                if (target && target.name !== current) {
+                    location.href = window.reportMode === "validation" ? target.href.replace(/_report\.html$/, "_validation.html") : target.href;
+                }
+            });
+            wrapEl.appendChild(select);
+            wrapEl.appendChild(list);
+            jobnameEl.replaceWith(wrapEl);
+        }
+        const consolidatedLink = document.getElementById("consolidatedLink");
+        if (consolidatedLink && window.ectConsolidatedHref) {
+            consolidatedLink.href = window.ectConsolidatedHref;
+            consolidatedLink.style.display = "flex";
+        }
+        // clicking the logo goes to the consolidated report
+        const logo = document.querySelector('img[alt="Company Logo"]');
+        if (logo && window.ectConsolidatedHref && !(logo.parentElement && logo.parentElement.tagName === "A")) {
+            const a = document.createElement("a");
+            a.href = window.ectConsolidatedHref;
+            a.title = "Back to the consolidated report";
+            a.className = "inline-flex";
+            logo.replaceWith(a);
+            a.appendChild(logo);
+        }
         if (sourcetoolEl) sourcetoolEl.textContent = convertedReport.sourceToolName || "Unknown";
         if (targettoolEl) targettoolEl.textContent = convertedReport.targetToolName || "Unknown";
 
@@ -1093,6 +1404,13 @@ function load() {
         else renderKpiCards(summary);
         if (!validationOnly) renderStatusChips(summary);
         renderValidationSection(convertedReport.validationResults);
+        if (validationOnly) {
+            renderArtifactMapping(convertedReport);
+            renderConfigMapping(convertedReport);
+            renderSourceConnections(convertedReport);
+            renderConnectionUsage(convertedReport);
+            renderLinkedServiceUsage(convertedReport);
+        }
 
         const validationLink = document.getElementById("validationLink");
         if (validationLink && !validationOnly && (convertedReport.validationResults || []).length > 0) {
