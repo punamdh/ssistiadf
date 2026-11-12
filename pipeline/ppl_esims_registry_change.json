@@ -61,7 +61,7 @@
             }
           }
         },
-        "firstRowOnly" : false
+        "firstRowOnly" : true
       }
     }, {
       "name" : "ST_Obtain_Parameters_0",
@@ -558,11 +558,38 @@
         }
       }
     }, {
+      "name" : "SETVAR_StrRegistryFileName",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "GMD_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrRegistryFileName",
+        "value" : {
+          "value" : "",
+          "type" : "Expression"
+        }
+      }
+    }, {
       "name" : "FRE_Foreach_Loop_Container_0",
       "type" : "ForEach",
       "policy" : null,
       "dependsOn" : [ {
         "activity" : "FLTR_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_StrRegistryFileName",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -650,6 +677,20 @@
                 }
               },
               "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
                 "FlatFileSource" : {
                   "Container" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_FlatFileSource_ContainerName",
@@ -664,20 +705,6 @@
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
-                },
-                "OLEDBDestination" : {
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
-                    "type" : "Expression"
-                  }
                 }
               }
             },
