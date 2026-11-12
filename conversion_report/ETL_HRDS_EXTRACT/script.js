@@ -1029,6 +1029,7 @@ const CONNECTION_ORIGINS = {
     NO_SSIS_CONNECTION: { label: "Generic (workaround)", generic: true, reason: "The SSIS task / component has no connection." },
     FILE_CONNECTION: { label: "Generic (workaround)", generic: true, reason: "The SSIS connection is not a database one (file, Excel, FTP ...)." },
     RULE_CREATED: { label: "Generic (workaround)", generic: true, reason: "Created by a conversion rule - it is not in the SSIS package." },
+    DATAFLOW_UNSUPPORTED: { label: "Generic (workaround)", generic: true, reason: "The SSIS connection type (Oracle, Teradata, ODBC ...) is not supported by ADF data flows." },
     STAGING_GENERIC: { label: "Generic (workaround)", generic: true, reason: "Staging dataset; the destination connection is applied on the Copy activity that follows." }
 };
 
@@ -1051,6 +1052,21 @@ function renderConnectionUsage(report) {
         sorted.map(([kind, name, ssisName, conn, origin, ds, ls]) => `<tr class="hover:bg-surface-container-low">
             ${td(`<span class="font-semibold text-on-surface">${escapeHtml(name)}</span>`)}${td(escapeHtml(kind))}${td(dash(ssisName === name ? "" : ssisName))}
             ${td(dash(conn))}${td(dash(ds))}${td(dash(ls))}${td(`${badge(origin)}<div class="text-on-surface-variant mt-0.5">${escapeHtml((CONNECTION_ORIGINS[origin] || {}).reason || "")}</div>`)}</tr>`)));
+}
+
+// Pipelines created because ADF has no container inside a container: the nested container moved to a pipeline of its own.
+function renderNestedPipelines(report) {
+    const cm = report.configMapping;
+    const rows = cm ? (cm.typeProperties || []).filter(p => p.name === "NESTED_PIPELINE").map(p => p.value.split("|")) : [];
+    if (!rows.length) return;
+    const note = `<div class="text-[12px] text-on-surface-variant">${rows.length} pipeline(s) created because Azure Data Factory does not support a container inside a container. The nested container runs in a pipeline of its own, named after the outer container and started by an Execute Pipeline activity. Variables set inside it are local to that pipeline.</div>`;
+    const el = sectionShell("nestedPipelineSection", "Pipelines Created for Nested Containers", note);
+    if (!el) return;
+    const list = v => v ? v.split(",").map(n => `<div>${escapeHtml(n)}</div>`).join("") : `<span class="placeholder-value">-</span>`;
+    el.appendChild(simpleTable(["New Pipeline", "Run From (Pipeline)", "Execute Pipeline Activity", "Parameters Passed", "Variables Passed"],
+        rows.map(([parent, pipeline, activity, params, vars]) => `<tr class="hover:bg-surface-container-low">
+            ${td(`<span class="font-semibold text-on-surface">${escapeHtml(pipeline)}</span>`)}${td(escapeHtml(parent))}${td(escapeHtml(activity))}
+            ${td(list(params))}${td(list(vars))}</tr>`)));
 }
 
 function renderLinkedServiceUsage(report) {
@@ -1409,6 +1425,7 @@ function load() {
             renderConfigMapping(convertedReport);
             renderSourceConnections(convertedReport);
             renderConnectionUsage(convertedReport);
+            renderNestedPipelines(convertedReport);
             renderLinkedServiceUsage(convertedReport);
         }
 
