@@ -61,7 +61,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "@concat('\"SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM \"', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]', ' WHERE   ETL_ID = ', variables('ETL_ID'))",
+            "value" : "@concat('\"SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM \"', string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME), '.[CONFIG].[tbl_Etl_Config]', ' WHERE   ETL_ID = ', variables('ETL_ID'))",
             "type" : "Expression"
           }
         } ],
@@ -105,15 +105,9 @@
         }
       }
     }, {
-      "name" : "SETVAR_IsEnabled",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "ST_Truncate_Table_0",
+      "type" : "Script",
+      "policy" : null,
       "dependsOn" : [ {
         "activity" : "ST_Obtain_Parameters_0",
         "dependencyConditions" : [ "Succeeded" ]
@@ -121,219 +115,19 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "IsEnabled",
-        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].IsEnabled)"
-      }
-    }, {
-      "name" : "SETVAR_CanRun",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
       },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
       "typeProperties" : {
-        "variableName" : "CanRun",
-        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].CanRun)"
-      }
-    }, {
-      "name" : "SETVAR_SrcDBNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcDBNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcDBNAME)"
-      }
-    }, {
-      "name" : "SETVAR_SrcSCHEMANAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcSCHEMANAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcSCHEMANAME)"
-      }
-    }, {
-      "name" : "SETVAR_SrcTABLENAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcTABLENAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcTABLENAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestSERVERNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestSERVERNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSERVERNAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestDBNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestDBNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestSCHEMANAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestSCHEMANAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSCHEMANAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestTABLENAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestTABLENAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestTABLENAME)"
-      }
-    }, {
-      "name" : "SETVAR_SELECTSTMT",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SELECTSTMT",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SELECTSTMT)"
-      }
-    }, {
-      "name" : "SETVAR_PREDICATES",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "PREDICATES",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@concat('Truncate Table ', variables('DestTable'))",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "ST_Log_deletion_of_archive_files_0",
@@ -355,64 +149,6 @@
           "type" : "NonQuery",
           "text" : {
             "value" : "@concat('\"\ndeclare @S_ID int = (select S_ID from ESIMS_ETL.config.LK_TBL_EVENT_TYPE where S_DESC = ''Info'');\ndeclare @Event_Desc varchar(200) = ''Files older than \"', pipeline().parameters.ArchiveFileAgeLimitInDays, ' days deleted from ', pipeline().parameters.Conn_RegistryChange_Files, '\"\\\\ARCHIVE as per record categorization.''  \n \n\nexec ESIMS_ETL.[log].usp_Create_Event\n\t@ETL_ID = null   \n\t, @P_ID = null   \n\t, @S_ID = @S_ID   \n\t, @Event_Desc = @Event_Desc \n\t, @Event_Class_ID = 4   \n\t, @CodeComponent = ''ESIMS_REGISTRY_CHANGE.dtsx''\n\"')",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
-    }, {
-      "name" : "ST_Truncate_Table_0",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_IsEnabled",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_CanRun",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcDBNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcSCHEMANAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcTABLENAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestSERVERNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestDBNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestSCHEMANAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestTABLENAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SELECTSTMT",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_PREDICATES",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "OLEDB_SQLNCLI11_1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "NonQuery",
-          "text" : {
-            "value" : "@concat('Truncate Table ', variables('DestTable'))",
             "type" : "Expression"
           }
         } ],
@@ -502,34 +238,10 @@
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "SETVAR_SET_StrRegistryFileName",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrRegistryFileName",
-            "value" : {
-              "value" : "@concat('\\\\mns2831nvs1\\ESIMSDEV\\SB_INV_CHANGES', item().name)",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "EP_REPL_Data_Flow_Task",
           "type" : "ExecutePipeline",
           "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_SET_StrRegistryFileName",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
+          "dependsOn" : [ ],
           "userProperties" : null,
           "state" : null,
           "description" : null,
@@ -578,20 +290,6 @@
                 }
               },
               "datasetParameters" : {
-                "OLEDBDestination" : {
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
-                    "type" : "Expression"
-                  }
-                },
                 "FlatFileSource" : {
                   "Container" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_FlatFileSource_ContainerName",
@@ -606,6 +304,20 @@
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
                 }
               }
             },
