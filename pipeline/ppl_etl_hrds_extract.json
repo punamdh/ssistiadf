@@ -4,27 +4,6 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "SETVAR_StrCallParams",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "StrCallParams",
-        "value" : {
-          "value" : "@concat('SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM    ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]\nWHERE   ETL_ID =', variables('ETL_ID'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -68,9 +47,6 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_StrCallParams",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -323,37 +299,10 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
-      "name" : "SETVAR_vDeleteCurDay",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vDeleteCurDay",
-        "value" : {
-          "value" : "@concat('truncate table ', variables('StrCallDestTable'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "ST_Truncate_Stage_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vDeleteCurDay",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "SETVAR_IsEnabled",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
@@ -385,6 +334,9 @@
         "dependencyConditions" : [ "Succeeded" ]
       }, {
         "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "ST_Obtain_Parameters_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -460,20 +412,6 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBSource" : {
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
-                "type" : "Expression"
-              }
-            },
             "OLEDBDestination" : {
               "Container" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBDestination_ContainerName",
@@ -485,6 +423,20 @@
               },
               "Directory" : {
                 "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_HR_Data_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
                 "type" : "Expression"
               }
             }
@@ -579,35 +531,11 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SETVAR_vMarkEndSuccessRun",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Update_Main_Table_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vMarkEndSuccessRun",
-        "value" : {
-          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "ST_Mark_Config_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vMarkEndSuccessRun",
+        "activity" : "ST_Update_Main_Table_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,

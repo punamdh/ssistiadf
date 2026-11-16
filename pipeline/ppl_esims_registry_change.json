@@ -4,27 +4,6 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "SETVAR_StrCallParams",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "StrCallParams",
-        "value" : {
-          "value" : "@concat('SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]', ' WHERE   ETL_ID = ', variables('ETL_ID'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -68,9 +47,6 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_StrCallParams",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -360,39 +336,9 @@
         "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
       }
     }, {
-      "name" : "SETVAR_StrTruncate",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "StrTruncate",
-        "value" : {
-          "value" : "@concat('Truncate Table ', variables('DestTable'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
-      "name" : "SETVAR_StrCmdSQLLogArchiveFileDeletion",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
+      "name" : "ST_Log_deletion_of_archive_files_0",
+      "type" : "Script",
+      "policy" : null,
       "dependsOn" : [ {
         "activity" : "Delete_older_archive_files",
         "dependencyConditions" : [ "Succeeded" ]
@@ -400,21 +346,25 @@
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
       "typeProperties" : {
-        "variableName" : "StrCmdSQLLogArchiveFileDeletion",
-        "value" : {
-          "value" : "@concat('\ndeclare @S_ID int = (select S_ID from ESIMS_ETL.config.LK_TBL_EVENT_TYPE where S_DESC = ''Info'');\ndeclare @Event_Desc varchar(200) = ''Files older than ', pipeline().parameters.ArchiveFileAgeLimitInDays, ' days deleted from ', pipeline().parameters.Conn_RegistryChange_Files, '\\\\ARCHIVE as per record categorization.''  \n \n\nexec ESIMS_ETL.[log].usp_Create_Event\n\t@ETL_ID = null   \n\t, @P_ID = null   \n\t, @S_ID = @S_ID   \n\t, @Event_Desc = @Event_Desc \n\t, @Event_Class_ID = 4   \n\t, @CodeComponent = ''ESIMS_REGISTRY_CHANGE.dtsx''\n')",
-          "type" : "Expression"
-        }
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('StrCmdSQLLogArchiveFileDeletion')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
       }
     }, {
       "name" : "ST_Truncate_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_StrTruncate",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "SETVAR_IsEnabled",
         "dependencyConditions" : [ "Succeeded" ]
       }, {
@@ -447,30 +397,8 @@
       }, {
         "activity" : "SETVAR_PREDICATES",
         "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "linkedServiceName" : {
-        "referenceName" : "OLEDB_SQLNCLI11_1",
-        "type" : "LinkedServiceReference"
-      },
-      "typeProperties" : {
-        "scripts" : [ {
-          "type" : "NonQuery",
-          "text" : {
-            "value" : "@variables('StrTruncate')",
-            "type" : "Expression"
-          }
-        } ],
-        "scriptBlockExecutionTimeout" : null
-      }
-    }, {
-      "name" : "ST_Log_deletion_of_archive_files_0",
-      "type" : "Script",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_StrCmdSQLLogArchiveFileDeletion",
+      }, {
+        "activity" : "ST_Obtain_Parameters_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -484,7 +412,7 @@
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('StrCmdSQLLogArchiveFileDeletion')",
+            "value" : "@variables('StrTruncate')",
             "type" : "Expression"
           }
         } ],
@@ -650,20 +578,6 @@
                 }
               },
               "datasetParameters" : {
-                "OLEDBDestination" : {
-                  "Container" : {
-                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
-                    "type" : "Expression"
-                  },
-                  "FileName" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
-                    "type" : "Expression"
-                  },
-                  "Directory" : {
-                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
-                    "type" : "Expression"
-                  }
-                },
                 "FlatFileSource" : {
                   "Container" : {
                     "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_FlatFileSource_ContainerName",
@@ -678,6 +592,20 @@
                     "type" : "Expression"
                   },
                   "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
                 }
               }
             },
@@ -876,14 +804,6 @@
     },
     "parameters" : {
       "Data_Flow_Task_StagingFolderPath" : {
-        "type" : "String",
-        "defaultValue" : ""
-      },
-      "ArchiveFileAgeLimitInDays" : {
-        "type" : "String",
-        "defaultValue" : ""
-      },
-      "Conn_RegistryChange_Files" : {
         "type" : "String",
         "defaultValue" : ""
       }
