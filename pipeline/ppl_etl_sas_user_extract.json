@@ -61,7 +61,7 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "@variables('StrCallParams')",
+            "value" : "@concat('\"SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM    \"', variables('DestDBNAME'), '\".[CONFIG].[tbl_Etl_Config]\nWHERE   ETL_ID =\"', variables('ETL_ID'))",
             "type" : "Expression"
           }
         } ],
@@ -350,7 +350,7 @@
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vDeleteCurDay')",
+            "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
             "type" : "Expression"
           }
         } ],
@@ -412,17 +412,17 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBDestination" : {
+            "OLEDBSource" : {
               "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_ContainerName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
                 "type" : "Expression"
               },
               "Directory" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
                 "type" : "Expression"
               }
             },
@@ -440,17 +440,17 @@
                 "type" : "Expression"
               }
             },
-            "OLEDBSource" : {
+            "OLEDBDestination" : {
               "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_ContainerName",
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_ContainerName",
                 "type" : "Expression"
               },
               "FileName" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
                 "type" : "Expression"
               },
               "Directory" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Metadata_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
                 "type" : "Expression"
               }
             }
@@ -538,7 +538,7 @@
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vMarkEndSuccessRun')",
+            "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
             "type" : "Expression"
           }
         } ],
