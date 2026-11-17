@@ -288,6 +288,27 @@
           "type" : "Expression"
         },
         "activities" : [ {
+          "name" : "SETVAR_SET_TemplateID",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TemplateID",
+            "value" : {
+              "value" : "@item().template_ID",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "Send_Email",
           "type" : "AzureFunctionActivity",
           "policy" : {
@@ -297,7 +318,10 @@
             "secureOutput" : false,
             "secureInput" : false
           },
-          "dependsOn" : [ ],
+          "dependsOn" : [ {
+            "activity" : "SETVAR_SET_TemplateID",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
           "state" : null,
           "description" : "Script Task",
           "onInactiveMarkAs" : null,
@@ -753,11 +777,35 @@
             }
           }
         }, {
+          "name" : "SETVAR_SET_obligee_employee_id",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "obligee_employee_id",
+            "value" : {
+              "value" : "@item().notification_date",
+              "type" : "Expression"
+            }
+          }
+        }, {
           "name" : "ST_Check_if_Greater_than_15_SBX_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
             "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SET_obligee_employee_id",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
