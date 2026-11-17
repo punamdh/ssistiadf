@@ -1,0 +1,167 @@
+{
+	"name": "Generic_db_replication_ppl",
+	"properties": {
+		"activities": [
+			{
+				"name": "Fetch_Metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('select  ID,EXTRACTQUERY AS EXTRACT_QUERY,SEQ_NUM, TARGET_STAGE_PATH AS TARGET_PATH, SOURCE_TYPE,HOST_NAME,TABLENAME_OR_FILENAME AS FILE_NAME,DATABASE_NAME as DATABASE,src_directory,src_filename,staging_container from GENERIC_REPLICATION_CONTROL\\\\nwhere pipeline_name=''',pipeline().parameters.Pipeline_Name,'''',' and DATAFLOW_NAME=','''',pipeline().parameters.Dataflow_Name,'''')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Fetch_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Fetch_Metadata').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Param Replace",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Generic_replication_inner",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"id": {
+										"value": "@item().ID",
+										"type": "Expression"
+									},
+									"extract_query": {
+										"value": "@item().EXTRACT_QUERY",
+										"type": "Expression"
+									},
+									"pipeline_name": {
+										"value": "@pipeline().parameters.Pipeline_Name",
+										"type": "Expression"
+									},
+									"SysDateTime": {
+										"value": "@pipeline().parameters.SysDatetime",
+										"type": "Expression"
+									},
+									"Filepath": {
+										"value": "@item().TARGET_PATH",
+										"type": "Expression"
+									},
+									"Filename": {
+										"value": "@item().FILE_NAME",
+										"type": "Expression"
+									},
+									"seq_num": {
+										"value": "@item().SEQ_NUM",
+										"type": "Expression"
+									},
+									"source_type": {
+										"value": "@item().SOURCE_TYPE",
+										"type": "Expression"
+									},
+									"database": {
+										"value": "@item().DATABASE",
+										"type": "Expression"
+									},
+									"Table": "it_incident",
+									"server": {
+										"value": "@item().HOST_NAME",
+										"type": "Expression"
+									},
+									"FilePath_Date": {
+										"value": "@coalesce(pipeline().parameters.FilePath_Date,utcNow())",
+										"type": "Expression"
+									},
+									"src_directory": {
+										"value": "@item().src_directory",
+										"type": "Expression"
+									},
+									"src_filename": {
+										"value": "@item().src_filename",
+										"type": "Expression"
+									},
+									"staging_container": {
+										"value": "@item().staging_container",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"Pipeline_Name": {
+				"type": "string"
+			},
+			"SysDatetime": {
+				"type": "string"
+			},
+			"FilePath_Date": {
+				"type": "string"
+			},
+			"Dataflow_Name": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"paramname": {
+				"type": "String"
+			},
+			"extract_query": {
+				"type": "String"
+			},
+			"SysDatetime": {
+				"type": "String"
+			},
+			"Sysdate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Generic_Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-03-04T10:11:44Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

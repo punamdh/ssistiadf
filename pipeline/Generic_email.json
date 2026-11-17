@@ -1,0 +1,75 @@
+{
+	"name": "Generic_email",
+	"properties": {
+		"activities": [
+			{
+				"name": "web_CallLogicApp",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "lkp_GetEmailConfig",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "Content-Type"
+					},
+					"url": "https://prod-10.centralindia.logic.azure.com:443/workflows/50eacae33dcc433a9c058d527e0e4c2e/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=wJfeRx2-cuKaDO9kWF3J1yY0UslGSEFHFI_3r0krlCk",
+					"body": {
+						"value": "@{json(concat(\n    '\",\"RecipientTo\":\"', \n    activity('lkp_GetEmailConfig').output.firstRow.RecipientTo,\n    '\",\"RecipientCC\":\"', \n    activity('lkp_GetEmailConfig').output.firstRow.RecipientCC,\n    '\",\"SenderFrom\":\"', \n    activity('lkp_GetEmailConfig').output.firstRow.SenderFrom,\n    '{\"MailSubject\":\"', \n    activity('lkp_GetEmailConfig').output.firstRow.MailSubject, \n    '\",\"MailBody\":\"', \n    activity('lkp_GetEmailConfig').output.firstRow.MailBody,\n     '\"}'))}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "lkp_GetEmailConfig",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT \n    PipelineName,\n    SenderFrom,\n    ISNULL(STRING_AGG(ReceipentTo, ';'), '') AS RecipientTo,\n    ISNULL(STRING_AGG(ReceipentCC, ';'), '') AS RecipientCc,\n\tMailSubject,\n\tMailBody\nFROM dbo.EmailMetadata\nWHERE PipelineName = '@{pipeline().parameters.pSourcePipelineName}'\n  AND IsActive = 1\nGROUP BY PipelineName;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pSourcePipelineName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Generic_Pipelines"
+		},
+		"annotations": []
+	}
+}

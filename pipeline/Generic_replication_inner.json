@@ -1,0 +1,520 @@
+{
+	"name": "Generic_replication_inner",
+	"properties": {
+		"activities": [
+			{
+				"name": "Param_Fetch",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "@concat('select PARAMETER_NAME,PARAMETER_VALUE from AZ_PARAMETERS \\\\nwhere pipeline_name=''',pipeline().parameters.pipeline_name,'''',' and dataflow_name=''',pipeline().parameters.dataflow_Name,'''')",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Metadata",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Extract_query",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Param_Fetch').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "extract_loop",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "param_replace",
+								"value": {
+									"value": "@replace(variables('extract_query'),item().parameter_name , item().Parameter_Value)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "resolved_loop",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "extract_loop",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "extract_query",
+								"value": {
+									"value": "@variables('param_replace')",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Extract_query",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Param_Fetch",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "extract_query",
+					"value": {
+						"value": "@pipeline().parameters.extract_query",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Switch",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.source_type",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "SQLServer",
+							"activities": [
+								{
+									"name": "Sql replication_latest",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@variables('extract_query')",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Metadata",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Generic_tgt_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"filename": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.seq_num,'_',pipeline().parameters.SysDateTime,'.parquet')"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Oracle",
+							"activities": [
+								{
+									"name": "Oracle replication",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "OracleSource",
+											"oracleReaderQuery": {
+												"value": "@variables('extract_query')",
+												"type": "Expression"
+											},
+											"partitionOption": "None",
+											"numberPrecision": 38,
+											"numberScale": 18,
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "OracleTable1",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Generic_tgt_parquet",
+											"type": "DatasetReference",
+											"parameters": {
+												"path": "@concat(pipeline().parameters.Filepath,'/',formatDateTime(pipeline().parameters.FilePath_Date,'yyyy/MM/dd'))",
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"filename": "@concat(pipeline().parameters.Filename,'_',pipeline().parameters.seq_num,'_',pipeline().parameters.SysDateTime,'.parquet')"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "FlatFiles",
+							"activities": [
+								{
+									"name": "Migrate_Flatfiles",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "FlatFiles",
+											"type": "DatasetReference",
+											"parameters": {
+												"Directory": {
+													"value": "@pipeline().parameters.src_directory",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@pipeline().parameters.src_filename",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "Generic_File_TGT",
+											"type": "DatasetReference",
+											"parameters": {
+												"ColumnDelimiter": ",",
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"FileName": {
+													"value": "@pipeline().parameters.src_filename",
+													"type": "Expression"
+												},
+												"Directory": "@pipeline().parameters.src_directory"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "ExcelFiles",
+							"activities": [
+								{
+									"name": "migrate excel files",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ExcelSource",
+											"storeSettings": {
+												"type": "FileServerReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "SrcExcelFiles",
+											"type": "DatasetReference",
+											"parameters": {
+												"Directory": {
+													"value": "@pipeline().parameters.src_directory",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@pipeline().parameters.src_filename",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ExcelTGT",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@pipeline().parameters.staging_container",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@pipeline().parameters.src_directory",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@pipeline().parameters.src_filename",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"id": {
+				"type": "string"
+			},
+			"extract_query": {
+				"type": "string"
+			},
+			"pipeline_name": {
+				"type": "string"
+			},
+			"SysDateTime": {
+				"type": "string"
+			},
+			"dataflow_Name": {
+				"type": "string"
+			},
+			"Filepath": {
+				"type": "string"
+			},
+			"Filename": {
+				"type": "string"
+			},
+			"seq_num": {
+				"type": "string"
+			},
+			"source_type": {
+				"type": "string"
+			},
+			"database": {
+				"type": "string"
+			},
+			"Table": {
+				"type": "string",
+				"defaultValue": "delete_log"
+			},
+			"server": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"FilePath_Date": {
+				"type": "string"
+			},
+			"src_directory": {
+				"type": "string"
+			},
+			"src_filename": {
+				"type": "string"
+			},
+			"staging_container": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"param_replace": {
+				"type": "String"
+			},
+			"extract_query": {
+				"type": "String"
+			},
+			"final": {
+				"type": "String"
+			},
+			"Sysdate": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Generic_Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-03-04T10:10:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
