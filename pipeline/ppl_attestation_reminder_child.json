@@ -1,0 +1,454 @@
+{
+	"name": "ppl_attestation_reminder_child",
+	"properties": {
+		"activities": [
+			{
+				"name": "SETVAR_RC_Reminder",
+				"description": null,
+				"type": "SetVariable",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "ST_Validate_RC_for_Reminder_List_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RC_Reminder",
+					"value": {
+						"value": "@string(activity('ST_Validate_RC_for_Reminder_List_0').output.resultSets[0].rows[0].RC_Reminder)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Obtain_Reminder_List_0_0",
+				"description": null,
+				"type": "IfCondition",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "SETVAR_RC_Reminder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(int(variables('RC_Reminder')), 0)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "LKP_Obtain_Reminder_List_0",
+							"description": null,
+							"type": "Lookup",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "/*select*\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\n*/\nselect distinct CNTCT_FULL_NAME\n , CNTCT_EMAIL_ADDR\n , AsOfDate\n , EmailTitle\n , HeaderSection\n , SubHeaderSection\n , DynamicSection\n , Body1Section\n , Body2Section\n , Footer2Section\n , BDL_Name\n , BDL_Email\n , MGR_Name\n , MGR_Email\n , template_ID\n , RecipientList\n-- , notification_date\n , obligee_employee_id\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 6\nand isnull(RecipientList, '') <> ''",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "Generic_OLEDB_DS_SRC",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": "TABLE",
+										"Schema": "dbo"
+									}
+								}
+							}
+						}
+					]
+				},
+				"policy": null
+			},
+			{
+				"name": "FRE_Attestation_Reminder_Emailer_0",
+				"description": null,
+				"type": "ForEach",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [
+					{
+						"activity": "Obtain_Reminder_List_0_0",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LKP_Obtain_Reminder_List_0').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ST_Check_if_Greater_than_15_SBX0_0",
+							"description": null,
+							"type": "Script",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "User::StrGrabDynamicCount",
+											"type": "Expression"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SETVAR_SBX_User_Count_Text",
+							"description": null,
+							"type": "SetVariable",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "ST_Check_if_Greater_than_15_SBX0_0",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "SBX_User_Count_Text",
+								"value": {
+									"value": "@string(activity('ST_Check_if_Greater_than_15_SBX0_0').output.resultSets[0].rows[0].SBX_User_Count_Text)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ST_Obtain_Dynamic_list_if_needed0_0",
+							"description": null,
+							"type": "Script",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_SBX_User_Count_Text",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "User::StrGrabSBXList",
+											"type": "Expression"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SETVAR_DynamicSection",
+							"description": null,
+							"type": "SetVariable",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "ST_Obtain_Dynamic_list_if_needed0_0",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "DynamicSection",
+								"value": {
+									"value": "@string(activity('ST_Obtain_Dynamic_list_if_needed0_0').output.resultSets[0].rows[0].DynamicSection)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ST_Obtain_Dynamic_list_Check_P20_0",
+							"description": null,
+							"type": "Script",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_DynamicSection",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "User::StrGrabDynamic2",
+											"type": "Expression"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SETVAR_DynamicSection2",
+							"description": null,
+							"type": "SetVariable",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "ST_Obtain_Dynamic_list_Check_P20_0",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "DynamicSection2",
+								"value": {
+									"value": "@string(activity('ST_Obtain_Dynamic_list_Check_P20_0').output.resultSets[0].rows[0].DynamicSection2)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ST_Obtain_Dynamic_Check_p30_0",
+							"description": null,
+							"type": "Script",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_DynamicSection2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "User::StrGrabDynamic3",
+											"type": "Expression"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "SETVAR_DynamicSection3",
+							"description": null,
+							"type": "SetVariable",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "ST_Obtain_Dynamic_Check_p30_0",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "DynamicSection3",
+								"value": {
+									"value": "@string(activity('ST_Obtain_Dynamic_Check_p30_0').output.resultSets[0].rows[0].DynamicSection3)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ST_Update_Case_Table1_0",
+							"description": null,
+							"type": "Script",
+							"state": null,
+							"onInactiveMarkAs": null,
+							"dependsOn": [
+								{
+									"activity": "SETVAR_DynamicSection3",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase1",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "User::StrUpdateNotificationSent",
+											"type": "Expression"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ST_Validate_RC_for_Reminder_List_0",
+				"description": null,
+				"type": "Script",
+				"state": null,
+				"onInactiveMarkAs": null,
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "select count(*) as RC_REMINDER\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 6\n\n",
+								"type": "Expression"
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"RC_Reminder": {
+				"type": "String",
+				"defaultValue": "0"
+			},
+			"SBX_User_Count_Text": {
+				"type": "String"
+			},
+			"DynamicSection": {
+				"type": "String"
+			},
+			"DynamicSection2": {
+				"type": "String"
+			},
+			"DynamicSection3": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "wellsfargo_1027/DUMPS dtsx files"
+		},
+		"annotations": []
+	}
+}
