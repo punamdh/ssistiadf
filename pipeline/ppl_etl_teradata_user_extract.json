@@ -1,0 +1,728 @@
+{
+  "name" : "ppl_etl_teradata_user_extract",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SETVAR_StrCallParams",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "StrCallParams",
+        "value" : {
+          "value" : "@concat('SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM    ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]\nWHERE   ETL_ID =', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ADO_NET_Source_ContainerName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_ADONETSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ADO_NET_Source_FileName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_ADONETSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ADO_NET_Source_FilePath' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_ADONETSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT' AND DATAFLOW_NAME = 'Get_TD_Metadata_2') AS Get_TD_Metadata_2_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_TD_Metadata_20_sink_SchemaName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT') AS Get_TD_Metadata_20_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_TD_Metadata_20_sink_TableName' AND PIPELINE_NAME = 'ETL_TERADATA_USER_EXTRACT') AS Get_TD_Metadata_20_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Obtain_Parameters_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_StrCallParams",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "@variables('StrCallParams')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_IsEnabled",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "IsEnabled",
+        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].IsEnabled)"
+      }
+    }, {
+      "name" : "SETVAR_CanRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CanRun",
+        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].CanRun)"
+      }
+    }, {
+      "name" : "SETVAR_SrcDBNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcDBNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcDBNAME)"
+      }
+    }, {
+      "name" : "SETVAR_SrcSCHEMANAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcSCHEMANAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcSCHEMANAME)"
+      }
+    }, {
+      "name" : "SETVAR_SrcTABLENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SrcTABLENAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcTABLENAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestSERVERNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestSERVERNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSERVERNAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestDBNAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestDBNAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestSCHEMANAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestSCHEMANAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSCHEMANAME)"
+      }
+    }, {
+      "name" : "SETVAR_DestTABLENAME",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "DestTABLENAME",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestTABLENAME)"
+      }
+    }, {
+      "name" : "SETVAR_SELECTSTMT",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SELECTSTMT",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SELECTSTMT)"
+      }
+    }, {
+      "name" : "SETVAR_PREDICATES",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PREDICATES",
+        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
+      }
+    }, {
+      "name" : "SETVAR_vDeleteCurDay",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Obtain_Parameters_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vDeleteCurDay",
+        "value" : {
+          "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Truncate_Destination_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vDeleteCurDay",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_IsEnabled",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_CanRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcDBNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcSCHEMANAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SrcTABLENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestSERVERNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestDBNAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestSCHEMANAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_DestTABLENAME",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SELECTSTMT",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PREDICATES",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('vDeleteCurDay')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_query_band_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_Destination_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "ADO_NET_Teradata_Client_Provider_TdConnection",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "SET QUERY_BAND = 'name=DUMPS_MASTER;' FOR SESSION VOLATILE;",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Get_TD_Metadata_2",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_query_band_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Get_TD_Metadata_2",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Get_TD_Metadata_2",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Get_TD_Metadata_2",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_td_metadata_2",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "ADONETSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_ADONETSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_ADONETSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_ADONETSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Get_TD_Metadata_2_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Get_TD_Metadata_20",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Get_TD_Metadata_2",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "Conn_1WellsFargo",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_20_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_TD_Metadata_20_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SETVAR_vMarkEndSuccessRun",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CPD_Get_TD_Metadata_20",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vMarkEndSuccessRun",
+        "value" : {
+          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Mark_Config_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_vMarkEndSuccessRun",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('vMarkEndSuccessRun')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/DUMPS dtsx files"
+    },
+    "parameters" : {
+      "Get_TD_Metadata_2_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "DestDBNAME" : {
+        "type" : "String",
+        "defaultValue" : "ESIMS_ETL"
+      },
+      "SELECTSTMT" : {
+        "type" : "String",
+        "defaultValue" : "Select * from"
+      },
+      "vStartDate" : {
+        "type" : "String",
+        "defaultValue" : "2019-01-14"
+      },
+      "SrcTABLENAME" : {
+        "type" : "String",
+        "defaultValue" : "INDVL_CRNT"
+      },
+      "StrCallDestTable" : {
+        "type" : "String",
+        "defaultValue" : "ESIMS_ETL.sbx_stg.TERADATA_USER_EXTRACT"
+      },
+      "SrcDBNAME" : {
+        "type" : "String",
+        "defaultValue" : "EIW_S_ASTMGMT_ACTVD_S1"
+      },
+      "PREDICATES" : {
+        "type" : "String"
+      },
+      "CanRun" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "IsEnabled" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "DestSCHEMANAME" : {
+        "type" : "String",
+        "defaultValue" : "sbx_stg"
+      },
+      "vPreCount" : {
+        "type" : "String"
+      },
+      "SrcSCHEMANAME" : {
+        "type" : "String"
+      },
+      "DestTABLENAME" : {
+        "type" : "String",
+        "defaultValue" : "TERADATA_USER_EXTRACT"
+      },
+      "vDateQuery" : {
+        "type" : "String",
+        "defaultValue" : "Select * from"
+      },
+      "vMarkEndSuccessRun" : {
+        "type" : "String",
+        "defaultValue" : "UPDATE ESIMS_ETL.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =3"
+      },
+      "DestSERVERNAME" : {
+        "type" : "String",
+        "defaultValue" : "EDDDMISQL501\\DMI501D"
+      },
+      "StrDestTABLENAME" : {
+        "type" : "String",
+        "defaultValue" : "TERADATA_USER_EXTRACT"
+      },
+      "StrDestSCHEMANAME" : {
+        "type" : "String",
+        "defaultValue" : "sbx_stg"
+      },
+      "vEndDate" : {
+        "type" : "String",
+        "defaultValue" : "2019-01-15"
+      },
+      "StrCallParams" : {
+        "type" : "String",
+        "defaultValue" : "SELECT  IsEnabled ,\\n        CanRun ,\\n        SrcDBNAME ,\\n        SrcSCHEMANAME ,\\n        SrcTABLENAME ,\\n        DestSERVERNAME ,\\n        DestDBNAME ,\\n        DestSCHEMANAME ,\\n        DestTABLENAME ,\\n        SELECTSTMT ,\\n        PREDICATES \\nFROM    ESIMS_ETL.[CONFIG].[tbl_Etl_Config]\\nWHERE   ETL_ID =3"
+      },
+      "ETL_ID" : {
+        "type" : "String",
+        "defaultValue" : "3"
+      },
+      "vDeleteCurDay" : {
+        "type" : "String",
+        "defaultValue" : "Truncate Table ESIMS_ETL.sbx_stg.TERADATA_USER_EXTRACT --Where Convert(Date,ImportDate) =Convert(date,getdate());"
+      }
+    }
+  }
+}
