@@ -1,0 +1,232 @@
+{
+  "name" : "ppl_tableau_qvru_t_th_1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_ContainerName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_CMAdjust_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_FileName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_CMAdjust_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'CM_Adjust_FilePath' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_CMAdjust_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1' AND DATAFLOW_NAME = '530_Summary_Report_Import_1') AS 530_Summary_Report_Import_1_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '530_Summary_Report_Import_10_sink_SchemaName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1') AS 530_Summary_Report_Import_10_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = '530_Summary_Report_Import_10_sink_TableName' AND PIPELINE_NAME = 'Tableau_QVRU_T_Th_1') AS 530_Summary_Report_Import_10_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Removes_Records_for_Re-load_intra-day_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "  delete from PLHS.dbo.Tableau_Summary530_CMAdjust\n  where cast(Import_date as date)  = cast(getdate() as date) \n;\n\n  delete from PLHS.dbo.tbl_tableau_530_505_ee_other \n  where cast(Import_date as date)  = cast(getdate() as date) \n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_530_Summary_Report_Import_1",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Removes_Records_for_Re-load_intra-day_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "530_Summary_Report_Import_1",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_530_Summary_Report_Import_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_530_Summary_Report_Import_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "530_summary_report_import_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "CMAdjust" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_CMAdjust_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_CMAdjust_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_CMAdjust_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.530_Summary_Report_Import_1_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_530_Summary_Report_Import_10",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_530_Summary_Report_Import_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_1_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "PLHS",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_10_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.530_Summary_Report_Import_10_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/Vulnerability_ETL"
+    },
+    "parameters" : {
+      "530_Summary_Report_Import_1_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : { }
+  }
+}

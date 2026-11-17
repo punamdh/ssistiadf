@@ -1,0 +1,29 @@
+{
+  "name" : "replicate_task_related_release",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/tcoo_tools"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ReadPRODTASKRELATEDRELEASE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "WriteDEVTASKRELATEDRELEASE"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tWriteDEVTASKRELATEDRELEASE_outputfilename as string ()\n}\n\nsource(output(\n\t\tSYS_MOD_COUNT as integer,\n\t\tSYS_ID as string,\n\t\tSYS_CREATED_ON as timestamp,\n\t\tPRODUCT_RELEASE_GUID as string,\n\t\tTASK_NUMBER as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tPRODUCT_RELEASE_NUMBER as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTASK_GUID as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date,\n\t\tSYS_UPDATED_ON as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ReadPRODTASKRELATEDRELEASE\nReadPRODTASKRELATEDRELEASE sink(input(\n\t\tSYS_MOD_COUNT as integer,\n\t\tSYS_ID as string,\n\t\tSYS_CREATED_ON as timestamp 'dd-MM-yyyy',\n\t\tPRODUCT_RELEASE_GUID as string,\n\t\tTASK_NUMBER as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tPRODUCT_RELEASE_NUMBER as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTASK_GUID as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date 'dd-MM-yyyy',\n\t\tSYS_UPDATED_ON as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSYS_MOD_COUNT,\n\t\tSYS_ID,\n\t\tSYS_CREATED_ON,\n\t\tPRODUCT_RELEASE_GUID,\n\t\tTASK_NUMBER,\n\t\tSYS_UPDATED_BY,\n\t\tPRODUCT_RELEASE_NUMBER,\n\t\tSYS_CREATED_BY,\n\t\tTASK_GUID,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tSYS_UPDATED_ON),\n\tpartitionFileNames:[($WriteDEVTASKRELATEDRELEASE_outputfilename)],\n\tpartitionBy('hash', 1)) ~> WriteDEVTASKRELATEDRELEASE"
+    }
+  }
+}

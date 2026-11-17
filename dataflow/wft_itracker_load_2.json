@@ -1,0 +1,29 @@
+{
+  "name" : "wft_itracker_load_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/Vulnerability_ETL_v2022"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "WFTiTracker",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTargetVersion as string,\n\t\tsolutionstatus as string,\n\t\tAPPResponsibleDate as timestamp,\n\t\tConsequenceModelEscalationDate as timestamp,\n\t\tRating as string,\n\t\tTitle as string,\n\t\tINSTANCES as integer,\n\t\tResponsibleParty as string,\n\t\tApp_WFGUID as string,\n\t\tFirstDetected as timestamp,\n\t\tSTATUS as string,\n\t\tFeedType as string,\n\t\tSolutionGroup as string,\n\t\tValidatedDate as timestamp,\n\t\tSN_CIO as string,\n\t\tDueDate as timestamp,\n\t\tServer_WFGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> WFTiTracker\nWFTiTracker sink(input(\n\t\tTargetVersion as string,\n\t\tSolutionStatus as string,\n\t\tAPPResponsibleDate as timestamp 'dd-MM-yyyy',\n\t\tConsequenceModelEscalationDate as timestamp 'dd-MM-yyyy',\n\t\tRating as string,\n\t\tTitle as string,\n\t\tINSTANCES as integer,\n\t\tResponsibleParty as string,\n\t\tApp_WFGUID as string,\n\t\tFirstDetected as timestamp 'dd-MM-yyyy',\n\t\tSTATUS as string,\n\t\tFeedType as string,\n\t\tSolutionGroup as string,\n\t\tValidatedDate as timestamp 'dd-MM-yyyy',\n\t\tSN_CIO as string,\n\t\tDueDate as timestamp 'dd-MM-yyyy',\n\t\tServer_WFGUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTargetVersion,\n\t\tSolutionStatus = solutionstatus,\n\t\tAPPResponsibleDate,\n\t\tConsequenceModelEscalationDate,\n\t\tRating,\n\t\tTitle,\n\t\tINSTANCES,\n\t\tResponsibleParty,\n\t\tApp_WFGUID,\n\t\tFirstDetected,\n\t\tSTATUS,\n\t\tFeedType,\n\t\tSolutionGroup,\n\t\tValidatedDate,\n\t\tSN_CIO,\n\t\tDueDate,\n\t\tServer_WFGUID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

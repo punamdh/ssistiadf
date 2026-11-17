@@ -1,0 +1,231 @@
+{
+  "name" : "ppl_server_relationship_view_1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_ContainerName' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_ServerRelationshipStatic_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_FileName' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_ServerRelationshipStatic_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Server_Relationship_Static_FilePath' AND PIPELINE_NAME = 'Server_Relationship_View_1' AND DATAFLOW_NAME = 'Data_Flow_Task_7') AS Data_Flow_Task_7_ServerRelationshipStatic_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_70_sink_SchemaName' AND PIPELINE_NAME = 'Server_Relationship_View_1') AS Data_Flow_Task_70_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_70_sink_TableName' AND PIPELINE_NAME = 'Server_Relationship_View_1') AS Data_Flow_Task_70_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Truncate_reload_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "delete FROM [PLHS].[dbo].[tbl_Vuln_Server_OwnerRelationship_Daily]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_7",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_reload_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_7",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_7",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_7",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_7",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ServerRelationshipStatic_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "ServerRelationshipStatic" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_7_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_70",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_7",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_ServerRelationshipStatic_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "PLHS",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_70_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_70_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/Vulnerability_ETL_v2022"
+    },
+    "parameters" : {
+      "Data_Flow_Task_7_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : { }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "validateddata",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/Vulnerability_ETL_v2022"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblPrismaEnrichedTCOOTDATA",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tUID as string,\n\t\tDB_ID as long,\n\t\tValidatedDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblPrismaEnrichedTCOOTDATA\ntblPrismaEnrichedTCOOTDATA sink(input(\n\t\tUID as string,\n\t\tDB_ID as long,\n\t\tValidatedDate as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUID,\n\t\tDB_ID,\n\t\tValidatedDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

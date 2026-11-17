@@ -1,0 +1,31 @@
+{
+  "name" : "counts_normalization_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/Vulnerability_ETL"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "iTracker",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSolutionGroup as string,\n\t\tTotalInstances as integer,\n\t\tsourcesystem as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> iTracker\niTracker derive(import_date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSolutionGroup as string,\n\t\timport_date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSolutionGroup,\n\t\timport_date),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

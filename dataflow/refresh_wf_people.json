@@ -1,0 +1,29 @@
+{
+  "name" : "refresh_wf_people",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/HR Core Common"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetHRCoreCommonUpdates",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tLAST_NAME as string,\n\t\tSPRVS_ORG_LVL_03_NAME as string,\n\t\tSPRVS_ORG_LVL_04_NAME as string,\n\t\tEMPL_STATUS as string,\n\t\tIS_TCOO as integer,\n\t\tEMPLID as string,\n\t\tFIRST_NAME as string,\n\t\tSPRVS_ORG_LVL_03_MGR_NAME as string,\n\t\tSPRVS_ORG_LVL_04_MGR_NAME as string,\n\t\tIS_PLATFORM_APP_SVCS as integer,\n\t\tNAME as string,\n\t\tSPRVS_ORG_LVL_03_MGR_ID as integer,\n\t\tSPRVS_ORG_LVL_04_MGR_ID as integer,\n\t\tEMAIL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetHRCoreCommonUpdates\nGetHRCoreCommonUpdates sink(input(\n\t\tlastName as string,\n\t\tlevel3Org as string,\n\t\tlevel4Org as string,\n\t\temployeeStatus as string,\n\t\tisTcoo as integer,\n\t\templId as integer,\n\t\tfirstName as string,\n\t\tlevel3Mgr as string,\n\t\tlevel4Mgr as string,\n\t\tisPlatformAppServices as integer,\n\t\tname as string,\n\t\tlevel3MgrEmplid as integer,\n\t\tlevel4MgrEmplid as integer,\n\t\temail as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlastName = LAST_NAME,\n\t\tlevel3Org = SPRVS_ORG_LVL_03_NAME,\n\t\tlevel4Org = SPRVS_ORG_LVL_04_NAME,\n\t\temployeeStatus = EMPL_STATUS,\n\t\tisTcoo = IS_TCOO,\n\t\templId = EMPLID,\n\t\tfirstName = FIRST_NAME,\n\t\tlevel3Mgr = SPRVS_ORG_LVL_03_MGR_NAME,\n\t\tlevel4Mgr = SPRVS_ORG_LVL_04_MGR_NAME,\n\t\tisPlatformAppServices = IS_PLATFORM_APP_SVCS,\n\t\tname = NAME,\n\t\tlevel3MgrEmplid = SPRVS_ORG_LVL_03_MGR_ID,\n\t\tlevel4MgrEmplid = SPRVS_ORG_LVL_04_MGR_ID,\n\t\temail = EMAIL_ID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

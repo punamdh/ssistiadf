@@ -1,0 +1,31 @@
+{
+  "name" : "collect_daily_sii_metric",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_12_Nov/COO_VulnPackages"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DailySIIMetricView",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSIIVulnHistoryAlerts"
+      } ],
+      "transformations" : [ {
+        "name" : "Importdate"
+      } ],
+      "script" : "parameters{\n\ttblSIIVulnHistoryAlerts_outputfilename as string ()\n}\n\nsource(output(\n\t\tTotlInst as integer,\n\t\tEmergencyCount as integer,\n\t\tHMLCount_App as integer,\n\t\tHMLCount_ProdPlat as integer,\n\t\tNon_HMLCount_App as integer,\n\t\tNon_HMLCount_ProdPlat as integer,\n\t\tTechnicalManager_App1 as string,\n\t\tSenior_Lead_Supplimented as string,\n\t\tCIO_Direct_Supplimented as string,\n\t\tEmail_Level as string,\n\t\tsubject_ as string,\n\t\tEMHAstatement as string,\n\t\tHMLAPP as string,\n\t\tHML_ProdPlat as string,\n\t\tNon_HML_App as string,\n\t\tNon_HML_ProdPlat as string,\n\t\tSrMngrEmail as string,\n\t\tCIOdirEmail as string,\n\t\tTechMngrEmail as string,\n\t\ttotalinst_c as integer,\n\t\tHMLCount_c as integer,\n\t\tEmergencyCount_c as integer,\n\t\tHMLCloud as string,\n\t\tEMHACloud as string,\n\t\tTotal_c as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DailySIIMetricView\nDailySIIMetricView derive(Import_Date = toDate(toString(addDays(currentTimestamp(), 0), 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> Importdate\nImportdate sink(input(\n\t\tEMHAstatement as string,\n\t\tHMLCount_ProdPlat as integer,\n\t\tTechMngrEmail as string,\n\t\tTotlInst as integer,\n\t\tSenior_Lead_Supplimented as string,\n\t\tHMLAPP as string,\n\t\tNon_HML_App as string,\n\t\tEmergencyCount as integer,\n\t\tImport_Date as date 'dd-MM-yyyy',\n\t\tNon_HMLCount_App as integer,\n\t\tSrMngrEmail as string,\n\t\tCIOdirEmail as string,\n\t\tTechnicalManager_App1 as string,\n\t\tEmail_Level as string,\n\t\tsubject_ as string,\n\t\tHML_ProdPlat as string,\n\t\tNon_HMLCount_ProdPlat as integer,\n\t\tNon_HML_ProdPlat as string,\n\t\tHMLCount_App as integer,\n\t\tCIO_Direct_Supplimented as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEMHAstatement,\n\t\tHMLCount_ProdPlat,\n\t\tTechMngrEmail,\n\t\tTotlInst,\n\t\tSenior_Lead_Supplimented,\n\t\tHMLAPP,\n\t\tNon_HML_App,\n\t\tEmergencyCount,\n\t\tImport_Date,\n\t\tNon_HMLCount_App,\n\t\tSrMngrEmail,\n\t\tCIOdirEmail,\n\t\tTechnicalManager_App1,\n\t\tEmail_Level,\n\t\tsubject_,\n\t\tHML_ProdPlat,\n\t\tNon_HMLCount_ProdPlat,\n\t\tNon_HML_ProdPlat,\n\t\tHMLCount_App,\n\t\tCIO_Direct_Supplimented),\n\tpartitionFileNames:[($tblSIIVulnHistoryAlerts_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSIIVulnHistoryAlerts"
+    }
+  }
+}
