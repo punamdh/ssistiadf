@@ -4,27 +4,6 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "SETVAR_StrCallParams",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "StrCallParams",
-        "value" : {
-          "value" : "@concat('SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM    ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config]\nWHERE   ETL_ID =', variables('ETL_ID'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "LKP_Fetch_Param",
       "type" : "Lookup",
       "policy" : {
@@ -68,9 +47,6 @@
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_StrCallParams",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
         "activity" : "LKP_Fetch_Param",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
@@ -85,306 +61,18 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "@variables('StrCallParams')",
+            "value" : "@concat('\"SELECT  IsEnabled ,\n        CanRun ,\n        SrcDBNAME ,\n        SrcSCHEMANAME ,\n        SrcTABLENAME ,\n        DestSERVERNAME ,\n        DestDBNAME ,\n        DestSCHEMANAME ,\n        DestTABLENAME ,\n        SELECTSTMT ,\n        PREDICATES \nFROM    \"', string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME), '\".[CONFIG].[tbl_Etl_Config]\nWHERE   ETL_ID =\"', variables('ETL_ID'))",
             "type" : "Expression"
           }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SETVAR_IsEnabled",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "IsEnabled",
-        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].IsEnabled)"
-      }
-    }, {
-      "name" : "SETVAR_CanRun",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "CanRun",
-        "value" : "@bool(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].CanRun)"
-      }
-    }, {
-      "name" : "SETVAR_SrcDBNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcDBNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcDBNAME)"
-      }
-    }, {
-      "name" : "SETVAR_SrcSCHEMANAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcSCHEMANAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcSCHEMANAME)"
-      }
-    }, {
-      "name" : "SETVAR_SrcTABLENAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SrcTABLENAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SrcTABLENAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestSERVERNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestSERVERNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSERVERNAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestDBNAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestDBNAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestSCHEMANAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestSCHEMANAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestSCHEMANAME)"
-      }
-    }, {
-      "name" : "SETVAR_DestTABLENAME",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "DestTABLENAME",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestTABLENAME)"
-      }
-    }, {
-      "name" : "SETVAR_SELECTSTMT",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "SELECTSTMT",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].SELECTSTMT)"
-      }
-    }, {
-      "name" : "SETVAR_PREDICATES",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "PREDICATES",
-        "value" : "@string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].PREDICATES)"
-      }
-    }, {
-      "name" : "SETVAR_vDeleteCurDay",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Parameters_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vDeleteCurDay",
-        "value" : {
-          "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "ST_Truncate_Destination_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vDeleteCurDay",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_IsEnabled",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_CanRun",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcDBNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcSCHEMANAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SrcTABLENAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestSERVERNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestDBNAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestSCHEMANAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_DestTABLENAME",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_SELECTSTMT",
-        "dependencyConditions" : [ "Succeeded" ]
-      }, {
-        "activity" : "SETVAR_PREDICATES",
+        "activity" : "ST_Obtain_Parameters_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -398,7 +86,7 @@
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vDeleteCurDay')",
+            "value" : "@concat('Truncate Table ', variables('StrCallDestTable'), ' --Where Convert(Date,ImportDate) =Convert(date,getdate());')",
             "type" : "Expression"
           }
         } ],
@@ -579,35 +267,11 @@
         }
       } ]
     }, {
-      "name" : "SETVAR_vMarkEndSuccessRun",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "CPD_Get_TD_Metadata_20",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vMarkEndSuccessRun",
-        "value" : {
-          "value" : "@concat('UPDATE ', variables('DestDBNAME'), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "ST_Mark_Config_Table_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vMarkEndSuccessRun",
+        "activity" : "CPD_Get_TD_Metadata_20",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -621,7 +285,7 @@
         "scripts" : [ {
           "type" : "NonQuery",
           "text" : {
-            "value" : "@variables('vMarkEndSuccessRun')",
+            "value" : "@concat('UPDATE ', string(activity('ST_Obtain_Parameters_0').output.resultSets[0].rows[0].DestDBNAME), '.[CONFIG].[tbl_Etl_Config] SET LastRunDate = GETDATE() WHERE ETL_ID =', variables('ETL_ID'))",
             "type" : "Expression"
           }
         } ],
@@ -629,7 +293,7 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_12_Nov/DUMPS dtsx files"
+      "name" : "wellsfargo_13_Nov/DUMPS dtsx files"
     },
     "parameters" : {
       "Get_TD_Metadata_2_StagingFolderPath" : {

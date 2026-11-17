@@ -4,34 +4,10 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "SETVAR_StrCallPowerAppLink",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "StrCallPowerAppLink",
-        "value" : {
-          "value" : "config.USP_DisplayPowerAppLink",
-          "type" : "Expression"
-        }
-      }
-    }, {
       "name" : "ST_Obtain_Environment_Power_App_Link_0",
       "type" : "Script",
       "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "SETVAR_StrCallPowerAppLink",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
+      "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
@@ -43,39 +19,18 @@
         "scripts" : [ {
           "type" : "Query",
           "text" : {
-            "value" : "@variables('StrCallPowerAppLink')",
+            "value" : "@config.USP_DisplayPowerAppLink",
             "type" : "Expression"
           }
         } ],
         "scriptBlockExecutionTimeout" : null
       }
     }, {
-      "name" : "SETVAR_vPowerAppsLink",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Obtain_Environment_Power_App_Link_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vPowerAppsLink",
-        "value" : "@string(activity('ST_Obtain_Environment_Power_App_Link_0').output.resultSets[0].rows[0].vPowerAppsLink)"
-      }
-    }, {
       "name" : "ST_Compile_Recipients_0",
       "type" : "Script",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vPowerAppsLink",
+        "activity" : "ST_Obtain_Environment_Power_App_Link_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -288,27 +243,6 @@
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "SETVAR_SET_TemplateID",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "TemplateID",
-            "value" : {
-              "value" : "@item().template_ID",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "Send_Email",
           "type" : "AzureFunctionActivity",
           "policy" : {
@@ -318,10 +252,7 @@
             "secureOutput" : false,
             "secureInput" : false
           },
-          "dependsOn" : [ {
-            "activity" : "SETVAR_SET_TemplateID",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
+          "dependsOn" : [ ],
           "state" : null,
           "description" : "Script Task",
           "onInactiveMarkAs" : null,
@@ -338,35 +269,11 @@
             "headers" : { }
           }
         }, {
-          "name" : "SETVAR_StrUpdateActivityNotificationSent",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "Send_Email",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrUpdateActivityNotificationSent",
-            "value" : {
-              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = ', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "ST_Update_Case_Table_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateActivityNotificationSent",
+            "activity" : "Send_Email",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -380,7 +287,7 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "@variables('StrUpdateActivityNotificationSent')",
+                "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', item().template_ID)",
                 "type" : "Expression"
               }
             } ],
@@ -432,35 +339,11 @@
             "headers" : { }
           }
         }, {
-          "name" : "SETVAR_StrUpdateActivityNotificationSent1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "Send_Email0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrUpdateActivityNotificationSent",
-            "value" : {
-              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = ', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "ST_Update_NotificationTable_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateActivityNotificationSent1",
+            "activity" : "Send_Email0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -474,7 +357,7 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "@variables('StrUpdateActivityNotificationSent')",
+                "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere  EmailTemplateID = \"', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
@@ -526,35 +409,11 @@
             "headers" : { }
           }
         }, {
-          "name" : "SETVAR_StrUpdateNotificationSent2",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "Send_Email3",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrUpdateNotificationSent",
-            "value" : {
-              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "ST_Update_Case_Table2_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateNotificationSent2",
+            "activity" : "Send_Email3",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -568,7 +427,7 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "@variables('StrUpdateNotificationSent')",
+                "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
@@ -578,53 +437,11 @@
         "isSequential" : true
       }
     }, {
-      "name" : "SETVAR_vReminderCheck",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Get_Reminder_Day_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "vReminderCheck",
-        "value" : "@bool(activity('ST_Get_Reminder_Day_0').output.resultSets[0].rows[0].ReminderDay)"
-      }
-    }, {
-      "name" : "SETVAR_RC_Annual",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "ST_Validate_RC_for_Annual_List_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "RC_Annual",
-        "value" : "@int(activity('ST_Validate_RC_for_Annual_List_0').output.resultSets[0].rows[0].RC_ANNUAL)"
-      }
-    }, {
       "name" : "Validate_RC_for_Reminder_List_0_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_vReminderCheck",
+        "activity" : "ST_Get_Reminder_Day_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -665,7 +482,7 @@
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_RC_Annual",
+        "activity" : "ST_Validate_RC_for_Annual_List_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -719,439 +536,11 @@
         } ]
       }
     }, {
-      "name" : "SETVAR_RC_Reminder",
-      "type" : "SetVariable",
-      "policy" : {
-        "timeout" : "00:30:00",
-        "retry" : 0,
-        "retryIntervalInSeconds" : 0,
-        "secureOutput" : false,
-        "secureInput" : false
-      },
-      "dependsOn" : [ {
-        "activity" : "Validate_RC_for_Reminder_List_0_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "variableName" : "RC_Reminder",
-        "value" : "@int(activity('ST_Validate_RC_for_Reminder_List_0').output.resultSets[0].rows[0].RC_REMINDER)"
-      }
-    }, {
-      "name" : "FRE_Annual_Attestation_Emailer_0",
-      "type" : "ForEach",
-      "policy" : null,
-      "dependsOn" : [ {
-        "activity" : "Obtain_Annual_List_0_0",
-        "dependencyConditions" : [ "Succeeded" ]
-      } ],
-      "state" : null,
-      "description" : null,
-      "onInactiveMarkAs" : null,
-      "typeProperties" : {
-        "items" : {
-          "value" : "@activity('LKP_Obtain_Annual_List_0').output.value",
-          "type" : "Expression"
-        },
-        "activities" : [ {
-          "name" : "SETVAR_StrGrabDynamicCount",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamicCount",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "SETVAR_SET_obligee_employee_id",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "obligee_employee_id",
-            "value" : {
-              "value" : "@item().notification_date",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "ST_Check_if_Greater_than_15_SBX_0",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamicCount",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_SET_obligee_employee_id",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "OLEDB_SQLNCLI11_1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : {
-                "value" : "@variables('StrGrabDynamicCount')",
-                "type" : "Expression"
-              }
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_SBX_User_Count_Text",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "SBX_User_Count_Text",
-            "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabSBXList",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabSBXList",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "ST_Obtain_Dynamic_list_if_needed_0",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabSBXList",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_SBX_User_Count_Text",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "OLEDB_SQLNCLI11_1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : {
-                "value" : "@variables('StrGrabSBXList')",
-                "type" : "Expression"
-              }
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection",
-            "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed_0').output.resultSets[0].rows[0].List)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabDynamic2",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamic2",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "ST_Obtain_Dynamic_list_Check_P2_0",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamic2",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_DynamicSection",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "OLEDB_SQLNCLI11_1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : {
-                "value" : "@variables('StrGrabDynamic2')",
-                "type" : "Expression"
-              }
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection2",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection2",
-            "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P2_0').output.resultSets[0].rows[0].List)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabDynamic3",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamic3",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "ST_Obtain_Dynamic_Check_p3_0",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamic3",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_DynamicSection2",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "OLEDB_SQLNCLI11_1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "Query",
-              "text" : {
-                "value" : "@variables('StrGrabDynamic3')",
-                "type" : "Expression"
-              }
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection3",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_Check_p3_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection3",
-            "value" : "@string(activity('ST_Obtain_Dynamic_Check_p3_0').output.resultSets[0].rows[0].List)"
-          }
-        }, {
-          "name" : "Send_Email1",
-          "type" : "AzureFunctionActivity",
-          "policy" : {
-            "timeout" : "0.12:00:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 30,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "SETVAR_DynamicSection3",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : "Script Task",
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "AzureFunction1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "functionName" : {
-              "value" : "Send_Email1",
-              "type" : "Expression"
-            },
-            "method" : "POST",
-            "headers" : { }
-          }
-        }, {
-          "name" : "SETVAR_StrUpdateNotificationSent",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "Send_Email1",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrUpdateNotificationSent",
-            "value" : {
-              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
-          "name" : "ST_Update_Case_Table0_0",
-          "type" : "Script",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateNotificationSent",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "linkedServiceName" : {
-            "referenceName" : "OLEDB_SQLNCLI11_1",
-            "type" : "LinkedServiceReference"
-          },
-          "typeProperties" : {
-            "scripts" : [ {
-              "type" : "NonQuery",
-              "text" : {
-                "value" : "@variables('StrUpdateNotificationSent')",
-                "type" : "Expression"
-              }
-            } ],
-            "scriptBlockExecutionTimeout" : null
-          }
-        } ],
-        "isSequential" : true
-      }
-    }, {
       "name" : "Obtain_Reminder_List_0_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "SETVAR_RC_Reminder",
+        "activity" : "Validate_RC_for_Reminder_List_0_0",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -1205,6 +594,176 @@
         } ]
       }
     }, {
+      "name" : "FRE_Annual_Attestation_Emailer_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Obtain_Annual_List_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Obtain_Annual_List_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "ST_Check_if_Greater_than_15_SBX_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', item().notification_date, ',', variables('TemplateID'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_if_needed_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', item().notification_date, ',', '1', ',', variables('TemplateID'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_Check_P2_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', item().notification_date, ',', '2', ',', variables('TemplateID'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_Check_p3_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P2_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', item().notification_date, ',', '3', ',', variables('TemplateID'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "Send_Email1",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_Check_p3_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email1",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Send_Email1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', item().notification_date, ' and EmailTemplateID = ', variables('TemplateID'))",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
       "name" : "FRE_Attestation_Reminder_Emailer_0",
       "type" : "ForEach",
       "policy" : null,
@@ -1221,34 +780,10 @@
           "type" : "Expression"
         },
         "activities" : [ {
-          "name" : "SETVAR_StrGrabDynamicCount1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamicCount",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "ST_Check_if_Greater_than_15_SBX0_0",
           "type" : "Script",
           "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamicCount1",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
+          "dependsOn" : [ ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
@@ -1260,66 +795,18 @@
             "scripts" : [ {
               "type" : "Query",
               "text" : {
-                "value" : "@variables('StrGrabDynamicCount')",
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
             "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_SBX_User_Count_Text1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "SBX_User_Count_Text",
-            "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX0_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabSBXList1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabSBXList",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
           }
         }, {
           "name" : "ST_Obtain_Dynamic_list_if_needed0_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabSBXList1",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_SBX_User_Count_Text1",
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -1333,66 +820,18 @@
             "scripts" : [ {
               "type" : "Query",
               "text" : {
-                "value" : "@variables('StrGrabSBXList')",
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
             "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection",
-            "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed0_0').output.resultSets[0].rows[0].List)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabDynamic21",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamic2",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
           }
         }, {
           "name" : "ST_Obtain_Dynamic_list_Check_P20_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamic21",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_DynamicSection1",
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -1406,66 +845,18 @@
             "scripts" : [ {
               "type" : "Query",
               "text" : {
-                "value" : "@variables('StrGrabDynamic2')",
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
             "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection21",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection2",
-            "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P20_0').output.resultSets[0].rows[0].List)"
-          }
-        }, {
-          "name" : "SETVAR_StrGrabDynamic31",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrGrabDynamic3",
-            "value" : {
-              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
-              "type" : "Expression"
-            }
           }
         }, {
           "name" : "ST_Obtain_Dynamic_Check_p30_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrGrabDynamic31",
-            "dependencyConditions" : [ "Succeeded" ]
-          }, {
-            "activity" : "SETVAR_DynamicSection21",
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -1479,32 +870,11 @@
             "scripts" : [ {
               "type" : "Query",
               "text" : {
-                "value" : "@variables('StrGrabDynamic3')",
+                "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
             "scriptBlockExecutionTimeout" : null
-          }
-        }, {
-          "name" : "SETVAR_DynamicSection31",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "ST_Obtain_Dynamic_Check_p30_0",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "DynamicSection3",
-            "value" : "@string(activity('ST_Obtain_Dynamic_Check_p30_0').output.resultSets[0].rows[0].List)"
           }
         }, {
           "name" : "Send_Email2",
@@ -1517,7 +887,7 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "SETVAR_DynamicSection31",
+            "activity" : "ST_Obtain_Dynamic_Check_p30_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -1536,35 +906,11 @@
             "headers" : { }
           }
         }, {
-          "name" : "SETVAR_StrUpdateNotificationSent1",
-          "type" : "SetVariable",
-          "policy" : {
-            "timeout" : "00:30:00",
-            "retry" : 0,
-            "retryIntervalInSeconds" : 0,
-            "secureOutput" : false,
-            "secureInput" : false
-          },
-          "dependsOn" : [ {
-            "activity" : "Send_Email2",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "variableName" : "StrUpdateNotificationSent",
-            "value" : {
-              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
-              "type" : "Expression"
-            }
-          }
-        }, {
           "name" : "ST_Update_Case_Table1_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_StrUpdateNotificationSent1",
+            "activity" : "Send_Email2",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
@@ -1578,7 +924,7 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "@variables('StrUpdateNotificationSent')",
+                "value" : "@concat('\"update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n\"', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
                 "type" : "Expression"
               }
             } ],
@@ -1589,7 +935,7 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_12_Nov/DUMPS dtsx files"
+      "name" : "wellsfargo_13_Nov/DUMPS dtsx files"
     },
     "parameters" : { },
     "variables" : {
