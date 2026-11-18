@@ -1,0 +1,393 @@
+{
+  "name" : "ppl_obtain_reminder_list_0_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FRE_Attestation_Reminder_Emailer_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('Obtain_Reminder_List_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_StrGrabDynamicCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamicCount",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes_Count ', variables('obligee_employee_id'), ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Check_if_Greater_than_15_SBX0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamicCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamicCount')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_SBX_User_Count_Text",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "SBX_User_Count_Text",
+            "value" : "@string(activity('ST_Check_if_Greater_than_15_SBX0_0').output.resultSets[0].rows[0].SBX_User_Count_Text)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabSBXList",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Greater_than_15_SBX0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabSBXList",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '1', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_if_needed0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabSBXList",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SBX_User_Count_Text",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabSBXList')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_if_needed0_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_if_needed0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic2",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '2', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_list_Check_P20_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic2')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection2",
+            "value" : "@string(activity('ST_Obtain_Dynamic_list_Check_P20_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "SETVAR_StrGrabDynamic3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_list_Check_P20_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrGrabDynamic3",
+            "value" : {
+              "value" : "@concat('exec config.usp_PullDynamicEmailAttributes ', variables('obligee_employee_id'), ',', '3', ',', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Obtain_Dynamic_Check_p30_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrGrabDynamic3",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_DynamicSection2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "@variables('StrGrabDynamic3')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_DynamicSection3",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Obtain_Dynamic_Check_p30_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "DynamicSection3",
+            "value" : "@string(activity('ST_Obtain_Dynamic_Check_p30_0').output.resultSets[0].rows[0].List)"
+          }
+        }, {
+          "name" : "Send_Email2",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_DynamicSection3",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Send_Email2",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "SETVAR_StrUpdateNotificationSent",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Send_Email2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "StrUpdateNotificationSent",
+            "value" : {
+              "value" : "@concat('update nq\n\tset nq.IsSent = 1\n\t\t, nq.IsSent_DateTime_UTC = getutcdate()\n\tfrom sbx.tbl_Notifications_Queue nq\n\tinner join sbx.vw_NotificationsInQueue vnq\n\t\ton vnq.notification_ID = nq.Notification_ID\nwhere vnq.obligee_employee_id = \n', variables('obligee_employee_id'), ' and EmailTemplateID = ', variables('TemplateID'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Update_Case_Table1_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_StrUpdateNotificationSent",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('StrUpdateNotificationSent')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/DUMPS dtsx files"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}

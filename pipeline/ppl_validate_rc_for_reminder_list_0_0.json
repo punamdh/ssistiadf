@@ -1,0 +1,88 @@
+{
+  "name" : "ppl_validate_rc_for_reminder_list_0_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Obtain_Reminder_List_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('RC_Reminder'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "LKP_Obtain_Reminder_List_0",
+          "type" : "Lookup",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "AzureSqlSource",
+              "sqlReaderStoredProcedureName" : null,
+              "sqlReaderQuery" : "/*select*\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 1\n*/\nselect distinct CNTCT_FULL_NAME\n , CNTCT_EMAIL_ADDR\n , AsOfDate\n , EmailTitle\n , HeaderSection\n , SubHeaderSection\n , DynamicSection\n , Body1Section\n , Body2Section\n , Footer2Section\n , BDL_Name\n , BDL_Email\n , MGR_Name\n , MGR_Email\n , template_ID\n , RecipientList\n-- , notification_date\n , obligee_employee_id\nfrom sbx.vw_NotificationsInQueue\nwhere template_ID = 6\nand isnull(RecipientList, '') <> ''",
+              "storedProcedureParameters" : null,
+              "queryTimeout" : "02:00:00",
+              "partitionOption" : "None"
+            },
+            "dataset" : {
+              "referenceName" : "ESIMS",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "TableName" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                },
+                "Schema" : {
+                  "value" : "''",
+                  "type" : "Expression"
+                }
+              }
+            },
+            "firstRowOnly" : false
+          }
+        }, {
+          "name" : "EP_Attestation_Reminder_Emailer_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "LKP_Obtain_Reminder_List_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_obtain_reminder_list_0_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/DUMPS dtsx files"
+    },
+    "parameters" : { },
+    "variables" : { }
+  }
+}
