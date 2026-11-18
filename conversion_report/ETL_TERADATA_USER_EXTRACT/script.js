@@ -921,7 +921,8 @@ const normName = n => String(n || "").toLowerCase().replace(/^(df|ppl|pl|ds|st|c
 const PHYSICAL_ARTIFACT_TYPES = new Set(["PIPELINE", "DATAFLOW", "FLOWLET", "DATASET", "LINKEDSERVICE", "LINKED_SERVICE"]);
 
 function renderArtifactMapping(report) {
-    const physical = (report.validationResults || []).filter(v => PHYSICAL_ARTIFACT_TYPES.has(String(v.resourceType).toUpperCase()));
+    const physical = (report.validationResults || []).filter(v => PHYSICAL_ARTIFACT_TYPES.has(String(v.resourceType).toUpperCase()) && v.resourceType !== "LINKEDSERVICE");
+    // validated linked services (LINKEDSERVICE) only show in the validation table; the map takes them from the generator's list below
     // linked services are created too, but are not schema-validated: take them from the generator's list
     const cm = report.configMapping;
     const linkedServices = cm ? (cm.typeProperties || []).filter(p => p.name === "LINKED_SERVICE").map(p => {
@@ -1006,7 +1007,7 @@ function renderConfigMapping(report) {
     const rows = mappings.map(([dir, dbs, ds, ls, lsKind, srcType]) => `<tr class="hover:bg-surface-container-low">
         ${td(escapeHtml(dbs.split(",").join(", ") || "-"))}${td(escapeHtml(dir))}${td(escapeHtml(ds))}${td(escapeHtml(ls))}
         ${td(escapeHtml(lsTypes.get(ls) || lsKind))}${td(escapeHtml(srcType))}</tr>`);
-    const el = sectionShell("configMapSection", "Connection to Dataset and Linked Service Mapping");
+    const el = sectionShell("configMapSection", "SSIS Connection to Dataset and Linked Service Mapping for DataFlow");
     if (el) el.appendChild(simpleTable(["Source Connection Type", "Direction", "Dataset", "Linked Service", "Linked Service Type", "Dataset Format"], rows));
 }
 
@@ -1257,10 +1258,6 @@ function buildComponentTile(currSrcComp, keysInView) {
         }
         body.appendChild(sectionLabel("Messages"));
         body.appendChild(renderMessageComparison(sourceMessages, generatedComponents));
-        if (typeProperties.length > 0) {
-            body.appendChild(sectionLabel("Property & Value Mappings"));
-            body.appendChild(renderPropertiesPanel(typeProperties));
-        }
 
         const visibleNested = (currSrcComp.nestedComponents || []).filter(c => !keysInView || keysInView.has(c.componentKey));
         if (visibleNested.length > 0) {
