@@ -1,0 +1,41 @@
+{
+  "name" : "dtf_load_dc_database",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDatabaseId as integer,\n\t\tDatabaseTypeId as integer,\n\t\tDatabaseName as string,\n\t\tServerName as string,\n\t\tUserId as string,\n\t\tPswd as string,\n\t\tDatabaseProviderId as integer,\n\t\tConnectionString as string,\n\t\tSendToTrackerFlag as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tDatabaseId as integer,\n\t\tDatabaseTypeId as integer,\n\t\tDatabaseName as string,\n\t\tServerName as string,\n\t\tUserId as string,\n\t\tPswd as string,\n\t\tDatabaseProviderId as integer,\n\t\tConnectionString as string,\n\t\tDBExecStatus as boolean,\n\t\tId as string,\n\t\tDeleted as integer,\n\t\tSendToTrackerFlag as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(OLEDBSource@DatabaseId == LookupLKPTABLE@DatabaseId,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tDatabaseId = OLEDBSource@DatabaseId,\n\t\tDatabaseTypeId = OLEDBSource@DatabaseTypeId,\n\t\tDatabaseName = OLEDBSource@DatabaseName,\n\t\tServerName = OLEDBSource@ServerName,\n\t\tUserId = OLEDBSource@UserId,\n\t\tPswd = OLEDBSource@Pswd,\n\t\tDatabaseProviderId = OLEDBSource@DatabaseProviderId,\n\t\tConnectionString = OLEDBSource@ConnectionString,\n\t\tSendToTrackerFlag = OLEDBSource@SendToTrackerFlag,\n\t\tDBExecStatus = DBExecStatus,\n\t\tId = Id,\n\t\tDeleted = Deleted\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tDatabaseTypeId as integer,\n\t\tUserId as string,\n\t\tPswd as string,\n\t\tServerName as string,\n\t\tDatabaseName as string,\n\t\tDatabaseId as integer,\n\t\tConnectionString as string,\n\t\tSendToTrackerFlag as boolean,\n\t\tDatabaseProviderId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDatabaseTypeId,\n\t\tUserId,\n\t\tPswd,\n\t\tServerName,\n\t\tDatabaseName,\n\t\tDatabaseId,\n\t\tConnectionString,\n\t\tSendToTrackerFlag,\n\t\tDatabaseProviderId),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

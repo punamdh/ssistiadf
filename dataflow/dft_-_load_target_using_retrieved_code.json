@@ -1,0 +1,31 @@
+{
+  "name" : "dft_-_load_target_using_retrieved_code",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCLoadETLMetadata",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTTempPhysicalITem"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tDatabaseId as string (),\n\tDSTTempPhysicalITem_outputfilename as string ()\n}\n\nsource(output(\n\t\tDatabaseName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tSchemaName as string,\n\t\tIS_NULLABLE as boolean,\n\t\tTableColumnValueFlag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCLoadETLMetadata\nSRCLoadETLMetadata derive(DatabaseId = $DatabaseId) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tTableColumnValueFlag as string,\n\t\tIsNullable as boolean,\n\t\tDatabaseName as string,\n\t\tDatabaseId as integer,\n\t\tSchemaName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTableName,\n\t\tColumnName,\n\t\tTableColumnValueFlag,\n\t\tIsNullable = IS_NULLABLE,\n\t\tDatabaseName,\n\t\tDatabaseId,\n\t\tSchemaName),\n\tpartitionFileNames:[($DSTTempPhysicalITem_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTTempPhysicalITem"
+    }
+  }
+}

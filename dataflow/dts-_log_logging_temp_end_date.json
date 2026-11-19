@@ -1,0 +1,31 @@
+{
+  "name" : "dts-_log_logging_temp_end_date",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTLoadControllog"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tRunLoadDate as timestamp (toTimestamp('8/30/2016 9:42:00 AM')),\n\tRunLoadId as integer (0),\n\tDSTLoadControllog_outputfilename as string (),\n\tmachineName as string (),\n\tproductVersion as string (),\n\tversionBuild as string (),\n\tversionGUID as string (),\n\tversionMajor as string (),\n\tversionMinor as string ()\n}\n\nsource(output(\n\t\tLogMessage as string,\n\t\tEndDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(MachineName = toString($machineName),\n\t\tProductVersion = toString($productVersion),\n\t\tVersionBuild = $versionBuild,\n\t\tVersionGUID = toString($versionGUID),\n\t\tVersionMajor = $versionMajor,\n\t\tVersionMinor = $versionMinor,\n\t\tRunLoadDate = $RunLoadDate,\n\t\tRunLoadId = $RunLoadId) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tVersionBuild as integer,\n\t\tVersionMinor as integer,\n\t\tMachineName as string,\n\t\tEndTime as timestamp 'dd-MM-yyyy',\n\t\tLogMessage as string,\n\t\tVersionGUID as string,\n\t\tVersionMajor as integer,\n\t\tProductVersion as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVersionBuild,\n\t\tVersionMinor,\n\t\tMachineName,\n\t\tEndTime = EndDate,\n\t\tLogMessage,\n\t\tVersionGUID,\n\t\tVersionMajor,\n\t\tProductVersion),\n\tpartitionFileNames:[($DSTLoadControllog_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTLoadControllog"
+    }
+  }
+}

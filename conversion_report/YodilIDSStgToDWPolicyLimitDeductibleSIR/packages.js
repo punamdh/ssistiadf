@@ -1,0 +1,2 @@
+window.ectPackages = [{"name":"YodilIDSStgToDWPolicyLimitDeductibleSIR","href":"YodilIDSStgToDWPolicyLimitDeductibleSIR_report.html"}];
+window.ectConsolidatedHref = "../../Consolidated_Conversion_Report.html";

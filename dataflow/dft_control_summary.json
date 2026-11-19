@@ -1,0 +1,29 @@
+{
+  "name" : "dft_control_summary",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCControlsummarytemps",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTControlSummary"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDSTControlSummary_outputfilename as string ()\n}\n\nsource(output(\n\t\tRunLoadDate as timestamp,\n\t\tSourceCode as string,\n\t\tEndTime as timestamp,\n\t\tEventMessage as string,\n\t\tPackageName as string,\n\t\tTaskName as string,\n\t\tSSISBatchId as integer,\n\t\tBatchId as long,\n\t\tStartTime as timestamp,\n\t\tEvent as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCControlsummarytemps\nSRCControlsummarytemps sink(input(\n\t\tRunLoadDate as timestamp 'dd-MM-yyyy',\n\t\tSourceCode as string,\n\t\tEndTime as timestamp 'dd-MM-yyyy',\n\t\tEventMessage as string,\n\t\tPackageName as string,\n\t\tTaskName as string,\n\t\tSSISBatchId as integer,\n\t\tBatchId as long,\n\t\tStartTime as timestamp 'dd-MM-yyyy',\n\t\tEvent as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRunLoadDate,\n\t\tSourceCode,\n\t\tEndTime,\n\t\tEventMessage,\n\t\tPackageName,\n\t\tTaskName,\n\t\tSSISBatchId,\n\t\tBatchId,\n\t\tStartTime,\n\t\tEvent),\n\tpartitionFileNames:[($DSTControlSummary_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTControlSummary"
+    }
+  }
+}

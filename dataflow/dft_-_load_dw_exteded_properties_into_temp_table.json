@@ -1,0 +1,29 @@
+{
+  "name" : "dft_-_load_dw_exteded_properties_into_temp_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCextendedpropertiesfromstg",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTloadintotempextendedproperties"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tDSTloadintotempextendedproperties_outputfilename as string ()\n}\n\nsource(output(\n\t\tDW_Column as string,\n\t\tDatabaseType as string,\n\t\tSourceFrom as string,\n\t\tDBNAME as string,\n\t\tStg_Column as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCextendedpropertiesfromstg\nSRCextendedpropertiesfromstg sink(input(\n\t\tTargetMapping as string,\n\t\tDatabaseType as string,\n\t\tSourceFrom as string,\n\t\tDBName as string,\n\t\tSourceMapping as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTargetMapping = DW_Column,\n\t\tDatabaseType,\n\t\tSourceFrom,\n\t\tDBName = DBNAME,\n\t\tSourceMapping = Stg_Column),\n\tpartitionFileNames:[($DSTloadintotempextendedproperties_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTloadintotempextendedproperties"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "load_dw_controlbatch",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTBatchId"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tAutoAsOfDateInd as string ('\\'Y\\''),\n\tLogicalSourceCode as string (),\n\tStagingDB as string (),\n\tDSTBatchId_outputfilename as string ()\n}\n\nsource(output(\n\t\tBatchID as integer,\n\t\tLoadId as integer,\n\t\tStartTime as timestamp,\n\t\tLoadDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(StagingDB = toString($StagingDB),\n\t\tLogicalSourceSystemCode = toString($LogicalSourceCode),\n\t\tProcessType = iif($AutoAsOfDateInd == 'D', 'Regular Process', 'Merge Process')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tLogicalSourceSystemCode as string,\n\t\tBatchId as integer,\n\t\tLoadProcessType as string,\n\t\tStartTime as timestamp 'dd-MM-yyyy',\n\t\tLoadId as integer,\n\t\tStagingDatabase as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tLogicalSourceSystemCode,\n\t\tBatchId = BatchID,\n\t\tLoadProcessType = ProcessType,\n\t\tStartTime,\n\t\tLoadId,\n\t\tStagingDatabase = StagingDB),\n\tpartitionFileNames:[($DSTBatchId_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTBatchId"
+    }
+  }
+}

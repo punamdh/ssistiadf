@@ -1,0 +1,43 @@
+{
+  "name" : "dft_-enter_default_value_to_tracker_physical_item",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Defaultvalue",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "TrackerPhysicalITem"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tDatabaseId as string (),\n\tTrackerPhysicalITem_outputfilename as string ()\n}\n\nsource(output(\n\t\tSchemaName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tValueName as integer,\n\t\tTableColumnValueFlag as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tIsNullable as integer,\n\t\tPhysicalItemIdSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> Defaultvalue\tsource(output(\n\t\tPhysicalItemId as integer,\n\t\tSchemaName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tValueName as string,\n\t\tLinkLevel as string,\n\t\tType as string,\n\t\tTableColumnValueFlag as string,\n\t\tDomainId as string,\n\t\tId as string,\n\t\tDeleted as integer,\n\t\tInScopeFlag as boolean,\n\t\tOrigin as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tCustomItemDefinition as string,\n\t\tLineofInsurance as string,\n\t\tStewardGroupId as integer,\n\t\tDatabaseid as integer,\n\t\tIsNullable as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nDefaultvalue derive(DatabaseId = toInteger($DatabaseId)) ~> DerivedColumn\nDerivedColumn,LookupLKPTABLE lookup(Defaultvalue@TableName == LookupLKPTABLE@TableName && Defaultvalue@ColumnName == LookupLKPTABLE@ColumnName && DerivedColumn@DatabaseId == LookupLKPTABLE@Databaseid && Defaultvalue@SchemaName == LookupLKPTABLE@SchemaName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tDatabaseId = DerivedColumn@DatabaseId,\n\t\tSchemaName = Defaultvalue@SchemaName,\n\t\tTableName = Defaultvalue@TableName,\n\t\tColumnName = Defaultvalue@ColumnName,\n\t\tValueName = Defaultvalue@ValueName,\n\t\tTableColumnValueFlag = Defaultvalue@TableColumnValueFlag,\n\t\tSourceSystem = Defaultvalue@SourceSystem,\n\t\tItemDefinition = Defaultvalue@ItemDefinition,\n\t\tIsNullable = Defaultvalue@IsNullable,\n\t\tPhysicalItemIdSource = PhysicalItemIdSource,\n\t\tPhysicalItemId = PhysicalItemId,\n\t\tLinkLevel = LinkLevel,\n\t\tType = Type,\n\t\tDomainId = DomainId,\n\t\tId = Id,\n\t\tDeleted = Deleted,\n\t\tInScopeFlag = InScopeFlag,\n\t\tOrigin = Origin,\n\t\tCustomItemDefinition = CustomItemDefinition,\n\t\tLineofInsurance = LineofInsurance,\n\t\tStewardGroupId = StewardGroupId,\n\t\tDatabaseid = Databaseid\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tTableColumnValueFlag as string,\n\t\tIsNullable as boolean,\n\t\tValueName as string,\n\t\tItemDefinition as string,\n\t\tDatabaseid as integer,\n\t\tPhysicalItemIdSource as string,\n\t\tSourceSystem as string,\n\t\tSchemaName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTableName,\n\t\tColumnName,\n\t\tTableColumnValueFlag,\n\t\tIsNullable,\n\t\tValueName,\n\t\tItemDefinition,\n\t\tDatabaseid = DatabaseId,\n\t\tPhysicalItemIdSource,\n\t\tSourceSystem,\n\t\tSchemaName),\n\tpartitionFileNames:[($TrackerPhysicalITem_outputfilename)],\n\tpartitionBy('hash', 1)) ~> TrackerPhysicalITem"
+    }
+  }
+}

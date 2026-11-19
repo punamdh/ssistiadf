@@ -1,0 +1,41 @@
+{
+  "name" : "dft_insert_into_physicalitem",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SRCextpropertiesfromstagingDC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTTrackerphysicalITem"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tDSTTrackerphysicalITem_outputfilename as string ()\n}\n\nsource(output(\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tTableColumnValueFlag as string,\n\t\tSchemaNAme as string,\n\t\tDatabaseId as integer,\n\t\tOrigin as string,\n\t\tDBName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SRCextpropertiesfromstagingDC\tsource(output(\n\t\tPhysicalItemId as integer,\n\t\tSchemaName as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tValueName as string,\n\t\tLinkLevel as string,\n\t\tType as string,\n\t\tTableColumnValueFlag as string,\n\t\tDomainId as string,\n\t\tId as string,\n\t\tDeleted as integer,\n\t\tInScopeFlag as boolean,\n\t\tOrigin as string,\n\t\tSourceSystem as string,\n\t\tItemDefinition as string,\n\t\tStewardGroupId as integer,\n\t\tDatabaseid as integer,\n\t\tIsNullable as boolean,\n\t\tInScopeFlagDate as timestamp,\n\t\tAnalysisStatusDate as timestamp,\n\t\tAnalysisStatusId as integer,\n\t\tPhysicalItemIdSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nSRCextpropertiesfromstagingDC,LookupLKPTABLE lookup(SRCextpropertiesfromstagingDC@Origin == LookupLKPTABLE@Origin && SRCextpropertiesfromstagingDC@TableName == LookupLKPTABLE@TableName && SRCextpropertiesfromstagingDC@ColumnName == LookupLKPTABLE@ColumnName && SRCextpropertiesfromstagingDC@DatabaseId == LookupLKPTABLE@Databaseid && SRCextpropertiesfromstagingDC@SchemaNAme == LookupLKPTABLE@SchemaName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tTableName = SRCextpropertiesfromstagingDC@TableName,\n\t\tColumnName = SRCextpropertiesfromstagingDC@ColumnName,\n\t\tSourceSystem = SRCextpropertiesfromstagingDC@SourceSystem,\n\t\tItemDefinition = SRCextpropertiesfromstagingDC@ItemDefinition,\n\t\tTableColumnValueFlag = SRCextpropertiesfromstagingDC@TableColumnValueFlag,\n\t\tSchemaNAme = SRCextpropertiesfromstagingDC@SchemaNAme,\n\t\tDatabaseId = SRCextpropertiesfromstagingDC@DatabaseId,\n\t\tOrigin = SRCextpropertiesfromstagingDC@Origin,\n\t\tDBName = DBName,\n\t\tPhysicalItemId = PhysicalItemId,\n\t\tSchemaName = SRCextpropertiesfromstagingDC@SchemaNAme,\n\t\tValueName = ValueName,\n\t\tLinkLevel = LinkLevel,\n\t\tType = Type,\n\t\tDomainId = DomainId,\n\t\tId = Id,\n\t\tDeleted = Deleted,\n\t\tInScopeFlag = InScopeFlag,\n\t\tStewardGroupId = StewardGroupId,\n\t\tDatabaseid = SRCextpropertiesfromstagingDC@DatabaseId,\n\t\tIsNullable = IsNullable,\n\t\tInScopeFlagDate = InScopeFlagDate,\n\t\tAnalysisStatusDate = AnalysisStatusDate,\n\t\tAnalysisStatusId = AnalysisStatusId,\n\t\tPhysicalItemIdSource = PhysicalItemIdSource\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tOrigin as string,\n\t\tTableName as string,\n\t\tColumnName as string,\n\t\tTableColumnValueFlag as string,\n\t\tItemDefinition as string,\n\t\tDatabaseid as integer,\n\t\tSourceSystem as string,\n\t\tSchemaName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOrigin,\n\t\tTableName,\n\t\tColumnName,\n\t\tTableColumnValueFlag,\n\t\tItemDefinition,\n\t\tDatabaseid = DatabaseId,\n\t\tSourceSystem,\n\t\tSchemaName = SchemaNAme),\n\tpartitionFileNames:[($DSTTrackerphysicalITem_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTTrackerphysicalITem"
+    }
+  }
+}

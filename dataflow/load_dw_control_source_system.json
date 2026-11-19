@@ -1,0 +1,43 @@
+{
+  "name" : "load_dw_control_source_system",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTSourceSystem"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderYodilHashTransformation"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tDSTSourceSystem_outputfilename as string ()\n}\n\nsource(output(\n\t\tSourceSystemId as long,\n\t\tSourceSystemCode as string,\n\t\tSourceSystemName as string,\n\t\tSourceSystemDesc as string,\n\t\tLoadDate as timestamp,\n\t\tAutoAsOfDateInd as string,\n\t\tBatchId as integer,\n\t\tStagingDB as string,\n\t\tClaimMergeHistoryInd as short,\n\t\tSourceSystemURL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tSourceSystemId as long,\n\t\tSourceSystemCode as string,\n\t\tSourceSystemDesc as string,\n\t\tBusinessKeyHash as string,\n\t\tContentHash as string,\n\t\tStagingDBName as string,\n\t\tSourceSystemURL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource derive(SourceSystemId = SourceSystemId) ~> PlaceHolderYodilHashTransformation\nPlaceHolderYodilHashTransformation,LookupLKPTABLE lookup(PlaceHolderYodilHashTransformation@SourceSystemCode == LookupLKPTABLE@SourceSystemCode,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tContentHash = YodilHashTransformation@ContentHash,\n\t\tBusinessKeyHash = YodilHashTransformation@BusinessKeyHash,\n\t\tBusinessKeyHashInput = BusinessKeyHashInput,\n\t\tSourceSystemDesc = YodilHashTransformation@SourceSystemDesc,\n\t\tSourceSystemName = SourceSystemName,\n\t\tSourceSystemCode = YodilHashTransformation@SourceSystemCode,\n\t\tSourceSystemId = YodilHashTransformation@SourceSystemId,\n\t\tStagingDBName = StagingDBName,\n\t\tSourceSystemURL = SourceSystemURL\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tSourceSystemURL as string,\n\t\tContentHash as string,\n\t\tSourceSystemDesc as string,\n\t\tStagingDBName as string,\n\t\tSourceSystemCode as string,\n\t\tBusinessKeyHash as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSourceSystemURL,\n\t\tContentHash,\n\t\tSourceSystemDesc,\n\t\tStagingDBName = StagingDB,\n\t\tSourceSystemCode,\n\t\tBusinessKeyHash),\n\tpartitionFileNames:[($DSTSourceSystem_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTSourceSystem"
+    }
+  }
+}

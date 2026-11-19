@@ -1,0 +1,109 @@
+{
+  "name" : "ppl_seqc_-_dw_policy_limit_deductible_sir",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SQL_History_UPDATE_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('AutoAsOfDateInd'),'U')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_SQL_History_UPDATE_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "     \n\n\n Update [Policy].[LimitDeductibleSIRs]   \n\n   set   [LimitDeductibleSIRName]  = SRC.[LimitDeductibleSIRName] \n      ,[LimitDeductibleSIRDesc]  = SRC.[LimitDeductibleSIRDesc] \n      ,[LimitDeductibleSIRFlag]  = SRC.[LimitDeductibleSIRFlag] \n      ,[LinkLevelName]  = SRC.[LinkLevelName] \n      ,[PolicyLevelsCompoundId]  = SRC.[PolicyLevelsCompoundId] \n         ,[OriginalCurrencyKey]  = SRC.[OriginalCurrencyKey] \n      ,[SharedInd]  = SRC.[SharedInd] \n      ,[SplitInd]  = SRC.[SplitInd] \n      ,[CSLInd]  = SRC.[CSLInd] \n      ,[ALAEErodesInd]  = SRC.[ALAEErodesInd] \n      ,[ALAEIncludedInd]  = SRC.[ALAEIncludedInd] \n      ,[StackedInd]  = SRC.[StackedInd] \n      ,[DeductibleSIRErodesLimitInd]  = SRC.[DeductibleSIRErodesLimitInd] \n      ,[ReplacementValueInd]  = SRC.[ReplacementValueInd] \n      ,[SourceSystemDateCreated]  = SRC.[SourceSystemDateCreated] \n      ,[SourceSystemDateModified]  = SRC.[SourceSystemDateModified] \n      ,[EffectiveDate]  = SRC.[EffectiveDate] \n      ,[ExpirationDate]  = SRC.[ExpirationDate] \n    --  ,[EndDate]  = SRC.[EndDate] \n       -- ,[SourceSystemId]  = SRC.[SourceSystemId] \n      ,[LimitDeductibleSIRCode]  = SRC.[LimitDeductibleSIRCode]  \n  , [LimitDeductibleSIRType]  = SRC.[LimitDeductibleSIRType]\n      ,[LimitDeductibleSIRDetailName]  = SRC.[LimitDeductibleSIRDetailName]\n      ,[LimitDeductibleSIRDetailDesc]  = SRC.[LimitDeductibleSIRDetailDesc]\n      ,[LimitDeductibleSIRValueType]  = SRC.[LimitDeductibleSIRValueType]\n      ,[LimitDeductibleSIRValue]  = SRC.[LimitDeductibleSIRValue]\n      ,[LimitDeductibleSIRCountUnitType]  = SRC.[LimitDeductibleSIRCountUnitType]\n      ,[PercentageResponsible]  = SRC.[PercentageResponsible]\n      ,[ActualCashValueInd]  = SRC.[ActualCashValueInd]\n      ,[LimitDeductibleSIRInd]  = SRC.[LimitDeductibleSIRInd]\n      ,[WithinLayerInd]  = SRC.[WithinLayerInd]\n      ,[BreachesLayerInd]  = SRC.[BreachesLayerInd]\n      ,[TrailingInd]  = SRC.[TrailingInd]\n      ,[LastModifiedBatchId]  = SRC.BatchId\n      ,[LineageId]  = SRC.[LineageId]\n       ,[ContentHash]  = SRC.[ContentHash]\n      ,[SourceSystemId]  = SRC.[SourceSystemId]\n      ,[DataVarInd]  = SRC.[DataVarInd]\n      ,[DataVarIndDate]  = SRC.[DataVarIndDate]\n\t  ,LineKey = SRC.LineKey\n     -- ,[EndDate]  = SRC.[EndDate]\n FROM   Temp.[LimitDeductibleSIRs] AS [SRC]\n   Where  [Policy].[LimitDeductibleSIRs].LimitDeductibleSIRKey = SRC.LimitDeductibleSIRKey\n   and  [Policy].[LimitDeductibleSIRs].StartDate =SRC.StartDate\t  \n   and Policy.LimitDeductibleSIRs.[LimitDeductibleSIRDetailName]=src.[LimitDeductibleSIRDetailName]\n      and \t  [Policy].[LimitDeductibleSIRs].ContentHash <>SRC.ContentHash\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_SQL_-Update_EndDate_Limit_Ded_SIRS_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_SQL_History_UPDATE_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "\n\nUpdate Policy.[LimitDeductibleSIRs]\nset EndDate = Enddate_UPD , [LastModifiedBatchId] = BTBATCHID\nfrom (\nSELECT [LimitDeductibleSIRName], LimitDeductibleSIRdetailName\n,[BusinessKeyHash] -- ,LineStateCode\n,startdate,bt.[BatchId] as BTBATCHID,EndDate_UPD=ISNULL(MAX(startdate) OVER (PARTITION BY BusinessKeyHash , [LimitDeductibleSIRName] ,LimitDeductibleSIRDetailName--- ,LineStateCode\nORDER BY startdate ROWS BETWEEN 1 FOLLOWING AND 1 FOLLOWING),d.defaultdate)\nFROM [Policy].[LimitDeductibleSIRs]\n,Control.DefaultDate d\n    ,(select [BatchId]=max(batchid) from control.Batch) bt\n)\nU\nwhere [Policy].[LimitDeductibleSIRs].[LimitDeductibleSIRName]= U.[LimitDeductibleSIRName]\nand Isnull([Policy].[LimitDeductibleSIRs].[LimitDeductibleSIRDetailName],'NA')= Isnull(U.[LimitDeductibleSIRDetailName],'NA')\nand [Policy].[LimitDeductibleSIRs].[BusinessKeyHash]= U.[BusinessKeyHash]\nand [Policy].[LimitDeductibleSIRs].startdate= U.startdate\n  and EndDate <> Enddate_UPD \n;",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_SQL_-_Truncate_temp_table0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_SQL_-Update_EndDate_Limit_Ded_SIRS_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "Truncate table [Temp].[LimitDeductibleSIRs];\n\n ",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "AutoAsOfDateInd" : {
+        "type" : "String"
+      },
+      "EmptyTableInd" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "load_dw_control_source_in_ssislog",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "DSTSSISLog"
+      } ],
+      "transformations" : [ {
+        "name" : "PlaceHolderYodilHashTransformation"
+      } ],
+      "script" : "parameters{\n\tDSTSSISLog_outputfilename as string ()\n}\n\nsource(output(\n\t\tSourceSystemId as long,\n\t\tSourceSystemCode as string,\n\t\tSourceSystemName as string,\n\t\tSourceSystemDesc as string,\n\t\tLoadDate as timestamp,\n\t\tAutoAsOfDateInd as string,\n\t\tId as string,\n\t\tint as integer,\n\t\tOperator as string,\n\t\tId2 as string,\n\t\tStartTime as timestamp,\n\t\tEndTime as timestamp,\n\t\tdatacode as integer,\n\t\tmessage as string,\n\t\tStaging as string,\n\t\tBatchId as integer,\n\t\tClaimMergeHistoryInd as short,\n\t\tSourceSystemURL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(SourceSystemId = SourceSystemId) ~> PlaceHolderYodilHashTransformation\nPlaceHolderYodilHashTransformation sink(input(\n\t\tsourceid as string,\n\t\texecutionid as string,\n\t\tcomputer as string,\n\t\tendtime as timestamp 'dd-MM-yyyy',\n\t\tsource as string,\n\t\tstarttime as timestamp 'dd-MM-yyyy',\n\t\tevent as string,\n\t\tmessage as string,\n\t\toperator as string,\n\t\tdatacode as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tsourceid = Id,\n\t\texecutionid = Id2,\n\t\tcomputer = SourceSystemName,\n\t\tendtime = EndTime,\n\t\tsource = SourceSystemCode,\n\t\tstarttime = StartTime,\n\t\tevent = Staging,\n\t\tmessage,\n\t\toperator = Operator,\n\t\tdatacode),\n\tpartitionFileNames:[($DSTSSISLog_outputfilename)],\n\tpartitionBy('hash', 1)) ~> DSTSSISLog"
+    }
+  }
+}
