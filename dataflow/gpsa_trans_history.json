@@ -1,0 +1,38 @@
+{
+  "name" : "gpsa_trans_history",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetCurrentdate1"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEXTNL_TRD_SRCE_CD as string,\n\t\tCXL_OFFST_CD as string,\n\t\tVRFR_USR_ID as string,\n\t\tEXTNL_TRD_ID as string,\n\t\tCUST_ACCT_NBR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Create_dt = currentTimestamp()) ~> GetCurrentdate1\nGetCurrentdate1 derive({Copy of EXTNL_TRD_SRCE_CD} = EXTNL_TRD_SRCE_CD,\n\t\t{Copy of EXTNL_TRD_ID} = EXTNL_TRD_ID,\n\t\t{Copy of CXL_OFFST_CD} = CXL_OFFST_CD,\n\t\t{Copy of CUST_ACCT_NBR} = CUST_ACCT_NBR,\n\t\t{Copy of VRFR_USR_ID} = VRFR_USR_ID) ~> DataConversion\nGetCurrentdate1 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tcust_acct_nbr as string,\n\t\tvrfr_usr_id as string,\n\t\tcxl_offst_cd as string,\n\t\textnl_trd_id as string,\n\t\textnl_trd_srce_cd as string,\n\t\tCreate_DT as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcust_acct_nbr = {Copy of CUST_ACCT_NBR},\n\t\tvrfr_usr_id = {Copy of VRFR_USR_ID},\n\t\tcxl_offst_cd = {Copy of CXL_OFFST_CD},\n\t\textnl_trd_id = {Copy of EXTNL_TRD_ID},\n\t\textnl_trd_srce_cd = {Copy of EXTNL_TRD_SRCE_CD},\n\t\tCreate_DT = Create_dt),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

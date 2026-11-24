@@ -1,0 +1,29 @@
+{
+  "name" : "output_new_counterparties",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "NewCounterparties",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tlegalFullName as string,\n\t\temailAddress2 as string,\n\t\ttestEmailAddress2 as string,\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> NewCounterparties\nNewCounterparties sink(input(\n\t\tlegalFullName as string,\n\t\temailAddress2 as string,\n\t\ttestEmailAddress2 as string,\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegalFullName,\n\t\temailAddress2,\n\t\ttestEmailAddress2,\n\t\tcontraParty)) ~> FlatFileDestination"
+    }
+  }
+}

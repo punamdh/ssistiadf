@@ -5,32 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tPower as string,\n\t\t{Downtime Minutes} as decimal(18,0),\n\t\tTemperature as string,\n\t\tHumidity as string,\n\t\t{Remote Hands} as string,\n\t\t{Cross Connects} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tPower1 = toInteger(replace(Power, toString('%'), toString(''))) / 100,\n\t\tTemperature1 = toInteger(replace(Temperature, toString('%'), toString(''))) / 100,\n\t\tHumidity1 = toInteger(replace(Humidity, toString('%'), toString(''))) / 100,\n\t\tRemoteHands1 = toInteger(replace({Remote Hands}, toString('%'), toString(''))) / 100,\n\t\tCrossConnects1 = toInteger(replace({Cross Connects}, toString('%'), toString(''))) / 100) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tTemperature as double,\n\t\tHumidity as double,\n\t\tCrossConnects as double,\n\t\tDowntimeMinutes as integer,\n\t\tDate as string,\n\t\tFName as string,\n\t\tPower as double,\n\t\tRemoteHands as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tTemperature = Temperature1,\n\t\tHumidity = Humidity1,\n\t\tCrossConnects = CrossConnects1,\n\t\tDowntimeMinutes = {Downtime Minutes},\n\t\tDate,\n\t\tFName,\n\t\tPower = Power1,\n\t\tRemoteHands = RemoteHands1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCORPORATELEDGERACCOUNT as string,\n\t\tEFFDATE as timestamp,\n\t\tYTD_BALANCE as integer,\n\t\tGL_COMPANY_CD as string,\n\t\tISIN as string,\n\t\tINSTRUMENT as string,\n\t\tCUSIP as string,\n\t\tACCOUNT_NAME as string,\n\t\tTRADING_ACCOUNT as string,\n\t\tBR_ACCOUNT_NM as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tBALANCE_ID as integer,\n\t\tLTD_BALANCE as integer,\n\t\tGL_ACCOUNT_CD as string,\n\t\tGL_AU_CD as string,\n\t\tBPS_INST_REF as string,\n\t\tTRADER as string,\n\t\tCLIENT_NBR as string,\n\t\tBR_BRANCH_CD as string,\n\t\tSEDOL as string,\n\t\tPTD_BALANCE as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCORPORATELEDGERACCOUNT as string,\n\t\tEFFDATE as timestamp 'dd-MM-yyyy',\n\t\tYTD_BALANCE as integer,\n\t\tGL_COMPANY_CD as string,\n\t\tISIN as string,\n\t\tINSTRUMENT as string,\n\t\tCUSIP as string,\n\t\tACCOUNT_NAME as string,\n\t\tTRADING_ACCOUNT as string,\n\t\tBR_ACCOUNT_NM as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tBALANCE_ID as integer,\n\t\tLTD_BALANCE as integer,\n\t\tGL_ACCOUNT_CD as string,\n\t\tGL_AU_CD as string,\n\t\tBPS_INST_REF as string,\n\t\tTRADER as string,\n\t\tCLIENT_NBR as string,\n\t\tBR_BRANCH_CD as string,\n\t\tSEDOL as string,\n\t\tPTD_BALANCE as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1648,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCORPORATELEDGERACCOUNT,\n\t\tEFFDATE,\n\t\tYTD_BALANCE,\n\t\tGL_COMPANY_CD,\n\t\tISIN,\n\t\tINSTRUMENT,\n\t\tCUSIP,\n\t\tACCOUNT_NAME,\n\t\tTRADING_ACCOUNT,\n\t\tBR_ACCOUNT_NM,\n\t\tISO_CURRENCY_CD,\n\t\tBALANCE_ID,\n\t\tLTD_BALANCE,\n\t\tGL_ACCOUNT_CD,\n\t\tGL_AU_CD,\n\t\tBPS_INST_REF,\n\t\tTRADER,\n\t\tCLIENT_NBR,\n\t\tBR_BRANCH_CD,\n\t\tSEDOL,\n\t\tPTD_BALANCE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

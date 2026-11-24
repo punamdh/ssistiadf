@@ -1,0 +1,43 @@
+{
+  "name" : "commodities_load",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade ID} as string,\n\t\tCounterparty as string,\n\t\tProduct as string,\n\t\t{Trade Event} as string,\n\t\t{Pega Stage} as string,\n\t\t{Latest Comment} as string,\n\t\tMarketer as string,\n\t\tTrader as string,\n\t\t{Processing Org} as string,\n\t\t{External Chasers} as string,\n\t\t{Week Ending Date} as string,\n\t\t{Age of Trade} as string,\n\t\t{Days in Stage} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tweekEndingDate as timestamp,\n\t\ttradeId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource derive(loaddate = currentTimestamp(),\n\t\ttradeID = replace(toString({Trade ID}), toString('N'), toString(''))) ~> DerivedColumn\nDerivedColumn derive({Copy of tradeID} = tradeID) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of Week Ending Date} == weekEndingDate && {Copy of tradeID} == LookupLKPTABLE@tradeId,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tproduct as string,\n\t\tweekEndingDate as timestamp 'dd-MM-yyyy',\n\t\ttrader as string,\n\t\ttradeEvent as string,\n\t\tprocessingOrg as string,\n\t\tageOfTrade as integer,\n\t\tlatestComment as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tdaysInStage as integer,\n\t\tmarketer as string,\n\t\texternalChasers as string,\n\t\tpegaStage as string,\n\t\tcounterparty as string,\n\t\ttradeID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tproduct = Product,\n\t\tweekEndingDate = {Copy of Week Ending Date},\n\t\ttrader = Trader,\n\t\ttradeEvent = {Trade Event},\n\t\tprocessingOrg = {Processing Org},\n\t\tageOfTrade = {Copy of Age of Trade},\n\t\tlatestComment = {Latest Comment},\n\t\tloadDate = loaddate,\n\t\tdaysInStage = {Copy of Days in Stage},\n\t\tmarketer = Marketer,\n\t\texternalChasers = {External Chasers},\n\t\tpegaStage = {Pega Stage},\n\t\tcounterparty = Counterparty,\n\t\ttradeID = {Copy of tradeID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

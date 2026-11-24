@@ -1,0 +1,29 @@
+{
+  "name" : "load_nonstp_records_to_archive",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblOpicsNonSTPTradeVolumeMaxRecordStaging",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsNonSTPTradeVolumeArchive"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblOpicsNonSTPTradeVolumeArchive_outputfilename as string ()\n}\n\nsource(output(\n\t\tLoadDate as string,\n\t\tDEALSRCE as string,\n\t\tNONSTP_COUNT as string,\n\t\tLSTMNTDATE as timestamp,\n\t\tTYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblOpicsNonSTPTradeVolumeMaxRecordStaging\ntblOpicsNonSTPTradeVolumeMaxRecordStaging sink(input(\n\t\tLoadDate as string,\n\t\tDEALSRCE as string,\n\t\tNONSTP_COUNT as string,\n\t\tLSTMNTDATE as timestamp 'dd-MM-yyyy',\n\t\tTYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tDEALSRCE,\n\t\tNONSTP_COUNT,\n\t\tLSTMNTDATE,\n\t\tTYPE),\n\tpartitionFileNames:[($tblOpicsNonSTPTradeVolumeArchive_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsNonSTPTradeVolumeArchive"
+    }
+  }
+}

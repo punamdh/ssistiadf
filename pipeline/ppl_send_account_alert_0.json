@@ -1,0 +1,181 @@
+{
+  "name" : "ppl_send_account_alert_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Failure_Email_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(pipeline().parameters.sEnvironment,'LOCAL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Failure_Email",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sRowCountReport" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageAccnt" : {
+        "type" : "String",
+        "defaultValue" : "SELECT Account as New_Accounts_Found FROM dbo.tbl_OTC_DerivSett_RMU_RER_Accounts_Staging WHERE Account <> '' AND Account is NOT NULL"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "last_thirty" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFilecnt_rpt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "LastThirtyDaysRec" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_IntellimatchLastThirtyDaysRec"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sLastThirtydays" : {
+        "type" : "String",
+        "defaultValue" : "SELECT \\ndistinct max(ProcessedDate) as ProcessedDate, \\nFilename, \\nMax(reconDate) reconDate ,\\nrecCnt_After, \\nrecCnt_Before\\nFROM tbl_Intellimatch_GL_Monthly_Historical\\nWHERE \\nreconDate is not null \\nand reconDate <> '' \\nAND cast(ProcessedDate as date) >= (getdate() - 30)\\nGROUP BY  Filename,  recCnt_After,recCnt_Before\\norder by ProcessedDate desc"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "NewDeptFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\OTC_RER_RMU_Departments.csv"
+      },
+      "sAvgOutputRecCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sInputFile" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "sProcessName_Accnt" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_NewAccntFound"
+      },
+      "sProcessName_Dept" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_NewDeptFound"
+      },
+      "nw_dept" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageDept" : {
+        "type" : "String",
+        "defaultValue" : "SELECT Department as New_Departments_Found FROM dbo.tbl_OTC_DerivSett_RMU_RER_Departments_Staging WHERE Department <> '' AND Department is NOT NULL"
+      },
+      "NewAccntFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\OTC_RER_RMU_Accounts.csv"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Check record count for process"
+      },
+      "sMessageA" : {
+        "type" : "String",
+        "defaultValue" : "New Account found. See attached."
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER"
+      },
+      "LastThirtyDaysFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\LastThirtyDays_Intellimatch.csv"
+      },
+      "sWFS" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "sOutputFile" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "SQLrpt" : {
+        "type" : "String",
+        "defaultValue" : "UPDATE tbl_OTC_DerivSett_RMU_RER SET RecCount =  cast('0' as int)"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sMessageI" : {
+        "type" : "String",
+        "defaultValue" : "Intellimatch records - last 30 days"
+      },
+      "nw_accnt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageD" : {
+        "type" : "String",
+        "defaultValue" : "New Department found. See attached."
+      },
+      "sRecordsloaded" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER was completed - Rows loaded to report tbl : 0"
+      },
+      "sAvgInputRecCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

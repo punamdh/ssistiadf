@@ -1,0 +1,41 @@
+{
+  "name" : "load_kri_daily_exposure_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "KRIDailyExposure",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupFilenameLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetfilenameBusinessDate"
+      }, {
+        "name" : "LookupFilename"
+      }, {
+        "name" : "LookupFilename0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Event Id} as string,\n\t\t{Margin Type} as string,\n\t\t{Reporting Total Exposure Amount} as string,\n\t\t{Reporting Adjusted Exposure} as string,\n\t\t{Reporting Call Amount} as string,\n\t\tRegion as string,\n\t\tLRFP as string,\n\t\tLRFD as string,\n\t\tCountry as string,\n\t\t{Agreement Status} as string,\n\t\tPrincipal as string,\n\t\tCounterparty as string,\n\t\t{External Id} as string,\n\t\t{Event Date} as string,\n\t\t{Call Status} as string,\n\t\tAction as string,\n\t\tGroup as string,\n\t\tType as string,\n\t\t{Agreed Jurisdiction} as string,\n\t\t{Other Jurisdiction} as string,\n\t\t{Base Currency} as string,\n\t\t{FX Rate} as string,\n\t\t{Trade Count} as string,\n\t\t{Reporting Counterparty I A } as string,\n\t\t{Reporting Principal I A } as string,\n\t\t{Reporting Net Margin Requirement} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> KRIDailyExposure\tsource(output(\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupFilenameLKPTABLE\nKRIDailyExposure derive(BusDate_drv = toString((substring(toString($sFileName), toInteger(15), toInteger(8)))),\n\t\tLoaddate_drv = toString((currentTimestamp())),\n\t\tFileName_drv = toString(($sFileName))) ~> GetfilenameBusinessDate\nGetfilenameBusinessDate,LookupFilenameLKPTABLE lookup(FileName_drv == Filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupFilename\nLookupFilename filter(!isMatch()) ~> LookupFilename0\nLookupFilename0 sink(input(\n\t\tcountry as string,\n\t\tfileName as string,\n\t\tagreementStatus as string,\n\t\ttype as string,\n\t\tbaseCurrency as string,\n\t\tprincipal as string,\n\t\trptPrincipalIA as string,\n\t\trptNetMarginRequirement as string,\n\t\tcallStatus as string,\n\t\taction as string,\n\t\tloaddate as timestamp 'dd-MM-yyyy',\n\t\trptTotalExposureAmt as string,\n\t\tgroup as string,\n\t\tFXRate as string,\n\t\teventId as string,\n\t\trptCounterpartyIA as string,\n\t\tLRFD as string,\n\t\texternalId as string,\n\t\tbusDate as string,\n\t\tLRFP as string,\n\t\trptCallAmount as string,\n\t\ttradeCount as string,\n\t\tmarginType as string,\n\t\tcounterparty as string,\n\t\trptAdjustedExposure as string,\n\t\tregion as string,\n\t\tagreedJurisdiction as string,\n\t\teventDate as timestamp 'dd-MM-yyyy',\n\t\totherJurisdiction as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcountry = Country,\n\t\tfileName = FileName_drv,\n\t\tagreementStatus = {Agreement Status},\n\t\ttype = Type,\n\t\tbaseCurrency = {Base Currency},\n\t\tprincipal = Principal,\n\t\trptPrincipalIA = {Reporting Principal I A },\n\t\trptNetMarginRequirement = {Reporting Net Margin Requirement},\n\t\tcallStatus = {Call Status},\n\t\taction = Action,\n\t\tloaddate = Loaddate_drv,\n\t\trptTotalExposureAmt = {Reporting Total Exposure Amount},\n\t\tgroup = Group,\n\t\tFXRate = {FX Rate},\n\t\teventId = {Event Id},\n\t\trptCounterpartyIA = {Reporting Counterparty I A },\n\t\tLRFD,\n\t\texternalId = {External Id},\n\t\tbusDate = BusDate_drv,\n\t\tLRFP,\n\t\trptCallAmount = {Reporting Call Amount},\n\t\ttradeCount = {Trade Count},\n\t\tmarginType = {Margin Type},\n\t\tcounterparty = Counterparty,\n\t\trptAdjustedExposure = {Reporting Adjusted Exposure},\n\t\tregion = Region,\n\t\tagreedJurisdiction = {Agreed Jurisdiction},\n\t\teventDate = {Event Date},\n\t\totherJurisdiction = {Other Jurisdiction}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

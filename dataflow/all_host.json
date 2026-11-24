@@ -1,0 +1,31 @@
+{
+  "name" : "all_host",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tHost as string,\n\t\tCluster as string,\n\t\tvCenter as string,\n\t\t{IP Address} as string,\n\t\t{Connection State} as string,\n\t\tVersion as string,\n\t\tVendor as string,\n\t\tModel as string,\n\t\t{BIOS Version} as string,\n\t\t{CPU Model} as string,\n\t\t{Socket Count} as string,\n\t\t{Core Count} as string,\n\t\t{Thread Count} as string,\n\t\t{CPU MHz} as string,\n\t\t{Mem (GB)} as string,\n\t\t{CPU Power Management} as string,\n\t\t{NIC Count} as string,\n\t\t{HBA Count} as string,\n\t\t{Boot Time} as string,\n\t\t{Days Up} as string,\n\t\t{Maintenance Mode} as string,\n\t\t{Maintenance Mode User Name} as string,\n\t\t{Maintenance Mode Days} as string,\n\t\t{Datastore Count} as string,\n\t\t{VM Count} as string,\n\t\t{vMotion Enabled} as string,\n\t\t{DAS Host State} as string,\n\t\tOwner as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tVM_Count as string,\n\t\tOwner as string,\n\t\tNIC_Count as string,\n\t\tMaintenance_Mode_User_Name as string,\n\t\tDatastore_Count as string,\n\t\tCPU_Power_Management as string,\n\t\tConnection_State as string,\n\t\tMem__GB_ as string,\n\t\tIP_Address as string,\n\t\tDays_Up as string,\n\t\tMaintenance_Mode as string,\n\t\tCPU_Model as string,\n\t\tVersion as string,\n\t\tBoot_Time as string,\n\t\tCPU_MHz as string,\n\t\tvCenter as string,\n\t\tvMotion_Enabled as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tCluster as string,\n\t\tHost as string,\n\t\tVendor as string,\n\t\tSocket_Count as string,\n\t\tCore_Count as string,\n\t\tThread_Count as string,\n\t\tDAS_Host_State as string,\n\t\tHBA_Count as string,\n\t\tMaintenance_Mode_Days as string,\n\t\tModel as string,\n\t\tBIOS_Version as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVM_Count = {VM Count},\n\t\tOwner,\n\t\tNIC_Count = {NIC Count},\n\t\tMaintenance_Mode_User_Name = {Maintenance Mode User Name},\n\t\tDatastore_Count = {Datastore Count},\n\t\tCPU_Power_Management = {CPU Power Management},\n\t\tConnection_State = {Connection State},\n\t\tMem__GB_ = {Mem (GB)},\n\t\tIP_Address = {IP Address},\n\t\tDays_Up = {Days Up},\n\t\tMaintenance_Mode = {Maintenance Mode},\n\t\tCPU_Model = {CPU Model},\n\t\tVersion,\n\t\tBoot_Time = {Boot Time},\n\t\tCPU_MHz = {CPU MHz},\n\t\tvCenter,\n\t\tvMotion_Enabled = {vMotion Enabled},\n\t\timportdate = ImportDate,\n\t\tCluster,\n\t\tHost,\n\t\tVendor,\n\t\tSocket_Count = {Socket Count},\n\t\tCore_Count = {Core Count},\n\t\tThread_Count = {Thread Count},\n\t\tDAS_Host_State = {DAS Host State},\n\t\tHBA_Count = {HBA Count},\n\t\tMaintenance_Mode_Days = {Maintenance Mode Days},\n\t\tModel,\n\t\tBIOS_Version = {BIOS Version}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

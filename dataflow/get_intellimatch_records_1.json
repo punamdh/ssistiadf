@@ -1,0 +1,36 @@
+{
+  "name" : "get_intellimatch_records_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OleDBfromKriKpiIntellimatch",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "INTMTCHRowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OleDBtoReconControl"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "INTMTCHRowCount0"
+      } ],
+      "script" : "parameters{\n\tdStartPreviousMonth as timestamp (toTimestamp('6/1/2021')),\n\tsRecordStatus as string ('PR'),\n\tOleDBtoReconControl_outputfilename as string (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\titemId as string,\n\t\teffDate as timestamp,\n\t\triskMonth as string,\n\t\trc as string,\n\t\tco as string,\n\t\tdda as string,\n\t\tsubAccount as string,\n\t\tname1 as string,\n\t\tdescription as string,\n\t\tbalancePool as string,\n\t\tentryDate as timestamp,\n\t\triskDate as timestamp,\n\t\tcurrency as string,\n\t\tdr as decimal(18,2),\n\t\tcr as decimal(18,2),\n\t\tamount as decimal(18,2),\n\t\tamtOrig as decimal(18,2),\n\t\tcreate_dt as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OleDBfromKriKpiIntellimatch\nOleDBfromKriKpiIntellimatch derive(RiskEOM = $dStartPreviousMonth,\n\t\tRecordSts = toString($sRecordStatus),\n\t\tRiskAdjEOM = $dStartPreviousMonth,\n\t\tdCreateDate = toString($startTime)) ~> DerivedColumn\nOleDBfromKriKpiIntellimatch aggregate(groupBy(),\n\trowcount = count(1)) ~> INTMTCHRowCount0\nDerivedColumn sink(input(\n\t\tdda as string,\n\t\tamount as integer,\n\t\tentryDate as timestamp 'dd-MM-yyyy',\n\t\tAU_Number as string,\n\t\triskMonth_Dte as date 'dd-MM-yyyy',\n\t\triskDate as timestamp 'dd-MM-yyyy',\n\t\tdescription as string,\n\t\tRecord_Status as string,\n\t\tco as string,\n\t\tamtOrig as integer,\n\t\tsubAccount as string,\n\t\tdr as integer,\n\t\tcr as integer,\n\t\titemId as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\triskMonth as string,\n\t\tcreate_dt as timestamp 'dd-MM-yyyy',\n\t\tcurrency as string,\n\t\tbalancePool as string,\n\t\tname1 as string,\n\t\triskMonth_Adj_Dte as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 10000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tdda,\n\t\tamount,\n\t\tentryDate,\n\t\tAU_Number = rc,\n\t\triskMonth_Dte = RiskEOM,\n\t\triskDate,\n\t\tdescription,\n\t\tRecord_Status = RecordSts,\n\t\tco,\n\t\tamtOrig,\n\t\tsubAccount,\n\t\tdr,\n\t\tcr,\n\t\titemId,\n\t\teffDate,\n\t\triskMonth,\n\t\tcreate_dt = dCreateDate,\n\t\tcurrency,\n\t\tbalancePool,\n\t\tname1,\n\t\triskMonth_Adj_Dte = RiskAdjEOM),\n\tpartitionFileNames:[($OleDBtoReconControl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OleDBtoReconControl\nINTMTCHRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> INTMTCHRowCountCACHESINK"
+    }
+  }
+}

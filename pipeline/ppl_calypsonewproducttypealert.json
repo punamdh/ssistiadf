@@ -1,0 +1,591 @@
+{
+  "name" : "ppl_calypsonewproducttypealert",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert' AND DATAFLOW_NAME = 'data_flow_task_7') AS Data_Flow_Task_7_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_70_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert') AS Data_Flow_Task_70_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_70_sink_TableName' AND PIPELINE_NAME = 'ppl_calypsonewproducttypealert') AS Data_Flow_Task_70_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_START_-_Call_Log_table_entry_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Execute sp_ssis_log_insert_update \n@exec_pt  = 'START',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@filename = 'NA'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Call_Log_table_entry_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : " Exec [dbo].[TruncateTable] '[ReconControl].[dbo].[tbl_Calypso_New_Prod_Type]'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_7",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_7",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_7",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_7",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_7",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_7_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_70",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_7",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_7_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_70_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_70_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Update_Mapping_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_70",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "insert into [ReconControl].[dbo].[tbl_Calypso_Prod_Type_Map]\nselect * from [ReconControl].dbo.tbl_CIRC_Prod_Type New\nWHERE NOT EXISTS\n( SELECT PRODUCT_TYPE,PRODUCT_SUBTYPE as PRODUCT_SUB_TYPE\n                   FROM [ReconControl].[dbo].[tbl_Calypso_Prod_Type_Map] Map\n                   WHERE New.PRODUCT_TYPE = Map.Product_Type\n\t\t\t\t   and New.PRODUCT_SUBTYPE = Map.PRODUCT_SUBTYPE\n                 )",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Actual_Rows_Loaded_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_Mapping_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT  cast(COUNT(*) as bigint) as ActualRowsLoaded\nfrom [ReconControl].[dbo].[tbl_Calypso_New_Prod_Type]\nwhere cast(Load_Date as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sActualRowsLoaded",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sActualRowsLoaded",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "SETVAR_sRowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCount",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "ST_Trade_Count_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_sActualRowsLoaded",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select \nCount(New.Trade_ID) as TradeCount\n--New.PRODUCT_TYPE,\n--New.PRODUCT_SUB_TYPE\nfrom [ReconControl].[dbo].[tbl_Calypso_New_Prod_Type] New\nWHERE NOT EXISTS\n( SELECT PRODUCT_TYPE,PRODUCT_SUBTYPE as PRODUCT_SUB_TYPE\n                   FROM [ReconControl].[dbo].[tbl_Calypso_Prod_Type_Map] Map\n                   WHERE New.PRODUCT_TYPE = Map.Product_Type\n\t\t\t\t   and New.PRODUCT_SUB_TYPE = Map.PRODUCT_SUBTYPE\n                 )",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sTradeCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Trade_Count_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sTradeCount",
+        "value" : "@int(activity('ST_Trade_Count_0').output.resultSets[0].rows[0].TradeCount)"
+      }
+    }, {
+      "name" : "Email_Detail_Report",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sTradeCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('sTradeCount'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Get_Detail_report_in_HTML_values_is_stored_in_sBod",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Get_Detail_report_in_HTML_values_is_stored_in_sBod",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "ST_Use_Detail_regular_alert_service_to_send_email_",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Get_Detail_report_in_HTML_values_is_stored_in_sBod",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC sp_ins_ssis_utility_alert @TO=@{variables('sTo')},@SUBJECT=@{variables('sSubject')},@BODY=@{variables('sBody')},@BodyFormat=@{variables('sBodyFormat')},@CC=@{variables('sCC')}",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Use_Detail_regular_alert_service_to_send_email_",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Failure',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')}\n\n\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_End_-_Call_again_to_Success_insert_End_Time_and",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Use_Detail_regular_alert_service_to_send_email_",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : " EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Success',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')}\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Failure_Mail_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_email_detail_report",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Data_Flow_Task_7_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sBody" : {
+        "type" : "String"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoNewProductTypeAlert"
+      },
+      "sBodyFormat" : {
+        "type" : "String",
+        "defaultValue" : "2"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSRS@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoNewProductTypeAlert"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "IRDerivMO@wellsfargo.com;WFSRS@wellsfargo.com;CalypsoConfig@wellsfargo.com;RegulatoryReportingGroup@wellsfargo.com"
+      },
+      "sCC" : {
+        "type" : "String"
+      },
+      "sExceptionMessage" : {
+        "type" : "String"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_MORates-New ProductType-SubType"
+      },
+      "sTradeCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sActualRowsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoNewProductTypeAlert"
+      }
+    }
+  }
+}

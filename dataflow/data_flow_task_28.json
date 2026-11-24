@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{\"project\"} as string,\n\t\t{\"workbook\"} as string,\n\t\t{\"view\"} as string,\n\t\t{\"action\"} as string,\n\t\t{\"user\"} as string,\n\t\t{\"user_name\"} as string,\n\t\t{\"user_email\"} as string,\n\t\t{\"lastview\"} as date,\n\t\t{\"lastlogin\"} as date,\n\t\t{\"viewcount\"} as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tworkbook as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tview as string,\n\t\tuser_email as string,\n\t\tETLUser as string,\n\t\tuser_name as string,\n\t\tlastlogin as timestamp 'dd-MM-yyyy',\n\t\tproject as string,\n\t\taction as string,\n\t\tlastview as timestamp 'dd-MM-yyyy',\n\t\tviewcount as integer,\n\t\tuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tworkbook = {\"workbook\"},\n\t\tUploadDate,\n\t\tview = {\"view\"},\n\t\tuser_email = {\"user_email\"},\n\t\tETLUser,\n\t\tuser_name = {\"user_name\"},\n\t\tlastlogin = {\"lastlogin\"},\n\t\tproject = {\"project\"},\n\t\taction = {\"action\"},\n\t\tlastview = {\"lastview\"},\n\t\tviewcount = {\"viewcount\"},\n\t\tuser = {\"user\"}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEffDate as timestamp,\n\t\tReconRecordMatch as string,\n\t\tReconIdentifiedBreaks as string,\n\t\tPortName as string,\n\t\tsm_id as integer,\n\t\tHoldID as integer,\n\t\tCurrency as string,\n\t\t{MT CurrFxRate} as decimal(18,10),\n\t\t{MT MV} as decimal(24,8),\n\t\t{CDBO MV} as decimal(28,10),\n\t\t{MV Diff} as decimal(29,10),\n\t\t{AbsMV Diff} as decimal(29,10),\n\t\t{MT CompanyAU} as string,\n\t\t{CDBO CompanyAU} as string,\n\t\t{MT AssetClass} as string,\n\t\t{CDBO AssetClass} as string,\n\t\t{MT ProductCategory} as string,\n\t\t{CDBO ProductCategory} as string,\n\t\t{MT SubProductCategory} as string,\n\t\t{CDBO SubProductCategory} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ToAddLoaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMV_Diff as integer,\n\t\tMT_ProductCategory as string,\n\t\tMT_MV as integer,\n\t\tMT_AssetClass as string,\n\t\tsm_id as integer,\n\t\tCDBO_ProductCategory as string,\n\t\tCDBO_SubProductCategory as string,\n\t\tCDBO_MV as integer,\n\t\tEffDate as timestamp 'dd-MM-yyyy',\n\t\tPortName as string,\n\t\tMT_CurrFxRate as integer,\n\t\tReconIdentifiedBreaks as string,\n\t\tMT_CompanyAU as string,\n\t\tHoldID as integer,\n\t\tAbsMV_Diff as integer,\n\t\tMT_SubProductCategory as string,\n\t\tCDBO_CompanyAU as string,\n\t\tCurrency as string,\n\t\tLoaddate as date 'dd-MM-yyyy',\n\t\tCDBO_AssetClass as string,\n\t\tReconRecordMatch as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMV_Diff = {MV Diff},\n\t\tMT_ProductCategory = {MT ProductCategory},\n\t\tMT_MV = {MT MV},\n\t\tMT_AssetClass = {MT AssetClass},\n\t\tsm_id,\n\t\tCDBO_ProductCategory = {CDBO ProductCategory},\n\t\tCDBO_SubProductCategory = {CDBO SubProductCategory},\n\t\tCDBO_MV = {CDBO MV},\n\t\tEffDate,\n\t\tPortName,\n\t\tMT_CurrFxRate = {MT CurrFxRate},\n\t\tReconIdentifiedBreaks,\n\t\tMT_CompanyAU = {MT CompanyAU},\n\t\tHoldID,\n\t\tAbsMV_Diff = {AbsMV Diff},\n\t\tMT_SubProductCategory = {MT SubProductCategory},\n\t\tCDBO_CompanyAU = {CDBO CompanyAU},\n\t\tCurrency,\n\t\tLoaddate = ToAddLoaddate,\n\t\tCDBO_AssetClass = {CDBO AssetClass},\n\t\tReconRecordMatch),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

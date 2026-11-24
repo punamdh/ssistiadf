@@ -1,0 +1,31 @@
+{
+  "name" : "load_data_datalake_inventory_importtbl",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OracleDatalakeSourceQuery",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ETPPImporttableDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumnAddImportDate"
+      } ],
+      "script" : "parameters{\n\tETPPImporttableDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDATABASE_CATALOG_WF_GUID as string,\n\t\tBUSINESS_INTEREST_TYPE as string,\n\t\tBUS_INT_TYPE_DESCRIPTION as string,\n\t\tSYS_CLASS_NAME as string,\n\t\tSYS_CLASS_DESCRIPTION as string,\n\t\tCORRELATION_ID as string,\n\t\tDBSMART_DATABASE_ID as string,\n\t\tENVIRONMENT_ID as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tMANAGED_BY_GROUP_GUID as string,\n\t\tMANAGED_BY_GROUP_NAME as string,\n\t\tNAME as string,\n\t\tOPERATIONAL_STATUS as string,\n\t\tOPERATIONAL_STATUS_DESCRIPTION as string,\n\t\tOPERATIONAL_STATUS_GROUP as string,\n\t\tOWNED_BY_GROUP_GUID as string,\n\t\tOWNED_BY_GROUP_NAME as string,\n\t\tSUPPORT_GROUP_GUID as string,\n\t\tSUPPORT_GROUP_NAME as string,\n\t\tSHORT_DESCRIPTION as string,\n\t\tSYS_CREATED_ON as timestamp,\n\t\tSYS_UPDATED_ON as timestamp,\n\t\tSYS_CREATED_BY as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp,\n\t\tMODEL_ID_GUID as string,\n\t\tMODEL_NAME as string,\n\t\tMANUFACTURER_GUID as string,\n\t\tMANUFACTURER as string,\n\t\tMODEL_NUMBER as string,\n\t\tDISCOVERY_SOURCE as string,\n\t\tU_SERVICENOW_DISCOVERED as timestamp,\n\t\tLAST_DISCOVERED as timestamp,\n\t\tDISTRIBUTED_APP_ID as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tCHILD_NAME as string,\n\t\tCHILD_WF_GUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OracleDatalakeSourceQuery\nOracleDatalakeSourceQuery derive(ImportDate = currentTimestamp()) ~> DerivedColumnAddImportDate\nDerivedColumnAddImportDate sink(input(\n\t\toperational_status_description as string,\n\t\tshort_description as string,\n\t\toperational_status as string,\n\t\tenvironment_id as string,\n\t\tdbsmart_database_id as string,\n\t\tsys_updated_on as timestamp 'dd-MM-yyyy',\n\t\tu_servicenow_discovered as timestamp 'dd-MM-yyyy',\n\t\tlast_discovered as timestamp 'dd-MM-yyyy',\n\t\tchild_name as string,\n\t\tsys_class_name as string,\n\t\tmanufacturer as string,\n\t\tmanaged_by_group_guid as string,\n\t\tenvironment_description as string,\n\t\tsys_updated_by as string,\n\t\tdiscovery_source as string,\n\t\tmodel_name as string,\n\t\tsys_created_on as timestamp 'dd-MM-yyyy',\n\t\tmanaged_by_group_name as string,\n\t\tbus_int_type_description as string,\n\t\tmodel_id_guid as string,\n\t\tmodel_number as string,\n\t\tsys_class_description as string,\n\t\tbusiness_application_wf_guid as string,\n\t\tsys_created_by as string,\n\t\tdistributed_app_id as string,\n\t\toperational_status_group as string,\n\t\tbusiness_interest_type as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tdatabase_catalog_wf_guid as string,\n\t\ttodsh_business_effective_date as timestamp 'dd-MM-yyyy',\n\t\towned_by_group_guid as string,\n\t\tsupport_group_name as string,\n\t\towned_by_group_name as string,\n\t\tname as string,\n\t\tmanufacturer_guid as string,\n\t\tcorrelation_id as string,\n\t\tsupport_group_guid as string,\n\t\tchild_wf_guid as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\toperational_status_description = OPERATIONAL_STATUS_DESCRIPTION,\n\t\tshort_description = SHORT_DESCRIPTION,\n\t\toperational_status = OPERATIONAL_STATUS,\n\t\tenvironment_id = ENVIRONMENT_ID,\n\t\tdbsmart_database_id = DBSMART_DATABASE_ID,\n\t\tsys_updated_on = SYS_UPDATED_ON,\n\t\tu_servicenow_discovered = U_SERVICENOW_DISCOVERED,\n\t\tlast_discovered = LAST_DISCOVERED,\n\t\tchild_name = CHILD_NAME,\n\t\tsys_class_name = SYS_CLASS_NAME,\n\t\tmanufacturer = MANUFACTURER,\n\t\tmanaged_by_group_guid = MANAGED_BY_GROUP_GUID,\n\t\tenvironment_description = ENVIRONMENT_DESCRIPTION,\n\t\tsys_updated_by = SYS_UPDATED_BY,\n\t\tdiscovery_source = DISCOVERY_SOURCE,\n\t\tmodel_name = MODEL_NAME,\n\t\tsys_created_on = SYS_CREATED_ON,\n\t\tmanaged_by_group_name = MANAGED_BY_GROUP_NAME,\n\t\tbus_int_type_description = BUS_INT_TYPE_DESCRIPTION,\n\t\tmodel_id_guid = MODEL_ID_GUID,\n\t\tmodel_number = MODEL_NUMBER,\n\t\tsys_class_description = SYS_CLASS_DESCRIPTION,\n\t\tbusiness_application_wf_guid = BUSINESS_APPLICATION_WF_GUID,\n\t\tsys_created_by = SYS_CREATED_BY,\n\t\tdistributed_app_id = DISTRIBUTED_APP_ID,\n\t\toperational_status_group = OPERATIONAL_STATUS_GROUP,\n\t\tbusiness_interest_type = BUSINESS_INTEREST_TYPE,\n\t\timportdate = ImportDate,\n\t\tdatabase_catalog_wf_guid = DATABASE_CATALOG_WF_GUID,\n\t\ttodsh_business_effective_date = TODSH_BUSINESS_EFFECTIVE_DATE,\n\t\towned_by_group_guid = OWNED_BY_GROUP_GUID,\n\t\tsupport_group_name = SUPPORT_GROUP_NAME,\n\t\towned_by_group_name = OWNED_BY_GROUP_NAME,\n\t\tname = NAME,\n\t\tmanufacturer_guid = MANUFACTURER_GUID,\n\t\tcorrelation_id = CORRELATION_ID,\n\t\tsupport_group_guid = SUPPORT_GROUP_GUID,\n\t\tchild_wf_guid = CHILD_WF_GUID),\n\tpartitionFileNames:[($ETPPImporttableDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPImporttableDestination"
+    }
+  }
+}

@@ -1,0 +1,286 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_software_eol_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_14') AS Data_Flow_Task_1_14_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_140_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import') AS Data_Flow_Task_1_140_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_140_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_software_eol_data_import') AS Data_Flow_Task_1_140_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_select_script_for_oracle_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  [import].[datalake_installed_software_eol_import_sp]\n@{variables('selectquery')} OUTPUT",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_truncate_table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_select_script_for_oracle_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE [ETPP].[import].[datalake_software_eol_importtbl]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_1_14",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_truncate_table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_1_14",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_1_14",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_1_14",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_1_14",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_1_14_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_1_140",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_1_14",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_14_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_140_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_140_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Exec_Master_SP_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_1_140",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[software_eol_data_master_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "Data_Flow_Task_1_14_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "selectquery" : {
+        "type" : "String",
+        "defaultValue" : "SELECT a.wf_guid,    a.sys_class_name,    a.device_guid,    a.installed_on,    a.discovered_product_name,     a.discovered_publisher,     a.discovered_version,     a.install_date,     a.package_name,     b.U_VENDOR_END_OF_LIFE,    b.U_TSC_OBSOLETE_DATE,    b.U_WF_EXTENDED_SUPPORT_DATE,    b.U_WELLS_FARGO_RETIREMENT_DATE,    b.U_TSC_LIFECYCLE,    b.U_TSC_CATEGORY_DESCRIPTION   FROM itm_curated.installed_software a   LEFT JOIN itm_curated.itmp_software_product_model b    ON a.TSC_RELEASE_ID = b.U_TSC_RELEASE_ID   INNER JOIN todsh_etl_exa_p.cltd_device_dimension c             ON a.DEVICE_GUID = c.DEVICE_WF_GUID             WHERE  a.operational_status_description = 'OPERATIONAL'   AND c.device_sys_class_desc IN ('AIX SERVER','CONVERGED INFRASTRUCTURE','DATA POWER HOSTING SERVER','ESX SERVER','HMC SERVER','IBM FRAME','LINUX SERVER','MAINFRAME','MAINFRAME LPAR','SERVER','SOLARIS SERVER','UNIX SERVER','WINDOWS SERVER','ZOS SERVER','CLOSED APPLIANCE','STORAGE SERVER' ,'IP SWITCH','NETWORK GEAR','IP ROUTER','PALTO ALTO FIREWALL DEVICE','IP FIREWALL','LOAD BALANCER','F5 BIG-IP','STORAGE SWITCH','SERVER TAPE LIBRARY','SERVER TAPE UNIT','STORAGE NODE ELEMENT' )  AND c.operation_status_description IN ('PRE-OPERATIONAL','OPERATIONAL','BEING ASSEMBLED','DR STANDBY')"
+      }
+    }
+  }
+}

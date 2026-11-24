@@ -1,0 +1,29 @@
+{
+  "name" : "create_csv_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tCRITERION_NAME as string,\n\t\tCRITERION_VALUE as string,\n\t\tTRADE_FILTER_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCRITERION_NAME as string,\n\t\tBOOK_NAME as string,\n\t\tTRADE_FILTER_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCRITERION_NAME,\n\t\tBOOK_NAME = CRITERION_VALUE,\n\t\tTRADE_FILTER_NAME)) ~> FlatFileDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "future_breaks",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFilePathFurureBreaks as string ('\\\\ cwcnhf501.wellsfargo.com\\\\DRSDev\\\\WFSOpsKRIReporting\\\\DropZone\\\\GMI\\\\StreetsideActivity\\\\FuturesBreaks\\\\\\\\StreetActivity_20250128.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSecurityID as string,\n\t\tStatus as string,\n\t\t{Risk Date} as string,\n\t\t{Aged Days} as string,\n\t\tInventory as string,\n\t\tBOOK as string,\n\t\tGMISubProdSymbol as string,\n\t\tGMISymExch as string,\n\t\tImagineSymExch as string,\n\t\tSecurityDescription as string,\n\t\tPut_Call_Strike as string,\n\t\tLTD as string,\n\t\tGMIContractQty as string,\n\t\tImagineContractQty as string,\n\t\tCurrentPosDIFF as string,\n\t\tEffectiveDate as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tFileName = toString((substring(toString($FilePathFurureBreaks), toInteger(102), toInteger(27)))),\n\t\tFileDate = toString((substring(toString($FilePathFurureBreaks), toInteger(117), toInteger(8))))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tComment as string,\n\t\tImagineContractQty as integer,\n\t\tFileName as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tGMISubProdSymbol as string,\n\t\tGMIContractQty as integer,\n\t\tRiskDate as string,\n\t\tImagineSymExch as string,\n\t\tPut_Call_Strike as string,\n\t\tSecurityDescription as string,\n\t\tAgedDays as string,\n\t\tBOOK as string,\n\t\tGMISymExch as string,\n\t\tSecurityID as string,\n\t\tCurrentPosDIFF as integer,\n\t\tLTD as string,\n\t\tInventory as string,\n\t\tEffectiveDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tComment,\n\t\tImagineContractQty,\n\t\tFileName,\n\t\tLoad_Date = LoadDate,\n\t\tGMISubProdSymbol,\n\t\tGMIContractQty,\n\t\tRiskDate = {Risk Date},\n\t\tImagineSymExch,\n\t\tPut_Call_Strike,\n\t\tSecurityDescription,\n\t\tAgedDays = {Aged Days},\n\t\tBOOK,\n\t\tGMISymExch,\n\t\tSecurityID,\n\t\tCurrentPosDIFF,\n\t\tLTD,\n\t\tInventory,\n\t\tEffectiveDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

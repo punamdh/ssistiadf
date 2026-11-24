@@ -1,0 +1,29 @@
+{
+  "name" : "add_missing_cancels_from_distinct_tbl_to_auto_tbl",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCatalystEconomicStatusCancelReasonsDistinct",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystEconomicStatusCancelReasonsAutoFlag"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblCatalystEconomicStatusCancelReasonsAutoFlag_outputfilename as string ()\n}\n\nsource(output(\n\t\t{economic status} as string,\n\t\tvalue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCatalystEconomicStatusCancelReasonsDistinct\nfromtblCatalystEconomicStatusCancelReasonsDistinct sink(input(\n\t\tECONOMIC_STATUS as string,\n\t\tREASON as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tECONOMIC_STATUS = {economic status},\n\t\tREASON = value),\n\tpartitionFileNames:[($totblCatalystEconomicStatusCancelReasonsAutoFlag_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystEconomicStatusCancelReasonsAutoFlag"
+    }
+  }
+}

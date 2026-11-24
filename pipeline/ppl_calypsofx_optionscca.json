@@ -1,0 +1,593 @@
+{
+  "name" : "ppl_calypsofx_optionscca",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_FlatFileSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_FlatFileSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_FlatFileSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca' AND DATAFLOW_NAME = 'data_flow_task_6') AS Data_Flow_Task_6_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_60_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca') AS Data_Flow_Task_60_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_60_sink_TableName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca') AS Data_Flow_Task_60_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_ContainerName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca') AS GMD_Foreach_Loop_Container_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FileName' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca') AS GMD_Foreach_Loop_Container_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FilePath' AND PIPELINE_NAME = 'ppl_calypsofx_optionscca') AS GMD_Foreach_Loop_Container_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_START_-_Call_Log_table_entry_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Execute sp_ssis_log_insert_update \n@exec_pt  = 'START',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@filename = 'NA'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "GMD_Foreach_Loop_Container",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Call_Log_table_entry_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : ","
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FLTR_Foreach_Loop_Container",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GMD_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GMD_Foreach_Loop_Container').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), endswith(item().name, '.csv'))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FRE_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FLTR_Foreach_Loop_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "EP_REPL_Data_Flow_Task_6",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Data_Flow_Task_6",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Data_Flow_Task_6",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Data_Flow_Task_6",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "data_flow_task_6",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "OLEDBDestination_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_FlatFileSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_FlatFileSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Data_Flow_Task_6_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Data_Flow_Task_60",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Data_Flow_Task_6",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_6_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_60_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_60_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "ArchiveFiles",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FRE_Foreach_Loop_Container_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "ArchiveFiles",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "ST_Get_Actual_Rows_Loaded_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ArchiveFiles",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT  cast(COUNT(*) as bigint) as ActualRowsLoaded\nfrom ReconControl.dbo.tbl_CalypsoFx_OptionsCCA\nwhere cast(LoadDate as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sActualRowsLoaded",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sActualRowsLoaded",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "SETVAR_sRowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCount",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_sActualRowsLoaded",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Failure',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')},\n@FileName=@{variables('sFileName')}\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_End_-_Call_again_to_Success_insert_End_Time_and",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_sActualRowsLoaded",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : " EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Success',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')},\n@FileName=NA",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Failure_Mail_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('sEnvironment'),'LOCAL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Failure_Mail",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "EP_Success_Mail",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_End_-_Call_again_to_Success_insert_End_Time_and",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Data_Flow_Task_6_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoFx_OptionsCCA"
+      },
+      "sPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Calypsofx\\"
+      },
+      "sFileName" : {
+        "type" : "String"
+      },
+      "sFileRootDirectory_1EQS" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Start loading CalypsoFx_OptionsCCA"
+      },
+      "sFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Calypsofx\\"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_CalypsoFx_OptionsCCA"
+      },
+      "sArchivePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Calypsofx\\CalypsoFxTemp"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFileNamePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Calypsofx\\"
+      },
+      "sActualRowsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoFx_OptionsCCA"
+      }
+    }
+  }
+}

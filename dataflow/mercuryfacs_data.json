@@ -1,0 +1,31 @@
+{
+  "name" : "mercuryfacs_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEffDate as date,\n\t\tReconStatus as string,\n\t\tExternalSystem as string,\n\t\tSystemRecord as string,\n\t\tHoldID as string,\n\t\tSourceSystemName as string,\n\t\t{Imagine External_Trade_ID} as string,\n\t\t{FENICS TicketNo} as string,\n\t\tCalypsoId as integer,\n\t\t{RV account} as string,\n\t\t{FENICS Book} as string,\n\t\tDivisionDescription as string,\n\t\tDistrictDescription as string,\n\t\tSubDistrict1Description as string,\n\t\tCompanyAU as string,\n\t\t{FENICS Au} as string,\n\t\t{Imagine TradeDate} as timestamp,\n\t\t{FENICS TradeDate} as timestamp,\n\t\t{RV holdingCurrency} as string,\n\t\t{FENICS CtrCcy} as string,\n\t\t{RV Put Call} as string,\n\t\t{FENICS ProductType} as string,\n\t\t{FENICS ForwardRate} as decimal(24,8),\n\t\t{RV Strike} as decimal(24,8),\n\t\t{FENICS StrikeRate} as decimal(24,8),\n\t\t{RV Expiry} as timestamp,\n\t\t{FENICS ExpiryDate} as timestamp,\n\t\t{RV CurrMark} as decimal(24,8),\n\t\t{FENICS Calc: PositionValue / CcyAmt} as decimal(38,14),\n\t\t{Mark Variance} as decimal(38,14),\n\t\t{RV quantity} as decimal(24,8),\n\t\t{FENICS CcyAmt} as decimal(24,8),\n\t\t{Quantity Variance} as decimal(25,8),\n\t\t{FENICS PositionValue (Prior)} as decimal(24,8),\n\t\t{RV Mkt Value} as decimal(24,8),\n\t\t{FENICS PositionValue} as decimal(24,8),\n\t\t{Current MV Variance} as decimal(25,8),\n\t\t{RV dayPnlUsd} as decimal(38,6),\n\t\t{FENICS MV Change} as decimal(25,8),\n\t\t{PNL Variance} as decimal(38,6)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(GetDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tFENICS_PositionValue as integer,\n\t\tSubDistrict1Description as string,\n\t\tCurrent_MV_Variance as integer,\n\t\tFENICS_ForwardRate as integer,\n\t\tRV_Mkt_Value as integer,\n\t\tExternalSystem as string,\n\t\tSourceSystemName as string,\n\t\tRV_DayPnlUsd as integer,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tEffDate as date 'dd-MM-yyyy',\n\t\tRV_holdingCurrency as string,\n\t\tImagine_TradeDate as date 'dd-MM-yyyy',\n\t\tHoldID as string,\n\t\tFENICS_MV_Change as integer,\n\t\tRV_account as string,\n\t\tQuantity_Variance as integer,\n\t\tReconStatus as string,\n\t\tImagine_External_Trade_ID as string,\n\t\tFENICS_CtrCcy as string,\n\t\tFENICS_Calc_PositionValue_CcyAmt as integer,\n\t\tRV_Strike as integer,\n\t\tFENICS_ExpiryDate as timestamp 'dd-MM-yyyy',\n\t\tDistrictDescription as string,\n\t\tFENICS_TradeDate as date 'dd-MM-yyyy',\n\t\tFENICS_Book as string,\n\t\tRV_quantity as integer,\n\t\tRV_Put_Call as string,\n\t\tRV_Expiry as timestamp 'dd-MM-yyyy',\n\t\tFENICS_PositionValue_Prior as integer,\n\t\tMark_Variance as integer,\n\t\tPNL_Variance as integer,\n\t\tCalypsoId as string,\n\t\tDivisionDescription as string,\n\t\tFENICS_CcyAmt as integer,\n\t\tCompanyAU as string,\n\t\tFENICS_ProductType as string,\n\t\tFENICS_StrikeRate as integer,\n\t\tRV_CurrMark as integer,\n\t\tSystemRecord as string,\n\t\tFENICS_TicketNo as string,\n\t\tFENICS_Au as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFENICS_PositionValue = {FENICS PositionValue},\n\t\tSubDistrict1Description,\n\t\tCurrent_MV_Variance = {Current MV Variance},\n\t\tFENICS_ForwardRate = {FENICS ForwardRate},\n\t\tRV_Mkt_Value = {RV Mkt Value},\n\t\tExternalSystem,\n\t\tSourceSystemName,\n\t\tRV_DayPnlUsd = {RV dayPnlUsd},\n\t\tLoad_Date = GetDate,\n\t\tEffDate,\n\t\tRV_holdingCurrency = {RV holdingCurrency},\n\t\tImagine_TradeDate = {Imagine TradeDate},\n\t\tHoldID,\n\t\tFENICS_MV_Change = {FENICS MV Change},\n\t\tRV_account = {RV account},\n\t\tQuantity_Variance = {Quantity Variance},\n\t\tReconStatus,\n\t\tImagine_External_Trade_ID = {Imagine External_Trade_ID},\n\t\tFENICS_CtrCcy = {FENICS CtrCcy},\n\t\tFENICS_Calc_PositionValue_CcyAmt = {FENICS Calc: PositionValue / CcyAmt},\n\t\tRV_Strike = {RV Strike},\n\t\tFENICS_ExpiryDate = {FENICS ExpiryDate},\n\t\tDistrictDescription,\n\t\tFENICS_TradeDate = {FENICS TradeDate},\n\t\tFENICS_Book = {FENICS Book},\n\t\tRV_quantity = {RV quantity},\n\t\tRV_Put_Call = {RV Put Call},\n\t\tRV_Expiry = {RV Expiry},\n\t\tFENICS_PositionValue_Prior = {FENICS PositionValue (Prior)},\n\t\tMark_Variance = {Mark Variance},\n\t\tPNL_Variance = {PNL Variance},\n\t\tCalypsoId,\n\t\tDivisionDescription,\n\t\tFENICS_CcyAmt = {FENICS CcyAmt},\n\t\tCompanyAU,\n\t\tFENICS_ProductType = {FENICS ProductType},\n\t\tFENICS_StrikeRate = {FENICS StrikeRate},\n\t\tRV_CurrMark = {RV CurrMark},\n\t\tSystemRecord,\n\t\tFENICS_TicketNo = {FENICS TicketNo},\n\t\tFENICS_Au = {FENICS Au}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "staging_product_cdssng",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromrefentitysingle",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservProductCdsSng"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblcalypsotradeservProductCdsSng_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tREF_ENTITY_ID as decimal(38,0),\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tSHORT_NAME as string,\n\t\tLONG_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromrefentitysingle\nfromrefentitysingle derive({Copy of PRODUCT_ID} = toString(PRODUCT_ID),\n\t\t{Copy of LONG_NAME} = LONG_NAME,\n\t\t{Copy of LEGAL_ENTITY_ID} = toString(LEGAL_ENTITY_ID),\n\t\t{Copy of REF_ENTITY_ID} = toString(REF_ENTITY_ID),\n\t\t{Copy of SHORT_NAME} = SHORT_NAME) ~> DataConversion\nDataConversion sink(input(\n\t\tLEGAL_ENTITY_ID as string,\n\t\tPRODUCT_ID as string,\n\t\tREF_ENTITY_ID as string,\n\t\tSHORT_NAME as string,\n\t\tlong_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLEGAL_ENTITY_ID = {Copy of LEGAL_ENTITY_ID},\n\t\tPRODUCT_ID = {Copy of PRODUCT_ID},\n\t\tREF_ENTITY_ID = {Copy of REF_ENTITY_ID},\n\t\tSHORT_NAME = {Copy of SHORT_NAME},\n\t\tlong_name = {Copy of LONG_NAME}),\n\tpartitionFileNames:[($totblcalypsotradeservProductCdsSng_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservProductCdsSng"
+    }
+  }
+}

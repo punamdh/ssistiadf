@@ -1,0 +1,33 @@
+{
+  "name" : "load_calypsofx_tradesexecuted",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn1"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tFilePath as string ('\\\\ cslnhf501.wellsfargo.com\\\\DRSProd\\\\WFSOpsKRIReporting\\\\DropZone\\\\Calypsofx\\\\executedTrades'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Id} as string,\n\t\t{Fenics Id} as string,\n\t\t{Trade Date} as string,\n\t\t{Entered Date} as string,\n\t\t{Entered User} as string,\n\t\t{Entered User Name} as string,\n\t\t{Modification Date} as string,\n\t\t{Entity Field Name} as string,\n\t\t{Old Value} as string,\n\t\t{New Value} as string,\n\t\t{Modified User} as string,\n\t\t{Modified User Name} as string,\n\t\t{Trade Version} as string,\n\t\t{Audit Action} as string,\n\t\t{Trade Status} as string,\n\t\tTrader as string,\n\t\t{Processing Org} as string,\n\t\tCounterparty as string,\n\t\t{Product Type} as string,\n\t\tBook as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FileName = toString((substring(toString($FilePath), toInteger(90), toInteger(120)))),\n\t\tFileDate = toString((substring(toString($FilePath), toInteger(123), toInteger(10))))) ~> DerivedColumn1\nDerivedColumn1 derive({Copy of FileDate} = toDate(FileDate, \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tFenics_Id as string,\n\t\tModified_User as string,\n\t\tTrade_Date as string,\n\t\tModified_User_Name as string,\n\t\tProcessing_Org as string,\n\t\tEntered_User as string,\n\t\tTrader as string,\n\t\tTrade_Status as string,\n\t\tFileName as string,\n\t\tTrade_Id as string,\n\t\tOld_Value as string,\n\t\tModification_Date as string,\n\t\tNew_Value as string,\n\t\tEntered_User_Name as string,\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tTrade_Version as string,\n\t\tCounterparty as string,\n\t\tAudit_Action as string,\n\t\tBook as string,\n\t\tEntity_Field_Name as string,\n\t\tProduct_Type as string,\n\t\tEntered_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFenics_Id = {Fenics Id},\n\t\tModified_User = {Modified User},\n\t\tTrade_Date = {Trade Date},\n\t\tModified_User_Name = {Modified User Name},\n\t\tProcessing_Org = {Processing Org},\n\t\tEntered_User = {Entered User},\n\t\tTrader,\n\t\tTrade_Status = {Trade Status},\n\t\tFileName,\n\t\tTrade_Id = {Trade Id},\n\t\tOld_Value = {Old Value},\n\t\tModification_Date = {Modification Date},\n\t\tNew_Value = {New Value},\n\t\tEntered_User_Name = {Entered User Name},\n\t\tFileDate = {Copy of FileDate},\n\t\tTrade_Version = {Trade Version},\n\t\tCounterparty,\n\t\tAudit_Action = {Audit Action},\n\t\tBook,\n\t\tEntity_Field_Name = {Entity Field Name},\n\t\tProduct_Type = {Product Type},\n\t\tEntered_Date = {Entered Date}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "load_cat_rejection_rate",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CATRejectionRateFlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDay as string,\n\t\t{Processed Events} as string,\n\t\t{Rejected Events} as string,\n\t\t{WFS Reject Rate %} as string,\n\t\t{Industry Reject Rate %} as string,\n\t\t{Green Thresh} as string,\n\t\t{Amber Thresh} as string,\n\t\t{Red Thresh} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CATRejectionRateFlatFileSource\nCATRejectionRateFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tgreenThreshold as string,\n\t\tredThreshold as string,\n\t\tindustryRejectRate as string,\n\t\trateDate as string,\n\t\tprocessedEvents as string,\n\t\trejectedEvents as string,\n\t\twfsRejectRate as string,\n\t\tamberThreshold as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tgreenThreshold = {Green Thresh},\n\t\tredThreshold = {Red Thresh},\n\t\tindustryRejectRate = {Industry Reject Rate %},\n\t\trateDate = Day,\n\t\tprocessedEvents = {Processed Events},\n\t\trejectedEvents = {Rejected Events},\n\t\twfsRejectRate = {WFS Reject Rate %},\n\t\tamberThreshold = {Amber Thresh}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

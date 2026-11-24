@@ -1,0 +1,31 @@
+{
+  "name" : "load_tbl_opics_invalidportfolio3a",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromopicsplusdbcppr",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblOpicsInvalidPortfolio3a"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblOpicsInvalidPortfolio3a_outputfilename as string ()\n}\n\nsource(output(\n\t\tBR as string,\n\t\tVDATE as timestamp,\n\t\tRECORDCREATIONDATE as timestamp,\n\t\tFROM_TRADER as string,\n\t\tFROM_PORT as string,\n\t\tFROM_COST as string,\n\t\tFROMCCY as string,\n\t\tFROMCTR as string,\n\t\tFROM_CCYAMT as string,\n\t\tFROM_CTRAMT as string,\n\t\tTO_TRADER as string,\n\t\tTO_PORT as string,\n\t\tTO_COST as string,\n\t\tTO_CCY as string,\n\t\tTO_CTR as string,\n\t\tTO_CCYAMT as decimal(19,4),\n\t\tTO_CTRAMT as decimal(19,4)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromopicsplusdbcppr\nfromopicsplusdbcppr derive({Copy of FROM_CCYAMT} = FROM_CCYAMT,\n\t\t{Copy of FROM_CTRAMT} = FROM_CTRAMT,\n\t\t{Copy of FROMCCY} = FROMCCY,\n\t\t{Copy of TO_CTR} = TO_CTR,\n\t\t{Copy of TO_TRADER} = TO_TRADER,\n\t\t{Copy of TO_COST} = TO_COST,\n\t\t{Copy of FROM_PORT} = FROM_PORT,\n\t\t{Copy of RECORDCREATIONDATE} = RECORDCREATIONDATE,\n\t\t{Copy of VDATE} = VDATE,\n\t\t{Copy of TO_CTRAMT} = TO_CTRAMT,\n\t\t{Copy of TO_CCY} = TO_CCY,\n\t\t{Copy of FROM_COST} = FROM_COST,\n\t\t{Copy of TO_CCYAMT} = TO_CCYAMT,\n\t\t{Copy of BR} = BR,\n\t\t{Copy of FROM_TRADER} = FROM_TRADER,\n\t\t{Copy of FROMCTR} = FROMCTR,\n\t\t{Copy of TO_PORT} = TO_PORT) ~> DataConversion\nDataConversion sink(input(\n\t\tFROM_COST as string,\n\t\tTO_CTR as string,\n\t\tFROM_CCYAMT as double,\n\t\tTO_COST as string,\n\t\tTO_TRADER as string,\n\t\tFROMCTR as string,\n\t\tTO_CCY as string,\n\t\tFROM_CTRAMT as double,\n\t\tTO_CTRAMT as double,\n\t\tBR as string,\n\t\tFROMCCY as string,\n\t\tFROM_TRADER as string,\n\t\tRECORDCREATIONDATE as date 'dd-MM-yyyy',\n\t\tTO_CCYAMT as double,\n\t\tFROM_PORT as string,\n\t\tVDATE as date 'dd-MM-yyyy',\n\t\tTO_PORT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFROM_COST = {Copy of FROM_COST},\n\t\tTO_CTR = {Copy of TO_CTR},\n\t\tFROM_CCYAMT,\n\t\tTO_COST = {Copy of TO_COST},\n\t\tTO_TRADER = {Copy of TO_TRADER},\n\t\tFROMCTR = {Copy of FROMCTR},\n\t\tTO_CCY = {Copy of TO_CCY},\n\t\tFROM_CTRAMT,\n\t\tTO_CTRAMT,\n\t\tBR = {Copy of BR},\n\t\tFROMCCY = {Copy of FROMCCY},\n\t\tFROM_TRADER = {Copy of FROM_TRADER},\n\t\tRECORDCREATIONDATE,\n\t\tTO_CCYAMT,\n\t\tFROM_PORT = {Copy of FROM_PORT},\n\t\tVDATE,\n\t\tTO_PORT = {Copy of TO_PORT}),\n\tpartitionFileNames:[($totblOpicsInvalidPortfolio3a_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblOpicsInvalidPortfolio3a"
+    }
+  }
+}

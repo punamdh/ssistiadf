@@ -1,0 +1,381 @@
+{
+  "name" : "ppl_reset_sptacticalmetricsdataentry",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry' AND DATAFLOW_NAME = 'move_data_from_prod') AS Move_Data_from_Prod_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_Data_from_Prod0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry') AS Move_Data_from_Prod0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Move_Data_from_Prod0_sink_TableName' AND PIPELINE_NAME = 'ppl_reset_sptacticalmetricsdataentry') AS Move_Data_from_Prod0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_START_Data_Flow_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : " EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'Start',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = 'Starting Sharepoint Tactical Metric Reset'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Update_Tactical_Metrics",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_Data_Flow_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Remove_KRI_Entry_39_Entries_from_Lower_Environm",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "DELETE FROM tbl_DataTagger_Tags WHERE  (SourceDataSetID = 39) ",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_REPL_Move_Data_from_Prod",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Remove_KRI_Entry_39_Entries_from_Lower_Environm",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Move_Data_from_Prod",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Move_Data_from_Prod",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Move_Data_from_Prod",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "move_data_from_prod",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "OLEDBDestination_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "OLEDBSource" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Move_Data_from_Prod_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Move_Data_from_Prod0",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Move_Data_from_Prod",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_Utility",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod0_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Move_Data_from_Prod0_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "ST_Execute_SQL_Task_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Move_Data_from_Prod0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : ";WITH dt AS\n(\nSELECT CAST(SUBSTRING(SourceCompositeKey,0,CHARINDEX('|',SourceCompositeKey,0)) as smallint) as weekID\n,CAST(SUBSTRING(SourceCompositeKey,CHARINDEX('|',SourceCompositeKey,0)+1,10) as smallint) as metricID\n,TRY_CAST(TextTag as decimal(18,4)) as metricValue\nFROM [dbo].[tbl_DataTagger_Tags] \nWHERE SourceDataSetID = 39\nAND SUBSTRING(SourceCompositeKey,0,CHARINDEX('|',SourceCompositeKey,0)) = \n (\n SELECT MAX(SUBSTRING(SourceCompositeKey,0,CHARINDEX('|',SourceCompositeKey,0)))FROM [dbo].[tbl_DataTagger_Tags]  WHERE SourceDataSetID = 39)\n )\nUPDATE t\n  SET t.metricValue = dt.metricValue\n  FROM [kpikriReporting].[dbo].[tbl_lvlTwoDetail_spTacticalMetrics] AS t\n  INNER JOIN dt\n  ON t.periodCounterWeek = dt.weekID AND t.kriID = dt.metricID;",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_Capture_New_Weeks_Tactical_Metrics_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Update_Tactical_Metrics",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "exec [QVPROPER].[sp_ins_NewWeekSPTacticalMetrics]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_END_DATA_FLOW_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Capture_New_Weeks_Tactical_Metrics_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n  @exec_pt = 'END',\n  @proc_pack_nm = @{variables('sProcessName')},\n  @comment = 'Finish Sharepoint Tactical Metric Reset',\n@status = 'Success',\n@num_of_records = @{variables('sRowCount')}\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Insert_General_Failure_into_Utility_Alert_for_E",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_END_DATA_FLOW_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n  @TO = 'WFSRS@wellsfargo.com'\n ,@SUBJECT = 'WFSR&S_ProcessAlert_UAT_ResetTacticalMetricsDataEntry_FAILURE'\n ,@BODY = 'Data import package failed. <br> <br>\n \n   '\n ,@BodyFormat = '2'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Move_Data_from_Prod_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "reset_SPtacticalMetricsDataEntry"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

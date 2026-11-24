@@ -1,0 +1,33 @@
+{
+  "name" : "aging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PegaCases",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAging as string,\n\t\tCCY as string,\n\t\tSide as string,\n\t\tInvestigator as string,\n\t\tDept as string,\n\t\tDF1073 as string,\n\t\tNextActionDate as string,\n\t\tCaseID as string,\n\t\tAccount_Name as string,\n\t\tCCY_Amount as string,\n\t\tUSD_Equiv_Amt as string,\n\t\tValue_Date as string,\n\t\tDorC as string,\n\t\tCase_Type as string,\n\t\tCase_Sub_Type as string,\n\t\tCase_Status as string,\n\t\tUpdateDateTime as string,\n\t\tUserUpdateDateTime as string,\n\t\tTranRef as string,\n\t\tIncomingTRN as string,\n\t\tCMR_ID as string,\n\t\tCustomer_Legal_Name as string,\n\t\tCovering_Employee_Name as string,\n\t\tCreate_Date as string,\n\t\tCreate_Time as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PegaCases\nPegaCases split(ltrim(toString(rtrim(toString(CaseID),' ')),' ') == '', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(USD_Equiv_Amt = replace(iifNull(USD_Equiv_Amt,'0'), toString(' '), toString('0')),\n\t\tInvestigator = iif(ltrim(toString(rtrim(toString(Investigator),' ')),' ') == '', 'Blank', Investigator)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCase_Status as string,\n\t\tCustomer_Legal_Name as string,\n\t\tDept as string,\n\t\tCCY_Amount as string,\n\t\tDF1073 as string,\n\t\tCreate_date as string,\n\t\tValue_date as string,\n\t\tD_C as string,\n\t\tIncoming_TRN as string,\n\t\tInvestigator as string,\n\t\tUser_Update_Date_Time as string,\n\t\tSide as string,\n\t\tNext_Action_Date as string,\n\t\tUpdate_Date_Time as string,\n\t\tTran_Ref as string,\n\t\tAging as string,\n\t\tCovering_Employee_Name as string,\n\t\tCase_ID as string,\n\t\tCase_Sub_Type as string,\n\t\tUSD_Equiv_Amt as string,\n\t\tCMR_ID as string,\n\t\tAccount_name as string,\n\t\tCreate_time as string,\n\t\tCCY as string,\n\t\tCase_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCase_Status,\n\t\tCustomer_Legal_Name,\n\t\tDept,\n\t\tCCY_Amount,\n\t\tDF1073,\n\t\tCreate_date = Create_Date,\n\t\tValue_date = Value_Date,\n\t\tD_C = DorC,\n\t\tIncoming_TRN = IncomingTRN,\n\t\tInvestigator,\n\t\tUser_Update_Date_Time = UserUpdateDateTime,\n\t\tSide,\n\t\tNext_Action_Date = NextActionDate,\n\t\tUpdate_Date_Time = UpdateDateTime,\n\t\tTran_Ref = TranRef,\n\t\tAging,\n\t\tCovering_Employee_Name,\n\t\tCase_ID = CaseID,\n\t\tCase_Sub_Type,\n\t\tUSD_Equiv_Amt,\n\t\tCMR_ID,\n\t\tAccount_name = Account_Name,\n\t\tCreate_time = Create_Time,\n\t\tCCY,\n\t\tCase_type = Case_Type),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

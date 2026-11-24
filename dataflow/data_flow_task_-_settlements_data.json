@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_settlements_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn2"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tTeam as string,\n\t\tFunction as string,\n\t\tDriver as string,\n\t\tDescription as string,\n\t\tCount as string,\n\t\tEFFDATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(loadDate = currentTimestamp()) ~> DerivedColumn2\nDerivedColumn2 sink(input(\n\t\tFunction as string,\n\t\tDescription as string,\n\t\tEFFDATE as string,\n\t\tDriver as string,\n\t\tTeam as string,\n\t\tCount as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 5000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFunction,\n\t\tDescription,\n\t\tEFFDATE,\n\t\tDriver,\n\t\tTeam,\n\t\tCount,\n\t\tloadDate),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1"
+    }
+  }
+}

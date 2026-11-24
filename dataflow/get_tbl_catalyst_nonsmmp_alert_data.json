@@ -1,0 +1,29 @@
+{
+  "name" : "get_tbl_catalyst_nonsmmp_alert_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromvwCatalystNonSMMP",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystNonSMMPalert"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblCatalystNonSMMPalert_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Par Amount} as string,\n\t\t{BR Counterparty} as string,\n\t\t{Trade Date} as string,\n\t\tTrader as string,\n\t\t{B/S} as string,\n\t\t{Ticket Number} as string,\n\t\t{Doc Level} as string,\n\t\tCusip as string,\n\t\tCounterparty as string,\n\t\tPrice as string,\n\t\t{Trade Subtype} as string,\n\t\t{Import Source} as string,\n\t\tSMMPIndicator as string,\n\t\t{Settle Date} as string,\n\t\tInventory as string,\n\t\tSalesperson as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromvwCatalystNonSMMP\nfromvwCatalystNonSMMP sink(input(\n\t\tPar_Amount as string,\n\t\tBR_Counterparty as string,\n\t\tTrade_Date as string,\n\t\tTrader as string,\n\t\tB_S as string,\n\t\tTicket_Number as string,\n\t\tDoc_Level as string,\n\t\tCusip as string,\n\t\tCounterparty as string,\n\t\tPrice as string,\n\t\tTrade_Subtype as string,\n\t\tImport_Source as string,\n\t\tSMMPIndicator as string,\n\t\tSettle_Date as string,\n\t\tInventory as string,\n\t\tSalesperson as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPar_Amount = {Par Amount},\n\t\tBR_Counterparty = {BR Counterparty},\n\t\tTrade_Date = {Trade Date},\n\t\tTrader,\n\t\tB_S = {B/S},\n\t\tTicket_Number = {Ticket Number},\n\t\tDoc_Level = {Doc Level},\n\t\tCusip,\n\t\tCounterparty,\n\t\tPrice,\n\t\tTrade_Subtype = {Trade Subtype},\n\t\tImport_Source = {Import Source},\n\t\tSMMPIndicator,\n\t\tSettle_Date = {Settle Date},\n\t\tInventory,\n\t\tSalesperson),\n\tpartitionFileNames:[($totblCatalystNonSMMPalert_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystNonSMMPalert"
+    }
+  }
+}

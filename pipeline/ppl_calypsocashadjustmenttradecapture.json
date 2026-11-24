@@ -1,0 +1,654 @@
+{
+  "name" : "ppl_calypsocashadjustmenttradecapture",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Cash_Adjustment_ContainerName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetCalypsoCashAdjustment_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Cash_Adjustment_FileName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetCalypsoCashAdjustment_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Cash_Adjustment_FilePath' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetCalypsoCashAdjustment_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Inventory_Master_ContainerName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetInventoryMaster_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Inventory_Master_FileName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetInventoryMaster_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Inventory_Master_FilePath' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_GetInventoryMaster_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_ReconControl_ContainerName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_toReconControl_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_ReconControl_FileName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_toReconControl_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_ReconControl_FilePath' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture' AND DATAFLOW_NAME = 'df_get_calypso_records') AS DF_Get_Calypso_records_toReconControl_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DF_Get_Calypso_records0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture') AS DF_Get_Calypso_records0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DF_Get_Calypso_records0_sink_TableName' AND PIPELINE_NAME = 'ppl_calypsocashadjustmenttradecapture') AS DF_Get_Calypso_records0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_LOG_Start_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Execute sp_ssis_log_insert_update \n@exec_pt  = 'START',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@filename = 'Daily Load'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Check_Records_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_LOG_Start_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_OraOLEDB_Oracle_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select count(a.trade_id) as ClyRecCount\nfrom\n(\nSELECT tf.TRADE_ID, \nb.BOOK_NAME, \ntf.FEE_DATE, \ntf.FEE_TYPE, \ntf.CURRENCY_CODE, \ntf.AMOUNT, \nle.SHORT_NAME AS Legal_Entity, \ncase when tf.AMOUNT<0 then 'Pay' else 'Receive' end AS Pay_Rec, \ntf.FEE_DESC AS Description\nfrom CALYPSODBA.trade t inner join CALYPSODBA.legal_entity le on le.legal_entity_id = t.cpty_id\ninner join CALYPSODBA.book b on b.book_id = t.book_id\ninner join CALYPSODBA.trade_fee tf on tf.trade_id = t.trade_id\nWHERE tf.FEE_TYPE In ('CASHADJ','CASHFOADJ','CASHBOADJ') \nAND t.TRADE_STATUS Not In ('PRICING','CANCELED','INVALID','RECONCILED','LOST')\nand tf.fee_Date between add_months(trunc(sysdate, 'month'), -12) and trunc(sysdate, 'month'))a",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_iCheckRecSource",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Check_Records_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "iCheckRecSource",
+        "value" : "@int(activity('ST_Check_Records_0').output.resultSets[0].rows[0].0)"
+      }
+    }, {
+      "name" : "Expression_Task_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_iCheckRecSource",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('iCheckRecSource'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "SETVAR_Expression_Task",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Expression Task",
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Delete_table_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_iCheckRecSource",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('iCheckRecSource'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Delete_table_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "delete from [dbo].[tbl_CalypsoCashAdjustment_TradeCapture]",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_REPL_DF_Get_Calypso_records",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Delete_table_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "DF_Get_Calypso_records",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Get_Calypso_records",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_DF_Get_Calypso_records",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "df_get_calypso_records",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "toReconControl_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                },
+                "dCurrentDate" : {
+                  "type" : "Expression",
+                  "value" : "pipeline().TriggerTime"
+                }
+              },
+              "datasetParameters" : {
+                "GetCalypsoCashAdjustment" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetCalypsoCashAdjustment_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetCalypsoCashAdjustment_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetCalypsoCashAdjustment_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "GetInventoryMaster" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetInventoryMaster_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetInventoryMaster_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_GetInventoryMaster_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "toReconControl" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.DF_Get_Calypso_records_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_DF_Get_Calypso_records0",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Get_Calypso_records",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records_toReconControl_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records0_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DF_Get_Calypso_records0_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_iRowCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_DF_Get_Calypso_records0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "iRowCount",
+            "value" : "@int(coalesce(activity('DF_Get_Calypso_records').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "ST_Get_loaded_records_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_iRowCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "select count(1) as countrecord\nfrom [dbo].[tbl_CalypsoCashAdjustment_TradeCapture]\nwhere cast(create_dte as date) = cast(getdate() as date)",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_iLoadRecords",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_loaded_records_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "iLoadRecords",
+            "value" : "@int(activity('ST_Get_loaded_records_0').output.resultSets[0].rows[0].0)"
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_Log_Failure_Pckg_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Expression_Task_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "Delete_table_0_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  sp_ssis_log_insert_update\n  @exec_pt  = 'END',\n  @proc_pack_nm  = @{variables('sProcessName')},\n  @comment = @{variables('sComment')},\n  @status = 'FAILURE',\n  @num_of_records = 0,\n  @actual_records = -1,\n  @filename = 'Sharepoint List'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Log_Failure_Load_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Expression_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Delete_table_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@or((not(equals(variables('iRowCount'),variables('iLoadRecords')))), equals(variables('iLoadRecords'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Log_Failure_Load_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n  @exec_pt  = 'END',\n  @proc_pack_nm  = @{variables('sProcessName')},\n  @comment = @{variables('sComment')},\n  @status = 'FAILURE',\n  @num_of_records = 0,\n  @actual_records = -1,\n  @filename = 'Daily Load'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Send_Fail_No_records",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Log_Failure_Load_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Log_Success_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Expression_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Delete_table_0_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@(and(equals(variables('iRowCount'),variables('iLoadRecords')), greater(variables('iLoadRecords'),0)))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Log_Success_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n  @exec_pt  = 'END',\n  @proc_pack_nm  = @{variables('sProcessName')},\n  @comment = @{variables('sComment')},\n  @status = 'Success',\n  @num_of_records = @{variables('iRowCount')},\n  @actual_records = @{variables('iLoadRecords')},\n  @filename = 'Daily Load'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "EP_Send_Fail_Email",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Failure_Pckg_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "DF_Get_Calypso_records_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoCashAdjustmentTradeCapture"
+      },
+      "iRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Load Calypso Cash Adjusment Fees Middle Office Rates"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "iLoadRecords" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "WFSRS@wellsfargo.com"
+      },
+      "iCheckRecSource" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_CalypsoCashAdjustmentTradeCapture_"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sMessageLoadFailed" : {
+        "type" : "String",
+        "defaultValue" : "Records count extracted and Loaded are different. Please review"
+      },
+      "dCurrentDate" : {
+        "type" : "String",
+        "defaultValue" : "'4/16/2019 9:48:57 AM'"
+      },
+      "sMessageFailure" : {
+        "type" : "String",
+        "defaultValue" : "Package failed. Please review"
+      }
+    }
+  }
+}

@@ -1,0 +1,405 @@
+{
+  "name" : "ppl_cdbo_cors_mtmmpe_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MTM_MPE_Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MTM_MPE_Flat_File_Source_FileName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'MTM_MPE_Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_tbl_CDBO_CORS_MTMPPE_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_tbl_CDBO_CORS_MTMPPE_FileName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_tbl_CDBO_CORS_MTMPPE_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl' AND DATAFLOW_NAME = 'data_flow_task_-_load_mtmmpe_data_1') AS Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_SchemaName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl') AS Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_TableName' AND PIPELINE_NAME = 'ppl_cdbo_cors_mtmmpe_etl') AS Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Check_for_latest_MTM_file",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Check_for_latest_MTM_file",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_-_Load_MTMMPE_Data_1",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Check_for_latest_MTM_file",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_-_Load_MTMMPE_Data_1",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_-_Load_MTMMPE_Data_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_-_Load_MTMMPE_Data_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_-_load_mtmmpe_data_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "LoadtblCDBOCORSMTMPPE_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "LoadtblCDBOCORSMTMPPE" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "MTMMPEFlatFileSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_MTMMPEFlatFileSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : "|"
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task___Load_MTMMPE_Data_1_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_-_Load_MTMMPE_Data_10",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_-_Load_MTMMPE_Data_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_1_LoadtblCDBOCORSMTMPPE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ReconControl_wfs_ors_rw",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_-_Load_MTMMPE_Data_10_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SETVAR_sRecordCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_-_Load_MTMMPE_Data_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRecordCount",
+        "value" : "@int(coalesce(activity('DF_Data_Flow_Task_-_Load_MTMMPE_Data_1').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+      }
+    }, {
+      "name" : "ST_Count_Actual_Load_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRecordCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT COUNT(*)  AS ActualRecordCount FROM [ReconControl].[dbo].[tbl_CDBO_CORS_MTMPPE]\nWHERE CAST([LoadDate] AS DATE) = CAST(GETDATE() AS DATE)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sActualRecordCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Count_Actual_Load_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sActualRecordCount",
+        "value" : "@int(activity('ST_Count_Actual_Load_0').output.resultSets[0].rows[0].ActualRecordCount)"
+      }
+    }, {
+      "name" : "ST_Log_CDBO_MTM_Load_Failure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sActualRecordCount",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n @status = 'Failure',\n @FileName=@{variables('CptyMPEFileName')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_CDBO_MTM_Load_Success_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sActualRecordCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n @status = 'Success',\n @num_of_records = @{variables('sRecordCount')},\n @actual_records = @{variables('sActualRecordCount')},\n @FileName=@{variables('MTMFileName')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Data_Flow_Task___Load_MTMMPE_Data_1_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CDBO_CORS_MTMMPE_ETL"
+      },
+      "MTMFileName" : {
+        "type" : "String"
+      },
+      "MTMFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\CoRS\\"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Load tbl_CDBO_CORS_MTMPPE"
+      },
+      "sActualRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "CptyMPEFileName" : {
+        "type" : "String"
+      }
+    }
+  }
+}

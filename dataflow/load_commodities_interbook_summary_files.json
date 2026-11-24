@@ -1,0 +1,45 @@
+{
+  "name" : "load_commodities_interbook_summary_files",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "InterBookReconSummaryNONBsktBk",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblEndurCommoditiesInterBookReconSummary"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tsFilename as string (),\n\ttblEndurCommoditiesInterBookReconSummary_outputfilename as string ()\n}\n\nsource(output(\n\t\tBOOK as string,\n\t\tNPV as string,\n\t\t{FOOTHILL NPV} as string,\n\t\tCASH as string,\n\t\t{DEAL COUNT} as string,\n\t\tPosition as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InterBookReconSummaryNONBsktBk\tsource(output(\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nInterBookReconSummaryNONBsktBk derive(LoadDate = toString((currentTimestamp())),\n\t\tFilename = toString(($sFilename))) ~> DerivedColumn\nDerivedColumn derive({Copy of Filename} = Filename) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of Filename} == LookupLKPTABLE@Filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\t{Copy of Filename} = {Copy of Filename},\n\t\tFilename = LookupLKPTABLE@Filename,\n\t\tLoadDate = LoadDate,\n\t\tBOOK = BOOK,\n\t\tNPV = NPV,\n\t\t{FOOTHILL NPV} = {FOOTHILL NPV},\n\t\tCASH = CASH,\n\t\t{DEAL COUNT} = {DEAL COUNT},\n\t\tPosition = Position\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tLastLoadDate as timestamp 'dd-MM-yyyy',\n\t\tNPV as double,\n\t\tPosition as double,\n\t\tBOOK as string,\n\t\tDEAL_COUNT as double,\n\t\tFileName as string,\n\t\tCASH as double,\n\t\tFOOTHILL_NPV as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLastLoadDate = LoadDate,\n\t\tNPV,\n\t\tPosition,\n\t\tBOOK,\n\t\tDEAL_COUNT = {DEAL COUNT},\n\t\tFileName = {Copy of Filename},\n\t\tCASH,\n\t\tFOOTHILL_NPV = {FOOTHILL NPV}),\n\tpartitionFileNames:[($tblEndurCommoditiesInterBookReconSummary_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblEndurCommoditiesInterBookReconSummary"
+    }
+  }
+}

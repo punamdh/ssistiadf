@@ -1,0 +1,645 @@
+{
+  "name" : "ppl_broadridge_payment_metrics_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_LookupLKPTABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FileName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_LookupLKPTABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_LookupLKPTABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl' AND DATAFLOW_NAME = 'data_flow_task_2') AS Data_Flow_Task_2_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_20_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl') AS Data_Flow_Task_20_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_20_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_payment_metrics_etl') AS Data_Flow_Task_20_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Log_Broadridge_Payment_Metrics_START_to_SSIS_lo",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Broadridge_Payment_Metrics_START_to_SSIS_lo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT BusinessDay as CurrBusDate, \n\t\tRIGHT(CONVERT(VARCHAR(12), BusinessDay,101),4) + LEFT(CONVERT(VARCHAR(12), BusinessDay,101),2) + SUBSTRING(CONVERT(VARCHAR(12), BusinessDay,101),4,2) AS CurrBusDayInt,\n\t\tPrevBussDay as PrevBusDate, \n\t\tRIGHT(CONVERT(VARCHAR(12), PrevBussDay,101),4) + LEFT(CONVERT(VARCHAR(12), PrevBussDay,101),2) + SUBSTRING(CONVERT(VARCHAR(12), PrevBussDay,101),4,2) AS PrevBusDayInt,\n\t\tEndOfMonth, \n\t\tWeekEnd, \n\t\tisholiday,  \n\t\tCASE WHEN WeekEnd IS NOT NULL AND isHoliday = 1 THEN 'NOPASS' ELSE 'PASS' END AS HolidayPass\n\tFROM dbo.Calendar \n\tWHERE CAST(CurrentDate as Date)  = Cast(getDate() as Date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sHolidayPass",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sHolidayPass",
+        "value" : "@string(activity('ST_Execute_SQL_Task_-_Holiday_Pass_0').output.resultSets[0].rows[0].HolidayPass)"
+      }
+    }, {
+      "name" : "SETVAR_CurrBusDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "CurrBusDate",
+        "value" : "@string(activity('ST_Execute_SQL_Task_-_Holiday_Pass_0').output.resultSets[0].rows[0].CurrBusDate)"
+      }
+    }, {
+      "name" : "SETVAR_PrevBusDate",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "PrevBusDate",
+        "value" : "@string(activity('ST_Execute_SQL_Task_-_Holiday_Pass_0').output.resultSets[0].rows[0].PrevBusDate)"
+      }
+    }, {
+      "name" : "SETVAR_nCurrBusDayInt",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "nCurrBusDayInt",
+        "value" : "@int(activity('ST_Execute_SQL_Task_-_Holiday_Pass_0').output.resultSets[0].rows[0].CurrBusDayInt)"
+      }
+    }, {
+      "name" : "SETVAR_nPrevBusDayInt",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Holiday_Pass_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "nPrevBusDayInt",
+        "value" : "@int(activity('ST_Execute_SQL_Task_-_Holiday_Pass_0').output.resultSets[0].rows[0].PrevBusDayInt)"
+      }
+    }, {
+      "name" : "Sequence_Container_-_Load_Broadridge_Payment_Metri",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_nPrevBusDayInt",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_sHolidayPass",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_CurrBusDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_PrevBusDate",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_nCurrBusDayInt",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.sHolidayPass,'PASS')",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_REPL_Data_Flow_Task_2",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Data_Flow_Task_2",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Data_Flow_Task_2",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Data_Flow_Task_2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "data_flow_task_2",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "OLEDBDestination_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "OLEDBSource" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "LookupLKPTABLE" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_LookupLKPTABLE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_LookupLKPTABLE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_LookupLKPTABLE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Data_Flow_Task_2_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Data_Flow_Task_20",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Data_Flow_Task_2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_2_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_20_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_20_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_nExpectedRows",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Data_Flow_Task_20",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "nExpectedRows",
+            "value" : "@int(coalesce(activity('DF_Data_Flow_Task_2').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "ST_Get_actual_rows_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_nExpectedRows",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT COUNT(1) AS NumRows FROM dbo.tbl_Broadridge_Payment_Metrics",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_nActualRows",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_actual_rows_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "nActualRows",
+            "value" : "@int(activity('ST_Get_actual_rows_0').output.resultSets[0].rows[0].NumRows)"
+          }
+        }, {
+          "name" : "ST_Log_Settlement_Success_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_nActualRows",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Success',\n @num_of_records = @{variables('nExpectedRows')},\n @actual_records = @{variables('nActualRows')},\n @FileName='N/A'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Success_Email",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Log_Settlement_Success_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_Log_Settlement_Failure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container_-_Load_Broadridge_Payment_Metri",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_nPrevBusDayInt",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_sHolidayPass",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_CurrBusDate",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_PrevBusDate",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_nCurrBusDayInt",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Failure',\n @num_of_records = -1,\n @actual_records = -2,\n @FileName='N/A'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_Failure_Email",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Settlement_Failure_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "sHolidayPass" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "Data_Flow_Task_2_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sHolidayPass" : {
+        "type" : "String"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Broadridge_Payment_Metrics_ETL"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sSQL" : {
+        "type" : "String",
+        "defaultValue" : "SELECT TAC.BRANCH_CD + TAC.ACCOUNT_CD ACCT,\\nTAC.EFFECTIVEDATE,\\nTAC.BATCH_CD,\\nTAC.ENTRY_CD,\\nTAC.TRANSACTION_AMT\\nFROM CDS..ISP_BPSA_TACCOUNT_HISTORYHIST TAC \\nWHERE TAC.EFFECTIVEDATE =  ' 0 ' \\nAND TAC.BRANCH_CD BETWEEN '1AA' AND '2RU' \\nAND TAC.ENTRY_CD = 'ACH'"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "nPrevBusDayInt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "nExpectedRows" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_Broadridge_Payment_Metrics_ETL"
+      },
+      "nActualRows" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "nCurrBusDayInt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "PrevBusDate" : {
+        "type" : "String",
+        "defaultValue" : "'6/2/2023 2:35:56 PM'"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "CurrBusDate" : {
+        "type" : "String",
+        "defaultValue" : "'6/2/2023 2:36:03 PM'"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Broadridge Payment Metrics data load"
+      }
+    }
+  }
+}

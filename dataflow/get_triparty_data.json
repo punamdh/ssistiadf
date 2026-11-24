@@ -1,0 +1,29 @@
+{
+  "name" : "get_triparty_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tOpen_Date as string,\n\t\tTri_Party_Deal_Acct as string,\n\t\tTrader as string,\n\t\tCustomer as string,\n\t\tDeal_Date as string,\n\t\tDaily_Interest as integer,\n\t\t{Eg_New Deals} as string,\n\t\tDeal_rate as double,\n\t\tDeal_type as string,\n\t\tTo_Date_Interest as integer,\n\t\tDeal_Num as double,\n\t\tReturn_type as string,\n\t\tProcess_Date as timestamp,\n\t\tClient as string,\n\t\tPrincipal as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tOpen_Date as string,\n\t\tTri_Party_Deal_Acct as string,\n\t\tTrader as string,\n\t\tCustomer as string,\n\t\tDeal_Date as string,\n\t\tDaily_Interest as integer,\n\t\tEg_New_Deals as string,\n\t\tDeal_rate as double,\n\t\tDeal_type as string,\n\t\tTo_Date_Interest as integer,\n\t\tDeal_Num as double,\n\t\tReturn_type as string,\n\t\tProcess_Date as timestamp 'dd-MM-yyyy',\n\t\tClient as string,\n\t\tPrincipal as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOpen_Date,\n\t\tTri_Party_Deal_Acct,\n\t\tTrader,\n\t\tCustomer,\n\t\tDeal_Date,\n\t\tDaily_Interest,\n\t\tEg_New_Deals = {Eg_New Deals},\n\t\tDeal_rate,\n\t\tDeal_type,\n\t\tTo_Date_Interest,\n\t\tDeal_Num,\n\t\tReturn_type,\n\t\tProcess_Date,\n\t\tClient,\n\t\tPrincipal),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

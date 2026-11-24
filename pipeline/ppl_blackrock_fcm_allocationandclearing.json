@@ -1,0 +1,548 @@
+{
+  "name" : "ppl_blackrock_fcm_allocationandclearing",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_ContainerName' AND PIPELINE_NAME = 'ppl_blackrock_fcm_allocationandclearing') AS GMD_Foreach_Loop_Container_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FileName' AND PIPELINE_NAME = 'ppl_blackrock_fcm_allocationandclearing') AS GMD_Foreach_Loop_Container_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Foreach_Loop_Container_FilePath' AND PIPELINE_NAME = 'ppl_blackrock_fcm_allocationandclearing') AS GMD_Foreach_Loop_Container_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Log_Start_of_the_Process_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  'BlackRock_FCMAllocationAndClearing.dtsx',\n @comment =  'Daily load to tbl_BlackRock_FCMAllocation'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Root_-_Cycle_thru_files_to_find_Latest_and_Delete_",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Start_of_the_Process_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Root_-_Cycle_thru_files_to_find_Latest_and_Delete_",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Delete_Extraneous_Files",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Root_-_Cycle_thru_files_to_find_Latest_and_Delete_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Script Task",
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Delete_Extraneous_Files",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Load_last_7_days_0",
+      "type" : "Until",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Delete_Extraneous_Files",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('iCounter') >= 0",
+          "type" : "Expression"
+        },
+        "timeout" : "0.12:00:00",
+        "activities" : [ {
+          "name" : "Debugging_Show_Day_Counter",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : "Inactive",
+          "description" : "Script Task",
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Debugging_Show_Day_Counter",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "GMD_Foreach_Loop_Container",
+          "type" : "GetMetadata",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "Debugging_Show_Day_Counter",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "fieldList" : [ "childItems" ],
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Foreach_Loop_Container_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "storeSettings" : {
+              "type" : "AzureBlobStorageReadSettings",
+              "enablePartitionDiscovery" : false
+            },
+            "formatSettings" : {
+              "type" : "DelimitedTextReadSettings"
+            }
+          }
+        }, {
+          "name" : "FLTR_Foreach_Loop_Container",
+          "type" : "Filter",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "GMD_Foreach_Loop_Container",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "items" : {
+              "value" : "@activity('GMD_Foreach_Loop_Container').output.childItems",
+              "type" : "Expression"
+            },
+            "condition" : {
+              "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'Blackrock_fcmallocfile_09122025_'), endswith(item().name, '.csv')))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "EP_Foreach_Loop_Container_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "FLTR_Foreach_Loop_Container",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_load_last_7_days_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "SETVAR_Load_last_7_daysSet_Temp_Counter",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "EP_Foreach_Loop_Container_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "TempCounter",
+            "value" : {
+              "value" : "@sub(variables('iCounter'), 1)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "SETVAR_Load_last_7_daysUpdate_Counter",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "EP_Foreach_Loop_Container_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "iCounter",
+            "value" : {
+              "value" : "@variables('TempCounter')",
+              "type" : "Expression"
+            }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Sequence_Container",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_last_7_days_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(1,1)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Delete_Missing_TranTypes_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "DELETE FROM tbl_BlackRock_FCMAllocation\nWHERE [TranType] <> 'BUY' AND [TranType] <> 'SELL'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Counts_Actual_Records_Inserted_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Delete_Missing_TranTypes_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "DECLARE @ActualInserted int \nSET @ActualInserted = \n(\nSELECT COUNT(*)  \nFROM [dbo].[tbl_BlackRock_FCMAllocation] \nWHERE CONVERT(nvarchar(10), loadDate, 126)  = CONVERT(nvarchar(10), GETDATE(), 126)\n)\n\n\nSELECT @ActualInserted AS CountInsertedRows",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sActualInserted",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Counts_Actual_Records_Inserted_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sActualInserted",
+            "value" : "@int(activity('ST_Counts_Actual_Records_Inserted_0').output.resultSets[0].rows[0].CountInsertedRows)"
+          }
+        } ]
+      }
+    }, {
+      "name" : "EP_Failure_Email",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "ST_Log_Success_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Sequence_Container",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "\nEXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  'BlackRock_AllocationAndClearing.dtsx',\n @comment =  'Daily load to tbl_BlackRock_FCMAllocation.dtsx',\n@actual_records = @{variables('sActualInserted')},\n@num_of_records = @{variables('sTotalRecordCount')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_Failure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_Failure_Email",
+        "dependencyConditions" : [ "Completed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'FAILURE',\n @proc_pack_nm  =  'BlackRock_FCM_AllocationAndClearing.dtsx',\n @comment =  'Daily load to tbl_BlackRock_FEMAllocation'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "BlackRock_FCM_AllocationAndClearing"
+      },
+      "sFolderPath_FileName" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\\\Blackrock_fcmallocfile_01082020_120834037.csv"
+      },
+      "sFileName" : {
+        "type" : "String",
+        "defaultValue" : "Blackrock_fcmallocfile_01082020_120834037.csv"
+      },
+      "sTotalRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sActualInserted" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "dDate" : {
+        "type" : "String",
+        "defaultValue" : "'9/12/2025 8:29:30 AM'"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_BlackRock_FCM_AllocationAndClearing"
+      },
+      "TempCounter" : {
+        "type" : "String"
+      },
+      "sFileImported" : {
+        "type" : "String",
+        "defaultValue" : "YES"
+      },
+      "sFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\"
+      },
+      "iCounter" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFolderPathArchive" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\Archive\\"
+      },
+      "sRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sMessage" : {
+        "type" : "String"
+      }
+    }
+  }
+}

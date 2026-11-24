@@ -1,0 +1,31 @@
+{
+  "name" : "load_tbl_catalystecntradeblotter3a_qrydailydet_4_t",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCatalystEcnTradeBlotter2a",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystEcnTradeBlotter3a"
+      } ],
+      "transformations" : [ {
+        "name" : "addrowCreateDate"
+      } ],
+      "script" : "parameters{\n\ttotblCatalystEcnTradeBlotter3a_outputfilename as string ()\n}\n\nsource(output(\n\t\tInventory as string,\n\t\torigin as string,\n\t\tRangeGroup as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCatalystEcnTradeBlotter2a\nfromtblCatalystEcnTradeBlotter2a derive(rowCreateDate = currentTimestamp()) ~> addrowCreateDate\naddrowCreateDate sink(input(\n\t\trowCreateDate as timestamp 'dd-MM-yyyy',\n\t\torigin as string,\n\t\tRangeGroup as string,\n\t\tInventory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\trowCreateDate,\n\t\torigin,\n\t\tRangeGroup,\n\t\tInventory),\n\tpartitionFileNames:[($totblCatalystEcnTradeBlotter3a_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystEcnTradeBlotter3a"
+    }
+  }
+}

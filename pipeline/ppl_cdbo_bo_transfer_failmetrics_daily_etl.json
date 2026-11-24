@@ -1,0 +1,662 @@
+{
+  "name" : "ppl_cdbo_bo_transfer_failmetrics_daily_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'data_flow_task_16') AS Data_Flow_Task_16_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl' AND DATAFLOW_NAME = 'load_data_to_staging') AS Load_Data_To_Staging_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_160_sink_SchemaName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl') AS Data_Flow_Task_160_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_160_sink_TableName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl') AS Data_Flow_Task_160_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_To_Staging0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl') AS Load_Data_To_Staging0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Data_To_Staging0_sink_TableName' AND PIPELINE_NAME = 'ppl_cdbo_bo_transfer_failmetrics_daily_etl') AS Load_Data_To_Staging0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_START_-_Call_Log_table_entry_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@FileName='NA'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Truncate_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Call_Log_table_entry_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXECUTE [dbo].[spTruncateTable] \n@TableName='ReconControl.[dbo].[tbl_CDBO_BO_TRANSFER_Fail_Staging]';\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Load_Data_To_Staging",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Load_Data_To_Staging",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Load_Data_To_Staging",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Load_Data_To_Staging",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "load_data_to_staging",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Load_Data_To_Staging_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Load_Data_To_Staging0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Load_Data_To_Staging",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Data_To_Staging0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_16",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Load_Data_To_Staging0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_16",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_16",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_16",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_16",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_16_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_160",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_16",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_16_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_160_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_160_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_160",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "UPDATE [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fail]\nSET\nAged = v.Aged\nFROM [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fail] a\ninner join \n(\n   SELECT Transfer_ID,Product_ID,\n   ReconControl.[dbo].[fn_BusinessDayCount] (VALUE_DATE,CAPTURE_DATE)-1 as Aged,\n   VALUE_DATE,\n   CAPTURE_DATE\n   FROM \n   [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fail] with(nolock)\n   where LoadDate=cast(getdate() as date)\n) v\n   ON a.Transfer_ID= v.Transfer_ID\n   and a.Product_ID=v.Product_ID\n   and a.VALUE_DATE=v.VALUE_DATE\n   and a.CAPTURE_DATE=v.CAPTURE_DATE\n   where a.LoadDate=cast(getdate() as date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_load_result_table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "\nInsert into [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results] \nselect\ncast(CAPTURE_DATE as date) as [Report_Date],\n--cast(PRODUCT_ID as varchar)+''+cast(TRANSFER_ID as varchar)+''+cast(TRADE_ID as varchar)+''+cast(Aged as varchar) +''+cast(replace([CAPTURE_DATE],'/','')as varchar) as MapKey,\nCAPTURE_DATE,\nCAPTURE_TIME,\nTRANSFER_ID,\nEVENT_TYPE,\nTRANSFER_STATUS,\nTRADE_ID,\nPRODUCT_ID,\nPRODUCT_FAMILY,\nPRODUCT_TYPE,\nPRODUCT_SUBTYPE,\nTRANSFER_TYPE,\nAMOUNT,\nConverted_Amount,\nAMOUNT_CCY,\nTRADE_CCY,\nPAYRECEIVE_TYPE,\nVALUE_DATE,\ncast (SETTLE_DATE as date) as SETTLE_DATE,\nAged,\nEXT_LE_ID,\nEXT_LE_ROLE,\nEXT_SDI,\nEXT_AGENT_LE_ID,\nEXT_SDI_STATUS,\nINT_LE_ID,\nINT_LE_ROLE,\nINT_SDI,\nINT_AGENT_LE_ID,\nINT_SDI_STATUS,\nGL_ACCOUNT_ID,\nNETTING_KEY,\nDELIVERY_TYPE,\nSTART_TIME_LIMIT,\nOTHER_AMOUNT,\nBOOK_ID,\nAVAILABLE,\nTRADE_DATE,\nNETTED_TRANSFER,\nNETTED_TRANSFER_ID,\nBUNDLE_ID,\nXFER_ACTION,\nREAL_SETTLE_AMOUNT,\nIS_KNOWN,\nSETTLEMENT_METHOD,\nIS_FIXED,\nIS_RETURN,\nIS_PAYMENT,\nCASH_ACCOUNT_ID,\nAVAIL_DATE,\nINT_CASH_SDI,\nEXT_CASH_SDI,\nREAL_CASH_AMOUNT,\nLINKED_ID,\nDESCRIPTION,\nORIG_CPTY_ID,\nMANUAL_SDI,\nMANUAL_CASH_SDI,\nTRADE_VERSION,\nINT_SDI_VERSION,\nEXT_SDI_VERSION,\nNOMINAL_AMOUNT,\nVERSION_NUM,\nNETTED_TRADE_ID,\nBOOKING_DATE,\nCALLABLE_DATE,\nBUSINESSTYPE,\nFront_Office_ID,\nSHORT_NAME,\nLONG_NAME,\nLoadDate,\n'Fails' as [STATUS],\n'' as [FailsAged>3days] ,\n'' as [Fails>5MUSDe],\n'' as [TotalFails] ,\n'' as [TotalSettlements] \nfrom [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fail] with (nolock)\nwhere cast(CAPTURE_DATE as date) =cast(getdate() as date)\n;\n\n\n\nUPDATE  F\nSET F.[FailsAged>3days] = agg.[FailsAged>3days]\nFrom [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results] F\nJOIN (\n    SELECT [CAPTURE_DATE],\n Count(Aged) AS [FailsAged>3days]\n    FROM [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results]\n where Aged >3 and [STATUS] ='Fails' and cast(CAPTURE_DATE as date)=cast(getdate() as date)\n    GROUP BY [CAPTURE_DATE]\n )agg on agg.[CAPTURE_DATE]=F.[CAPTURE_DATE];\n\n\nUPDATE  F\nSET F.[Fails>5MUSDe] = agg.[Fails>5MUSDe]\nFrom [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results] F\nJOIN (\n    SELECT [CAPTURE_DATE],\n Count(Converted_Amount) AS [Fails>5MUSDe]\n    FROM [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results]\n where Converted_Amount >5000000 and  [STATUS] ='Fails' and cast(CAPTURE_DATE as date)=cast(getdate() as date)\n    GROUP BY [CAPTURE_DATE]\n )agg on agg.[CAPTURE_DATE]=F.[CAPTURE_DATE];\n\nUPDATE  F\nSET F.[TotalFails] = agg.[TotalFails]\nFrom [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results] F\nJOIN (\n    SELECT [CAPTURE_DATE],\n Count([TotalFails]) AS [TotalFails]\n    FROM [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results]\n where   [STATUS] ='Fails' and cast(CAPTURE_DATE as date)=cast(getdate() as date)\n    GROUP BY [CAPTURE_DATE]\n )agg on agg.[CAPTURE_DATE]=F.[CAPTURE_DATE];\n\n\nUPDATE  F\nSET F.[TotalSettlements] = agg.[TotalSettlements]\nFrom [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results] F\nJOIN (\n    SELECT [CAPTURE_DATE],\n Count(TRANSFER_ID) AS [TotalSettlements]\n    FROM [ReconControl].[dbo].[tbl_CDBO_BO_TRANSFER_Fails_Settlements_Results]\n where   [STATUS] ='Settlements' and cast(CAPTURE_DATE as date)=cast(getdate() as date)\n    GROUP BY [CAPTURE_DATE]\n )agg on agg.[CAPTURE_DATE]=F.[CAPTURE_DATE];\n\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Actual_Rows_Loaded_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_load_result_table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT  cast(COUNT(*) as bigint) as ActualRowsLoaded\nfrom ReconControl.dbo.tbl_CDBO_BO_TRANSFER_Fail\nwhere cast(LoadDate as date) = cast(getdate() as date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sActualRowsLoaded",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sActualRowsLoaded",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "SETVAR_sRowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCount",
+        "value" : "@int(activity('ST_Get_Actual_Rows_Loaded_0').output.resultSets[0].rows[0].ActualRowsLoaded)"
+      }
+    }, {
+      "name" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_sActualRowsLoaded",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Failure',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')},\n@FileName=@{variables('sFileName')}\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_End_-_Call_again_to_Success_insert_End_Time_and",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_sActualRowsLoaded",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : " EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Success',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')},\n@FileName=@{variables('sFileName')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Failure_Mail_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_End_-_Call_again_to_Failure_insert_End_Time_and",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('sEnvironment'),'LOCAL'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Failure_Mail",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Load_Data_To_Staging_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "Data_Flow_Task_16_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CDBO_BO_Transfer_FailMetrics"
+      },
+      "sSubject" : {
+        "type" : "String"
+      },
+      "sFileName" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading CDBO_BO_Transfer_FailMetrics"
+      },
+      "sActualRowsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CDBO_BO_Transfer_FailMetrics"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      }
+    }
+  }
+}

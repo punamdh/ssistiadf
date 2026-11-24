@@ -1,0 +1,48 @@
+{
+  "name" : "data_flow_task_stag1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      }, {
+        "name" : "AddloadDate"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tENTITY_ID as decimal(38,0),\n\t\tTRADE_DATE_TIME as timestamp,\n\t\tTRADER_NAME as string,\n\t\tBOOK_NAME as string,\n\t\tTRADE_STATUS as string,\n\t\tSALES_PERSON as string,\n\t\tPRODUCT_TYPE as string,\n\t\tMODIF_DATE as timestamp,\n\t\tMODIF_DATENOTIME as string,\n\t\tTRADE_CURRENCY as string,\n\t\tCPTY_SHORTNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tENTITY_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource,LookupLKPTABLE lookup(toInteger(OLEDBSource@ENTITY_ID) == LookupLKPTABLE@ENTITY_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tENTITY_ID = OLEDBSource@ENTITY_ID,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tTRADER_NAME = TRADER_NAME,\n\t\tBOOK_NAME = BOOK_NAME,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tSALES_PERSON = SALES_PERSON,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tMODIF_DATE = MODIF_DATE,\n\t\tMODIF_DATENOTIME = MODIF_DATENOTIME,\n\t\tTRADE_CURRENCY = TRADE_CURRENCY,\n\t\tCPTY_SHORTNAME = CPTY_SHORTNAME\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 derive(Loaddate = currentTimestamp()) ~> AddloadDate\nLookup0 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nAddloadDate sink(input(\n\t\tPRODUCT_TYPE as string,\n\t\tENTITY_ID as integer,\n\t\tmodif_dateNoTime as date 'dd-MM-yyyy',\n\t\tTRADER_NAME as string,\n\t\tMODIF_DATE as timestamp 'dd-MM-yyyy',\n\t\tCurrency as string,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tBOOK_NAME as string,\n\t\tSALES_PERSON as string,\n\t\tTRADE_DATE_TIME as timestamp 'dd-MM-yyyy',\n\t\tTRADE_STATUS as string,\n\t\tCpty_ShortName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPRODUCT_TYPE,\n\t\tENTITY_ID,\n\t\tmodif_dateNoTime = MODIF_DATENOTIME,\n\t\tTRADER_NAME,\n\t\tMODIF_DATE,\n\t\tCurrency = TRADE_CURRENCY,\n\t\tLoad_Date = Loaddate,\n\t\tBOOK_NAME,\n\t\tSALES_PERSON,\n\t\tTRADE_DATE_TIME,\n\t\tTRADE_STATUS,\n\t\tCpty_ShortName = CPTY_SHORTNAME),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

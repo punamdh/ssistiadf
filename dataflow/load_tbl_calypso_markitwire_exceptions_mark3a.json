@@ -1,0 +1,41 @@
+{
+  "name" : "load_tbl_calypso_markitwire_exceptions_mark3a",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCalypsoMarkitWireExceptionsMark2aqryGETSwapswireValid",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALIDLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsoMarkitWireExceptionsMark3atblInSWNoCLY"
+      } ],
+      "transformations" : [ {
+        "name" : "LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID"
+      }, {
+        "name" : "LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID01"
+      }, {
+        "name" : "LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID0"
+      } ],
+      "script" : "parameters{\n\ttotblCalypsoMarkitWireExceptionsMark3atblInSWNoCLY_outputfilename as string ()\n}\n\nsource(output(\n\t\tSwapswire_ID as string,\n\t\tProductType as string,\n\t\tContractState as string,\n\t\tPrivateProcessState as string,\n\t\tDirection as string,\n\t\tNotional as string,\n\t\tRate as string,\n\t\tRollDay as string,\n\t\tEffective_Date as string,\n\t\tMaturity_Date as string,\n\t\tcreate_Dte as string,\n\t\tLatestExtractDate as string,\n\t\tBookId as string,\n\t\tCLY_Trade_ID as string,\n\t\tCLY_TradeStatus as string,\n\t\tIncludeFlag as string,\n\t\tInternalTradeId as string,\n\t\tSystem as string,\n\t\tCounterPartyBIC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCalypsoMarkitWireExceptionsMark2aqryGETSwapswireValid\tsource(output(\n\t\tSwapswire_ID as string,\n\t\tSWDEAL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALIDLKPTABLE\nfromtblCalypsoMarkitWireExceptionsMark2aqryGETSwapswireValid,LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALIDLKPTABLE lookup(fromtblCalypsoMarkitWireExceptionsMark2aqryGETSwapswireValid@Swapswire_ID == SWDEAL_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID\nLookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID select(mapColumn(\n\t\tSwapswire_ID = fromtblCalypsoMarkitWireExceptionsMark2aqryGETSwapswireValid@Swapswire_ID,\n\t\tProductType = ProductType,\n\t\tContractState = ContractState,\n\t\tPrivateProcessState = PrivateProcessState,\n\t\tDirection = Direction,\n\t\tNotional = Notional,\n\t\tRate = Rate,\n\t\tRollDay = RollDay,\n\t\tEffective_Date = Effective_Date,\n\t\tMaturity_Date = Maturity_Date,\n\t\tcreate_Dte = create_Dte,\n\t\tLatestExtractDate = LatestExtractDate,\n\t\tBookId = BookId,\n\t\tCLY_Trade_ID = CLY_Trade_ID,\n\t\tCLY_TradeStatus = CLY_TradeStatus,\n\t\tIncludeFlag = IncludeFlag,\n\t\tInternalTradeId = InternalTradeId,\n\t\tSystem = System,\n\t\tCounterPartyBIC = CounterPartyBIC,\n\t\tSWDEAL_ID = SWDEAL_ID\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID01\nLookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID01 filter(!isMatch()) ~> LookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID0\nLookupCalypsoTradesWithMarkitwreIdsqryInSWAPCalypsoSWDEALID0 sink(input(\n\t\tPrivateProcessState as string,\n\t\tInternalTradeId as string,\n\t\tRate as string,\n\t\tProductType as string,\n\t\tLatestExtractDate as string,\n\t\tDirection as string,\n\t\tSwapswire_ID as string,\n\t\tCLY_TradeStatus as string,\n\t\tSystem as string,\n\t\tEffective_Date as string,\n\t\tcreate_Dte as string,\n\t\tRollDay as string,\n\t\tContractState as string,\n\t\tBookId as string,\n\t\tCLY_Trade_ID as string,\n\t\tMaturity_Date as string,\n\t\tNotional as string,\n\t\tIncludeFlag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPrivateProcessState,\n\t\tInternalTradeId,\n\t\tRate,\n\t\tProductType,\n\t\tLatestExtractDate,\n\t\tDirection,\n\t\tSwapswire_ID,\n\t\tCLY_TradeStatus,\n\t\tSystem,\n\t\tEffective_Date,\n\t\tcreate_Dte,\n\t\tRollDay,\n\t\tContractState,\n\t\tBookId,\n\t\tCLY_Trade_ID,\n\t\tMaturity_Date,\n\t\tNotional,\n\t\tIncludeFlag),\n\tpartitionFileNames:[($totblCalypsoMarkitWireExceptionsMark3atblInSWNoCLY_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsoMarkitWireExceptionsMark3atblInSWNoCLY"
+    }
+  }
+}

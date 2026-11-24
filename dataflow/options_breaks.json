@@ -1,0 +1,31 @@
+{
+  "name" : "options_breaks",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OptionDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "option"
+      } ],
+      "script" : "parameters{\n\tFilePath as string ('\\\\ cwcnhf501.wellsfargo.com\\\\DRSDev\\\\WFSOpsKRIReporting\\\\DropZone\\\\Broadridge\\\\StreetsideActivity\\\\OptionsBreaks\\\\'),\n\tOptionDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{SECURITY #} as string,\n\t\tSYMBOL as string,\n\t\t{B S} as string,\n\t\t{SECURITY DESC} as string,\n\t\tCLEARING as string,\n\t\t{OTHER CLEARING} as string,\n\t\t{ACC TYPE} as string,\n\t\t{EXP DATE} as string,\n\t\tPREMIUM as string,\n\t\t{BREAK QTY} as string,\n\t\t{OCC QTY} as string,\n\t\t{FIRM QTY} as string,\n\t\tDEBIT as string,\n\t\tCREDIT as string,\n\t\tPUT_CALL as string,\n\t\tSTRIKE as string,\n\t\t{TRADE DATE} as string,\n\t\t{Comments 1} as string,\n\t\t{Comments 2} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tFileName = toString((substring(toString($FilePath), toInteger(108), toInteger(25)))),\n\t\tFileDate = toString((substring(toString($FilePath), toInteger(123), toInteger(10))))) ~> option\noption sink(input(\n\t\tCREDIT as string,\n\t\tEXP_DATE as date 'dd-MM-yyyy',\n\t\tFIRM_QTY as string,\n\t\tPREMIUM as string,\n\t\tFileName as string,\n\t\tComments2 as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tComments1 as string,\n\t\tPUT_CALL as string,\n\t\tSECURITY_DESC as string,\n\t\tBS as string,\n\t\tDEBIT as string,\n\t\tOTHER_CLEARING as string,\n\t\tSYMBOL as string,\n\t\tCLEARING as string,\n\t\tSECURITY as string,\n\t\tTRADE_DATE as string,\n\t\tSTRIKE as string,\n\t\tOCC_QTY as string,\n\t\tACC_TYPE as string,\n\t\tBREAK_QTY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCREDIT,\n\t\tEXP_DATE = {EXP DATE},\n\t\tFIRM_QTY = {FIRM QTY},\n\t\tPREMIUM,\n\t\tFileName,\n\t\tComments2 = {Comments 2},\n\t\tLoad_Date = LoadDate,\n\t\tComments1 = {Comments 1},\n\t\tPUT_CALL,\n\t\tSECURITY_DESC = {SECURITY DESC},\n\t\tBS = {B S},\n\t\tDEBIT,\n\t\tOTHER_CLEARING = {OTHER CLEARING},\n\t\tSYMBOL,\n\t\tCLEARING,\n\t\tSECURITY = {SECURITY #},\n\t\tTRADE_DATE = {TRADE DATE},\n\t\tSTRIKE,\n\t\tOCC_QTY = {OCC QTY},\n\t\tACC_TYPE = {ACC TYPE},\n\t\tBREAK_QTY = {BREAK QTY}),\n\tpartitionFileNames:[($OptionDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OptionDestination"
+    }
+  }
+}

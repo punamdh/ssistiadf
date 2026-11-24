@@ -1,0 +1,36 @@
+{
+  "name" : "margin_summary_process",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MarginSummary",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblGMIMARGINSUMMARYMNYF1"
+      } ],
+      "transformations" : [ {
+        "name" : "MACCTRemoveSCL100"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\ttblGMIMARGINSUMMARYMNYF1_outputfilename as string ()\n}\n\nsource(output(\n\t\tMFIRM as string,\n\t\tMOFFIC as string,\n\t\tMACCT as string,\n\t\tMATYPE as string,\n\t\tMCURAT as string,\n\t\tMME as double,\n\t\tMSNAME as string,\n\t\tMCVTFB as double,\n\t\tMCURFM as string,\n\t\tMLVTM4 as double,\n\t\tMFIRMCONV as string,\n\t\tIMPORT_DATE as timestamp,\n\t\tMREL1A as string,\n\t\tEFFDATE as timestamp,\n\t\tMNA1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MarginSummary\nMarginSummary split(MACCT == 'SCL100', disjoint: true) ~> MACCTRemoveSCL100@(Case1,ConditionalSplitDefaultOutput)\nMarginSummary aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nMACCTRemoveSCL100@ConditionalSplitDefaultOutput sink(input(\n\t\tMOFFIC as string,\n\t\tMME as double,\n\t\tMCURFM as string,\n\t\tMFIRMCONV as string,\n\t\tMSNAME as string,\n\t\tMCVTFB as double,\n\t\tMATYPE as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tMFIRM as string,\n\t\tMNA1 as string,\n\t\tMLVTM4 as double,\n\t\tImport_date as date 'dd-MM-yyyy',\n\t\tMACCT as string,\n\t\tMCURAT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 5000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMOFFIC,\n\t\tMME,\n\t\tMCURFM,\n\t\tMFIRMCONV,\n\t\tMSNAME,\n\t\tMCVTFB,\n\t\tMATYPE,\n\t\teffDate = EFFDATE,\n\t\tMFIRM,\n\t\tMNA1,\n\t\tMLVTM4,\n\t\tImport_date = IMPORT_DATE,\n\t\tMACCT,\n\t\tMCURAT),\n\tpartitionFileNames:[($tblGMIMARGINSUMMARYMNYF1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGMIMARGINSUMMARYMNYF1"
+    }
+  }
+}

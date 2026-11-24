@@ -1,0 +1,31 @@
+{
+  "name" : "get_tbl_calypso_tradeserv_leattribute",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcalypsodbaswapleg",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservswapleg"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblcalypsotradeservswapleg_outputfilename as string ()\n}\n\nsource(output(\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tATTRIBUTE_TYPE as string,\n\t\tATTRIBUTE_VALUE as string,\n\t\tSHORT_NAME as string,\n\t\tLONG_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsodbaswapleg\nfromcalypsodbaswapleg derive({Copy of ATTRIBUTE_VALUE} = ATTRIBUTE_VALUE,\n\t\t{Copy of ATTRIBUTE_TYPE} = ATTRIBUTE_TYPE,\n\t\t{Copy of LONG_NAME} = LONG_NAME,\n\t\t{Copy of LEGAL_ENTITY_ID} = toString(LEGAL_ENTITY_ID),\n\t\t{Copy of SHORT_NAME} = SHORT_NAME) ~> DataConversion\nDataConversion sink(input(\n\t\tlegal_entity_id as string,\n\t\tattribute_type as string,\n\t\tshort_name as string,\n\t\tattribute_value as string,\n\t\tlong_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegal_entity_id = {Copy of LEGAL_ENTITY_ID},\n\t\tattribute_type = {Copy of ATTRIBUTE_TYPE},\n\t\tshort_name = {Copy of SHORT_NAME},\n\t\tattribute_value = {Copy of ATTRIBUTE_VALUE},\n\t\tlong_name = {Copy of LONG_NAME}),\n\tpartitionFileNames:[($totblcalypsotradeservswapleg_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservswapleg"
+    }
+  }
+}

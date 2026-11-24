@@ -1,0 +1,56 @@
+{
+  "name" : "load_tbl_rta_tempimport",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "GetCLYUserName",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "toRTATempImport"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ConvertUsername"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "DataConversionV2"
+      }, {
+        "name" : "RowCount0"
+      }, {
+        "name" : "Sortusername"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "CalculatedColumns"
+      } ],
+      "script" : "parameters{\n\tdBusinessDateRpt as timestamp (toTimestamp('4/26/2026')),\n\tdFileCreatedDate as timestamp (toTimestamp('8/11/2017 10:37:00 AM')),\n\tsFileName as string (),\n\tsFileSearchDate as string ('04262026'),\n\ttoRTATempImport_outputfilename as string (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\t{Business Date} as string,\n\t\t{User Name} as string,\n\t\t{Original Status} as string,\n\t\t{Action Status} as string,\n\t\t{End Status} as string,\n\t\t{Old Version} as string,\n\t\t{New Version} as string,\n\t\t{Internal Reference} as string,\n\t\t{Calypso Reference} as integer,\n\t\t{Book Name} as string,\n\t\t{Trade Status} as string,\n\t\tTrader as string,\n\t\t{Sales Person} as string,\n\t\t{Counterparty Name} as string,\n\t\t{Product Type} as string,\n\t\t{Field Amended} as string,\n\t\tBefore as string,\n\t\tAfter as string,\n\t\t{Amendment P L} as string,\n\t\t{Amendment Cash} as string,\n\t\t{Column 19} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tUSER_NAME as string,\n\t\tMO_GROUP_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetCLYUserName\nFlatFileSource split(length(Business Date) == 0, disjoint: true) ~> ConditionalSplit@(InvalidRow,ValidRow)\nGetCLYUserName derive(oUSER_NAME = USER_NAME,\n\t\toMO_GROUP_NAME = MO_GROUP_NAME) ~> ConvertUsername\nConvertUsername sort(asc(oUSER_NAME, false),asc(oMO_GROUP_NAME, false)) ~> Sort\nConditionalSplit@ValidRow derive(oBefore = Before,\n\t\toAfter = After,\n\t\toTrader = Trader) ~> DataConversionV2\nConditionalSplit@ValidRow aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversionV2 sort(asc({User Name}, false)) ~> Sortusername\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nSortusername,Sort join({User Name} == oUSER_NAME,\n\tjoinType:'left',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(Business_Date = Business_Date,\n\t\tUser_Name = User_Name,\n\t\tOriginal_Status = Original_Status,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOld_Version = Old_Version,\n\t\tNew_Version = New_Version,\n\t\tInternal_Reference = Internal_Reference,\n\t\tBook_Name = Book_Name,\n\t\tTrade_Status = Trade_Status,\n\t\tField_Amended = Field_Amended,\n\t\toBefore = oBefore,\n\t\toAfter = oAfter,\n\t\toTrader = oTrader,\n\t\t{o Sales Person} = {o Sales Person},\n\t\t{oCounterparty Name} = {oCounterparty Name},\n\t\t{oAmendment P L} = {oAmendment P L},\n\t\t{oAmendment Cash} = {oAmendment Cash},\n\t\t{oProduct Type} = {oProduct Type},\n\t\toMO_GROUP_NAME = oMO_GROUP_NAME,\n\t\tCalypso_Reference = Calypso_Reference) ~> MergeJoin0\nMergeJoin0 derive(MKey_BDteCRef = toString((Business_Date + '-' + toString(Calypso_Reference))),\n\t\tDate_Added = $startTime,\n\t\tBusiness_Date_Short = toString($sFileSearchDate),\n\t\tBusiness_Date_Rpt = $dBusinessDateRpt,\n\t\tFileFolder_Source = toString($sFileName),\n\t\tFileCreated_Date = $dFileCreatedDate,\n\t\tsMO_GroupName = toString((iif(isNull(oMO_GROUP_NAME), 'Other', oMO_GROUP_NAME)))) ~> CalculatedColumns\nCalculatedColumns sink(input(\n\t\tBefore as string,\n\t\tDate_Added as timestamp 'dd-MM-yyyy',\n\t\tOld_Version as string,\n\t\tTrade_Status as string,\n\t\tNew_Version as string,\n\t\tBusiness_Date_Short as string,\n\t\tAmendment as string,\n\t\tAction_Status as string,\n\t\tCounterparty as string,\n\t\tBusiness_Date as string,\n\t\tEnd_Status as string,\n\t\tBusiness_Date_Rpt as timestamp 'dd-MM-yyyy',\n\t\tField_Amended as string,\n\t\tMO_AccessGroup as string,\n\t\tUser_Name as string,\n\t\tInternal_Reference as string,\n\t\tTrader as string,\n\t\tBook_Name as string,\n\t\tMKey_BDteCRef as string,\n\t\tSales_Person as string,\n\t\tFile_Date_Created as timestamp 'dd-MM-yyyy',\n\t\tAfter as string,\n\t\tFileFolder_Source as string,\n\t\tCalypso_Reference as integer,\n\t\tOriginal_Status as string,\n\t\tAmendment_Cash as string,\n\t\tProduct_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBefore = oBefore,\n\t\tDate_Added,\n\t\tOld_Version,\n\t\tTrade_Status,\n\t\tNew_Version,\n\t\tBusiness_Date_Short,\n\t\tAmendment = {oAmendment P L},\n\t\tAction_Status,\n\t\tCounterparty = {oCounterparty Name},\n\t\tBusiness_Date,\n\t\tEnd_Status,\n\t\tBusiness_Date_Rpt,\n\t\tField_Amended,\n\t\tMO_AccessGroup = sMO_GroupName,\n\t\tUser_Name,\n\t\tInternal_Reference,\n\t\tTrader = oTrader,\n\t\tBook_Name,\n\t\tMKey_BDteCRef,\n\t\tSales_Person = {o Sales Person},\n\t\tFile_Date_Created = FileCreated_Date,\n\t\tAfter = oAfter,\n\t\tFileFolder_Source,\n\t\tCalypso_Reference,\n\t\tOriginal_Status,\n\t\tAmendment_Cash = {oAmendment Cash},\n\t\tProduct_Type = {oProduct Type}),\n\tpartitionFileNames:[($toRTATempImport_outputfilename)],\n\tpartitionBy('hash', 1)) ~> toRTATempImport"
+    }
+  }
+}

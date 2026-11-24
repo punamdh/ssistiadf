@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_current_powerstate_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PowerState",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\t{Summary|Runtime|Power State} as string,\n\t\t{Summary|Runtime|Power State Timestamp} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PowerState\nPowerState derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp(),\n\t\tPower_State_Timestamp_clean = trim({Summary|Runtime|Power State Timestamp})) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSummary_Runtime_Power_State as string,\n\t\tSummary_Runtime_Power_State_Timestamp as string,\n\t\treport_name as string,\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSummary_Runtime_Power_State = {Summary|Runtime|Power State},\n\t\tSummary_Runtime_Power_State_Timestamp = {Summary|Runtime|Power State Timestamp},\n\t\treport_name,\n\t\tName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

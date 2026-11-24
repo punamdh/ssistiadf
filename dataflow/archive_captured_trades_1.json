@@ -1,0 +1,29 @@
+{
+  "name" : "archive_captured_trades_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCatalystEtfTradeAlert1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystEtfTradeAlertArch"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblCatalystEtfTradeAlertArch_outputfilename as string ()\n}\n\nsource(output(\n\t\tcurrent_par as string,\n\t\ttotal_cash as string,\n\t\tcusip as string,\n\t\tsettle_date as string,\n\t\tsuper_product_type as string,\n\t\tinventory as string,\n\t\ttrade_date as string,\n\t\tcatalyst_trade_number as string,\n\t\text_counterparty_id as string,\n\t\tprice as string,\n\t\tcurrency as string,\n\t\tcaptureDate as timestamp,\n\t\tbuy_sell as string,\n\t\tisin as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCatalystEtfTradeAlert1\nfromtblCatalystEtfTradeAlert1 sink(input(\n\t\tcurrent_par as string,\n\t\ttotal_cash as string,\n\t\tcusip as string,\n\t\tsettle_date as string,\n\t\tsuper_product_type as string,\n\t\tinventory as string,\n\t\ttrade_date as string,\n\t\tcatalyst_trade_number as string,\n\t\text_counterparty_id as string,\n\t\tprice as string,\n\t\tcurrency as string,\n\t\tcaptureDate as date 'dd-MM-yyyy',\n\t\tbuy_sell as string,\n\t\tisin as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcurrent_par,\n\t\ttotal_cash,\n\t\tcusip,\n\t\tsettle_date,\n\t\tsuper_product_type,\n\t\tinventory,\n\t\ttrade_date,\n\t\tcatalyst_trade_number,\n\t\text_counterparty_id,\n\t\tprice,\n\t\tcurrency,\n\t\tcaptureDate,\n\t\tbuy_sell,\n\t\tisin),\n\tpartitionFileNames:[($totblCatalystEtfTradeAlertArch_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystEtfTradeAlertArch"
+    }
+  }
+}

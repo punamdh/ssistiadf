@@ -1,0 +1,31 @@
+{
+  "name" : "cashequitysettlementfails",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ToAddLoadDate"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tActualDate as timestamp,\n\t\tTradeDate as timestamp,\n\t\tSettleDate as timestamp,\n\t\tQuantityAmt as decimal(24,8),\n\t\tPrincipalAmt as decimal(24,8),\n\t\tCommissionAmt as decimal(24,8),\n\t\tTradePrice as decimal(24,10),\n\t\tCostAmt as decimal(24,8),\n\t\tProductType1 as string,\n\t\tProductType2 as string,\n\t\tCUSIP as string,\n\t\tTickerSymbol as string,\n\t\tInstrumentDescription1 as string,\n\t\tTransactionTypeDescription1 as string,\n\t\tTransactionTypeDescription2 as string,\n\t\tDivisionDescription as string,\n\t\tDistrictDescription as string,\n\t\tSubDistrict1Description as string,\n\t\tInventory as string,\n\t\tCustomerDescription1 as string,\n\t\tCustomerTypeDescription as string,\n\t\tICISClientNum as decimal(10,0),\n\t\tBackOfficeInventory as string,\n\t\tICISSystemKey as string,\n\t\tSourceTransactionId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(GetDate = currentTimestamp()) ~> ToAddLoadDate\nToAddLoadDate sink(input(\n\t\tSubDistrict1Description as string,\n\t\tProductType2 as string,\n\t\tICISClientNum as string,\n\t\tProductType1 as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tActualDate as timestamp 'dd-MM-yyyy',\n\t\tCUSIP as string,\n\t\tTransactionTypeDescription2 as string,\n\t\tCustomerDescription1 as string,\n\t\tPrincipalAmt as integer,\n\t\tTickerSymbol as string,\n\t\tTransactionTypeDescription1 as string,\n\t\tBackOfficeInventory as string,\n\t\tTradeDate as timestamp 'dd-MM-yyyy',\n\t\tSourceTransactionId as string,\n\t\tDistrictDescription as string,\n\t\tSettleDate as timestamp 'dd-MM-yyyy',\n\t\tCommissionAmt as integer,\n\t\tInstrumentDescription1 as string,\n\t\tQuantityAmt as integer,\n\t\tDivisionDescription as string,\n\t\tTradePrice as integer,\n\t\tICISSystemKey as string,\n\t\tCostAmt as integer,\n\t\tCustomerTypeDescription as string,\n\t\tInventory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSubDistrict1Description,\n\t\tProductType2,\n\t\tICISClientNum,\n\t\tProductType1,\n\t\tLoad_Date = GetDate,\n\t\tActualDate,\n\t\tCUSIP,\n\t\tTransactionTypeDescription2,\n\t\tCustomerDescription1,\n\t\tPrincipalAmt,\n\t\tTickerSymbol,\n\t\tTransactionTypeDescription1,\n\t\tBackOfficeInventory,\n\t\tTradeDate,\n\t\tSourceTransactionId,\n\t\tDistrictDescription,\n\t\tSettleDate,\n\t\tCommissionAmt,\n\t\tInstrumentDescription1,\n\t\tQuantityAmt,\n\t\tDivisionDescription,\n\t\tTradePrice,\n\t\tICISSystemKey,\n\t\tCostAmt,\n\t\tCustomerTypeDescription,\n\t\tInventory),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

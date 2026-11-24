@@ -1,0 +1,43 @@
+{
+  "name" : "decom_load_im04_to_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "IntellimatchIM04",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupFilenameLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblIntellimatchIM04DailyStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "LookupFilename"
+      }, {
+        "name" : "LookupFilename0"
+      } ],
+      "script" : "parameters{\n\tsFilename_IntIM04 as string (),\n\ttblIntellimatchIM04DailyStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Item Id} as string,\n\t\t{Balance Pool} as string,\n\t\t{Account Name} as string,\n\t\tDepartment as string,\n\t\t{Entry Date} as string,\n\t\t{Risk Date} as string,\n\t\tCUR as string,\n\t\tSide as string,\n\t\t{D C} as string,\n\t\tAmount as decimal(18,2),\n\t\t{Eq Amount} as decimal(18,2),\n\t\t{Tran Ref} as string,\n\t\t{Desc 1} as string,\n\t\t{Desc 2} as string,\n\t\t{Desc 3} as string,\n\t\t{Desc 5} as string,\n\t\t{Desc 6} as string,\n\t\t{Desc 7} as string,\n\t\t{Desc 8} as string,\n\t\t{Desc 9} as string,\n\t\tCusip as string,\n\t\t{Case Number} as string,\n\t\t{Misc Info} as string,\n\t\t{Approval Status} as string,\n\t\t{Ext #} as string,\n\t\t{Review Date} as string,\n\t\t{Ops Control} as string,\n\t\t{Item State} as string,\n\t\t{Source Name} as string,\n\t\t{GL Category} as string,\n\t\t{Account Information} as string,\n\t\t{Add'l Info} as string,\n\t\t{User Text117} as string,\n\t\t{Effective Date} as string,\n\t\t{Entered Date} as string,\n\t\t{Header ID} as string,\n\t\t{Ref Number} as string,\n\t\tNarrative as string,\n\t\tAge as string,\n\t\t{Deal Number} as string,\n\t\t{Draft Number} as string,\n\t\t{Pay Park Ref} as string,\n\t\tTMSRef as string,\n\t\t{Next Date} as string,\n\t\tBCO as string,\n\t\tDescription as string,\n\t\t{Hdr Dtl ID} as string,\n\t\t{Trans Type} as string,\n\t\tUser1 as string,\n\t\tUser2 as string,\n\t\tCO as string,\n\t\tDDA as string,\n\t\tRC as string,\n\t\t{Category Name} as string,\n\t\tCompanyId as string,\n\t\tUserText52 as string,\n\t\tBr_Security_Number1 as string,\n\t\t{GMI Office} as string,\n\t\tGMIAccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IntellimatchIM04\tsource(output(\n\t\tfilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupFilenameLKPTABLE\nIntellimatchIM04 derive(Loaddate = toString(currentTimestamp()),\n\t\tFilename = toString(($sFilename_IntIM04)),\n\t\tder_Age = iif(Age == 'NA', '0', Age)) ~> DerivedColumn\nDerivedColumn derive({Copy of Amount} = Amount,\n\t\t{Copy of TMSRef} = TMSRef,\n\t\t{Copy of CUR} = CUR,\n\t\t{Copy of BCO} = BCO,\n\t\t{Copy of UserText52} = UserText52,\n\t\t{Copy of Narrative} = Narrative,\n\t\t{Copy of DDA} = DDA,\n\t\t{Copy of Cusip} = Cusip,\n\t\t{Copy of CompanyId} = CompanyId,\n\t\t{Copy of Description} = Description,\n\t\t{Copy of User1} = User1,\n\t\t{Copy of CO} = CO,\n\t\t{Copy of User2} = User2,\n\t\t{Copy of Loaddate} = Loaddate,\n\t\t{Copy of der_Age} = der_Age,\n\t\t{Copy of Department} = Department,\n\t\t{Copy of Br_Security_Number1} = Br_Security_Number1,\n\t\t{Copy of Side} = Side,\n\t\t{Copy of Age} = Age,\n\t\t{Copy of GMIAccount} = GMIAccount,\n\t\t{Copy of Filename} = Filename,\n\t\t{Copy of RC} = RC) ~> DataConversion\nDataConversion,LookupFilenameLKPTABLE lookup(DerivedColumn@Filename == LookupFilenameLKPTABLE@filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupFilename\nLookupFilename filter(!isMatch()) ~> LookupFilename0\nLookupFilename0 sink(input(\n\t\tDraftNumber as string,\n\t\tHdrDtlID as string,\n\t\tTMSRef as string,\n\t\tReviewDate as string,\n\t\tD_C as string,\n\t\tItemId as string,\n\t\tApprovalStatus as string,\n\t\tGLCategory as string,\n\t\tDepartment as string,\n\t\tNarrative as string,\n\t\tCurrency as string,\n\t\tAdditionalInfo as string,\n\t\tExtNo as string,\n\t\tMiscInfo as string,\n\t\tRefNumber as string,\n\t\tEnteredDate as string,\n\t\tFilename as string,\n\t\tBCO as string,\n\t\tRC as string,\n\t\tEqAmount as integer,\n\t\tItemState as string,\n\t\tUserText117 as string,\n\t\tGMIAccount as string,\n\t\tAccountName as string,\n\t\tDDA as string,\n\t\tDescription as string,\n\t\tUser2 as string,\n\t\tUser1 as string,\n\t\tDesc9 as string,\n\t\tDealNumber as string,\n\t\tDesc6 as string,\n\t\tUserText52 as string,\n\t\tDesc5 as string,\n\t\tDesc8 as string,\n\t\tTransType as string,\n\t\tDesc7 as string,\n\t\tDesc2 as string,\n\t\tGMI_Office as string,\n\t\tDesc1 as string,\n\t\tDesc3 as string,\n\t\tSide as string,\n\t\tTranRef as string,\n\t\tLoaddate as string,\n\t\tNextDate as string,\n\t\tCaseNumber as string,\n\t\tOpsControl as string,\n\t\tAge as short,\n\t\tPayParkRef as string,\n\t\tCompanyId as string,\n\t\tAmount as integer,\n\t\tHeaderID as string,\n\t\tSourceName as string,\n\t\tCO as string,\n\t\tRiskDate as string,\n\t\tCusip as string,\n\t\tAccountInformation as string,\n\t\tBalancePool as string,\n\t\tEntryDate as string,\n\t\tCategoryName as string,\n\t\tBr_Security_Number1 as string,\n\t\tEffectiveDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDraftNumber = {Draft Number},\n\t\tHdrDtlID = {Hdr Dtl ID},\n\t\tTMSRef,\n\t\tReviewDate = {Review Date},\n\t\tD_C = {D C},\n\t\tItemId = {Item Id},\n\t\tApprovalStatus = {Approval Status},\n\t\tGLCategory = {GL Category},\n\t\tDepartment,\n\t\tNarrative,\n\t\tCurrency = CUR,\n\t\tAdditionalInfo = {Add'l Info},\n\t\tExtNo = {Ext #},\n\t\tMiscInfo = {Misc Info},\n\t\tRefNumber = {Ref Number},\n\t\tEnteredDate = {Entered Date},\n\t\tFilename,\n\t\tBCO,\n\t\tRC,\n\t\tEqAmount = {Eq Amount},\n\t\tItemState = {Item State},\n\t\tUserText117 = {User Text117},\n\t\tGMIAccount,\n\t\tAccountName = {Account Name},\n\t\tDDA,\n\t\tDescription,\n\t\tUser2,\n\t\tUser1,\n\t\tDesc9 = {Desc 9},\n\t\tDealNumber = {Deal Number},\n\t\tDesc6 = {Desc 6},\n\t\tUserText52,\n\t\tDesc5 = {Desc 5},\n\t\tDesc8 = {Desc 8},\n\t\tTransType = {Trans Type},\n\t\tDesc7 = {Desc 7},\n\t\tDesc2 = {Desc 2},\n\t\tGMI_Office = {GMI Office},\n\t\tDesc1 = {Desc 1},\n\t\tDesc3 = {Desc 3},\n\t\tSide,\n\t\tTranRef = {Tran Ref},\n\t\tLoaddate,\n\t\tNextDate = {Next Date},\n\t\tCaseNumber = {Case Number},\n\t\tOpsControl = {Ops Control},\n\t\tAge = {Copy of der_Age},\n\t\tPayParkRef = {Pay Park Ref},\n\t\tCompanyId,\n\t\tAmount,\n\t\tHeaderID = {Header ID},\n\t\tSourceName = {Source Name},\n\t\tCO,\n\t\tRiskDate = {Risk Date},\n\t\tCusip,\n\t\tAccountInformation = {Account Information},\n\t\tBalancePool = {Balance Pool},\n\t\tEntryDate = {Entry Date},\n\t\tCategoryName = {Category Name},\n\t\tBr_Security_Number1,\n\t\tEffectiveDate = {Effective Date}),\n\tpartitionFileNames:[($tblIntellimatchIM04DailyStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblIntellimatchIM04DailyStaging"
+    }
+  }
+}

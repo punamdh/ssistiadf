@@ -1,0 +1,33 @@
+{
+  "name" : "csv_load_3",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "UpdateRecords",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblEndurCommoditiesTradeEventsAmendedStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tsFilename as string (),\n\ttblEndurCommoditiesTradeEventsAmendedStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tevent_date as string,\n\t\tdeal_tracking_num as string,\n\t\ttoolset as string,\n\t\tins_type as string,\n\t\tname as string,\n\t\tshort_name as string,\n\t\tinternal_external as string,\n\t\ttype_of_event as string,\n\t\ttrade_time as string,\n\t\ttrader_name as string,\n\t\texecuted_by as string,\n\t\tmarketer_name as string,\n\t\ttrade_event_category as string,\n\t\taction_interval_days as string,\n\t\tbooked_to_new_by as string,\n\t\tnew_validated_by as string,\n\t\ttran_num as string,\n\t\tsql_date as string,\n\t\tlatest_validated_by as string,\n\t\tamend_reason as string,\n\t\tcomments as string,\n\t\tcurrent_tran as string,\n\t\tprior_tran as string,\n\t\treason_code as string,\n\t\tamend_by as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> UpdateRecords\nUpdateRecords derive(FileName = toString($sFilename),\n\t\tUpdatedDate_drv = toString(currentTimestamp()),\n\t\tamend_reason_der = toString(replace(amend_reason, toString('\\\"'), toString('')))) ~> DerivedColumn\nDerivedColumn derive({Copy of event_date} = event_date,\n\t\t{Copy of trader_name} = trader_name,\n\t\t{Copy of deal_tracking_num} = deal_tracking_num) ~> DataConversion\nDataConversion sink(input(\n\t\ttrade_event_category as string,\n\t\ttoolset as string,\n\t\texecuted_by as string,\n\t\tcomments as string,\n\t\tprior_tran as string,\n\t\tdeal_tracking_num as string,\n\t\ttrade_time as string,\n\t\tbooked_to_new_by as string,\n\t\tFileName as string,\n\t\tDate_Updated as string,\n\t\tnew_validated_by as string,\n\t\tamend_by as string,\n\t\tamend_reason as string,\n\t\ttype_of_event as string,\n\t\tmarketer_name as string,\n\t\tlatest_validated_by as string,\n\t\tevent_date as string,\n\t\tinsType as string,\n\t\tname as string,\n\t\ttrader_name as string,\n\t\tshort_name as string,\n\t\taction_interval_days as string,\n\t\tcurrent_tran as string,\n\t\ttran_num as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrade_event_category,\n\t\ttoolset,\n\t\texecuted_by,\n\t\tcomments,\n\t\tprior_tran,\n\t\tdeal_tracking_num,\n\t\ttrade_time,\n\t\tbooked_to_new_by,\n\t\tFileName,\n\t\tDate_Updated = UpdatedDate_drv,\n\t\tnew_validated_by,\n\t\tamend_by,\n\t\tamend_reason = amend_reason_der,\n\t\ttype_of_event,\n\t\tmarketer_name,\n\t\tlatest_validated_by,\n\t\tevent_date = {Copy of event_date},\n\t\tinsType = ins_type,\n\t\tname,\n\t\ttrader_name,\n\t\tshort_name,\n\t\taction_interval_days,\n\t\tcurrent_tran,\n\t\ttran_num),\n\tpartitionFileNames:[($tblEndurCommoditiesTradeEventsAmendedStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblEndurCommoditiesTradeEventsAmendedStaging"
+    }
+  }
+}

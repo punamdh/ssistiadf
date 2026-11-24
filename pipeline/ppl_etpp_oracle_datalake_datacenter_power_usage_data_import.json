@@ -1,0 +1,286 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_datacenter_power_usage_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import' AND DATAFLOW_NAME = 'datacenter_power_usage_data_load') AS DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DATACENTER_POWER_USAGE_DATA_LOAD0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import') AS DATACENTER_POWER_USAGE_DATA_LOAD0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DATACENTER_POWER_USAGE_DATA_LOAD0_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_datacenter_power_usage_data_import') AS DATACENTER_POWER_USAGE_DATA_LOAD0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_get_select_script_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [import].[datalake_datacenter_power_usage_data_import_sp] @{variables('selectquery')} OUTPUT\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_TRUNCATE_TARGET_TABLE_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_get_select_script_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE [import].[datalake_datacenter_power_usage_data_importtbl]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_DATACENTER_POWER_USAGE_DATA_LOAD",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_TRUNCATE_TARGET_TABLE_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "DATACENTER_POWER_USAGE_DATA_LOAD",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_DATACENTER_POWER_USAGE_DATA_LOAD",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_DATACENTER_POWER_USAGE_DATA_LOAD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "datacenter_power_usage_data_load",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.DATACENTER_POWER_USAGE_DATA_LOAD_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_DATACENTER_POWER_USAGE_DATA_LOAD0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_DATACENTER_POWER_USAGE_DATA_LOAD",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.DATACENTER_POWER_USAGE_DATA_LOAD0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_EXEC_asset_datacenter_power_master_sp_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_DATACENTER_POWER_USAGE_DATA_LOAD0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC source.asset_datacenter_power_master_sp",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "DATACENTER_POWER_USAGE_DATA_LOAD_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "selectquery" : {
+        "type" : "String",
+        "defaultValue" : "SELECT       DATACENTER_NAME,       DATACENTER_POWER,       DATACENTER_POWER_CONSUMPTION,       TODSH_BUSINESS_EFFECTIVE_DATE,      RACK_WF_GUID,      DATACENTER_WF_GUID,      COMPUTER_ROOM_GUID,      ZONE_WF_GUID,      RACK_POWER_CONSUMPTION,      RACK_MANUFACTURER,      RACK_NAME,      RACK_LOCATION,      RACK_UNITS,      RACK_UNITS_IN_USE,      ZONE_FLOOR_SPACE_IN_USE,      ZONE_FLOOR_SPACE,      ZONE_POWER_CONSUMPTION,      ZONE_NAME,      ROOM_FLOOR_SPACE_IN_USE,      ROOM_FLOOR_SPACE,      COMPUTER_ROOM_POWER,      COMPUTER_ROOM_POWER_CONSUMPTION,      COMPUTER_ROOM_NAME,      DESCRIPTION,      DATA_CENTER_OPERATIONAL_STATUS,      DATACENTER_OWNED_BY_GROUP_GUID,      DATACENTER_OWNED_BY_GROUP,      DATACENTER_SUPPORT_GROUP_GUID,      DATACENTER_SUPPORT_GROUP,      LOCATION_GUID,      MANAGED_BY_GROUP_GUID,      MANAGED_BY_GROUP_NAME  FROM ITM_CURATED.DATACENTER_ROOM_RACK  WHERE RACK_WF_GUID = '-1'  AND DATACENTER_NAME IS NOT NULL"
+      }
+    }
+  }
+}

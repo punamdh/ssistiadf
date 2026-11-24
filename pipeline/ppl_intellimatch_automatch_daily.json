@@ -1,0 +1,607 @@
+{
+  "name" : "ppl_intellimatch_automatch_daily",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_FlatFileSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_FlatFileSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_FlatFileSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfb_data') AS GET_Intellimatch_WFB_Data_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_FlatFileSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_FlatFileSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_FlatFileSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily' AND DATAFLOW_NAME = 'get_intellimatch_wfs_data') AS GET_Intellimatch_WFS_Data_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GET_Intellimatch_WFB_Data0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily') AS GET_Intellimatch_WFB_Data0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GET_Intellimatch_WFB_Data0_sink_TableName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily') AS GET_Intellimatch_WFB_Data0_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GET_Intellimatch_WFS_Data0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily') AS GET_Intellimatch_WFS_Data0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GET_Intellimatch_WFS_Data0_sink_TableName' AND PIPELINE_NAME = 'ppl_intellimatch_automatch_daily') AS GET_Intellimatch_WFS_Data0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_START_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Delete_CurrBusDate_Records_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Log_to_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [dbo].[TruncateTable] 'tbl_Intellimatch_AutoMatch_Daily_WFB'\nGO\n\nEXEC [dbo].[TruncateTable] 'tbl_Intellimatch_AutoMatch_Daily_WFS'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_GET_Intellimatch_WFB_Data",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_CurrBusDate_Records_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "GET_Intellimatch_WFB_Data",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_GET_Intellimatch_WFB_Data",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_GET_Intellimatch_WFB_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_intellimatch_wfb_data",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "FlatFileSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_FlatFileSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_FlatFileSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_FlatFileSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.GET_Intellimatch_WFB_Data_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_GET_Intellimatch_WFB_Data0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_GET_Intellimatch_WFB_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFB_Data0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SETVAR_sRowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CPD_GET_Intellimatch_WFB_Data0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCount",
+        "value" : "@int(coalesce(activity('DF_GET_Intellimatch_WFB_Data').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+      }
+    }, {
+      "name" : "EP_REPL_GET_Intellimatch_WFS_Data",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "GET_Intellimatch_WFS_Data",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_GET_Intellimatch_WFS_Data",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_GET_Intellimatch_WFS_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_intellimatch_wfs_data",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "FlatFileSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_FlatFileSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_FlatFileSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_FlatFileSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.GET_Intellimatch_WFS_Data_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_GET_Intellimatch_WFS_Data0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_GET_Intellimatch_WFS_Data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.GET_Intellimatch_WFS_Data0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SETVAR_sRowCount0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CPD_GET_Intellimatch_WFS_Data0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCount",
+        "value" : "@int(coalesce(activity('DF_GET_Intellimatch_WFS_Data').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+      }
+    }, {
+      "name" : "ST_Load_tbl_Intellimatch_AutoMatch_Daily_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCount0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "SELECT '117' as Client, [Balance Pool ] as [Balance Pool],[Account Name],[Department],[Entry Date],[Risk Date],[CUR],[Side],[D C] as [Debit Or Credit], TRY_CAST(REPLACE([Amount],',','') as float) as [Amount],\n      TRY_CAST(REPLACE([EQ Amount],',','') as float) as [Eq Amount],\n      CASE WHEN [Trans Ref] = '' THEN '01010000' ELSE [Trans Ref] END as [BR Account],[Desc 1] as Desc1,[Desc 2] as Desc2,[Desc3],[Narrative],[Cusip],[Product ID],[Case #],[Misc Info],[A S],[Ext #],[Review Date],\n\t  [Ops Control ],[Item State],[Age],[Source Name],[GL Category],[Pega Case Id],[Pega Case Status],[Account Infor],\n\t  [Add'l Info],[Deal Number],[Draft Number],[Pay Park Ref],[TMSRef],[Item Id],[Next Date],[User Text117],[Effective Date],\n\t  [Entered Date],[BCO],[Description],[Hdr Dtl ID],[Header ID],[Ref Number],[Trans Type],[User1],[User2],[TW Customer Name]\n      ,[loadDate],cusip + TRY_CAST(ABS(TRY_CAST(REPLACE([EQ Amount],',','') as float)) as varchar(20)) as [key]\n\t  ,CASE WHEN [Balance Pool ] LIKE '%p&i%' THEN 'pni' \n\t\t    WHEN [Balance Pool ] LIKE '%pni%' THEN 'pni'\n\t\t\tWHEN [Balance Pool ] LIKE '%bony%' THEN 'cash'\n\t\t    WHEN [Balance Pool ] LIKE '%long%' THEN 'open items'\n\t\t    WHEN [Balance Pool ] LIKE '%short%' THEN 'open items'\n\t   END as [grouping]\n\tINTO #tbl_outstanding_items\n\tFROM [ReconControl].[dbo].[tbl_Intellimatch_AutoMatch_Daily_WFB]\n\tWHERE [Balance Pool ] IS NOT NULL AND [Cusip] != '' AND CUR = 'USD'\n\n\t--AND Cusip = '89346D107'\n\n\tINSERT INTO #tbl_outstanding_items\n\tSELECT '127' as Client, [Balance Pool ] as [Balance Pool],[Account Name],[Department],[Entry Date],[Risk Date],[CUR],[Side],[D C] as [Debit Or Credit], TRY_CAST(REPLACE([Amount],',','') as float) as [Amount],\n      TRY_CAST(REPLACE([EQ Amount],',','') as float) as [Eq Amount],\n      CASE WHEN [Trans Ref] = '' THEN '01010000' ELSE [Trans Ref] END as [BR Account],[Desc 1] as Desc1,[Desc 2] as Desc2,[Desc3],[Narrative],[Cusip],[Product ID],[Case #],[Misc Info],[A S],[Ext #],[Review Date],\n\t  [Ops Control ],[Item State],[Age],[Source Name],[GL Category],[Pega Case Id],[Pega Case Status],[Account Infor],\n\t  [Add'l Info],[Deal Number],[Draft Number],[Pay Park Ref],[TMSRef],[Item Id],[Next Date],[User Text117],[Effective Date],\n\t  [Entered Date],[BCO],[Description],[Hdr Dtl ID],[Header ID],[Ref Number],[Trans Type],[User1],[User2],[TW Customer Name]\n      ,[loadDate],cusip + TRY_CAST(ABS(TRY_CAST(REPLACE([EQ Amount],',','') as float)) as varchar(20)) as [key]\n\t  ,CASE WHEN [Balance Pool ] LIKE '%p&i%' THEN 'pni' \n\t\t    WHEN [Balance Pool ] LIKE '%pni%' THEN 'pni'\n\t\t\tWHEN [Balance Pool ] LIKE '%bony%' THEN 'cash'\n\t\t    WHEN [Balance Pool ] LIKE '%long%' THEN 'open items'\n\t\t    WHEN [Balance Pool ] LIKE '%short%' THEN 'open items'\n\t   END as [grouping]\n\tFROM [ReconControl].[dbo].[tbl_Intellimatch_AutoMatch_Daily_WFS]\n                WHERE [Balance Pool ] IS NOT NULL AND [Cusip] != '' AND CUR = 'USD'\n\n\n\t--Try loading matched cusips and groups\n\tSELECT Client, Cusip, Sum(Amount) AS SumOfAmount, Count(Cusip) AS CountOfCusip,  null as grouping\t--grouping\n\tINTO #qry_Offset_Stage_1\t\n\tFROM  #tbl_outstanding_items\n\tGROUP BY Client, Cusip--, grouping\n\tHAVING (((Sum(Amount))>-0.99 And (Sum(Amount))<0.99) AND ((Count(Cusip))>1));\t\n\t\n\t----Clear Final Report Table\n\tEXECUTE dbo.spTruncateTable 'dbo.tbl_Intellimatch_AutoMatch_Daily'\n\n\t---- Load Final Report Table\n\tINSERT INTO [dbo].[tbl_Intellimatch_AutoMatch_Daily]\n\n\tSELECT CAST(GETDATE() as date) as RptDate, t.Client, (Left([BR Account],3) + '-' + SUBSTRING([BR Account],4,5) + '-1X') as Account, t.[Cusip] as Security, \n\tCASE t.CUR WHEN 'USD' THEN '000' WHEN 'EUR' THEN '052' WHEN 'GBP' THEN '003' WHEN 'AUD' THEN '010' WHEN 'NOK' THEN '019' ELSE t.CUR END as CCY, \n\tCASE WHEN t.[Amount] < 0 THEN 'D' ELSE 'C' END  as DRCR, t.[Amount]*-1 as Amt, '0' as Qty, 'DV' as BatchCode, 'ADJ' as EntryCode, '' as [Rejects code], \n\t'RD-' + (cast(month(t.[Risk Date]) as varchar)+'/'+cast(day(t.[Risk Date]) as varchar)+'/'+ cast(year(t.[Risk Date]) as varchar)) + ' ID-' + t.[Item Id] as Misc,\n\t'B' as TRIDCode, '' as SPINCode, '' as DDACode, Department\n\tFROM #tbl_outstanding_items t INNER JOIN #qry_Offset_Stage_1 i ON t.Cusip = i.Cusip AND t.Client = i.Client --AND t.grouping = i.grouping\n\t\n\tUNION ALL\n\t\n\tSELECT DISTINCT CAST(GETDATE() as date) as RptDate, t.Client, '091-99860-1X' as Account, t.[Cusip] as Security,\n\tCASE t.CUR WHEN 'USD' THEN '000' WHEN 'EUR' THEN '052' WHEN 'GBP' THEN '003' WHEN 'AUD' THEN '010' WHEN 'NOK' THEN '019' ELSE t.CUR END as CCY, \n\tCASE WHEN i.[SumOfAmount] > 0 THEN 'D' ELSE 'C' END  as DRCR, ROUND(i.[SumOfAmount],2) as Amt, '0' as Qty, 'DV' as BatchCode, 'ADJ' as EntryCode, '' as [Rejects code], \n\t'RD-' + (cast(month(GETDATE()) as varchar)+'/'+cast(day(GETDATE()) as varchar)+'/'+ cast(year(GETDATE()) as varchar)) + ' write off' as Misc,\n\t'B' as TRIDCode, '' as SPINCode, '' as DDACode, '' as Department\n\tFROM #tbl_outstanding_items t INNER JOIN #qry_Offset_Stage_1 i ON t.Cusip = i.Cusip AND t.Client = i.Client --AND t.grouping = i.grouping\n\tWHERE i.[SumOfAmount] NOT BETWEEN -0.009 AND 0.009\n\tORDER BY Security, Misc\n\n\n\tDROP TABLE #tbl_outstanding_items\t\n\tDROP TABLE #qry_Offset_Stage_1",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Check_number_of_Records_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Load_tbl_Intellimatch_AutoMatch_Daily_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT COUNT(1) AS NumRows FROM [ReconControl].[dbo].[tbl_Intellimatch_AutoMatch_Daily_WFB]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sRowCountFinal",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Check_number_of_Records_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sRowCountFinal",
+        "value" : "@int(activity('ST_Check_number_of_Records_0').output.resultSets[0].rows[0].NumRows)"
+      }
+    }, {
+      "name" : "ST_Insert_General_Failure_into_Utility_Alert_for_E",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCountFinal",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n  @TO = 'wfsrs@wellsfargo.com'\n ,@SUBJECT = 'WFSR&S_ProcessAlert_DEV_AutoMatch_Cash_Pl_Open_FAILURE' \n ,@BODY = 'Failed to load ReconControl.dbo.tbl_Intellimatch_AutoMatch_Daily.'\n ,@BodyFormat = '2'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Success_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sRowCountFinal",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Success',\n @num_of_records = @{variables('sRowCount')},\n @actual_records = @{variables('sRowCount')}Final,\n @FileName='N/A'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "GET_Intellimatch_WFS_Data_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "GET_Intellimatch_WFB_Data_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "AutoMatch_Cash_Pl_Open"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_AutoMatch_Cash_Pl_Open"
+      },
+      "sFileRootDirectory_1EQS" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSPROD\\"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDEV"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Failed to load ReconControl.dbo.tbl_Intellimatch_AutoMatch_Daily."
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

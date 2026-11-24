@@ -1,0 +1,33 @@
+{
+  "name" : "pega_messages",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "PegaMessages",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblpegamessagesscopfx"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblpegamessagesscopfx_outputfilename as string ()\n}\n\nsource(output(\n\t\tUrgency as string,\n\t\tID as string,\n\t\tReceived_via as string,\n\t\tStatus as string,\n\t\tSender_Address as string,\n\t\tCountry as string,\n\t\tReceiver_Address as string,\n\t\tMT as string,\n\t\tNACK as string,\n\t\tSender_TRN as string,\n\t\tReceiver_TRN as string,\n\t\tAmount as string,\n\t\tCCY as string,\n\t\tWork_Type as string,\n\t\tInstructions as string,\n\t\tGPI as string,\n\t\tPXASSIGNEDOPERATORID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PegaMessages\nPegaMessages split(ltrim(toString(rtrim(toString(ID),' ')),' ') == '', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive({Derived Column 1} = iif(toString(PXASSIGNEDOPERATORID) == 'FXMS', 'R', 'S')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tGPI as string,\n\t\tReceiver_address as string,\n\t\tMT as string,\n\t\tAmount as string,\n\t\tSender_TRN as string,\n\t\tInstructions as string,\n\t\tMsgType as string,\n\t\tReceiver_TRN as string,\n\t\tSender_address as string,\n\t\tCCY as string,\n\t\tCountry as string,\n\t\tReceived_via as string,\n\t\tWork_type as string,\n\t\tID as string,\n\t\tUrgency as string,\n\t\tNACK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tGPI,\n\t\tReceiver_address = Receiver_Address,\n\t\tMT,\n\t\tAmount,\n\t\tSender_TRN,\n\t\tInstructions,\n\t\tMsgType = {Derived Column 1},\n\t\tReceiver_TRN,\n\t\tSender_address = Sender_Address,\n\t\tCCY,\n\t\tCountry,\n\t\tReceived_via,\n\t\tWork_type = Work_Type,\n\t\tID,\n\t\tUrgency,\n\t\tNACK),\n\tpartitionFileNames:[($tblpegamessagesscopfx_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblpegamessagesscopfx"
+    }
+  }
+}

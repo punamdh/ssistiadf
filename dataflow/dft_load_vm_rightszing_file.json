@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_vm_rightszing_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "VMRIGHTSIZING",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "vmrightsizing0"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tvmrightsizing0_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\tMORef as string,\n\t\tvCenter as string,\n\t\t{CPU Provisioned (vCPU)} as string,\n\t\t{CPU Recommended (vCPU)} as string,\n\t\t{CPU Demand % (Peak)} as string,\n\t\t{CPU Demand % (P95)} as string,\n\t\t{CPU Usage % (Peak)} as string,\n\t\t{CPU Usage % (P95)} as string,\n\t\t{Mem Provisioned (GB)} as string,\n\t\t{Mem Recommended (GB)} as string,\n\t\t{Mem Usage % (Peak)} as string,\n\t\t{Mem Usage % (p95)} as string,\n\t\t{Creation Date} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> VMRIGHTSIZING\nVMRIGHTSIZING derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tName as string,\n\t\tMem_Provisioned__GB_ as string,\n\t\tMORef as string,\n\t\tCPU_Demand____P95_ as string,\n\t\tCPU_Usage____Peak_ as string,\n\t\tCPU_Usage____P95_ as string,\n\t\tMem_Usage____Peak_ as string,\n\t\tCreation_Date as string,\n\t\tMem_Recommended__GB_ as string,\n\t\tMem_Usage____p95_ as string,\n\t\tvCenter as string,\n\t\treport_name as string,\n\t\tCPU_Recommended__vCPU_ as string,\n\t\tCPU_Provisioned__vCPU_ as string,\n\t\tCPU_Demand____Peak_ as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tName,\n\t\tMem_Provisioned__GB_ = {Mem Provisioned (GB)},\n\t\tMORef,\n\t\tCPU_Demand____P95_ = {CPU Demand % (P95)},\n\t\tCPU_Usage____Peak_ = {CPU Usage % (Peak)},\n\t\tCPU_Usage____P95_ = {CPU Usage % (P95)},\n\t\tMem_Usage____Peak_ = {Mem Usage % (Peak)},\n\t\tCreation_Date = {Creation Date},\n\t\tMem_Recommended__GB_ = {Mem Recommended (GB)},\n\t\tMem_Usage____p95_ = {Mem Usage % (p95)},\n\t\tvCenter,\n\t\treport_name,\n\t\tCPU_Recommended__vCPU_ = {CPU Recommended (vCPU)},\n\t\tCPU_Provisioned__vCPU_ = {CPU Provisioned (vCPU)},\n\t\tCPU_Demand____Peak_ = {CPU Demand % (Peak)}),\n\tpartitionFileNames:[($vmrightsizing0_outputfilename)],\n\tpartitionBy('hash', 1)) ~> vmrightsizing0"
+    }
+  }
+}

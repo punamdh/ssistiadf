@@ -1,0 +1,31 @@
+{
+  "name" : "load_dnc_hist",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tCLIENT_NBR as string,\n\t\tBR_ACCOUNT_CD as string,\n\t\tGL_ACCOUNT_CD as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tSIGNED_AMOUNT as string,\n\t\tSIGNED_QTY as string,\n\t\taccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource1\nOLEDBSource1 derive({Copy of CLIENT_NBR} = CLIENT_NBR,\n\t\t{Copy of ACCOUNT} = account,\n\t\t{Copy of ISO_CURRENCY_CD} = ISO_CURRENCY_CD,\n\t\t{Copy of BR_ACCOUNT_CD} = BR_ACCOUNT_CD,\n\t\t{Copy of GL_ACCOUNT_CD} = GL_ACCOUNT_CD) ~> DataConversion\nDataConversion sink(input(\n\t\tISO_CURRENCY_CD as string,\n\t\tSIGNED_QTY as integer,\n\t\tBR_ACCOUNT_CD as string,\n\t\tGL_ACCOUNT_CD as string,\n\t\tEFFDATE as timestamp 'dd-MM-yyyy',\n\t\tCLIENT_NBR as string,\n\t\tSIGNED_AMOUNT as integer,\n\t\taccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tISO_CURRENCY_CD,\n\t\tSIGNED_QTY,\n\t\tBR_ACCOUNT_CD,\n\t\tGL_ACCOUNT_CD,\n\t\tEFFDATE,\n\t\tCLIENT_NBR,\n\t\tSIGNED_AMOUNT,\n\t\taccount),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1"
+    }
+  }
+}

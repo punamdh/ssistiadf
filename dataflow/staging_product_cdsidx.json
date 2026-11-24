@@ -1,0 +1,31 @@
+{
+  "name" : "staging_product_cdsidx",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcdsindexdef",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tocalypsotradeservtkeywordfeedredid"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttocalypsotradeservtkeywordfeedredid_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tINDEX_DEF_ID as decimal(38,0),\n\t\tINDEX_NAME as string,\n\t\tINDEX_ISSUER_ID as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcdsindexdef\nfromcdsindexdef derive({Copy of INDEX_NAME} = INDEX_NAME,\n\t\t{Copy of PRODUCT_ID} = toString(PRODUCT_ID),\n\t\t{Copy of INDEX_DEF_ID} = toString(INDEX_DEF_ID),\n\t\t{Copy of INDEX_ISSUER_ID} = toString(INDEX_ISSUER_ID)) ~> DataConversion\nDataConversion sink(input(\n\t\tINDEX_NAME as string,\n\t\tINDEX_DEF_ID as string,\n\t\tPRODUCT_ID as string,\n\t\tINDEX_ISSUER_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINDEX_NAME = {Copy of INDEX_NAME},\n\t\tINDEX_DEF_ID = {Copy of INDEX_DEF_ID},\n\t\tPRODUCT_ID = {Copy of PRODUCT_ID},\n\t\tINDEX_ISSUER_ID = {Copy of INDEX_ISSUER_ID}),\n\tpartitionFileNames:[($tocalypsotradeservtkeywordfeedredid_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tocalypsotradeservtkeywordfeedredid"
+    }
+  }
+}

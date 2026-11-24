@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tLevel as string,\n\t\tSUPPLY_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tCFM as double,\n\t\tRAH as double,\n\t\tSpaceHumidity as double,\n\t\tHumidistat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tETLUser as string,\n\t\tRAH as double,\n\t\tLevel as string,\n\t\tCFM as double,\n\t\tSUPPLY_SETPOINT as double,\n\t\tHumidistat as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tSpaceHumidity as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tETLUser,\n\t\tRAH,\n\t\tLevel,\n\t\tCFM,\n\t\tSUPPLY_SETPOINT,\n\t\tHumidistat,\n\t\tDate,\n\t\tSpaceHumidity),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTSO_SUPPORT_GROUP_GUID as string,\n\t\tTECHNICAL_SERVICE_OFFFERING as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTSO_SUPPORT_GROUP_GUID as string,\n\t\tTECHNICAL_SERVICE_OFFFERING as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTSO_SUPPORT_GROUP_GUID,\n\t\tTECHNICAL_SERVICE_OFFFERING,\n\t\tImportDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

@@ -1,0 +1,241 @@
+{
+  "name" : "ppl_mercury_invalidproducthierarchy_daily_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "select Datepart(weekday,getdate()) as WeekdayNumber",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_WeekdayNumber",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "WeekdayNumber",
+        "value" : "@int(activity('ST_Execute_SQL_Task_0').output.resultSets[0].rows[0].WeekdayNumber)"
+      }
+    }, {
+      "name" : "Script_Task_to_Count_Record_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_WeekdayNumber",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('WeekdayNumber') < 2",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Script_Task_to_Count_Record",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Script_Task_to_Count_Record",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "EP_START_-_Call_Log_table_entry_0_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Script_Task_to_Count_Record",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_script_task_to_count_record_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "Script_Task_to_Count_Record_1_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_WeekdayNumber",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('WeekdayNumber') >= 2",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "Script_Task_to_Count_Record_1",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Script_Task_to_Count_Record_1",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "EP_START_-_Call_Log_table_entry_1_0_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Script_Task_to_Count_Record_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_script_task_to_count_record_1_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "FilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\mercury\\InvalidProduct\\INVALID_PRODUCT_HIERARCHY_20230709.csv"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Mercury_InvalidProductHierarchy_Daily_ETL"
+      },
+      "FilePathMonday" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\mercury\\InvalidProduct\\INVALID_PRODUCT_HIERARCHY_20230707.csv"
+      },
+      "sFileName" : {
+        "type" : "String"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Mercury_InvalidProductHierarchy_Daily_ETL"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String"
+      },
+      "WeekdayNumber" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sActualRowsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Mercury_InvalidProductHierarchy_Daily_ETL"
+      },
+      "FileSize" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

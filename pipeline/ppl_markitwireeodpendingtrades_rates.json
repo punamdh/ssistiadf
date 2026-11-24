@@ -1,0 +1,376 @@
+{
+  "name" : "ppl_markitwireeodpendingtrades_rates",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Pre-Clear_Data_from_tbl_REODR_DoneOrPendingStat",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DELETE \nFROM tbl_REODR_DoneOrPendingStatusDrop",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_RowCount_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Pre-Clear_Data_from_tbl_REODR_DoneOrPendingStat",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT COUNT(*) AS 'RecordCount' FROM\n(SELECT a.[TradeID],\n a.[BookID],\n a.[ProductType],\n a.[ContractState],\n a.[PrivateProcessState],\n a.[CounterPartyBIC],\n a.[DealDate],\n a.[LoadDate]\n  FROM [tbl_DE_CLRbaseline] a \n  LEFT JOIN tbl_REODR_DoneOrPendingNotInternal b ON a.tradeId = b.TradeID\n  WHERE b.TradeID is null\n\tAND a.productType <> 'Index Variance Swap' \n\tAND a.productType <> 'Equity Index Option' \n\tAnd a.productType <> 'Offline Trade Credit Summary' \n\tAnd a.productType <> 'Offline Trade Credit' \n\tAnd a.productType <> 'Equity Share Option'\n\tAND (a.privateProcessState = 'Pending' OR a.privateProcessState = 'Done')\n\tAND a.counterpartyBic <> 'PNBPUS33CHA' \n\tAnd a.counterpartyBic <> 'WFBNASF') AS c",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_RowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_RowCount_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RowCount",
+        "value" : "@int(activity('ST_Get_RowCount_0').output.resultSets[0].rows[0].RecordCount)"
+      }
+    }, {
+      "name" : "ST_Data_Additions_for_tbl_REODR_DoneOrPendingNotIn",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_RowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [tbl_REODR_DoneOrPendingNotInternal]\n           ([TradeID]\n           ,[BookID]\n           ,[ProductType]\n           ,[ContractState]\n           ,[PrivateProcessState]\n           ,[CounterPartyBIC]\n           ,[VersionTimestamp]\n           ,[LoadDate])\n (SELECT a.[TradeID],\n a.[BookID],\n a.[ProductType],\n a.[ContractState],\n a.[PrivateProcessState],\n a.[CounterPartyBIC],\n a.[DealDate],\n a.[LoadDate]\n  FROM [tbl_DE_CLRbaseline] a \n  LEFT JOIN tbl_REODR_DoneOrPendingNotInternal b ON a.tradeId = b.TradeID\n  WHERE b.TradeID is null\n\tAND a.productType <> 'Index Variance Swap' \n\tAND a.productType <> 'Equity Index Option' \n\tAnd a.productType <> 'Offline Trade Credit Summary' \n\tAnd a.productType <> 'Equity Index Option Strategy' \n\tAnd a.productType <> 'Offline Trade Credit' \n\tAnd a.productType <> 'Equity Share Option'\n\tAND (a.privateProcessState = 'Pending' OR a.privateProcessState = 'Done')\n\tAND a.counterpartyBic <> 'PNBPUS33CHA' \n\tAnd a.counterpartyBic <> 'WFBNASF')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Find_Changed_PrivateProcessState_for_tbl_REODR_",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Data_Additions_for_tbl_REODR_DoneOrPendingNotIn",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO tbl_REODR_DoneOrPendingStatusDrop\n(TradeID, PrivateProcessState)\n(SELECT tbl_REODR_DoneOrPendingNotInternal.TradeID, tbl_DE_CLRbaseline.privateProcessState\nFROM tbl_DE_CLRbaseline RIGHT JOIN tbl_REODR_DoneOrPendingNotInternal ON tbl_DE_CLRbaseline.tradeId = tbl_REODR_DoneOrPendingNotInternal.TradeID\nWHERE tbl_REODR_DoneOrPendingNotInternal.TradeID=tbl_DE_CLRbaseline.tradeId AND tbl_DE_CLRbaseline.privateProcessState<>'Pending' And tbl_DE_CLRbaseline.privateProcessState<>'Done' AND tbl_REODR_DoneOrPendingNotInternal.PrivateProcessState<>tbl_DE_CLRbaseline.privateProcessState)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Update_PrivateProcessState_in_tbl_REODR_DoneOrP",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Find_Changed_PrivateProcessState_for_tbl_REODR_",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "UPDATE tbl_REODR_DoneOrPendingNotInternal \nSET tbl_REODR_DoneOrPendingNotInternal.PrivateProcessState = tbl_REODR_DoneOrPendingStatusDrop.PrivateProcessState\nFROM tbl_REODR_DoneOrPendingNotInternal INNER JOIN tbl_REODR_DoneOrPendingStatusDrop ON tbl_REODR_DoneOrPendingNotInternal.TradeID = tbl_REODR_DoneOrPendingStatusDrop.tradeId\nWHERE tbl_REODR_DoneOrPendingNotInternal.PrivateProcessState<>tbl_REODR_DoneOrPendingStatusDrop.PrivateProcessState AND tbl_REODR_DoneOrPendingNotInternal.tradeId=tbl_REODR_DoneOrPendingStatusDrop.TradeId",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_add_aging_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_PrivateProcessState_in_tbl_REODR_DoneOrP",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "update [dbo].[tbl_REODR_DoneOrPendingNotInternal]\nset CalDaysInStatus = DATEDIFF(DAY,left(VersionTimestamp,10),getdate()),\nWorkdaysInStatus = dbo.fn_BusinessDayCount(left(VersionTimestamp,10),getdate()) -1\nfrom [dbo].[tbl_REODR_DoneOrPendingNotInternal]\nwhere [PrivateProcessState] in('Pending','Done') and (Unresolvable is null or Unresolvable = 0)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Post-Clear_Data_from_tbl_REODR_DoneOrPendingSta",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_add_aging_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DELETE \nFROM tbl_REODR_DoneOrPendingStatusDrop",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Send_Success_Email_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Post-Clear_Data_from_tbl_REODR_DoneOrPendingSta",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n@TO = 'WFSRS@wellsfargo.com; Rates-MO-India <RatesMOIndia@wellsfargo.com>; IRDerivMO <IRDerivMO@wellsfargo.com>; G=RatesMO <dlRatesMO@wellsfargo.com>; G=Muni Derivatives Middle Office <MuniDerivativesMiddleOffice@wellsfargo.com>'\n,@SUBJECT = 'WFSR&S_ProcessAlert_MarkItWireEODPendingTradesETL_SUCCESS'\n,@BODY = \n'Report data refesh job processing completed: <br> <br> <a href=\"https://app.powerbi.com/groups/me/apps/e78071e2-1b0f-4581-8152-9994d61d94e5/reports/a3ec850d-f498-4c14-823f-25d3c9000091/d4def478082cc8a8094c?clientSideAuth=0&experience=power-bi\">Click here for Prod Homepage</a> <br> <a href=\"https://app.powerbi.com/groups/me/apps/65a2f855-9afb-4250-816a-eaf73148d7cc/reports/cd54813d-f6fe-48ec-9ee5-2ddacd31f12c/d4def478082cc8a8094c?experience=power-bi\">Click here for Bcp Homepage</a> <br> Component is MarkItWire EOD Pending Trades ETL <br> <br> '\n,@BodyFormat = '2'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sSQLRegisterAlertFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_add_aging_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Data_Additions_for_tbl_REODR_DoneOrPendingNotIn",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Find_Changed_PrivateProcessState_for_tbl_REODR_",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Post-Clear_Data_from_tbl_REODR_DoneOrPendingSta",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Pre-Clear_Data_from_tbl_REODR_DoneOrPendingStat",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Update_PrivateProcessState_in_tbl_REODR_DoneOrP",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_RowCount",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sSQLRegisterAlertFailure",
+        "value" : {
+          "value" : "@concat('exec sp_ins_ssis_utility_alert ''', variables('sToFailure'), ''',''', variables('sEmailTeamId'), variables('sEnvironment'), '_', variables('sProcessName'), variables('sStatusFailed'), ''',\n''', variables('sHTMLTable'), '<br/><br/>JIRA Component: MarkItWireEODPendingTrades. <br/><br/>job 1EQS_WFSRS_MarkItWireEodPendingTrades_Rates has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com'',\n 2')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_send_failure_email_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sSQLRegisterAlertFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('sSQLRegisterAlertFailure')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "MarkItWireEODPendingTrades"
+      },
+      "sSQLRegisterAlert" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'WFSRS@wellsfargo.com','WFSR&S_ProcessAlertDEV_MarkItWireEODPendingTrades_SUCCESS',' <p> <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Tradeserv_Exceptions_Navigation\\\">Click here to go to the navigation page</a></p><br/><br/>JIRA Component: MarkItWireEODPendingTrades. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com', 2"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sReportHyperLink" : {
+        "type" : "String",
+        "defaultValue" : "<p> <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Tradeserv_Exceptions_Navigation\\\">Click here to go to the navigation page</a></p>"
+      },
+      "sSQLRegisterAlertFailure" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'WFSRS@wellsfargo.com','WFSR&S_ProcessAlertDEV_MarkItWireEODPendingTrades_FAILED',\\n'<br/><br/>JIRA Component: MarkItWireEODPendingTrades. <br/><br/>job 1EQS_WFSRS_MarkItWireEodPendingTrades_Rates has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com',\\n 2"
+      },
+      "sHTMLTable" : {
+        "type" : "String"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "FileNameDate" : {
+        "type" : "String",
+        "defaultValue" : "DE_CLRbaseline_20251005.csv"
+      },
+      "sCC" : {
+        "type" : "String",
+        "defaultValue" : "IRDerivMO@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String"
+      },
+      "sEmailTeamId" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert"
+      },
+      "sToFailure" : {
+        "type" : "String",
+        "defaultValue" : "WFSRS@wellsfargo.com"
+      },
+      "sToSuccess" : {
+        "type" : "String",
+        "defaultValue" : "WFSRS@wellsfargo.com"
+      },
+      "DestinationFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ent.wfb.bank.corp\\whlsdfs\\Shared\\Operate1\\DQR\\PROJECTS\\SSIS\\Rates End of Day Recon\\Rates End of Day Recon\\Deal Extractor 17.1\\ExtractFiles\\archive\\"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sStatusSuccess" : {
+        "type" : "String",
+        "defaultValue" : "_SUCCESS"
+      },
+      "sStatus" : {
+        "type" : "String"
+      },
+      "RowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "The Rates End of Day Recon table update process completed"
+      },
+      "sStatusFailed" : {
+        "type" : "String",
+        "defaultValue" : "_FAILED"
+      }
+    }
+  }
+}

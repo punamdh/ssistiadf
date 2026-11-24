@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ExcelSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Excel1",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "ETPPDEV"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEID as string,\n\t\tELID as string,\n\t\t{ZONE NAME} as string,\n\t\t{ZONE VALID FROM} as string,\n\t\t{ZONE VALID TO} as string,\n\t\t{FIRST NAME} as string,\n\t\t{LAST NAME} as string,\n\t\tEMAIL as string,\n\t\t{JOB TITLE} as string,\n\t\t{AVAILABLE TO WORK} as string,\n\t\t{HIRE DATE} as string,\n\t\t{EXPECTED END DATE} as string,\n\t\t{VENDOR COMPANY} as string,\n\t\t{MANAGER FIRST NAME} as string,\n\t\t{MANAGER LAST NAME} as string,\n\t\t{MANAGER EMAIL} as string,\n\t\t{MANAGER NAME} as string,\n\t\t{ACCESS KEEPER ID} as string,\n\t\t{ZONE OWNER EMAIL} as string,\n\t\t{ZONE GROUP} as string,\n\t\t{CAMPUS SET} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tZONEVALIDFROM = iif(isNull({ZONE VALID FROM}) || trim({ZONE VALID FROM}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID FROM}, 'MM/dd/yyyy'), 'MM/dd/yyyy')),\n\t\tZONEVALIDTO = iif(isNull({ZONE VALID TO}) || trim({ZONE VALID TO}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID TO}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tEID as string,\n\t\tEXPECTEDENDDATE as string,\n\t\tZONE_VALID_TO as timestamp 'dd-MM-yyyy',\n\t\tELID as string,\n\t\tUploadDate as string,\n\t\tMANAGER_LASTNAME as string,\n\t\tAVAILABLE_TO_WORK as string,\n\t\tMANAGER_EMAIL as string,\n\t\tFIRSTNAME as string,\n\t\tZONEOWNEREMAIL as string,\n\t\tEMAIL as string,\n\t\tVENDOR_COMPANY as string,\n\t\tZONE_NAME as string,\n\t\tZONE_VALID_FROM as timestamp 'dd-MM-yyyy',\n\t\tMANAGER_NAME as string,\n\t\tETLUser as string,\n\t\tHIRE_DATE as string,\n\t\tLASTNAME as string,\n\t\tACCESS_KEEPER_ID as string,\n\t\tMANAGER_FIRST_NAME as string,\n\t\tJOBTITLE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEID,\n\t\tEXPECTEDENDDATE = {EXPECTED END DATE},\n\t\tZONE_VALID_TO = ZONEVALIDTO,\n\t\tELID,\n\t\tUploadDate,\n\t\tMANAGER_LASTNAME = {MANAGER LAST NAME},\n\t\tAVAILABLE_TO_WORK = {AVAILABLE TO WORK},\n\t\tMANAGER_EMAIL = {MANAGER EMAIL},\n\t\tFIRSTNAME = {FIRST NAME},\n\t\tZONEOWNEREMAIL = {ZONE OWNER EMAIL},\n\t\tEMAIL,\n\t\tVENDOR_COMPANY = {VENDOR COMPANY},\n\t\tZONE_NAME = {ZONE NAME},\n\t\tZONE_VALID_FROM = ZONEVALIDFROM,\n\t\tMANAGER_NAME = {MANAGER NAME},\n\t\tETLUser,\n\t\tHIRE_DATE = {HIRE DATE},\n\t\tLASTNAME = {LAST NAME},\n\t\tACCESS_KEEPER_ID = {ACCESS KEEPER ID},\n\t\tMANAGER_FIRST_NAME = {MANAGER FIRST NAME},\n\t\tJOBTITLE = {JOB TITLE}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as date 'dd-MM-yyyy',\n\t\tDataCenter as string,\n\t\t{Number of Hosts} as double,\n\t\t{Number of Virtual Guests} as double,\n\t\t{Number of Powered on Guests} as double,\n\t\t{Total CPU Cores} as double,\n\t\t{Allocated vCPUs} as double,\n\t\t{Powered on vCPUs} as double,\n\t\t{Total RAM} as double,\n\t\t{Total RAM - Overhead} as double,\n\t\t{Allocated RAM} as double,\n\t\t{Powered on RAM} as double,\n\t\t{Total Disk Space} as double,\n\t\t{Allocated Disk Space} as double,\n\t\t{Allocated Disk Space + Overhead} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tNumber_of_Hosts as double,\n\t\tNumber_of_Virtual_Guests as double,\n\t\tPowered_on_vCPUs as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\tAllocated_RAM as double,\n\t\tNumber_of_Powered_on_Guests as double,\n\t\tTotal_RAM as double,\n\t\tAllocated_Disk_Space___Overhead as double,\n\t\tName as string,\n\t\tTotal_CPU_Cores as double,\n\t\tPowered_on_RAM as double,\n\t\tDataCenter as string,\n\t\tTotal_Disk_Space as double,\n\t\tAllocated_vCPUs as double,\n\t\t{Total_RAM_-_Overhead} as double,\n\t\tAllocated_Disk_Space as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNumber_of_Hosts = {Number of Hosts},\n\t\tNumber_of_Virtual_Guests = {Number of Virtual Guests},\n\t\tPowered_on_vCPUs = {Powered on vCPUs},\n\t\timportdate,\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tAllocated_RAM = {Allocated RAM},\n\t\tNumber_of_Powered_on_Guests = {Number of Powered on Guests},\n\t\tTotal_RAM = {Total RAM},\n\t\tAllocated_Disk_Space___Overhead = {Allocated Disk Space + Overhead},\n\t\tName,\n\t\tTotal_CPU_Cores = {Total CPU Cores},\n\t\tPowered_on_RAM = {Powered on RAM},\n\t\tDataCenter,\n\t\tTotal_Disk_Space = {Total Disk Space},\n\t\tAllocated_vCPUs = {Allocated vCPUs},\n\t\t{Total_RAM_-_Overhead} = {Total RAM - Overhead},\n\t\tAllocated_Disk_Space = {Allocated Disk Space}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
     }
   }
 }

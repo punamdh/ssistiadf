@@ -1,0 +1,31 @@
+{
+  "name" : "load_records",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsFXInvestigatinsDailyPymntTrckrDetailsStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblOpicsFXInvestigatinsDailyPymntTrckrDetailsStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tDEALNUMBER as string,\n\t\tCCY as string,\n\t\tCCYAMOUNT as decimal(19,4),\n\t\tVALUEDATE as string,\n\t\tDIRECTION as string,\n\t\tMESSAGETYPE as string,\n\t\tFIELD20 as string,\n\t\tGSMOSSTATUS as string,\n\t\tSWIFTSTATUS as string,\n\t\tCURRENTSTATUS as string,\n\t\tUPDATETIME as timestamp,\n\t\tSYSCODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCurrentStatus as string,\n\t\tUpdatetime as string,\n\t\tImport_Date as string,\n\t\tDirection as string,\n\t\tCCYAmount as string,\n\t\tSwiftstatus as string,\n\t\tDealnumber as string,\n\t\tCCY as string,\n\t\tSyscode as string,\n\t\tValueDate as string,\n\t\tField20 as string,\n\t\tGsmosstatus as string,\n\t\tMessageType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCurrentStatus = CURRENTSTATUS,\n\t\tUpdatetime = UPDATETIME,\n\t\tImport_Date = Loaddate,\n\t\tDirection = DIRECTION,\n\t\tCCYAmount = CCYAMOUNT,\n\t\tSwiftstatus = SWIFTSTATUS,\n\t\tDealnumber = DEALNUMBER,\n\t\tCCY,\n\t\tSyscode = SYSCODE,\n\t\tValueDate = VALUEDATE,\n\t\tField20 = FIELD20,\n\t\tGsmosstatus = GSMOSSTATUS,\n\t\tMessageType = MESSAGETYPE),\n\tpartitionFileNames:[($tblOpicsFXInvestigatinsDailyPymntTrckrDetailsStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsFXInvestigatinsDailyPymntTrckrDetailsStaging"
+    }
+  }
+}

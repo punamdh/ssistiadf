@@ -1,0 +1,31 @@
+{
+  "name" : "import_source_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionData"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBank as string,\n\t\tCCY as string,\n\t\tStatementDate as string,\n\t\tLedgerBalance as string,\n\t\tLedgerDebitOrCredit as string,\n\t\tStatementBalance as string,\n\t\tStatementDebitOrCredit as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Bank = trim(Bank),\n\t\tLedgerBalance = iif(LedgerDebitOrCredit == 'C', '-' + LedgerBalance, LedgerBalance),\n\t\tCCY = trim(CCY),\n\t\tStatementBalance = iif(StatementDebitOrCredit == 'D', '-' + StatementBalance, StatementBalance)) ~> ConditionData\nConditionData sink(input(\n\t\tBank as string,\n\t\tLedgerBalance as integer,\n\t\tCCY as string,\n\t\tStatementDate as date 'dd-MM-yyyy',\n\t\tStatementBalance as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBank,\n\t\tLedgerBalance,\n\t\tCCY,\n\t\tStatementDate,\n\t\tStatementBalance),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

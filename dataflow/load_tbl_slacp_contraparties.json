@@ -1,0 +1,29 @@
+{
+  "name" : "load_tbl_slacp_contraparties",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPcontraparties"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPcontraparties_outputfilename as string ()\n}\n\nsource(output(\n\t\tlegalFullName as string,\n\t\temailAddress2 as string,\n\t\ttestEmailAddress2 as string,\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tlegalFullName as string,\n\t\temailAddress2 as string,\n\t\ttestEmailAddress2 as string,\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegalFullName,\n\t\temailAddress2,\n\t\ttestEmailAddress2,\n\t\tcontraParty),\n\tpartitionFileNames:[($tblSLACPcontraparties_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPcontraparties"
+    }
+  }
+}

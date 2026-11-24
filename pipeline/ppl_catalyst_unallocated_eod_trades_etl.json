@@ -1,0 +1,476 @@
+{
+  "name" : "ppl_catalyst_unallocated_eod_trades_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_Catalyst_Trade_ContainerName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_Catalyst_Trade_FileName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_Catalyst_Trade_FilePath' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_ContainerName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FileName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FilePath' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Catalyst_Unallocated_Trades_London_Staging_ContainerName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Catalyst_Unallocated_Trades_London_Staging_FileName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Catalyst_Unallocated_Trades_London_Staging_FilePath' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl' AND DATAFLOW_NAME = 'get_tbl_catalyst_unallocated_trades_london') AS Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_tbl_Catalyst_Unallocated_Trades_London0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl') AS Get_tbl_Catalyst_Unallocated_Trades_London0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_tbl_Catalyst_Unallocated_Trades_London0_sink_TableName' AND PIPELINE_NAME = 'ppl_catalyst_unallocated_eod_trades_etl') AS Get_tbl_Catalyst_Unallocated_Trades_London0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Log_Start_of_Process_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_truncate_tbl_Catalyst_Unallocated_Trades_London",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Start_of_Process_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "delete from [dbo].tbl_Catalyst_Unallocated_Trades_London",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Get_tbl_Catalyst_Unallocated_Trades_London",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_truncate_tbl_Catalyst_Unallocated_Trades_London",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Get_tbl_Catalyst_Unallocated_Trades_London",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Get_tbl_Catalyst_Unallocated_Trades_London",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Get_tbl_Catalyst_Unallocated_Trades_London",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_tbl_catalyst_unallocated_trades_london",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "totblCatalystUnallocatedTradesLondonStaging_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "LookupLKPTABLE" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_LookupLKPTABLE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "fromtblCatalystTrade" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_fromtblCatalystTrade_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "totblCatalystUnallocatedTradesLondonStaging" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Get_tbl_Catalyst_Unallocated_Trades_London_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Get_tbl_Catalyst_Unallocated_Trades_London0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Get_tbl_Catalyst_Unallocated_Trades_London",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London_totblCatalystUnallocatedTradesLondonStaging_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_tbl_Catalyst_Unallocated_Trades_London0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Get_Actual_Rows_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Get_tbl_Catalyst_Unallocated_Trades_London0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT COUNT(1) AS NumRows FROM [dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging]\nWHERE loadDate >= CAST(GetDate() as Date)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_nActualRows",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Actual_Rows_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "nActualRows",
+        "value" : "@int(activity('ST_Get_Actual_Rows_0').output.resultSets[0].rows[0].NumRows)"
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_-_Logic_for_Aging_and_Suballoc",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_nActualRows",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "\n--Existing Trades - Suballocated\n\nWITH SubAllocated\nAS\n(\n\tSELECT distinct a.catalyst_trade_number, CAST(b.effective_date as Date) as effective_date, b.trade_state\n\tFROM [ReconControl].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] a\n\tLEFT JOIN [ReconControl].[dbo].[tbl_Catalyst_Trade] b \n\tON a.catalyst_trade_number = b.parent_trade_number\n\tWHERE b.trade_state in ('SUBALLOCATED','CONFIRMED', 'CANCELLED')\n\tAND a.trade_state IS NULL\n\n\n\tUNION\n\n\tSELECT distinct a.catalyst_trade_number, CAST(b.effective_date as Date) as effective_date, b.trade_state\n\tFROM [ReconControl].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] a\n\tLEFT JOIN [ReconControl].[dbo].[tbl_Catalyst_Trade] b \n\tON a.catalyst_trade_number = b.prev_trade_number\n\tWHERE b.trade_state  in ('SUBALLOCATED','CONFIRMED','CANCELLED')\n\tAND a.trade_state IS NULL\n\n\tUNION\n\n\tSELECT distinct a.catalyst_trade_number, CAST(b.effective_date as Date) as effective_date, b.trade_state\n\tFROM [ReconControl].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] a\n\tLEFT JOIN [ReconControl].[dbo].[tbl_Catalyst_Trade] b \n\tON a.catalyst_trade_number = b.catalyst_trade_number\n\tWHERE b.trade_status  in ('CNCL')\n\tAND a.trade_state IS NULL\n\n)\n\n\nUpdate A\nSET A.trade_state = B.trade_state \n       ,A.allocatedDate = CAST(B.effective_date as Date)\nFrom  [ReconControl].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] A\nINNER JOIN SubAllocated B\nON A.Catalyst_trade_number = B.catalyst_trade_number;\n\n\n\n--Existing Trades - Aging\n\nUPDATE A\nSET A.aging = DATEDIFF(d, A.entry_time, CAST(GETDATE() as Date))\n  FROM [ReconControl].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] A",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_-_Insert_Unallocated_into_fina",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Logic_for_Aging_and_Suballoc",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [Reconcontrol].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades]\n([loadDate]\n      ,[entry_time]\n      ,[trade_date]\n      ,[settle_date]\n      ,[import_source]\n      ,[catalyst_trade_number]\n      ,[salesperson]\n      ,[counterparty]\n      ,[buy_sell]\n      ,[security_description]\n      ,[current_par]\n      ,[principal]\n      ,[accrued_interest]\n      ,[total_cash]\n      ,[currency]\n      ,[isin]\n      ,[cusip]\n      ,[price]\n      ,[aging]\n      ,[legal_entity]\n      ,[productType]\n      ,[inventory]\n      ,[deskName]\n      ,[tradingUnitName] \n\t)\nSELECT a.[loadDate]\n      ,a.[entry_time]\n      ,a.[trade_date]\n      ,a.[settle_date]\n      ,a.[import_source]\n      ,a.[catalyst_trade_number]\n      ,a.[salesperson]\n      ,a.[counterparty]\n      ,a.[buy_sell]\n      ,a.[security_description]\n      ,a.[current_par]\n      ,a.[principal]\n      ,a.[accrued_interest]\n      ,a.[total_cash]\n      ,a.[currency]\n      ,a.[isin]\n      ,a.[cusip]\n      ,a.[price]\n      ,a.[aging]\n      ,a.[legal_entity]\n      ,a.[productType]\n      ,a.[inventory]\n      ,a.[deskName]\n      ,a.[tradingUnitName]\nFROM [Reconcontrol].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades_Staging] a\nLEFT OUTER JOIN [Reconcontrol].[dbo].[tbl_Catalyst_Unallocated_EOD_Trades] b ON CAST(a.loadDate as Date) = CAST(b.loadDate as Date)\nWHERE a.trade_state IS NULL\nAND CAST(b.loadDate as Date) IS NULL\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_Failure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Insert_Unallocated_into_fina",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Execute_SQL_Task_-_Logic_for_Aging_and_Suballoc",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Log_Start_of_Process_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_truncate_tbl_Catalyst_Unallocated_Trades_London",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_nActualRows",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "CPD_Get_tbl_Catalyst_Unallocated_Trades_London0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Failure',\n @num_of_records = -1,\n @actual_records = -2,\n @FileName='N/A'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_Success_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_-_Insert_Unallocated_into_fina",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END', \n @proc_pack_nm  = @{variables('sProcessName')},\n@comment = @{variables('sMessage')},\n@status = 'Success',\n@num_of_records = @{variables('nExpectedRows')},\n@actual_records = @{variables('nActualRows')}\n\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_Send_Failure_Email",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Failure_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Get_tbl_Catalyst_Unallocated_Trades_London_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Catalyst_Unallocated_EOD_Trades"
+      },
+      "nExpectedRows" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "nActualRows" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name" : "dft-load-caypso_-_access_by_group",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBCalypso",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBOTCTrade"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "CalculateFuncGroup"
+      } ],
+      "script" : "parameters{\n\tsFuncGroup as string ('Rates'),\n\tOLEDBOTCTrade_outputfilename as string ()\n}\n\nsource(output(\n\t\tGROUP_NAME as string,\n\t\tTRADE_STATUS as string,\n\t\tTRADE_ACTION as string,\n\t\tCREATE_DTE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCalypso\nOLEDBCalypso derive(oTRADE_ACTION = TRADE_ACTION,\n\t\toGROUP_NAME = GROUP_NAME,\n\t\toTRADE_STATUS = TRADE_STATUS,\n\t\toCREATE_DTE = CREATE_DTE) ~> DataConversion\nDataConversion derive(sGroup = toString($sFuncGroup)) ~> CalculateFuncGroup\nCalculateFuncGroup sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tGroup_Assigned as string,\n\t\tAudit_Action as string,\n\t\tGroup_Name as string,\n\t\tOriginal_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tGroup_Assigned = sGroup,\n\t\tAudit_Action = oTRADE_ACTION,\n\t\tGroup_Name = oGROUP_NAME,\n\t\tOriginal_Status = oTRADE_STATUS),\n\tpartitionFileNames:[($OLEDBOTCTrade_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBOTCTrade"
+    }
+  }
+}

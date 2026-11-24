@@ -5,11 +5,11 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ChangeData",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "flightplanmigrationsnowchangedataimporttbl"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tCDU as string,\n\t\tRETURN_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tETLUser as string,\n\t\tCDU as string,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tHUMIDITY,\n\t\tETLUser,\n\t\tCDU,\n\t\tRunning,\n\t\tFanSpeed_perc,\n\t\tDate,\n\t\tRETURN_SETPOINT),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tflightplanmigrationsnowchangedataimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\t{App ID} as string,\n\t\t{Application Name} as string,\n\t\tCIO as string,\n\t\t{NGDC Comp Type} as string,\n\t\t{Component Migrate By} as string,\n\t\t{App Migration Date} as string,\n\t\tCR as string,\n\t\t{START DATE} as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ChangeData\nChangeData derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tApp_ID as string,\n\t\tSTATUS as string,\n\t\tApplication_Name as string,\n\t\tComponent_Migrate_By as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tCIO as string,\n\t\tNGDC_Comp_Type as string,\n\t\tSTART_DATE as string,\n\t\tApp_Migration_Date as string,\n\t\tCR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tApp_ID = {App ID},\n\t\tSTATUS,\n\t\tApplication_Name = {Application Name},\n\t\tComponent_Migrate_By = {Component Migrate By},\n\t\timportdate,\n\t\tCIO,\n\t\tNGDC_Comp_Type = {NGDC Comp Type},\n\t\tSTART_DATE = {START DATE},\n\t\tApp_Migration_Date = {App Migration Date},\n\t\tCR),\n\tpartitionFileNames:[($flightplanmigrationsnowchangedataimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> flightplanmigrationsnowchangedataimporttbl"
     }
   }
 }

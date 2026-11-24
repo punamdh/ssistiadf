@@ -1,0 +1,203 @@
+{
+  "name" : "ppl_set_sbus_grp_0_0_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Log_Day_Exist_in_table_1_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(pipeline().parameters.iCountDayExistA,0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Log_Day_Exist_in_table_1_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "Execute sp_ssis_log_insert_update \n@exec_pt  = 'END',\n @proc_pack_nm  = concat(pipeline().parameters.BasePath, '/', @item().name),\n @comment = concat(pipeline().parameters.BasePath, '/', @item().name),\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@filename = 'PnlByTradeDetails_CRD_CVA_'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Failure_Day_Exists",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Log_Day_Exist_in_table_1_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "iCountDayExistA" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "BasePath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sMsgFailureStep1" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Trade Audit Mapping Test Failed Step 1 - Review"
+      },
+      "dBusinessDateRpt" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025'"
+      },
+      "dFileCreatedDateA" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025 12:00:46 PM'"
+      },
+      "sMsgFailureStep3" : {
+        "type" : "String",
+        "defaultValue" : "CreditCVATradeAuditMapping - Failed Step 3"
+      },
+      "sMsgFailureStep2" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Trade Audit Mapping Test Failed Step 2 - Loading Files - Review"
+      },
+      "sFileSearchDte" : {
+        "type" : "String",
+        "defaultValue" : "'9/2/2022 1:01:50 PM'"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "iCountDayExistA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iRowAuditCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMsgDayExistA" : {
+        "type" : "String",
+        "defaultValue" : "CVA File Exist - Review - File 1A of 4 ABMO Book"
+      },
+      "sMsgNoRecordsBOAudit" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading daily file to staging - Step 1 of 4 - No records in BOA_Audit"
+      },
+      "sFolderName" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA\\"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoCreditCVATradeCancelCorrect:  Number of Records loaded in stagging = 0                   Number of Records loaded in tbl_Trade_CreditAudit= 0"
+      },
+      "iRowLoadedA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sArchiveFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA\\Archive\\"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CreditCVATradeCancelCorrect"
+      },
+      "sCommentA" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Mapping Test Start loading daily file to staging - Step 1A of 4"
+      },
+      "sCommentB" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Mapping Test Start Credit Audit File Load - Step 1 of 4"
+      },
+      "iRowFromAuditA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sBusGrp" : {
+        "type" : "String"
+      },
+      "oClyFileNames" : {
+        "type" : "String"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_Process_Alert_DEV_CreditCVATradeCancelCorrect_"
+      },
+      "sFileSearchDate" : {
+        "type" : "String",
+        "defaultValue" : "07122022"
+      },
+      "iRowSourceA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFullPathCVA" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA"
+      },
+      "sClyFileName" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "dAuditDte" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025 12:00:46 PM'"
+      },
+      "sClyFullName" : {
+        "type" : "String",
+        "defaultValue" : "07122022.csv"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd"
+      }
+    }
+  }
+}

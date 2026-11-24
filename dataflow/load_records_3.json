@@ -1,0 +1,31 @@
+{
+  "name" : "load_records_3",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBRANCH as string,\n\t\tMTSTATUS as string,\n\t\t{Originator BIC} as string,\n\t\t{Counterparty BIC} as string,\n\t\t{Counterparty Name} as string,\n\t\t{Current Status} as string,\n\t\t{Previous Status} as string,\n\t\t{Deal Number} as string,\n\t\t{Originator Reference} as string,\n\t\t{Buy Currency} as string,\n\t\t{Buy Amount} as decimal(19,2),\n\t\t{Sell Currency} as string,\n\t\t{Sell Amount} as decimal(19,2),\n\t\t{FX Rate} as decimal(19,8),\n\t\t{Value Date} as timestamp,\n\t\t{Updated Date Time} as timestamp,\n\t\tNOTES as string,\n\t\t{Fund ID} as string,\n\t\t{Fund Name} as string,\n\t\t{Deal Date} as timestamp,\n\t\tMESSAGEID as decimal(25,0),\n\t\tMESSAGETYPE as string,\n\t\tINOUTIND as string,\n\t\tCLSSTATUSCODE as string,\n\t\tCLSSUBSTATUS as string,\n\t\tCOMMONREFERENCE as string,\n\t\tRELATEDREFERENCE as string,\n\t\tCLSBREFERENCE as string,\n\t\tCLSMATCHINGREFERENCE as string,\n\t\tPOSBLDUPLICATE as string,\n\t\tREASON as string,\n\t\tMESSAGEREF as string,\n\t\tSETTLEMENTSESSION as string,\n\t\tXMLID as decimal(25,0),\n\t\tALLEGED as string,\n\t\tCTRPTYSUBMTNGPTYBIC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMESSAGEID as string,\n\t\tFXRATE as string,\n\t\tVALUEDATE as string,\n\t\tDealNumber as string,\n\t\tINOUTIND as string,\n\t\tDEALDATE as string,\n\t\tCLSSTATUSCODE as string,\n\t\tMESSAGEREF as string,\n\t\tFUNDNAME as string,\n\t\tNOTES as string,\n\t\tBuyCurrency as string,\n\t\tPreviousStatus as string,\n\t\tLoaddate as string,\n\t\tCounterpartyBIC as string,\n\t\tREASON as string,\n\t\tORIGINATORREFERENCE as string,\n\t\tRELATEDREFERENCE as string,\n\t\tBRANCH as string,\n\t\tBuyAmount as string,\n\t\tCOUNTERPARTYNAME as string,\n\t\tCLSBREFERENCE as string,\n\t\tSellAmount as string,\n\t\tFUNDID as string,\n\t\tCurrentStatus as string,\n\t\tCLSSUBSTATUS as string,\n\t\tCLSMATCHINGREFERENCE as string,\n\t\tXMLID as string,\n\t\tSETTLEMENTSESSION as string,\n\t\tMESSAGETYPE as string,\n\t\tALLEGED as string,\n\t\tOriginatorBIC as string,\n\t\tSellCurrency as string,\n\t\tCTRPTYSUBMTNGPTYBIC as string,\n\t\tUpdatedDateTime as string,\n\t\tCOMMONREFERENCE as string,\n\t\tMTSTATUS as string,\n\t\tPOSBLDUPLICATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMESSAGEID,\n\t\tFXRATE = {FX Rate},\n\t\tVALUEDATE = {Value Date},\n\t\tDealNumber = {Deal Number},\n\t\tINOUTIND,\n\t\tDEALDATE = {Deal Date},\n\t\tCLSSTATUSCODE,\n\t\tMESSAGEREF,\n\t\tFUNDNAME = {Fund Name},\n\t\tNOTES,\n\t\tBuyCurrency = {Buy Currency},\n\t\tPreviousStatus = {Previous Status},\n\t\tLoaddate,\n\t\tCounterpartyBIC = {Counterparty BIC},\n\t\tREASON,\n\t\tORIGINATORREFERENCE = {Originator Reference},\n\t\tRELATEDREFERENCE,\n\t\tBRANCH,\n\t\tBuyAmount = {Buy Amount},\n\t\tCOUNTERPARTYNAME = {Counterparty Name},\n\t\tCLSBREFERENCE,\n\t\tSellAmount = {Sell Amount},\n\t\tFUNDID = {Fund ID},\n\t\tCurrentStatus = {Current Status},\n\t\tCLSSUBSTATUS,\n\t\tCLSMATCHINGREFERENCE,\n\t\tXMLID,\n\t\tSETTLEMENTSESSION,\n\t\tMESSAGETYPE,\n\t\tALLEGED,\n\t\tOriginatorBIC = {Originator BIC},\n\t\tSellCurrency = {Sell Currency},\n\t\tCTRPTYSUBMTNGPTYBIC,\n\t\tUpdatedDateTime = {Updated Date Time},\n\t\tCOMMONREFERENCE,\n\t\tMTSTATUS,\n\t\tPOSBLDUPLICATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

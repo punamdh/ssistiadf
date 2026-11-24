@@ -1,0 +1,56 @@
+{
+  "name" : "load_comments_source",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "CountRecordsCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "toKPIKRIQVSpinOf"
+      } ],
+      "transformations" : [ {
+        "name" : "CheckforEmptyRows"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "Aggregatedistinct"
+      }, {
+        "name" : "Aggregatedistinct0"
+      }, {
+        "name" : "GetLoadDate"
+      }, {
+        "name" : "CountRecords0"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\ttoKPIKRIQVSpinOf_outputfilename as string (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tField_Map_DateTime_Count_Key as string,\n\t\tTrade_id as string,\n\t\tModif_date as timestamp,\n\t\tField_mapping as string,\n\t\tComment_Type as string,\n\t\tADENT as string,\n\t\tMO_Comments as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tID as integer,\n\t\tFieldMap_DateTime_count_Key as string,\n\t\tTrade_id as string,\n\t\tModif_date as timestamp,\n\t\tField_mapping as string,\n\t\tComment_Type as string,\n\t\tADENT as string,\n\t\tMO_Comment as string,\n\t\tMO_Updates_time as timestamp,\n\t\tCreate_Dte as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource split(length(Field_Map_DateTime_Count_Key) > 0, disjoint: true) ~> CheckforEmptyRows@(NotNullRow,NullRow)\nCheckforEmptyRows@NotNullRow sort(asc(Field_Map_DateTime_Count_Key, false),asc(Trade_id, false),asc(Modif_date, false),asc(Field_mapping, false),asc(Comment_Type, false),asc(ADENT, false),asc(MO_Comments, false)) ~> Aggregate\nAggregate window(over(Field_Map_DateTime_Count_Key,\n\t\tTrade_id,\n\t\tModif_date,\n\t\tField_mapping,\n\t\tComment_Type,\n\t\tADENT,\n\t\tMO_Comments),\n\tasc(Field_Map_DateTime_Count_Key, true),\n\tasc(Trade_id, true),\n\tasc(Modif_date, true),\n\tasc(Field_mapping, true),\n\tasc(Comment_Type, true),\n\tasc(ADENT, true),\n\tasc(MO_Comments, true),\n\tRank_col = rowNumber()) ~> Aggregatedistinct\nAggregatedistinct filter(Rank_col == 1) ~> Aggregatedistinct0\nAggregatedistinct0 derive(dCreateDte = toTimestamp(toString($startTime, 'MM/dd/yyyy'), 'MM/dd/yyyy')) ~> GetLoadDate\nAggregatedistinct0 aggregate(groupBy(),\n\trowcount = count(1)) ~> CountRecords0\nGetLoadDate,LookupLKPTABLE lookup(Field_Map_DateTime_Count_Key == FieldMap_DateTime_count_Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nCountRecords0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> CountRecordsCACHESINK\nLookup select(mapColumn(\n\t\tdCreateDte = dCreateDte,\n\t\tField_Map_DateTime_Count_Key = Field_Map_DateTime_Count_Key,\n\t\tTrade_id = CheckforEmptyRows@NotNullRow@Trade_id,\n\t\tModif_date = CheckforEmptyRows@NotNullRow@Modif_date,\n\t\tField_mapping = CheckforEmptyRows@NotNullRow@Field_mapping,\n\t\tComment_Type = CheckforEmptyRows@NotNullRow@Comment_Type,\n\t\tADENT = CheckforEmptyRows@NotNullRow@ADENT,\n\t\tMO_Comments = MO_Comments,\n\t\tID = ID,\n\t\tFieldMap_DateTime_count_Key = FieldMap_DateTime_count_Key,\n\t\tMO_Comment = MO_Comment,\n\t\tMO_Updates_time = MO_Updates_time,\n\t\tCreate_Dte = Create_Dte\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tModif_date as timestamp 'dd-MM-yyyy',\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tMO_Comment as string,\n\t\tFieldMap_DateTime_count_Key as string,\n\t\tComment_Type as string,\n\t\tField_mapping as string,\n\t\tTrade_id as string,\n\t\tADENT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tModif_date,\n\t\tCreate_Dte = dCreateDte,\n\t\tMO_Comment = MO_Comments,\n\t\tFieldMap_DateTime_count_Key = Field_Map_DateTime_Count_Key,\n\t\tComment_Type,\n\t\tField_mapping,\n\t\tTrade_id,\n\t\tADENT),\n\tpartitionFileNames:[($toKPIKRIQVSpinOf_outputfilename)],\n\tpartitionBy('hash', 1)) ~> toKPIKRIQVSpinOf"
+    }
+  }
+}

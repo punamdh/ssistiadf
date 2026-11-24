@@ -1,0 +1,33 @@
+{
+  "name" : "loaddata",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tAMOUNT as double,\n\t\tVALUE_DATE as string,\n\t\tVERSION_NUM as decimal(38,0),\n\t\tSHORT_NAME as string,\n\t\tENTITY_ID as decimal(38,0),\n\t\tENTITY_FIELD_NAME as string,\n\t\tMODIF_DATE as timestamp,\n\t\tENTITY_CLASS_NAME as string,\n\t\tOLD_VALUE as string,\n\t\tNEW_VALUE as string,\n\t\tUSER_NAME as string,\n\t\tFIELD_TYPE as string,\n\t\tALLOW_UNDO_B as decimal(38,0),\n\t\tAUDIT_ACTION as string,\n\t\tOBJECT_VALUE as string,\n\t\tSMALL_OBJECT_VALUE as string,\n\t\tENTITY_NAME as string,\n\t\tRELATED_ID as decimal(38,0),\n\t\tCOMPRESSED_B as decimal(38,0),\n\t\tPO_ID as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn derive({Copy of MODIF_DATE} = toDate(MODIF_DATE, \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tLOAD_DATE as timestamp 'dd-MM-yyyy',\n\t\tENTITY_ID as integer,\n\t\tALLOW_UNDO_B as integer,\n\t\tRELATED_ID as integer,\n\t\tVERSION_NUM as integer,\n\t\tSMALL_OBJECT_VALUE as string,\n\t\tCOMPRESSED_B as integer,\n\t\tUSER_NAME as string,\n\t\tVALUE_DATE as string,\n\t\tSHORT_NAME as string,\n\t\tENTITY_FIELD_NAME as string,\n\t\tOLD_VALUE as string,\n\t\tFIELD_TYPE as string,\n\t\tNEW_VALUE as string,\n\t\tOBJECT_VALUE as string,\n\t\tAMOUNT as integer,\n\t\tPO_ID as integer,\n\t\tMODIF_DATE as string,\n\t\tTRADE_ID as integer,\n\t\tENTITY_CLASS_NAME as string,\n\t\tAUDIT_ACTION as string,\n\t\tENTITY_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLOAD_DATE = LoadDate,\n\t\tENTITY_ID,\n\t\tALLOW_UNDO_B,\n\t\tRELATED_ID,\n\t\tVERSION_NUM,\n\t\tSMALL_OBJECT_VALUE,\n\t\tCOMPRESSED_B,\n\t\tUSER_NAME,\n\t\tVALUE_DATE,\n\t\tSHORT_NAME,\n\t\tENTITY_FIELD_NAME,\n\t\tOLD_VALUE,\n\t\tFIELD_TYPE,\n\t\tNEW_VALUE,\n\t\tOBJECT_VALUE,\n\t\tAMOUNT,\n\t\tPO_ID,\n\t\tMODIF_DATE = {Copy of MODIF_DATE},\n\t\tTRADE_ID,\n\t\tENTITY_CLASS_NAME,\n\t\tAUDIT_ACTION,\n\t\tENTITY_NAME),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

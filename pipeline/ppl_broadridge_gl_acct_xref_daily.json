@@ -1,0 +1,391 @@
+{
+  "name" : "ppl_broadridge_gl_acct_xref_daily",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_START_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Previous_Business_Day_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Log_to_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT CONVERT(VARCHAR(12), (GETDATE()-10), 101)  AS PreviousBusinessDay",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sPrevBusDay_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Previous_Business_Day_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sPrevBusDay",
+        "value" : "@string(activity('ST_Get_Previous_Business_Day_0').output.resultSets[0].rows[0].PreviousBusinessDay)"
+      }
+    }, {
+      "name" : "ST_Delete_Oldest_Day_Records_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sPrevBusDay_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DECLARE @Deleted_Rows INT;  \nSET @Deleted_Rows = 1;\n\nWHILE (@Deleted_Rows > 0)\nBEGIN\nBEGIN TRANSACTION\nDELETE TOP (39000) \ntbl_Broadridge_BPSA_GL_ACCT_XREFHIST\nWHERE EFFDATE  < @{variables('sPrevBusDay')}\nSET @Deleted_Rows = @@ROWCOUNT;\nCOMMIT TRANSACTION\nEND",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_Last_10_Days_0",
+      "type" : "Until",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_Oldest_Day_Records_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('iCounter') >= 1",
+          "type" : "Expression"
+        },
+        "timeout" : "0.12:00:00",
+        "activities" : [ {
+          "name" : "ST_Get_Previous_Business_Day0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}), 101) AS PreviousBusinessDay\n,RIGHT(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),4) + LEFT(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),2) + SUBSTRING(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),4,2) AS PreviousBusinessDayInt",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sPrevBusDay",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_Previous_Business_Day0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sPrevBusDay",
+            "value" : "@string(activity('ST_Get_Previous_Business_Day0_0').output.resultSets[0].rows[0].PreviousBusinessDay)"
+          }
+        }, {
+          "name" : "SETVAR_sPrevBusDayInt",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_Previous_Business_Day0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sPrevBusDayInt",
+            "value" : "@int(activity('ST_Get_Previous_Business_Day0_0').output.resultSets[0].rows[0].PreviousBusinessDayInt)"
+          }
+        }, {
+          "name" : "Debugging_Show_Day_Counter",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sPrevBusDayInt",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_sPrevBusDay",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : "Script Task",
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Debugging_Show_Day_Counter",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "ST_Check_if_not_loaded_already_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Debugging_Show_Day_Counter",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT CASE (SELECT TOP 1 EFFDATE FROM dbo.tbl_Broadridge_BPSA_GL_ACCT_XREFHIST WHERE CAST(EFFDATE as date) = CAST(@{variables('sPrevBusDay')} as date)) WHEN @{variables('sPrevBusDay')} THEN 'YES' ELSE 'NO' END as YesNo",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_IsLoaded",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_not_loaded_already_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "IsLoaded",
+            "value" : "@string(activity('ST_Check_if_not_loaded_already_0').output.resultSets[0].rows[0].YesNo)"
+          }
+        }, {
+          "name" : "EP_Set_sSQL_Variable_Script_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_IsLoaded",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_load_last_10_days_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_Insert_General_Failure_into_Utility_Alert_for_E",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Last_10_Days_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n  @TO = 'wfsrs@wellsfargo.com'\n ,@SUBJECT = 'WFSR&S_ProcessAlert_DEV_Broadridge_GL_Acct_XRef_Daily_FAILURE' \n ,@BODY = 'Component: Broadridge BBR Data Last Day Available ETL'\n ,@BodyFormat = '2'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Success_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Last_10_Days_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Success',\n @num_of_records = @{variables('sRowCount')},\n @actual_records = @{variables('sRowCount')}Final,\n @FileName='N/A'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Broadridge_GL_Acct_XRef_Daily"
+      },
+      "sPrevBusDay" : {
+        "type" : "String"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSQL" : {
+        "type" : "String",
+        "defaultValue" : "SELECT EFFECTIVEDATE, CLIENT_NBR, PROD_CD, BRCH_FM_CD, ACCT_FM_CD, TYPE_ACCOUNT_CD, ACTION_CD, RECORD_TYPE_CD, BRCH_TO_CD, ACCT_TO_CD, COMPANY_CD, ORACLE_ACCT1_NBR, ORACLE_ACCT2_NBR, ORACLE_ACCT3_NBR, ORACLE_ACCT4_NBR, ACCOUNT_UNIT_CD, ORACLE_ACCT_ID, ACCT_PRFT_CTR_CD, MISC_FLAGS_TXT, UPDT_LAST_TMSTP, EFFDATE FROM BPSA.GL_ACCT_XREFHIST WHERE EFFECTIVEDATE = '20230131'"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "IsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "YES"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_Broadridge_GL_Acct_XRef_Daily"
+      },
+      "TempCounter" : {
+        "type" : "String"
+      },
+      "sSQLQry" : {
+        "type" : "String",
+        "defaultValue" : "SELECT EFFECTIVEDATE, CLIENT_NBR, PROD_CD, BRCH_FM_CD, ACCT_FM_CD, TYPE_ACCOUNT_CD, ACTION_CD, RECORD_TYPE_CD, BRCH_TO_CD, ACCT_TO_CD, COMPANY_CD, ORACLE_ACCT1_NBR, ORACLE_ACCT2_NBR, ORACLE_ACCT3_NBR, ORACLE_ACCT4_NBR, ACCOUNT_UNIT_CD, ORACLE_ACCT_ID, ACCT_PRFT_CTR_CD, MISC_FLAGS_TXT, UPDT_LAST_TMSTP, EFFDATE FROM BPSA.GL_ACCT_XREFHIST WHERE"
+      },
+      "iCounter" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sPrevBusDayInt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSQLVars" : {
+        "type" : "String"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Component: Broadridge BBR Data Last Day Available ETL"
+      }
+    }
+  }
+}

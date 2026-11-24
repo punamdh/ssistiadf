@@ -1,0 +1,31 @@
+{
+  "name" : "load_records_8",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EverythingplusBIC",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsFXUnconfirmedPhoneQueueStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblOpicsFXUnconfirmedPhoneQueueStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tDEALNO as string,\n\t\tDEALDATE as string,\n\t\tPORTFOLIO as string,\n\t\t{BROKER ID} as string,\n\t\tSEQ as string,\n\t\tCUSTOMER as string,\n\t\tCURRENCY as string,\n\t\t{TRANS AMOUNT} as string,\n\t\tCTYPE as string,\n\t\tQUEUEID as string,\n\t\t{Transaction Description} as string,\n\t\tAGING as string,\n\t\tCOMMENTS as string,\n\t\tBR as string,\n\t\tCUST_BIC as string,\n\t\t{Value Date} as string,\n\t\tNOTES_USERID as string,\n\t\tPUBSNOTES as string,\n\t\tSN as string,\n\t\tBlock_customer as string,\n\t\tBLOCK_REVIEWED as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EverythingplusBIC\nEverythingplusBIC derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tComments as string,\n\t\tAGING as string,\n\t\tCTYPE as string,\n\t\tNOTES_USERID as string,\n\t\tTRANS_DESCRIPTION as string,\n\t\tDEALDATE as string,\n\t\tBR as string,\n\t\tQUEUEID as string,\n\t\tBlock_customer as string,\n\t\tLoaddate as timestamp 'dd-MM-yyyy',\n\t\tCCY as string,\n\t\tDEALNO as string,\n\t\tCUSTOMER as string,\n\t\tValueDate as string,\n\t\tCustBIC as string,\n\t\tSN as string,\n\t\tBlock_reviewed as string,\n\t\tPORTFOLIO as string,\n\t\tBROKER_ID as string,\n\t\tSEQ as string,\n\t\tPUBSNOTES as string,\n\t\tTRANSAMOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tComments = COMMENTS,\n\t\tAGING,\n\t\tCTYPE,\n\t\tNOTES_USERID,\n\t\tTRANS_DESCRIPTION = {Transaction Description},\n\t\tDEALDATE,\n\t\tBR,\n\t\tQUEUEID,\n\t\tBlock_customer,\n\t\tLoaddate,\n\t\tCCY = CURRENCY,\n\t\tDEALNO,\n\t\tCUSTOMER,\n\t\tValueDate = {Value Date},\n\t\tCustBIC = CUST_BIC,\n\t\tSN,\n\t\tBlock_reviewed = BLOCK_REVIEWED,\n\t\tPORTFOLIO,\n\t\tBROKER_ID = {BROKER ID},\n\t\tSEQ,\n\t\tPUBSNOTES,\n\t\tTRANSAMOUNT = {TRANS AMOUNT}),\n\tpartitionFileNames:[($tblOpicsFXUnconfirmedPhoneQueueStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsFXUnconfirmedPhoneQueueStaging"
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -20,10 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "tblGSFDailyWFSIWFBNReportAnalystsMapping"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVarianceNotes as string,\n\t\tInsertTs as date,\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tVarianceNotes as string,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVarianceNotes,\n\t\tInsertTs,\n\t\tDC),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "LoadDateFilename"
+      } ],
+      "script" : "parameters{\n\tsFilename2 as string (),\n\ttblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename as string ()\n}\n\nsource(output(\n\t\tCreatedBy as string,\n\t\t{Full Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = toString((currentTimestamp())),\n\t\tFilename = toString(($sFilename2))) ~> LoadDateFilename\nLoadDateFilename sink(input(\n\t\tLoadDate as string,\n\t\tCreatedBy as string,\n\t\tFullName as string,\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tCreatedBy,\n\t\tFullName = {Full Name},\n\t\tFilename),\n\tpartitionFileNames:[($tblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFDailyWFSIWFBNReportAnalystsMapping"
     }
   }
 }

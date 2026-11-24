@@ -1,0 +1,312 @@
+{
+  "name" : "ppl_dft_load_file_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_source_ContainerName' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_source_FileName' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_source_FilePath' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_sink_ContainerName' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_sink_FileName' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'FST-Archive_File_0_sink_FilePath' AND PIPELINE_NAME = 'ppl_calypsocreditcvatradecancelcorrect') AS FST-Archive_File_0_sink_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "FST-Archive_File_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.iRowSourceA,pipeline().parameters.iRowLoadedA)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "CPD_FST-Archive_File_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_source_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_source_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_sink_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.FST-Archive_File_0_sink_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "ST_Log_Loaded_records_Success1_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_FST-Archive_File_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "Execute  sp_ssis_log_insert_update\n  @exec_pt  = 'END',\n  @proc_pack_nm  = concat(pipeline().parameters.BasePath, '/', @item().name),\n  @comment = concat(pipeline().parameters.BasePath, '/', @item().name),\n  @status = 'Success',\n  @num_of_records = concat(pipeline().parameters.BasePath, '/', @item().name),\n  @actual_records = concat(pipeline().parameters.BasePath, '/', @item().name),\n  @filename = 'PnlByTradeDetails_CRD_CVA_'\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Execute_SQL_Task0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Log_Loaded_records_Success1_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "delete\nfrom [OtcTradeAuditing].[dbo].[tbl_CRDA_TempImport]\nwhere Business_Grp = 'CVA-FIS'",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "iRowSourceA" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "BasePath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "iRowLoadedA" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sMsgFailureStep1" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Trade Audit Mapping Test Failed Step 1 - Review"
+      },
+      "dBusinessDateRpt" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025'"
+      },
+      "dFileCreatedDateA" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025 12:00:46 PM'"
+      },
+      "sMsgFailureStep3" : {
+        "type" : "String",
+        "defaultValue" : "CreditCVATradeAuditMapping - Failed Step 3"
+      },
+      "sMsgFailureStep2" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Trade Audit Mapping Test Failed Step 2 - Loading Files - Review"
+      },
+      "sFileSearchDte" : {
+        "type" : "String",
+        "defaultValue" : "'9/2/2022 1:01:50 PM'"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "iCountDayExistA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iRowAuditCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMsgDayExistA" : {
+        "type" : "String",
+        "defaultValue" : "CVA File Exist - Review - File 1A of 4 ABMO Book"
+      },
+      "sMsgNoRecordsBOAudit" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading daily file to staging - Step 1 of 4 - No records in BOA_Audit"
+      },
+      "sFolderName" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA\\"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoCreditCVATradeCancelCorrect:  Number of Records loaded in stagging = 0                   Number of Records loaded in tbl_Trade_CreditAudit= 0"
+      },
+      "iRowLoadedA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sArchiveFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA\\Archive\\"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CreditCVATradeCancelCorrect"
+      },
+      "sCommentA" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Mapping Test Start loading daily file to staging - Step 1A of 4"
+      },
+      "sCommentB" : {
+        "type" : "String",
+        "defaultValue" : "Credit CVA Mapping Test Start Credit Audit File Load - Step 1 of 4"
+      },
+      "iRowFromAuditA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sBusGrp" : {
+        "type" : "String"
+      },
+      "oClyFileNames" : {
+        "type" : "String"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_Process_Alert_DEV_CreditCVATradeCancelCorrect_"
+      },
+      "sFileSearchDate" : {
+        "type" : "String",
+        "defaultValue" : "07122022"
+      },
+      "iRowSourceA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFullPathCVA" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit_CVA"
+      },
+      "sClyFileName" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "dAuditDte" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025 12:00:46 PM'"
+      },
+      "sClyFullName" : {
+        "type" : "String",
+        "defaultValue" : "07122022.csv"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\DRSProd"
+      }
+    }
+  }
+}

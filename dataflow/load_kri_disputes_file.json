@@ -1,0 +1,43 @@
+{
+  "name" : "load_kri_disputes_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "KRIDailyDisputes",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupFilenameLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetfilenameBusinessDate"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "LookupFilename"
+      }, {
+        "name" : "LookupFilename0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCALL_STATUS as string,\n\t\tPRINCIPAL as string,\n\t\tCOUNTERPARTY as string,\n\t\tWELLSAFARGO_MTM as string,\n\t\tCOUNTERPARTY_MTM as string,\n\t\tACTION as string,\n\t\tCALL_AMOUNT as string,\n\t\tCOUNTERPARTY_AMOUNT as string,\n\t\tDISPUTE_VALUE as string,\n\t\tDIRECTIONAL_DISPUTE_AGE as string,\n\t\tDISPUTE_VALUE_USD as string,\n\t\tDISPUTE_SPREAD_USD as string,\n\t\tCOUNTRY_OF_RISK as string,\n\t\tBASE_CURRENCY as string,\n\t\tFX_RATE as string,\n\t\tAGREEMENT_TYPE as string,\n\t\tVMRULE_COMPLIANT as string,\n\t\tIMRULE_COMPLIANT as string,\n\t\tDISPUTE_TYPE as string,\n\t\tEVENT_DATE as string,\n\t\tREGION as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> KRIDailyDisputes\tsource(output(\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupFilenameLKPTABLE\nKRIDailyDisputes derive(BusDate_drv = toString((substring(toString($sFileName), toInteger(30), toInteger(8)))),\n\t\tLoaddate_drv = toString((currentTimestamp())),\n\t\tFileName_drv = toString(($sFileName))) ~> GetfilenameBusinessDate\nGetfilenameBusinessDate derive({Copy of BusDate_drv} = BusDate_drv) ~> DataConversion\nDataConversion,LookupFilenameLKPTABLE lookup(FileName_drv == Filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupFilename\nLookupFilename filter(!isMatch()) ~> LookupFilename0\nLookupFilename0 sink(input(\n\t\tagreementType as string,\n\t\tfileName as string,\n\t\tdisputeValueUSD as string,\n\t\tfxRate as string,\n\t\tdirectionalDisputeAge as string,\n\t\timRuleCompliant as string,\n\t\twellsFargoMTM as string,\n\t\tcallAmount as string,\n\t\tcounterpartyAmount as string,\n\t\tdisputeType as string,\n\t\tvmRuleCompliant as string,\n\t\tbaseCurrency as string,\n\t\tcounterpartyMTM as string,\n\t\tcountryOfRisk as string,\n\t\tprincipal as string,\n\t\tbusDate as string,\n\t\tdisputeValue as string,\n\t\tcallStatus as string,\n\t\tcounterparty as string,\n\t\taction as string,\n\t\tloaddate as timestamp 'dd-MM-yyyy',\n\t\tregion as string,\n\t\tdisputeSpreadUSD as string,\n\t\teventDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tagreementType = AGREEMENT_TYPE,\n\t\tfileName = FileName_drv,\n\t\tdisputeValueUSD = DISPUTE_VALUE_USD,\n\t\tfxRate = FX_RATE,\n\t\tdirectionalDisputeAge = DIRECTIONAL_DISPUTE_AGE,\n\t\timRuleCompliant = IMRULE_COMPLIANT,\n\t\twellsFargoMTM = WELLSAFARGO_MTM,\n\t\tcallAmount = CALL_AMOUNT,\n\t\tcounterpartyAmount = COUNTERPARTY_AMOUNT,\n\t\tdisputeType = DISPUTE_TYPE,\n\t\tvmRuleCompliant = VMRULE_COMPLIANT,\n\t\tbaseCurrency = BASE_CURRENCY,\n\t\tcounterpartyMTM = COUNTERPARTY_MTM,\n\t\tcountryOfRisk = COUNTRY_OF_RISK,\n\t\tprincipal = PRINCIPAL,\n\t\tbusDate = {Copy of BusDate_drv},\n\t\tdisputeValue = DISPUTE_VALUE,\n\t\tcallStatus = CALL_STATUS,\n\t\tcounterparty = COUNTERPARTY,\n\t\taction = ACTION,\n\t\tloaddate = Loaddate_drv,\n\t\tregion = REGION,\n\t\tdisputeSpreadUSD = DISPUTE_SPREAD_USD,\n\t\teventDate = EVENT_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

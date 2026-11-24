@@ -1,0 +1,31 @@
+{
+  "name" : "staging_product_cdsabsidx",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcalypsocdsindexdef",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservProductCdsAbsIdx"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblcalypsotradeservProductCdsAbsIdx_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tINDEX_NAME as string,\n\t\tABSINDEX_DEF_ID as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsocdsindexdef\nfromcalypsocdsindexdef derive({Copy of ABSINDEX_DEF_ID} = toString(ABSINDEX_DEF_ID),\n\t\t{Copy of PRODUCT_ID} = toString(PRODUCT_ID),\n\t\t{Copy of INDEX_NAME} = INDEX_NAME) ~> DataConversion\nDataConversion sink(input(\n\t\tINDEX_NAME as string,\n\t\tPRODUCT_ID as string,\n\t\tABSINDEX_DEF_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINDEX_NAME = {Copy of INDEX_NAME},\n\t\tPRODUCT_ID,\n\t\tABSINDEX_DEF_ID),\n\tpartitionFileNames:[($totblcalypsotradeservProductCdsAbsIdx_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservProductCdsAbsIdx"
+    }
+  }
+}

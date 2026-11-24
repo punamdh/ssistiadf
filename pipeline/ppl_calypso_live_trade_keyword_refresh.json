@@ -1,0 +1,334 @@
+{
+  "name" : "ppl_calypso_live_trade_keyword_refresh",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Clypso_Keywords_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_GetClypsoKeywords_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Clypso_Keywords_FileName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_GetClypsoKeywords_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Clypso_Keywords_FilePath' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_GetClypsoKeywords_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh' AND DATAFLOW_NAME = 'get_calypso_missing_keyword') AS Get_Calypso_Missing_Keyword_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Missing_Keyword0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh') AS Get_Calypso_Missing_Keyword0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Missing_Keyword0_sink_TableName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_keyword_refresh') AS Get_Calypso_Missing_Keyword0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Delete_tbl_CIRC_LiveTrade_KW_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "-- delete from [dbo].[tbl_CIRC_LiveTrade_KeywordUpdate]\n\nexec [spTruncateTable] 'tbl_CIRC_LiveTrade_KeywordUpdate'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Get_Calypso_Missing_Keyword",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_tbl_CIRC_LiveTrade_KW_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Get_Calypso_Missing_Keyword",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Get_Calypso_Missing_Keyword",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Get_Calypso_Missing_Keyword",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_calypso_missing_keyword",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            },
+            "GetClypsoLoadDate" : {
+              "type" : "Expression",
+              "value" : "concat(string(formatDateTime(variables('GetModifiedDate'), 'yyyy')),'-',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'MM'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'MM')))), 2), 2),'-',substring(concat('0',string(dayOfMonth(variables('GetModifiedDate')))), sub(length(concat('0',string(dayOfMonth(variables('GetModifiedDate'))))), 2), 2),' ',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'HH'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'HH')))), 2), 2),':',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'mm'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'mm')))), 2), 2),':',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'ss'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'ss')))), 2), 2))"
+            }
+          },
+          "datasetParameters" : {
+            "GetClypsoKeywords" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_GetClypsoKeywords_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_GetClypsoKeywords_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_GetClypsoKeywords_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Get_Calypso_Missing_Keyword_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Get_Calypso_Missing_Keyword0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Get_Calypso_Missing_Keyword",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "EP_Send_Alert_when_Failure_3",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_tbl_CIRC_LiveTrade_KW_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "CPD_Get_Calypso_Missing_Keyword0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Get_Calypso_Missing_Keyword_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "ProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Calypso_Live_Trade_Keyword_Refresh"
+      },
+      "filedate" : {
+        "type" : "String"
+      },
+      "FileName" : {
+        "type" : "String",
+        "defaultValue" : "CIRC_LiveTrades12-02-2020.csv"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "GetClypsoLoadDate" : {
+        "type" : "String",
+        "defaultValue" : "2020-12-02 00:00:00"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "WFSRS@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_Calypso_Live_Trade_Keyword_Refresh_"
+      },
+      "FileRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sCCIRDeriv" : {
+        "type" : "String",
+        "defaultValue" : "irderivmo@wellsfargo.com"
+      },
+      "FileFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Calypso\\LiveTradeStatus\\"
+      },
+      "vFileName" : {
+        "type" : "String"
+      },
+      "GetModifiedDate" : {
+        "type" : "String",
+        "defaultValue" : "'12/2/2020'"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sMessageFailedKw" : {
+        "type" : "String",
+        "defaultValue" : "Process Failed refreshing keyword"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSUAT"
+      },
+      "IsLoadAndFileEqual" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageFailure" : {
+        "type" : "String",
+        "defaultValue" : "Process Failed. Please review"
+      },
+      "vSourceFileSubFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Calypso\\LiveTradeStatus\\"
+      }
+    }
+  }
+}

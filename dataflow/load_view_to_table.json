@@ -1,0 +1,29 @@
+{
+  "name" : "load_view_to_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Copy of Period Counter Week} as integer,\n\t\tAgreementID as string,\n\t\tTradeID as string,\n\t\tProductType as string,\n\t\tTenor as string,\n\t\tCounterParty as string,\n\t\tXVATradeaID as string,\n\t\tInput as integer,\n\t\tNettingGroupID as string,\n\t\tLoaddate as string,\n\t\tWCISID as string,\n\t\tCptyHazardCurveCode as string,\n\t\tXVA_SCORE as string,\n\t\t{Copy of Period Counter Month} as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPeriod_Counter_Week as integer,\n\t\tAgreementID as string,\n\t\tTradeID as string,\n\t\tProductType as string,\n\t\tTenor as string,\n\t\tCounterParty as string,\n\t\tXVATradeaID as string,\n\t\tInput as string,\n\t\tNettingGroupID as string,\n\t\tLoaddate as string,\n\t\tWCISID as string,\n\t\tCptyHazardCurveCode as string,\n\t\tXVA_SCORE as string,\n\t\tPeriod_Counter_Month as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPeriod_Counter_Week = {Copy of Period Counter Week},\n\t\tAgreementID,\n\t\tTradeID,\n\t\tProductType,\n\t\tTenor,\n\t\tCounterParty,\n\t\tXVATradeaID,\n\t\tInput,\n\t\tNettingGroupID,\n\t\tLoaddate,\n\t\tWCISID,\n\t\tCptyHazardCurveCode,\n\t\tXVA_SCORE,\n\t\tPeriod_Counter_Month = {Copy of Period Counter Month}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

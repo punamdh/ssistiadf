@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{\"project\"} as string,\n\t\t{\"workbook\"} as string,\n\t\t{\"view\"} as string,\n\t\t{\"action\"} as string,\n\t\t{\"user\"} as string,\n\t\t{\"user_name\"} as string,\n\t\t{\"user_email\"} as string,\n\t\t{\"lastview\"} as date,\n\t\t{\"lastlogin\"} as date,\n\t\t{\"viewcount\"} as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tworkbook as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tview as string,\n\t\tuser_email as string,\n\t\tETLUser as string,\n\t\tuser_name as string,\n\t\tlastlogin as timestamp 'dd-MM-yyyy',\n\t\tproject as string,\n\t\taction as string,\n\t\tlastview as timestamp 'dd-MM-yyyy',\n\t\tviewcount as integer,\n\t\tuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tworkbook = {\"workbook\"},\n\t\tUploadDate,\n\t\tview = {\"view\"},\n\t\tuser_email = {\"user_email\"},\n\t\tETLUser,\n\t\tuser_name = {\"user_name\"},\n\t\tlastlogin = {\"lastlogin\"},\n\t\tproject = {\"project\"},\n\t\taction = {\"action\"},\n\t\tlastview = {\"lastview\"},\n\t\tviewcount = {\"viewcount\"},\n\t\tuser = {\"user\"}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tUrgency as string,\n\t\tID as string,\n\t\tStatus as string,\n\t\tSender_Address as string,\n\t\tCountry as string,\n\t\tReceiver_Address as string,\n\t\tMT as string,\n\t\tNACK as string,\n\t\tSender_TRN as string,\n\t\tReceiver_TRN as string,\n\t\tAmount as string,\n\t\tCCY as string,\n\t\tWork_Type as string,\n\t\tInstructions as string,\n\t\tGPI as string,\n\t\tPXASSIGNEDOPERATORID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Load_Date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tGPI as string,\n\t\tReceiver_address as string,\n\t\tMT as string,\n\t\tAmount as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tInstructions as string,\n\t\tSender_TRN as string,\n\t\tPXASSIGNEDOPERATORID as string,\n\t\tReceiver_TRN as string,\n\t\tSender_address as string,\n\t\tCCY as string,\n\t\tCountry as string,\n\t\tWork_type as string,\n\t\tID as string,\n\t\tUrgency as string,\n\t\tNACK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tGPI,\n\t\tReceiver_address = Receiver_Address,\n\t\tMT,\n\t\tAmount,\n\t\tLoad_Date,\n\t\tInstructions,\n\t\tSender_TRN,\n\t\tPXASSIGNEDOPERATORID,\n\t\tReceiver_TRN,\n\t\tSender_address = Sender_Address,\n\t\tCCY,\n\t\tCountry,\n\t\tWork_type = Work_Type,\n\t\tID,\n\t\tUrgency,\n\t\tNACK),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

@@ -1,0 +1,39 @@
+{
+  "name" : "get_new_accounts_not_in_accnttbl",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblIntellimatchGLMonthly",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOTCDerivSettRMURERAccountStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\ttblOTCDerivSettRMURERAccountStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\taccountDDA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblIntellimatchGLMonthly\tsource(output(\n\t\tAccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\ntblIntellimatchGLMonthly,LookupLKPTABLE lookup(accountDDA == Account,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tAccount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAccount = accountDDA),\n\tpartitionFileNames:[($tblOTCDerivSettRMURERAccountStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOTCDerivSettRMURERAccountStaging"
+    }
+  }
+}

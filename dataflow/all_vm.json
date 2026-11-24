@@ -1,0 +1,31 @@
+{
+  "name" : "all_vm",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{VM Name} as string,\n\t\t{Cluster Name} as string,\n\t\t{vCenter Name} as string,\n\t\tState as string,\n\t\tOS as string,\n\t\tvCPUs as string,\n\t\t{CPU Reservation} as string,\n\t\t{Mem (GB)} as string,\n\t\t{Memory Reservation} as string,\n\t\t{Unit Count} as string,\n\t\t{NIC Count} as string,\n\t\t{Disk Count} as string,\n\t\t{Total Storage (GB)} as string,\n\t\t{vHW Version} as string,\n\t\t{Tools Version Status} as string,\n\t\t{Tools Running Status} as string,\n\t\t{Tools Version} as string,\n\t\t{Tools Release} as string,\n\t\tIP as string,\n\t\t{MAC Address} as string,\n\t\tNetwork as string,\n\t\t{Resource Pool} as string,\n\t\tOwner as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tOwner as string,\n\t\tOS as string,\n\t\tIP as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tNIC_Count as string,\n\t\tUnit_Count as string,\n\t\tMem__GB_ as string,\n\t\tTools_Version_Status as string,\n\t\tVM_Name as string,\n\t\tMemory_Reservation as string,\n\t\tvHW_Version as string,\n\t\tTools_Version as string,\n\t\tTools_Release as string,\n\t\tState as string,\n\t\tTools_Running_Status as string,\n\t\tNetwork as string,\n\t\tvCenter_Name as string,\n\t\tDisk_Count as string,\n\t\tMAC_Address as string,\n\t\tCPU_Reservation as string,\n\t\tTotal_Storage__GB_ as string,\n\t\tCluster_Name as string,\n\t\tvCPUs as string,\n\t\tResource_Pool as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOwner,\n\t\tOS,\n\t\tIP,\n\t\timportdate = ImportDate,\n\t\tNIC_Count = {NIC Count},\n\t\tUnit_Count = {Unit Count},\n\t\tMem__GB_ = {Mem (GB)},\n\t\tTools_Version_Status = {Tools Version Status},\n\t\tVM_Name = {VM Name},\n\t\tMemory_Reservation = {Memory Reservation},\n\t\tvHW_Version = {vHW Version},\n\t\tTools_Version = {Tools Version},\n\t\tTools_Release = {Tools Release},\n\t\tState,\n\t\tTools_Running_Status = {Tools Running Status},\n\t\tNetwork,\n\t\tvCenter_Name = {vCenter Name},\n\t\tDisk_Count = {Disk Count},\n\t\tMAC_Address = {MAC Address},\n\t\tCPU_Reservation = {CPU Reservation},\n\t\tTotal_Storage__GB_ = {Total Storage (GB)},\n\t\tCluster_Name = {Cluster Name},\n\t\tvCPUs,\n\t\tResource_Pool = {Resource Pool}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

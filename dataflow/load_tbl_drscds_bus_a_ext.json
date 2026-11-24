@@ -1,0 +1,29 @@
+{
+  "name" : "load_tbl_drscds_bus_a_ext",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tbus_a_id_c as integer,\n\t\tbus_a_extl_n as string,\n\t\tlastStatementDate as timestamp,\n\t\tlastActivityDate as timestamp,\n\t\tbus_a_key_type_c as string,\n\t\tbus_a_extl_eff_x as timestamp,\n\t\tbus_a_extl_stat_c as string,\n\t\tbus_a_extl_key_c as string,\n\t\tbus_a_extl_n_c as string,\n\t\tsystem_c as string,\n\t\tbus_a_extl_end_x as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tbus_a_id_c as string,\n\t\tbus_a_extl_n as string,\n\t\tlastStatementDate as timestamp 'dd-MM-yyyy',\n\t\tlastActivityDate as timestamp 'dd-MM-yyyy',\n\t\tbus_a_key_type_c as string,\n\t\tbus_a_extl_eff_x as timestamp 'dd-MM-yyyy',\n\t\tbus_a_extl_stat_c as string,\n\t\tbus_a_extl_key_c as string,\n\t\tbus_a_extl_n_c as string,\n\t\tsystem_c as string,\n\t\tbus_a_extl_end_x as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tbus_a_id_c,\n\t\tbus_a_extl_n,\n\t\tlastStatementDate,\n\t\tlastActivityDate,\n\t\tbus_a_key_type_c,\n\t\tbus_a_extl_eff_x,\n\t\tbus_a_extl_stat_c,\n\t\tbus_a_extl_key_c,\n\t\tbus_a_extl_n_c,\n\t\tsystem_c,\n\t\tbus_a_extl_end_x),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

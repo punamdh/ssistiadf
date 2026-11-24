@@ -1,0 +1,521 @@
+{
+  "name" : "ppl_send_last_30_days_record_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OTC_RER_RMU_New_Accounts_ContainerName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OTCRERRMUNewAccounts_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OTC_RER_RMU_New_Accounts_FileName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OTC_RER_RMU_New_Accounts_FilePath' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer' AND DATAFLOW_NAME = 'load_new_accounts_to_csv') AS load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'load_new_Accounts_to_csv0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer') AS load_new_Accounts_to_csv0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'load_new_Accounts_to_csv0_sink_TableName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer') AS load_new_Accounts_to_csv0_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'load_new_Accounts_to_csv01_sink_SchemaName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer') AS load_new_Accounts_to_csv01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'load_new_Accounts_to_csv01_sink_TableName' AND PIPELINE_NAME = 'ppl_otc_derivsett_rmu_rer') AS load_new_Accounts_to_csv01_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "send_dept_alert_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('nw_dept'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_send_dept_alert",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_load_new_Accounts_to_csv",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_send_dept_alert",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "load_new_Accounts_to_csv",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_load_new_Accounts_to_csv0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_load_new_Accounts_to_csv",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "load_new_Accounts_to_csv",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_load_new_Accounts_to_csv",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_load_new_Accounts_to_csv0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_new_accounts_to_csv",
+              "type" : "DataFlowReference",
+              "parameters" : { },
+              "datasetParameters" : {
+                "OLEDBSource" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OLEDBSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "OTCRERRMUNewAccounts" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : "\\r\\n"
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.load_new_Accounts_to_csv_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_load_new_Accounts_to_csv01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_load_new_Accounts_to_csv",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_load_new_Accounts_to_csv0",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_load_new_Accounts_to_csv01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "AzureSqlSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv_OTCRERRMUNewAccounts_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_OLEDB_DS_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv0_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.load_new_Accounts_to_csv0_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "ST_get_new_Accounts_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_load_new_Accounts_to_csv0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT Count(Account)\nFROM  Reconcontrol.dbo.tbl_OTC_DerivSett_RMU_RER_Accounts_Staging\nWhere Account <> '' AND Account is NOT NULL",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_nw_accnt",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_get_new_Accounts_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "nw_accnt",
+            "value" : "@int(activity('ST_get_new_Accounts_0').output.resultSets[0].rows[0].0)"
+          }
+        }, {
+          "name" : "EP_Send_account_alert_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_nw_accnt",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_send_dept_alert_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "load_new_Accounts_to_csv_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sRowCountReport" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageAccnt" : {
+        "type" : "String",
+        "defaultValue" : "SELECT Account as New_Accounts_Found FROM dbo.tbl_OTC_DerivSett_RMU_RER_Accounts_Staging WHERE Account <> '' AND Account is NOT NULL"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "last_thirty" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFilecnt_rpt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "LastThirtyDaysRec" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_IntellimatchLastThirtyDaysRec"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sLastThirtydays" : {
+        "type" : "String",
+        "defaultValue" : "SELECT \\ndistinct max(ProcessedDate) as ProcessedDate, \\nFilename, \\nMax(reconDate) reconDate ,\\nrecCnt_After, \\nrecCnt_Before\\nFROM tbl_Intellimatch_GL_Monthly_Historical\\nWHERE \\nreconDate is not null \\nand reconDate <> '' \\nAND cast(ProcessedDate as date) >= (getdate() - 30)\\nGROUP BY  Filename,  recCnt_After,recCnt_Before\\norder by ProcessedDate desc"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "NewDeptFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\OTC_RER_RMU_Departments.csv"
+      },
+      "sAvgOutputRecCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sInputFile" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "sProcessName_Accnt" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_NewAccntFound"
+      },
+      "sProcessName_Dept" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER_NewDeptFound"
+      },
+      "nw_dept" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageDept" : {
+        "type" : "String",
+        "defaultValue" : "SELECT Department as New_Departments_Found FROM dbo.tbl_OTC_DerivSett_RMU_RER_Departments_Staging WHERE Department <> '' AND Department is NOT NULL"
+      },
+      "NewAccntFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\OTC_RER_RMU_Accounts.csv"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Check record count for process"
+      },
+      "sMessageA" : {
+        "type" : "String",
+        "defaultValue" : "New Account found. See attached."
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER"
+      },
+      "LastThirtyDaysFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\drsnas.wellsfargo.net\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\Monthly_Snapshot\\LastThirtyDays_Intellimatch.csv"
+      },
+      "sWFS" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "sOutputFile" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "SQLrpt" : {
+        "type" : "String",
+        "defaultValue" : "UPDATE tbl_OTC_DerivSett_RMU_RER SET RecCount =  cast('0' as int)"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sMessageI" : {
+        "type" : "String",
+        "defaultValue" : "Intellimatch records - last 30 days"
+      },
+      "nw_accnt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageD" : {
+        "type" : "String",
+        "defaultValue" : "New Department found. See attached."
+      },
+      "sRecordsloaded" : {
+        "type" : "String",
+        "defaultValue" : "OTC_DerivSett_RMU_RER was completed - Rows loaded to report tbl : 0"
+      },
+      "sAvgInputRecCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

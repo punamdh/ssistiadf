@@ -1,0 +1,29 @@
+{
+  "name" : "update_tbl_slacp_emailaddress_newupdates",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EmailUpdates",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPemailAddressnewUpdates"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPemailAddressnewUpdates_outputfilename as string ()\n}\n\nsource(output(\n\t\tcontraparty as string,\n\t\tnewAddress as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EmailUpdates\nEmailUpdates sink(input(\n\t\tcontraparty as string,\n\t\tnewAddress as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcontraparty,\n\t\tnewAddress),\n\tpartitionFileNames:[($tblSLACPemailAddressnewUpdates_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPemailAddressnewUpdates"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "data_load_to_etpp",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ORACLEDATALAKE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "datalakesnowgroupimporttbl"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tdatalakesnowgroupimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\tGROUP_WF_GUID as string,\n\t\tGROUP_TYPE_SYS_ID as string,\n\t\tGROUP_NAME as string,\n\t\tGROUP_TYPE_NAME as string,\n\t\tGROUP_DESCRIPTION as string,\n\t\tGROUP_TYPE_DESCRIPTION as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp,\n\t\tNAME as string,\n\t\tEMAIL as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ORACLEDATALAKE\nORACLEDATALAKE derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tGROUP_NAME as string,\n\t\tGROUP_TYPE_DESCRIPTION as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tGROUP_TYPE_NAME as string,\n\t\tGROUP_TYPE_SYS_ID as string,\n\t\tGROUP_WF_GUID as string,\n\t\tGROUP_DESCRIPTION as string,\n\t\tEMAIL as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp 'dd-MM-yyyy',\n\t\tNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGROUP_NAME,\n\t\tGROUP_TYPE_DESCRIPTION,\n\t\tImportDate,\n\t\tGROUP_TYPE_NAME,\n\t\tGROUP_TYPE_SYS_ID,\n\t\tGROUP_WF_GUID,\n\t\tGROUP_DESCRIPTION,\n\t\tEMAIL,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tNAME),\n\tpartitionFileNames:[($datalakesnowgroupimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> datalakesnowgroupimporttbl"
+    }
+  }
+}

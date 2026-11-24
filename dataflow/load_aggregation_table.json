@@ -1,0 +1,33 @@
+{
+  "name" : "load_aggregation_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tevent_date as string,\n\t\tLate_Issued_MarginNotifications as integer,\n\t\tCall_status as integer,\n\t\tPercentage as decimal(10,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn derive({Copy of Loaddate} = toString(Loaddate)) ~> DataConversion\nDataConversion sink(input(\n\t\tLoadDate as string,\n\t\tPercentage as integer,\n\t\tcall_Status as integer,\n\t\tEvent_Date as string,\n\t\tLate_Issued_Margin_Notification as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = {Copy of Loaddate},\n\t\tPercentage,\n\t\tcall_Status = Call_status,\n\t\tEvent_Date = event_date,\n\t\tLate_Issued_Margin_Notification = Late_Issued_MarginNotifications),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

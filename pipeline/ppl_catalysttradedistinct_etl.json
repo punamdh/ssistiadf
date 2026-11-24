@@ -1,0 +1,197 @@
+{
+  "name" : "ppl_catalysttradedistinct_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Log_Start_of_the_Process_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  '@{variables('sProcess')}',\n @comment = '@{variables('sComment')}'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Load_Distinct_Trades_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Log_Start_of_the_Process_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "\n\n\n----- EXEC [dbo].[sp_ins_Catalyst_TradeDistinct]\n\nDROP TABLE IF EXISTS #DISTINCTTRADES;\n\nWITH CTE AS (\n  SELECT ROW_NUMBER() OVER (PARTITION BY catalyst_trade_number, [effective_date] ORDER BY catalyst_trade_number) RN,\n\t\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n        ,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\n   FROM [ReconControl].[dbo].[tbl_Catalyst_Trade]\n   WHERE catalyst_trade_number IS NOT NULL\n   and trade_status = 'ACTIVE'\n   and [trade_state] NOT LIKE '%PENDING%'\n   and cast([entry_time] as date) >= getdate()-7\n\t\t   ) \n\nSELECT DISTINCT   [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\nINTO #DISTINCTTRADES\nFROM CTE C\nWHERE C.RN = 1\n\n\n\nINSERT INTO Reconcontrol.[dbo].[tbl_Catalyst_TradeDistinct]\n(\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action])\n\n SELECT DISTINCT \n\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\n FROM #DISTINCTTRADES C \n WHERE NOT EXISTS (SELECT DT.catalyst_trade_number, DT.[cancel_date], DT.trade_status\n\t\t\t\t\t\tFROM Reconcontrol.[dbo].[tbl_Catalyst_TradeDistinct]  DT \n\t\t\t\t\t\t\tWHERE ISNULL(DT.catalyst_trade_number,'') = ISNULL(C.catalyst_trade_number, '')\n\t\t\t\t\t\t\t\tAND ISNULL(DT.[entry_time], '') = ISNULL(C.[entry_time],'')\n\t\t\t\t\t\t\t\tAND ISNULL(DT.[trade_status], '') = ISNULL(C.trade_status,''));\n\n\n\n\nDROP TABLE IF EXISTS #DISTINCTTRADESCNCL;\n\nWITH CTE AS (\n  SELECT ROW_NUMBER() OVER (PARTITION BY catalyst_trade_number, [effective_date] ORDER BY catalyst_trade_number) RN,\n\t\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n        ,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\n   FROM [ReconControl].[dbo].[tbl_Catalyst_Trade]\n   WHERE catalyst_trade_number IS NOT NULL\n   and trade_status = 'CNCL'\n   and trade_state not like '%PENDING%'\n   and trade_state not in('TCS_TERMINAL')\n   and (cancel_reason not in ('Low Floater Rate Update', 'Reason due to Factor Update') or cancel_reason is null) \n   and cast([cancel_date] as date) >= getdate()-7\n\t\t   ) \n\nSELECT DISTINCT   [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\nINTO #DISTINCTTRADESCNCL\nFROM CTE C\nWHERE C.RN = 1\n\n\n\nINSERT INTO Reconcontrol.[dbo].[tbl_Catalyst_TradeDistinct]\n(\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action] )\n\n SELECT DISTINCT \n\t [effective_date], [catalyst_fists],[catalyst_fists_distribution], [catalyst_trade_number], [fists_trade_number]\n\t,[original_trade_number],[prev_trade_number], [parent_trade_number], [buy_sell], [current_par], [trade_date]\n\t,[settle_date], [cancel_date], [trade_status], [accrued_interest], [principal], [total_cash], [import_source]\n\t,[execution_time], [entry_time], [exchange], [trader], [mpid], [counterparty], [counterparty_id], [inventory]\n\t,[price],[yield],[security_description],[cusip],[isin],[product_id],[product_type],[super_product_type],[future_option]\n\t,[contract_month] ,[contract_year], [call_put],[strike_price] ,[factor] ,[coupon_rate] ,[transmit_to_back_office]\n\t,[group_link] ,[is_sales_credit] ,[ticker] ,[back_office_status] ,[back_office_statusreason] ,[ext_counterparty_id]\n\t,[trade_state] ,[trade_type] ,[trade_subtype] ,[ext_reporting_mask] ,[cancel_reason] ,[inventory_id] ,[trader_id] \n\t,[to_trader_id] ,[sales_person_id] ,[position_update_time] ,[account_role] ,[FileName] ,[LoadDate]\n\t,[CancelType] ,[entered_by] ,[entered_by_id] ,[cancelled_by] ,[cancelled_by_id] ,[approved_by] ,[approved_by_id] \n\t,[updated_by] ,[updated_by_id] ,[trace_MPID] ,[submit_time] ,[trace_ctrl_no] ,[trace_orig_ctrl_no] ,[trace_status_string]\n\t,[trace_last_updated_by] ,[customer_long_name] ,[override_MPID] ,[salesperson] ,[currency] ,[linkTypeCode] ,[SalesCreditCode] ,[SalesCredit]\n\t,[account_type] ,[customer_type] ,[venueTradeId] ,[micCode] ,[legType] ,[legal_entity] ,[msrb_special_code] ,[originatingSystemID]\n\t,[SMMPIndicator] ,[allocationMatchStatus] ,[allocationMatchStatusReason], [action]\n FROM #DISTINCTTRADESCNCL C \n WHERE NOT EXISTS (SELECT DT.catalyst_trade_number, DT.[cancel_date], DT.trade_status\n\t\t\t\t\t\tFROM Reconcontrol.[dbo].[tbl_Catalyst_TradeDistinct]  DT \n\t\t\t\t\t\t\tWHERE ISNULL(DT.catalyst_trade_number,'') = ISNULL(C.catalyst_trade_number, '')\n\t\t\t\t\t\t\t\tAND ISNULL(DT.cancel_date, '') = ISNULL(C.cancel_date,'')\n\t\t\t\t\t\t\t\tAND ISNULL(DT.[trade_status], '') = ISNULL(C.trade_status,''));\n\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Update_canceltype_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Load_Distinct_Trades_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "--- EXEC dbo.sp_upd_CatalystTrade_CancelType\n\n\nUPDATE T\nSET T.CancelType =   'CXLCOR'\nFROM [Reconcontrol].[dbo].[tbl_Catalyst_TradeDistinct] T\n\tWHERE trade_status = 'CNCL'\n\t\tAND prev_trade_number IS NOT NULL\n\t\t  AND   ([catalyst_trade_number] <> '' \n\t\t\tOR    [catalyst_trade_number] > 0 )--)\n\t\t  AND T.CancelType IS  NULL\n\n\nUPDATE T\nSET T.CancelType =   'STRCXL'\nFROM [Reconcontrol].[dbo].[tbl_Catalyst_TradeDistinct] T\n\tWHERE trade_status = 'CNCL'\n\t\tand prev_trade_number is null\n\t\t  AND T.CancelType IS NULL",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_Failure_Mail",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_canceltype_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "ST_Log_END_on_Success_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_canceltype_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : " EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcess')},\n @comment =  @{variables('sComment')},\n@actual_records = @{variables('sActualRecords')},\n@num_of_records = @{variables('sRowCount')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Log_Failure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_Failure_Mail",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'FAILURE',\n @proc_pack_nm  =  '@{variables('PackageName')}',\n @comment =  '@{variables('sComment')}'\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcess" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTradeDistinct_ETL_MIKA-9224"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert -"
+      },
+      "sActualRecords" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Load to tbl_Catalyst_TradeDistinct"
+      },
+      "sFrom" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Catalyst Trade disitnct load process failed."
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      }
+    }
+  }
+}

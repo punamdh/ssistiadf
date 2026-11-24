@@ -1,0 +1,31 @@
+{
+  "name" : "app_attestation_import",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CSVFile",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tpaaLastAttestedDateTime as string,\n\t\tappId as string,\n\t\tpaaHostingTypes as string,\n\t\tpaaLastAttestedBy as string,\n\t\tpaaPatterns as string,\n\t\tpci as string,\n\t\tpciPatterns as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CSVFile\nCSVFile derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tappId as string,\n\t\tpci as string,\n\t\tpaaLastAttestedDateTime as string,\n\t\tpaaLastAttestedBy as string,\n\t\tpaaPatterns as string,\n\t\tpciPatterns as string,\n\t\tpaaHostingTypes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\timportdate = ImportDate,\n\t\tappId,\n\t\tpci,\n\t\tpaaLastAttestedDateTime,\n\t\tpaaLastAttestedBy,\n\t\tpaaPatterns,\n\t\tpciPatterns,\n\t\tpaaHostingTypes),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

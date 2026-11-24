@@ -1,0 +1,294 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_spm_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_15') AS Data_Flow_Task_1_15_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_150_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import') AS Data_Flow_Task_1_150_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_150_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_spm_data_import') AS Data_Flow_Task_1_150_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_get_select_script_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [import].[datalake_spm_data_import_sp]\t@{variables('Var3')} OUTPUT\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_get_select_script_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE import.datalake_spm_data_importtbl",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_1_15",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_1_15",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_1_15",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_1_15",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_1_15",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_1_15_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_1_150",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_1_15",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_15_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_150_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_150_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Execute_SQL_Task_1_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_1_150",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[asset_spm_data_refresh_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "Data_Flow_Task_1_15_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "Var1" : {
+        "type" : "String",
+        "defaultValue" : "SELECT   difa.NUMBER_ as difa_NUMBER_   ,  difa.CMDB_CI as difa_CMDB_CI   ,  difa.CMDB_CI_NAME as difa_CMDB_CI_NAME   ,  difa.SYS_CLASS_NAME as difa_SYS_CLASS_NAME   ,  difa.PRIMARY_OPERATION_STATUS_DESCRIPTION as difa_PRIMARY_OPERATION_STATUS_DESCRIPTION   ,  difa.CPU_CORE_COUNT as difa_CPU_CORE_COUNT   ,  difa.CPU_COUNT as difa_CPU_COUNT   ,  difa.U_RPT_CPU_TOTAL_CORES as difa_U_RPT_CPU_TOTAL_CORES   ,  difa.RAM as difa_RAM,  difa.DISK_SPACE as difa_DISK_SPACE   ,  difa.VIRTUAL as difa_VIRTUAL   ,  difa.OPERATING_SYSTEM as difa_OPERATING_SYSTEM   ,  difa.ENVIRONMENT as difa_ENVIRONMENT   ,  difa.CITY as difa_CITY   ,  difa.U_CMDB_CI_SUPPORTING as difa_U_CMDB_CI_SUPPORTING   ,  difa.SUPPORTING_CMDB_CI_NAME as difa_SUPPORTING_CMDB_CI_NAME   ,  difa.SUPPORTING_OPERATIONAL_STATUS_DESCRIPTION as difa_SUPPORTING_OPERATIONAL_STATUS_DESCRIPTION   ,  difa.U_EXIT_DATE as difa_U_EXIT_DATE,  difa.U_EXIT_STRATEGY as difa_U_EXIT_STRATEGY   ,  difa.U_INFRASTRUCTURE_NEEDED_BY as difa_U_INFRASTRUCTURE_NEEDED_BY   ,  difa.U_FORECAST_DATA_CENTER as difa_U_FORECAST_DATA_CENTER   ,  difa.U_FORECAST_ENVIRONMENT as difa_U_FORECAST_ENVIRONMENT   ,  difa.U_FORECAST_OS as difa_U_FORECAST_OS   ,  difa.U_FORECAST_CPU as difa_U_FORECAST_CPU   ,  difa.U_FORECAST_RAM as difa_U_FORECAST_RAM   ,  difa.U_FORECAST_SIZE as difa_U_FORECAST_SIZE   ,  difa.U_FORECAST_SIZE_GB as difa_U_FORECAST_SIZE_GB   ,  difa.U_FORECAST_STORAGE_GB as difa_U_FORECAST_STORAGE_GB   ,  difa.U_FORECAST_PROTOCOL as difa_U_FORECAST_PROTOCOL   ,  difa.U_FORECAST_IS_PHYSICAL_VIRTUAL as difa_U_FORECAST_IS_PHYSICAL_VIRTUAL   ,  difa.U_FORECAST_PUBLICLY_ACCESSIBLE as difa_U_FORECAST_PUBLICLY_ACCESSIBLE   ,  difa.U_PROJECT_TASK_NUMBER as difa_U_PROJECT_TASK_NUMBER   ,  difa.U_PROJECT_TASK as difa_U_PROJECT_TASK   ,  difa.U_IS_PROD_LIKE as difa_U_IS_PROD_LIKE   ,  difa.U_PERCENT_GROWTH as difa_U_PERCENT_GROWTH   ,  difa.U_DIET_TASK as difa_U_DIET_TASK   ,  difa.U_DIET_TASK_NUMBER as difa_U_DIET_TASK_NUMBER   ,  difa.U_DIET_TASK_SHORT_DESCRIPTION as difa_U_DIET_TASK_SHORT_DESCRIPTION   ,  diet.BUSINESS_SERVICE as diet_BUSINESS_SERVICE_GUID   ,  diet.BUSINESS_SERVICE_NAME as diet_BUSINESS_SERVICE_NAME   ,  diet.BUSINESS_SERVICE_ENVIRONMENT   ,  diet.STATE as diet_STATE   ,  diet.U_SUBSTATE as diet_SUBSTATE   ,  diet.WORK_NOTES as diet_WORK_NOTES   ,  demand.NUMBER_ as demand_NUMBER_   ,  demand.STATE as demand_STATE   ,  demand.OPENED_BY_NAME as demand_OPENED_BY_NAME   ,  demand.U_CAPACITY_ZONE as demand_U_CAPACITY_ZONE   ,  demand.SHORT_DESCRIPTION as demand_SHORT_DESCRIPTION"
+      },
+      "Var2" : {
+        "type" : "String",
+        "defaultValue" : ",  bizapp.BUSINESS_APPLICATION_WF_GUID as appsvc_BUSINESS_APPLICATION_WF_GUID   ,  bizapp.DISTRIBUTED_APP_ID as bizapp_APPID   ,  bizapp.NAME as bizapp_NAME   ,  bizapp.MANAGED_BY_GROUP_GUID as bizapp_MANAGED_BY_GROUP_GUID   ,  bizapp.MANAGED_BY_GROUP_NAME as bizapp_MANAGED_BY_GROUP_NAME   ,  bizapp.OPERATIONAL_STATUS_DESCRIPTION as bizapp_OPERATIONAL_STATUS_DESCRIPTION   ,  bizapp_hierarchy.CIO_NAME as bizapp_hierarchy_CIO_NAME   ,  bizapp_hierarchy.LINE_OF_BUSINESS_CIO_NAME as bizapp_hierarchy_CIO_DIRECT_NAME   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_CIO as bizapp_hierarchy_CIO   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_CIO_DIRECT as bizapp_hierarchy_CIO_DIRECT   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL2_MANAGER_NAME as bizapp_hierarchy_L2   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL3_MANAGER_NAME as bizapp_hierarchy_L3   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL4_MANAGER_NAME as bizapp_hierarchy_L4   ,  bizapp_hierarchy.PTM_SUPERVISORYLVL5_MANAGER_NAME as bizapp_hierarchy_L5   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_MANAGER_NAME as bizapp_hierarchy_PTM_NAME   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_MANAGER_EMAIL as bizapp_hierarchy_PTM_EMAIL   ,  bizapp_dim.APM_APPLICATION_FAMILY_NAME as bizapp_dim_NEIGHBORHOOD   ,  allcis.MANAGED_BY_GROUP_NAME as allcis_MANAGED_BY_GROUP_NAME   ,  allcis.MANAGED_BY_GROUP_GUID as allcis_MANAGED_BY_GROUP_GUID   ,  dbsmrt_inv.AGG_DATABASE_NAME as dbsmrt_inv_DATABASE_NAME   ,  dbsmrt_inv.AGG_DATABASE_SIZE as dbsmrt_inv_DATABASE_SIZE   ,  dbsmrt_inv.AGG_DATABASE_STATUS as dbsmrt_inv_DATABASE_STATUS   ,  difa.ASSET_TAG as difa_ASSET_TAG   ,  difa.MANUFACTURER_GUID as difa_MANUFACTURER_GUID   ,  difa.MANUFACTURER_NAME as difa_MANUFACTURER_NAME   ,  difa.SIZE_BYTES as difa_SIZE_BYTES   ,  difa.U_BACKUP as difa_U_BACKUP   ,  difa.OBJECT_ID as difa_OBJECT_ID   ,  difa.U_SIZE as difa_U_SIZE   ,  difa.U_TENANT_ID as difa_U_TENANT_ID   ,  difa.CLUSTER_ as difa_CLUSTER_   ,  difa.TODSH_BUSINESS_EFFECTIVE_DATE as difa_TODSH_BUSINESS_EFFECTIVE_DATE   ,  difa.SYS_ID as difa_SYS_ID,  difa.SYS_CREATED_ON as difa_SYS_CREATED_ON   ,  difa.SYS_CREATED_BY as difa_SYS_CREATED_BY   ,  difa.SYS_UPDATED_ON as difa_SYS_UPDATED_ON   ,  difa.SYS_UPDATED_BY as difa_SYS_UPDATED_BY   ,  difa.SYS_MOD_COUNT as difa_SYS_MOD_COUNT      ,  difa.U_CUTOVER    as difa_U_CUTOVER   ,  difa.U_CUTOVER_DATE    as difa_U_CUTOVER_DATE         FROM ITM_CURATED.X_G_WFB_SPM_INFRAS_U_PPM_INFRASTRUCTURE_FORECAST_DCMS difa   LEFT JOIN ITM_CURATED.U_DEMAND_INFRASTRUCTURE_EVALUATION_TASK_DCMS diet     ON difa.U_DIET_TASK_NUMBER = diet.NUMBER_ LEFT JOIN ITM_CURATED.DMN_DEMAND_DCMS demand     ON difa.DEMAND_NUMBER = demand.NUMBER_ LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION bizapp     ON demand.CMDB_CI_BUSINESS_APP = bizapp.BUSINESS_APPLICATION_WF_GUID LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION_HIERARCHY bizapp_hierarchy     on demand.CMDB_CI_BUSINESS_APP = bizapp_hierarchy.BUSINESS_APPLICATION_WF_GUID LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION_DIMENSION bizapp_dim     ON bizapp.BUSINESS_APPLICATION_WF_GUID = bizapp_dim.BUSINESS_APPLICATION_WF_GUID  LEFT JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL allcis    ON difa.CMDB_CI = allcis.U_WF_GUID     LEFT JOIN (      SELECT           DATABASE_ENTERPRISE_ID                         ,          MAX(DATABASE_NAME)   AS AGG_DATABASE_NAME                         ,          MAX(DATABASE_SIZE)   AS AGG_DATABASE_SIZE                         ,          MAX(DATABASE_STATUS) AS AGG_DATABASE_STATUS                       FROM ITM_DBSMRT.INVENTORY                       GROUP BY DATABASE_ENTERPRISE_ID               ) dbsmrt_inv           ON difa.CMDB_CI = dbsmrt_inv.DATABASE_ENTERPRISE_ID          AND allcis.SYS_CLASS_DESCRIPTION IN ( 'DATABASE CATALOG','MS SQL DATABASE','ORACLE CATALOG')"
+      },
+      "Var3" : {
+        "type" : "String",
+        "defaultValue" : "SELECT   difa.NUMBER_ as difa_NUMBER_   ,  difa.CMDB_CI as difa_CMDB_CI   ,  difa.CMDB_CI_NAME as difa_CMDB_CI_NAME   ,  difa.SYS_CLASS_NAME as difa_SYS_CLASS_NAME   ,  difa.PRIMARY_OPERATION_STATUS_DESCRIPTION as difa_PRIMARY_OPERATION_STATUS_DESCRIPTION   ,  difa.CPU_CORE_COUNT as difa_CPU_CORE_COUNT   ,  difa.CPU_COUNT as difa_CPU_COUNT   ,  difa.U_RPT_CPU_TOTAL_CORES as difa_U_RPT_CPU_TOTAL_CORES   ,  difa.RAM as difa_RAM,  difa.DISK_SPACE as difa_DISK_SPACE   ,  difa.VIRTUAL as difa_VIRTUAL   ,  difa.OPERATING_SYSTEM as difa_OPERATING_SYSTEM   ,  difa.ENVIRONMENT as difa_ENVIRONMENT   ,  difa.CITY as difa_CITY   ,  difa.U_CMDB_CI_SUPPORTING as difa_U_CMDB_CI_SUPPORTING   ,  difa.SUPPORTING_CMDB_CI_NAME as difa_SUPPORTING_CMDB_CI_NAME   ,  difa.SUPPORTING_OPERATIONAL_STATUS_DESCRIPTION as difa_SUPPORTING_OPERATIONAL_STATUS_DESCRIPTION   ,  difa.U_EXIT_DATE as difa_U_EXIT_DATE,  difa.U_EXIT_STRATEGY as difa_U_EXIT_STRATEGY   ,  difa.U_INFRASTRUCTURE_NEEDED_BY as difa_U_INFRASTRUCTURE_NEEDED_BY   ,  difa.U_FORECAST_DATA_CENTER as difa_U_FORECAST_DATA_CENTER   ,  difa.U_FORECAST_ENVIRONMENT as difa_U_FORECAST_ENVIRONMENT   ,  difa.U_FORECAST_OS as difa_U_FORECAST_OS   ,  difa.U_FORECAST_CPU as difa_U_FORECAST_CPU   ,  difa.U_FORECAST_RAM as difa_U_FORECAST_RAM   ,  difa.U_FORECAST_SIZE as difa_U_FORECAST_SIZE   ,  difa.U_FORECAST_SIZE_GB as difa_U_FORECAST_SIZE_GB   ,  difa.U_FORECAST_STORAGE_GB as difa_U_FORECAST_STORAGE_GB   ,  difa.U_FORECAST_PROTOCOL as difa_U_FORECAST_PROTOCOL   ,  difa.U_FORECAST_IS_PHYSICAL_VIRTUAL as difa_U_FORECAST_IS_PHYSICAL_VIRTUAL   ,  difa.U_FORECAST_PUBLICLY_ACCESSIBLE as difa_U_FORECAST_PUBLICLY_ACCESSIBLE   ,  difa.U_PROJECT_TASK_NUMBER as difa_U_PROJECT_TASK_NUMBER   ,  difa.U_PROJECT_TASK as difa_U_PROJECT_TASK   ,  difa.U_IS_PROD_LIKE as difa_U_IS_PROD_LIKE   ,  difa.U_PERCENT_GROWTH as difa_U_PERCENT_GROWTH   ,  difa.U_DIET_TASK as difa_U_DIET_TASK   ,  difa.U_DIET_TASK_NUMBER as difa_U_DIET_TASK_NUMBER   ,  difa.U_DIET_TASK_SHORT_DESCRIPTION as difa_U_DIET_TASK_SHORT_DESCRIPTION   ,  diet.BUSINESS_SERVICE as diet_BUSINESS_SERVICE_GUID   ,  diet.BUSINESS_SERVICE_NAME as diet_BUSINESS_SERVICE_NAME   ,  diet.BUSINESS_SERVICE_ENVIRONMENT   ,  diet.STATE as diet_STATE   ,  diet.U_SUBSTATE as diet_SUBSTATE   ,  diet.WORK_NOTES as diet_WORK_NOTES   ,  demand.NUMBER_ as demand_NUMBER_   ,  demand.STATE as demand_STATE   ,  demand.OPENED_BY_NAME as demand_OPENED_BY_NAME   ,  demand.U_CAPACITY_ZONE as demand_U_CAPACITY_ZONE   ,  demand.SHORT_DESCRIPTION as demand_SHORT_DESCRIPTION,  bizapp.BUSINESS_APPLICATION_WF_GUID as appsvc_BUSINESS_APPLICATION_WF_GUID   ,  bizapp.DISTRIBUTED_APP_ID as bizapp_APPID   ,  bizapp.NAME as bizapp_NAME   ,  bizapp.MANAGED_BY_GROUP_GUID as bizapp_MANAGED_BY_GROUP_GUID   ,  bizapp.MANAGED_BY_GROUP_NAME as bizapp_MANAGED_BY_GROUP_NAME   ,  bizapp.OPERATIONAL_STATUS_DESCRIPTION as bizapp_OPERATIONAL_STATUS_DESCRIPTION   ,  bizapp_hierarchy.CIO_NAME as bizapp_hierarchy_CIO_NAME   ,  bizapp_hierarchy.LINE_OF_BUSINESS_CIO_NAME as bizapp_hierarchy_CIO_DIRECT_NAME   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_CIO as bizapp_hierarchy_CIO   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_CIO_DIRECT as bizapp_hierarchy_CIO_DIRECT   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL2_MANAGER_NAME as bizapp_hierarchy_L2   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL3_MANAGER_NAME as bizapp_hierarchy_L3   ,  bizapp_hierarchy.PTM_SUPERVISORY_LVL4_MANAGER_NAME as bizapp_hierarchy_L4   ,  bizapp_hierarchy.PTM_SUPERVISORYLVL5_MANAGER_NAME as bizapp_hierarchy_L5   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_MANAGER_NAME as bizapp_hierarchy_PTM_NAME   ,  bizapp_hierarchy.PRIMARY_TECH_MANAGER_MANAGER_EMAIL as bizapp_hierarchy_PTM_EMAIL   ,  bizapp_dim.APM_APPLICATION_FAMILY_NAME as bizapp_dim_NEIGHBORHOOD   ,  allcis.MANAGED_BY_GROUP_NAME as allcis_MANAGED_BY_GROUP_NAME   ,  allcis.MANAGED_BY_GROUP_GUID as allcis_MANAGED_BY_GROUP_GUID   ,  dbsmrt_inv.AGG_DATABASE_NAME as dbsmrt_inv_DATABASE_NAME   ,  dbsmrt_inv.AGG_DATABASE_SIZE as dbsmrt_inv_DATABASE_SIZE   ,  dbsmrt_inv.AGG_DATABASE_STATUS as dbsmrt_inv_DATABASE_STATUS   ,  difa.ASSET_TAG as difa_ASSET_TAG   ,  difa.MANUFACTURER_GUID as difa_MANUFACTURER_GUID   ,  difa.MANUFACTURER_NAME as difa_MANUFACTURER_NAME   ,  difa.SIZE_BYTES as difa_SIZE_BYTES   ,  difa.U_BACKUP as difa_U_BACKUP   ,  difa.OBJECT_ID as difa_OBJECT_ID   ,  difa.U_SIZE as difa_U_SIZE   ,  difa.U_TENANT_ID as difa_U_TENANT_ID   ,  difa.CLUSTER_ as difa_CLUSTER_   ,  difa.TODSH_BUSINESS_EFFECTIVE_DATE as difa_TODSH_BUSINESS_EFFECTIVE_DATE   ,  difa.SYS_ID as difa_SYS_ID,  difa.SYS_CREATED_ON as difa_SYS_CREATED_ON   ,  difa.SYS_CREATED_BY as difa_SYS_CREATED_BY   ,  difa.SYS_UPDATED_ON as difa_SYS_UPDATED_ON   ,  difa.SYS_UPDATED_BY as difa_SYS_UPDATED_BY   ,  difa.SYS_MOD_COUNT as difa_SYS_MOD_COUNT      ,  difa.U_CUTOVER    as difa_U_CUTOVER   ,  difa.U_CUTOVER_DATE    as difa_U_CUTOVER_DATE         FROM ITM_CURATED.X_G_WFB_SPM_INFRAS_U_PPM_INFRASTRUCTURE_FORECAST_DCMS difa   LEFT JOIN ITM_CURATED.U_DEMAND_INFRASTRUCTURE_EVALUATION_TASK_DCMS diet     ON difa.U_DIET_TASK_NUMBER = diet.NUMBER_ LEFT JOIN ITM_CURATED.DMN_DEMAND_DCMS demand     ON difa.DEMAND_NUMBER = demand.NUMBER_ LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION bizapp     ON demand.CMDB_CI_BUSINESS_APP = bizapp.BUSINESS_APPLICATION_WF_GUID LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION_HIERARCHY bizapp_hierarchy     on demand.CMDB_CI_BUSINESS_APP = bizapp_hierarchy.BUSINESS_APPLICATION_WF_GUID LEFT JOIN ITM_CURATED.BUSINESS_APPLICATION_DIMENSION bizapp_dim     ON bizapp.BUSINESS_APPLICATION_WF_GUID = bizapp_dim.BUSINESS_APPLICATION_WF_GUID  LEFT JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL allcis    ON difa.CMDB_CI = allcis.U_WF_GUID     LEFT JOIN (      SELECT           DATABASE_ENTERPRISE_ID                         ,          MAX(DATABASE_NAME)   AS AGG_DATABASE_NAME                         ,          MAX(DATABASE_SIZE)   AS AGG_DATABASE_SIZE                         ,          MAX(DATABASE_STATUS) AS AGG_DATABASE_STATUS                       FROM ITM_DBSMRT.INVENTORY                       GROUP BY DATABASE_ENTERPRISE_ID               ) dbsmrt_inv           ON difa.CMDB_CI = dbsmrt_inv.DATABASE_ENTERPRISE_ID          AND allcis.SYS_CLASS_DESCRIPTION IN ( 'DATABASE CATALOG','MS SQL DATABASE','ORACLE CATALOG')"
+      }
+    }
+  }
+}

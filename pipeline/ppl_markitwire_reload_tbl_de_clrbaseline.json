@@ -1,0 +1,444 @@
+{
+  "name" : "ppl_markitwire_reload_tbl_de_clrbaseline",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DE_CLRbaseline_ContainerName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DE_CLRbaseline_FileName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DE_CLRbaseline_FilePath' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_DE_CLRbaseline_ContainerName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_DE_CLRbaseline_FileName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'tbl_DE_CLRbaseline_FilePath' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline' AND DATAFLOW_NAME = 'copy_data_into_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Data_into_tbl_DE_CLRbaseline0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Copy_Data_into_tbl_DE_CLRbaseline0_sink_TableName' AND PIPELINE_NAME = 'ppl_markitwire_reload_tbl_de_clrbaseline') AS Copy_Data_into_tbl_DE_CLRbaseline0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Execute_SQL_DeleteFrom_tbl_DE_CLRbaseline_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DELETE FROM [ReconControl].[dbo].[tbl_DE_CLRbaseline]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Copy_Data_into_tbl_DE_CLRbaseline",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_DeleteFrom_tbl_DE_CLRbaseline_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Copy_Data_into_tbl_DE_CLRbaseline",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Copy_Data_into_tbl_DE_CLRbaseline",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Copy_Data_into_tbl_DE_CLRbaseline",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "copy_data_into_tbl_de_clrbaseline",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "tblDECLRbaseline_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "DECLRbaseline" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_DECLRbaseline_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            },
+            "tblDECLRbaseline" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Copy_Data_into_tbl_DE_CLRbaseline_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Copy_Data_into_tbl_DE_CLRbaseline0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Copy_Data_into_tbl_DE_CLRbaseline",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline_tblDECLRbaseline_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Copy_Data_into_tbl_DE_CLRbaseline0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "SETVAR_RowCount",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "CPD_Copy_Data_into_tbl_DE_CLRbaseline0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "RowCount",
+        "value" : "@int(coalesce(activity('DF_Copy_Data_into_tbl_DE_CLRbaseline').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+      }
+    }, {
+      "name" : "ST_Execute_UpdateTo_tbl_DE_CLRbaseline_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_RowCount",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DELETE \n  FROM [ReconControl].[dbo].[tbl_DE_CLRbaseline]\n  WHERE ExtractDateTime LIKE '%Released%';\n\nUPDATE [ReconControl].[dbo].[tbl_DE_CLRbaseline]\n   SET [loadDate] = CAST(GETDATE() as date);",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sSQLRegisterAlertFailure",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_DeleteFrom_tbl_DE_CLRbaseline_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Execute_UpdateTo_tbl_DE_CLRbaseline_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "SETVAR_RowCount",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sSQLRegisterAlertFailure",
+        "value" : {
+          "value" : "@concat('exec sp_ins_ssis_utility_alert ''', variables('sToFailure'), ''',''', variables('sEmailTeamId'), variables('sEnvironment'), '_', variables('sProcessName'), variables('sStatusFailed'), ''',\n''', variables('sHTMLTable'), '<br/><br/>JIRA Component: Markitwire_Reload_Tbl_DE_CLRbaseline. <br/><br/>job 1EQS_WFSRS_Markitwire_Reload_Tbl_DE_CLRbaseline has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com'',\n 2')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SETVAR_sSQLRegisterAlert",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_UpdateTo_tbl_DE_CLRbaseline_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sSQLRegisterAlert",
+        "value" : {
+          "value" : "@concat('exec sp_ins_ssis_utility_alert ''', variables('sToSuccess'), ''',''', variables('sEmailTeamId'), variables('sEnvironment'), '_', variables('sProcessName'), variables('sStatusSuccess'), ''',''', ' ', variables('sReportHyperLink'), '<br/><br/>JIRA Component: Markitwire_Reload_Tbl_DE_CLRbaseline. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com'', 2')",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "ST_Send_failure_email_alert_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sSQLRegisterAlertFailure",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('sSQLRegisterAlertFailure')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Send_success_email_alert_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sSQLRegisterAlert",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "@variables('sSQLRegisterAlert')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Copy_Data_into_tbl_DE_CLRbaseline_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Markitwire_Reload_Tbl_DE_CLRbaseline"
+      },
+      "sFileName" : {
+        "type" : "String",
+        "defaultValue" : "DE_CLRbaseline.csv"
+      },
+      "sFileRootDirectory_1EQS" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV"
+      },
+      "sSQLRegisterAlert" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'wfsrs@wellsfargo.com','WFSR&S_ProcessAlert_DEV_Markitwire_Reload_Tbl_DE_CLRbaseline_SUCCESS',' <br/><br/>JIRA Component: Markitwire_Reload_Tbl_DE_CLRbaseline. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com', 2"
+      },
+      "sFileSubFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\MarkitWire\\Rates\\ExtractFiles\\"
+      },
+      "sReportHyperLink" : {
+        "type" : "String"
+      },
+      "sSQLRegisterAlertFailure" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'wfsrs@wellsfargo.com','WFSR&S_ProcessAlert_DEV_Markitwire_Reload_Tbl_DE_CLRbaseline_FAILED',\\n'<br/><br/>JIRA Component: Markitwire_Reload_Tbl_DE_CLRbaseline. <br/><br/>job 1EQS_WFSRS_Markitwire_Reload_Tbl_DE_CLRbaseline has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com',\\n 2"
+      },
+      "sHTMLTable" : {
+        "type" : "String"
+      },
+      "sEmailTeamId" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "sToFailure" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sToSuccess" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sStatusSuccess" : {
+        "type" : "String",
+        "defaultValue" : "_SUCCESS"
+      },
+      "sStatus" : {
+        "type" : "String"
+      },
+      "RowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sStatusFailed" : {
+        "type" : "String",
+        "defaultValue" : "_FAILED"
+      }
+    }
+  }
+}

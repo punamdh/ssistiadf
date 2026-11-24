@@ -1,0 +1,31 @@
+{
+  "name" : "staging_red_pair_cdsabsidx",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromproductseccode",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservRedPairCdsIdx"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblcalypsotradeservRedPairCdsIdx_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tSEC_CODE as string,\n\t\tCODE_VALUE as string,\n\t\tPRODUCT_FAMILY as string,\n\t\tPRODUCT_TYPE as string,\n\t\tPRODUCT_SUB_TYPE as string,\n\t\tABSINDEX_DEF_ID as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromproductseccode\nfromproductseccode derive({Copy of PRODUCT_TYPE} = PRODUCT_TYPE,\n\t\t{Copy of PRODUCT_FAMILY} = PRODUCT_FAMILY,\n\t\t{Copy of ABSINDEX_DEF_ID} = toString(ABSINDEX_DEF_ID),\n\t\t{Copy of TRADE_ID} = toString(TRADE_ID),\n\t\t{Copy of PRODUCT_ID} = toString(PRODUCT_ID),\n\t\t{Copy of PRODUCT_SUB_TYPE} = PRODUCT_SUB_TYPE,\n\t\t{Copy of SEC_CODE} = SEC_CODE,\n\t\t{Copy of CODE_VALUE} = CODE_VALUE) ~> DataConversion\nDataConversion sink(input(\n\t\tProduct_Sub_Type as string,\n\t\tProduct_Id as string,\n\t\tProduct_Family as string,\n\t\tIndex_Id as string,\n\t\tTrade_Id as string,\n\t\tSec_Code as string,\n\t\tCode_Value as string,\n\t\tProduct_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProduct_Sub_Type = {Copy of PRODUCT_SUB_TYPE},\n\t\tProduct_Id = {Copy of PRODUCT_ID},\n\t\tProduct_Family = {Copy of PRODUCT_FAMILY},\n\t\tIndex_Id = {Copy of ABSINDEX_DEF_ID},\n\t\tTrade_Id = {Copy of TRADE_ID},\n\t\tSec_Code = {Copy of SEC_CODE},\n\t\tCode_Value = {Copy of CODE_VALUE},\n\t\tProduct_Type = {Copy of PRODUCT_TYPE}),\n\tpartitionFileNames:[($totblcalypsotradeservRedPairCdsIdx_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservRedPairCdsIdx"
+    }
+  }
+}

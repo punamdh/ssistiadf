@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,10 +22,8 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tZones_1to14 as string,\n\t\tSetpoint as double,\n\t\tSupply_Temp as double,\n\t\tReturn_Temp as double,\n\t\tHertz as double,\n\t\tpercent as double,\n\t\tKW as double,\n\t\tCHWV_perc as double,\n\t\tCFM as double,\n\t\tCFM_100_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tReturn_Temp as double,\n\t\tSetpoint as double,\n\t\tCHWV_perc as double,\n\t\tCFM as double,\n\t\tSupply_Temp as double,\n\t\tKW as double,\n\t\tpercent as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tCFM_100_perc as double,\n\t\tZones_1to14 as string,\n\t\tHertz as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate = uploaddate,\n\t\tReturn_Temp,\n\t\tSetpoint,\n\t\tCHWV_perc,\n\t\tCFM,\n\t\tSupply_Temp,\n\t\tKW,\n\t\tpercent,\n\t\tDate,\n\t\tETLUser,\n\t\tCFM_100_perc,\n\t\tZones_1to14,\n\t\tHertz),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tENTITY_ID as integer,\n\t\tmodif_dateNoTime as date,\n\t\tCurrency_Pair as string,\n\t\tTRADER_NAME as string,\n\t\tLoad_Date as timestamp,\n\t\tBOOK_NAME as string,\n\t\tTRADE_DATE_TIME as timestamp,\n\t\tTRADE_STATUS as string,\n\t\tPRODUCT_TYPE as string,\n\t\tMODIF_DATE as timestamp,\n\t\tCurrency as string,\n\t\tSALES_PERSON as string,\n\t\tNotional as integer,\n\t\tCpty_ShortName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tENTITY_ID as integer,\n\t\tmodif_dateNoTime as date 'dd-MM-yyyy',\n\t\tCurrency_Pair as string,\n\t\tTRADER_NAME as string,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tBOOK_NAME as string,\n\t\tTRADE_DATE_TIME as timestamp 'dd-MM-yyyy',\n\t\tTRADE_STATUS as string,\n\t\tPRODUCT_TYPE as string,\n\t\tMODIF_DATE as timestamp 'dd-MM-yyyy',\n\t\tCurrency as string,\n\t\tSALES_PERSON as string,\n\t\tNotional as integer,\n\t\tCpty_ShortName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tENTITY_ID,\n\t\tmodif_dateNoTime,\n\t\tCurrency_Pair,\n\t\tTRADER_NAME,\n\t\tLoad_Date,\n\t\tBOOK_NAME,\n\t\tTRADE_DATE_TIME,\n\t\tTRADE_STATUS,\n\t\tPRODUCT_TYPE,\n\t\tMODIF_DATE,\n\t\tCurrency,\n\t\tSALES_PERSON,\n\t\tNotional,\n\t\tCpty_ShortName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

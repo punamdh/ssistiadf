@@ -1,0 +1,31 @@
+{
+  "name" : "export_data_load_success_email_contents",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "toFileExportConMgr1"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tCompletenessCheckToTEST as string ('wfsrs@wellsfargo.com'),\n\tDataChecksMessageSuccess as string ('All key data fields in the catalyst files loaded in this cycle are complete.  Component: Catalyst Daily Trades ETL'),\n\tsFROM as string ('WFSOpsReportingAndSolutions@wellsfargo.com'),\n\tsSubject as string ('WFSR&S_ProcessAlert_DEV_CatalystTrade_ETL')\n}\n\nsource(output(\n\t\tcreatedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(FromLine = toString($sFROM),\n\t\tSubject = toString($sSubject) + '_CompleteCatalystDataLoad_SUCCESS_' + left(toString(currentTimestamp()), 23),\n\t\tToLine = toString($CompletenessCheckToTEST),\n\t\tBody = toString($DataChecksMessageSuccess)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tFromLine as string,\n\t\tToLine as string,\n\t\tBody as string,\n\t\tSubject as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFromLine,\n\t\tToLine,\n\t\tBody,\n\t\tSubject)) ~> toFileExportConMgr1"
+    }
+  }
+}

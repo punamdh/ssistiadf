@@ -1,0 +1,31 @@
+{
+  "name" : "load_aging_live_trades",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "EXECspselCatalystPOQAgingLiveTrade",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystAgingLiveTradesCurrent"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblCatalystAgingLiveTradesCurrent_outputfilename as string ()\n}\n\nsource(output(\n\t\tAGE as integer,\n\t\tcounterparty as string,\n\t\tcusip as string,\n\t\tisParentChild as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tDESK_NAME as string,\n\t\tTicketNumber as string,\n\t\tEntryDate as string,\n\t\tTradeDate as string,\n\t\tSettleDate as string,\n\t\tTicketTypeCode as string,\n\t\tEntered_By as string,\n\t\tTraderName as string,\n\t\tApproved_By as string,\n\t\tPositionGroupDesc as string,\n\t\tTradeStatusString as string,\n\t\tSales as string,\n\t\tPar as string,\n\t\tTradePrice as string,\n\t\tTotalCash as string,\n\t\tPreviousTicketNumber as string,\n\t\tDesk_ManagerName as string,\n\t\tLoadDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EXECspselCatalystPOQAgingLiveTrade\nEXECspselCatalystPOQAgingLiveTrade derive({Copy of EntryDate} = toDate(EntryDate, \"MM/dd/yyyy\"),\n\t\t{Copy of DESK_NAME} = DESK_NAME,\n\t\t{Copy of Desk_ManagerName} = Desk_ManagerName,\n\t\t{Copy of TRADING_UNIT_NAME} = TRADING_UNIT_NAME,\n\t\t{Copy of TradeDate} = toDate(TradeDate, \"MM/dd/yyyy\"),\n\t\t{Copy of SettleDate} = toDate(SettleDate, \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tPar as string,\n\t\tLoadDate as string,\n\t\tTraderName as string,\n\t\tcusip as string,\n\t\tdesk_managerName as string,\n\t\tEntered_By as string,\n\t\tApproved_By as string,\n\t\tTradePrice as string,\n\t\tTradeStatusString as string,\n\t\tisParentChild as string,\n\t\tDESK_NAME as string,\n\t\tPositionGroupDesc as string,\n\t\tPreviousTicketNumber as string,\n\t\tSales as string,\n\t\tTicketNumber as string,\n\t\tTotalCash as string,\n\t\tEntryDate as string,\n\t\tcounterparty as string,\n\t\tTradeDate as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tSettleDate as string,\n\t\tAGE as string,\n\t\tTicketTypeCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPar,\n\t\tLoadDate,\n\t\tTraderName,\n\t\tcusip,\n\t\tdesk_managerName = {Copy of Desk_ManagerName},\n\t\tEntered_By,\n\t\tApproved_By,\n\t\tTradePrice,\n\t\tTradeStatusString,\n\t\tisParentChild,\n\t\tDESK_NAME = {Copy of DESK_NAME},\n\t\tPositionGroupDesc,\n\t\tPreviousTicketNumber,\n\t\tSales,\n\t\tTicketNumber,\n\t\tTotalCash,\n\t\tEntryDate = {Copy of EntryDate},\n\t\tcounterparty,\n\t\tTradeDate = {Copy of TradeDate},\n\t\tTRADING_UNIT_NAME = {Copy of TRADING_UNIT_NAME},\n\t\tSettleDate = {Copy of SettleDate},\n\t\tAGE,\n\t\tTicketTypeCode),\n\tpartitionFileNames:[($totblCatalystAgingLiveTradesCurrent_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystAgingLiveTradesCurrent"
+    }
+  }
+}

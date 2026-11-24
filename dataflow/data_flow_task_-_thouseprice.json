@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_thouseprice",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\teffdate as timestamp,\n\t\tsecurity_adp_nbr as string,\n\t\tClient_Nbr as string,\n\t\tprice_house_dt as timestamp,\n\t\tprice_house_amt as decimal(16,8)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource1\nOLEDBSource1 derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tsecurity_adp_nbr as string,\n\t\tprice_house_amt as integer,\n\t\tprice_house_dt as timestamp 'dd-MM-yyyy',\n\t\tClient_Nbr as string,\n\t\teffdate as timestamp 'dd-MM-yyyy',\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tsecurity_adp_nbr,\n\t\tprice_house_amt,\n\t\tprice_house_dt,\n\t\tClient_Nbr,\n\t\teffdate,\n\t\tloadDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

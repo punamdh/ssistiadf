@@ -1,0 +1,161 @@
+{
+  "name" : "create_gmi_compare_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "AccounttoMOsystemLookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "EndurFutCodeLookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "ExchangeLookukpLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "GMIMultiplierLookupforTradePriceLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "StrikeMultiplierLookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumnBuySellPEXCHAndPFC"
+      }, {
+        "name" : "EndurFutCodeLookup"
+      }, {
+        "name" : "EndurFutCodeLookupIsMatch"
+      }, {
+        "name" : "DerivedColumn1"
+      }, {
+        "name" : "EndurFutCodeLookup0"
+      }, {
+        "name" : "UnionAll"
+      }, {
+        "name" : "ExchangeLookukp"
+      }, {
+        "name" : "ExchangeLookukpIsMatch"
+      }, {
+        "name" : "DerivedColumn2"
+      }, {
+        "name" : "ExchangeLookukp0"
+      }, {
+        "name" : "UnionAll1"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      }, {
+        "name" : "DerrivedColumnPrompt"
+      }, {
+        "name" : "StrikeMultiplierLookup"
+      }, {
+        "name" : "StrikeMultiplierLookup01"
+      }, {
+        "name" : "StrikeMultiplierLookupIsMatch"
+      }, {
+        "name" : "DerivedColumn3"
+      }, {
+        "name" : "StrikeMultiplierLookup0"
+      }, {
+        "name" : "StrikeMultiplierLookup0ONETOMANY"
+      }, {
+        "name" : "UnionAll2"
+      }, {
+        "name" : "GMIMultiplierLookupforTradePrice"
+      }, {
+        "name" : "GMIMultiplierLookupforTradePrice01"
+      }, {
+        "name" : "GMIMultiplierLookupforTradePriceIsMatch"
+      }, {
+        "name" : "DerivedColumn4"
+      }, {
+        "name" : "GMIMultiplierLookupforTradePrice0"
+      }, {
+        "name" : "GMIMultiplierLookupforTradePrice0ONETOMANY"
+      }, {
+        "name" : "UnionAll3"
+      }, {
+        "name" : "DerivedColumnsStrkePriceTradePriceQuantityNumeric"
+      }, {
+        "name" : "AccounttoMOsystemLookup"
+      }, {
+        "name" : "AccounttoMOsystemLookup01"
+      }, {
+        "name" : "AccounttoMOsystemLookupIsMatch"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "AccounttoMOsystemLookup0"
+      }, {
+        "name" : "AccounttoMOsystemLookup0ONETOMANY"
+      }, {
+        "name" : "UnionAll4"
+      }, {
+        "name" : "KeepMOSystemofEndur"
+      }, {
+        "name" : "StrikePricewithLeading0"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "Aggregateondescriptionnotamount"
+      }, {
+        "name" : "SortoneverythingbutDescriptionandQuantity"
+      }, {
+        "name" : "Sortoneverything"
+      }, {
+        "name" : "PlaceHolderCalculateuniquerecordcounterwithallfieldsexceptdescription"
+      }, {
+        "name" : "ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin01"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "Explictilycastingstrikepricetoastringasdefaultcastwastruncating"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tPBS as string,\n\t\tContractYRMTH as string,\n\t\tPEXCH as string,\n\t\tGMIFutCode as string,\n\t\tQuantity as string,\n\t\tDescription as string,\n\t\tPSTRIK as string,\n\t\tTradeDate as string,\n\t\tPTPRIC as string,\n\t\tPutCall as string,\n\t\tPSBCUS as string,\n\t\tPACCT as string,\n\t\tPLTDAT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> AccounttoMOsystemLookupLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> EndurFutCodeLookupLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\t{Value } as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ExchangeLookukpLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GMIMultiplierLookupforTradePriceLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> StrikeMultiplierLookupLKPTABLE\nFlatFileSource1 derive(BuySell = iif(PBS == '1', 'Buy', 'Sell'),\n\t\tPEXCHAndPFC = PEXCH + GMIFutCode,\n\t\tPutCall = replace(PutCall, toString(' '), toString('')),\n\t\tPSBCUS = replace(PSBCUS, toString(' '), toString(''))) ~> DerivedColumnBuySellPEXCHAndPFC\nDerivedColumnBuySellPEXCHAndPFC,EndurFutCodeLookupLKPTABLE lookup(PEXCHAndPFC == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> EndurFutCodeLookup\nEndurFutCodeLookup split(isMatch(), disjoint: true) ~> EndurFutCodeLookupIsMatch@(Match,NotMatch)\nEndurFutCodeLookupIsMatch@NotMatch derive(EndurFutCode = 'unmapped') ~> DerivedColumn1\nEndurFutCodeLookupIsMatch@NotMatch select(mapColumn(\n\t\tEndurFutCode = Value,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tPSBCUS = PSBCUS,\n\t\tPACCT = PACCT,\n\t\tPLTDAT = PLTDAT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> EndurFutCodeLookup0\nDerivedColumn1,EndurFutCodeLookup0 union(byName: true) ~> UnionAll\nUnionAll,ExchangeLookukpLKPTABLE lookup(PEXCHAndPFC == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> ExchangeLookukp\nExchangeLookukp split(isMatch(), disjoint: true) ~> ExchangeLookukpIsMatch@(Match,NotMatch)\nExchangeLookukpIsMatch@NotMatch derive(Exchange = PEXCH + 'unmapped') ~> DerivedColumn2\nExchangeLookukpIsMatch@NotMatch select(mapColumn(\n\t\tExchange = {Value },\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tPSBCUS = PSBCUS,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> ExchangeLookukp0\nDerivedColumn2,ExchangeLookukp0 union(byName: true) ~> UnionAll1\nUnionAll1,LookupLKPTABLE lookup(PEXCHAndPFC == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(isMatch()) ~> Lookup0\nLookup0 derive(Prompt2 = iif(PEXCHAndPFC == '19J\\\\' || PEXCHAndPFC == '19HH' || PEXCHAndPFC == '19YW' || PEXCHAndPFC == '19YY' || PEXCHAndPFC == '19SS' || PEXCHAndPFC == '19PP' || PEXCHAndPFC == '19HS' || PEXCHAndPFC == '19HM' || PEXCHAndPFC == '19YU' || PEXCHAndPFC == '19UC' || PEXCHAndPFC == '19YS' || PEXCHAndPFC == '19RS', '', PSBCUS),\n\t\tPrompt = iif(isNull(Value) == 0, Value, PSBCUS)) ~> DerrivedColumnPrompt\nDerrivedColumnPrompt,StrikeMultiplierLookupLKPTABLE lookup(PEXCHAndPFC == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> StrikeMultiplierLookup\nStrikeMultiplierLookup select(mapColumn(\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tValue = DerrivedColumnPrompt@Value,\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT,\n\t\tKey = Key\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> StrikeMultiplierLookup01\nStrikeMultiplierLookup01 split(isMatch(), disjoint: true) ~> StrikeMultiplierLookupIsMatch@(Match,NotMatch)\nStrikeMultiplierLookupIsMatch@NotMatch derive(StrikeMultiplier = '1') ~> DerivedColumn3\nStrikeMultiplierLookupIsMatch@NotMatch select(mapColumn(\n\t\tStrikeMultiplier = Value,\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> StrikeMultiplierLookup0\nStrikeMultiplierLookup0 derive(Value = StrikeMultiplier) ~> StrikeMultiplierLookup0ONETOMANY\nDerivedColumn3,StrikeMultiplierLookup0ONETOMANY union(byName: true) ~> UnionAll2\nUnionAll2,GMIMultiplierLookupforTradePriceLKPTABLE lookup(PEXCHAndPFC == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> GMIMultiplierLookupforTradePrice\nGMIMultiplierLookupforTradePrice select(mapColumn(\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tValue = UnionAll2@Value,\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tStrikeMultiplier = StrikeMultiplier,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT,\n\t\tKey = Key\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> GMIMultiplierLookupforTradePrice01\nGMIMultiplierLookupforTradePrice01 split(isMatch(), disjoint: true) ~> GMIMultiplierLookupforTradePriceIsMatch@(Match,NotMatch)\nGMIMultiplierLookupforTradePriceIsMatch@NotMatch derive(GMIMultiplier = '1') ~> DerivedColumn4\nGMIMultiplierLookupforTradePriceIsMatch@NotMatch select(mapColumn(\n\t\tGMIMultiplier = Value,\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tStrikeMultiplier = StrikeMultiplier,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> GMIMultiplierLookupforTradePrice0\nGMIMultiplierLookupforTradePrice0 derive(Value = GMIMultiplier) ~> GMIMultiplierLookupforTradePrice0ONETOMANY\nDerivedColumn4,GMIMultiplierLookupforTradePrice0ONETOMANY union(byName: true) ~> UnionAll3\nUnionAll3 derive(StrikePrice = toString(PSTRIK) * toString(StrikeMultiplier),\n\t\tQuantityNumeric = toString(Quantity),\n\t\tTradePrice = toString((toString(PTPRIC) * toString(GMIMultiplier)))) ~> DerivedColumnsStrkePriceTradePriceQuantityNumeric\nDerivedColumnsStrkePriceTradePriceQuantityNumeric,AccounttoMOsystemLookupLKPTABLE lookup(Account == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> AccounttoMOsystemLookup\nAccounttoMOsystemLookup select(mapColumn(\n\t\tStrikePrice = StrikePrice,\n\t\tQuantityNumeric = QuantityNumeric,\n\t\tTradePrice = TradePrice,\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tValue = UnionAll3@Value,\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tStrikeMultiplier = StrikeMultiplier,\n\t\tGMIMultiplier = GMIMultiplier,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT,\n\t\tKey = Key\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> AccounttoMOsystemLookup01\nAccounttoMOsystemLookup01 split(isMatch(), disjoint: true) ~> AccounttoMOsystemLookupIsMatch@(Match,NotMatch)\nAccounttoMOsystemLookupIsMatch@NotMatch derive(MOSystem = 'Endur') ~> DerivedColumn\nAccounttoMOsystemLookupIsMatch@NotMatch select(mapColumn(\n\t\tMOSystem = Value,\n\t\tStrikePrice = StrikePrice,\n\t\tQuantityNumeric = QuantityNumeric,\n\t\tTradePrice = TradePrice,\n\t\tAccount = Account,\n\t\tPBS = PBS,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tPEXCH = PEXCH,\n\t\tGMIFutCode = GMIFutCode,\n\t\tQuantity = Quantity,\n\t\tDescription = Description,\n\t\tPSTRIK = PSTRIK,\n\t\tTradeDate = TradeDate,\n\t\tPTPRIC = PTPRIC,\n\t\tPutCall = PutCall,\n\t\tBuySell = BuySell,\n\t\tPEXCHAndPFC = PEXCHAndPFC,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tPSBCUS = PSBCUS,\n\t\tPrompt2 = Prompt2,\n\t\tPrompt = Prompt,\n\t\tStrikeMultiplier = StrikeMultiplier,\n\t\tGMIMultiplier = GMIMultiplier,\n\t\tPLTDAT = PLTDAT,\n\t\tPACCT = PACCT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> AccounttoMOsystemLookup0\nAccounttoMOsystemLookup0 derive(Value = MOSystem) ~> AccounttoMOsystemLookup0ONETOMANY\nDerivedColumn,AccounttoMOsystemLookup0ONETOMANY union(byName: true) ~> UnionAll4\nUnionAll4 split(MOSystem == 'Endur', disjoint: true) ~> KeepMOSystemofEndur@(MOSystemisEndur,ConditionalSplitDefaultOutput)\nKeepMOSystemofEndur@MOSystemisEndur derive(StrikePriceWithLeading0 = iif(StrikePrice < toDecimal(1), '0' + toString(StrikePrice), toString(StrikePrice))) ~> StrikePricewithLeading0\nStrikePricewithLeading0 aggregate(groupBy(Account,BuySell,ContractYRMTH,EndurFutCode,Exchange,GMIFutCode,Prompt,PutCall,StrikePriceWithLeading0,TradeDate,TradePrice,PLTDAT),\n\tStrikePrice = last(StrikePriceWithLeading0),\n\t\tQuantityNumeric = sum(QuantityNumeric)) ~> Aggregate\nStrikePricewithLeading0 aggregate(groupBy(Account,BuySell,ContractYRMTH,Description,EndurFutCode,Exchange,GMIFutCode,Prompt,PutCall,StrikePriceWithLeading0,TradeDate,TradePrice,PLTDAT),\n\tStrikePrice = last(StrikePriceWithLeading0)) ~> Aggregateondescriptionnotamount\nAggregate sort(asc(Account, false),asc(TradeDate, false),asc(TradePrice, false),asc(BuySell, false),asc(ContractYRMTH, false),asc(EndurFutCode, false),asc(Exchange, false),asc(GMIFutCode, false),asc(Prompt, false),asc(PutCall, false),asc(StrikePrice, false)) ~> SortoneverythingbutDescriptionandQuantity\nAggregateondescriptionnotamount sort(asc(Account, false),asc(TradeDate, false),asc(TradePrice, false),asc(Description, false),asc(PLTDAT, false),asc(BuySell, false),asc(ContractYRMTH, false),asc(EndurFutCode, false),asc(Exchange, false),asc(GMIFutCode, false),asc(Prompt, false),asc(PutCall, false),asc(StrikePrice, false)) ~> Sortoneverything\nSortoneverything derive(Account = Account) ~> PlaceHolderCalculateuniquerecordcounterwithallfieldsexceptdescription\nPlaceHolderCalculateuniquerecordcounterwithallfieldsexceptdescription split(KeyCount == 1, disjoint: true) ~> ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@(FirstKeyOccurence,ConditionalSplitDefaultOutput)\nSortoneverythingbutDescriptionandQuantity,ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence join(Aggregate@Account == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Account && Aggregate@BuySell == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@BuySell && Aggregate@ContractYRMTH == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@ContractYRMTH && Aggregate@EndurFutCode == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@EndurFutCode && Aggregate@Exchange == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Exchange && Aggregate@GMIFutCode == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@GMIFutCode && Aggregate@Prompt == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Prompt && Aggregate@PutCall == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@PutCall && Aggregate@StrikePrice == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@StrikePrice && Aggregate@TradeDate == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@TradeDate && Aggregate@TradePrice == ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@TradePrice,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tAccount = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Account,\n\t\tBuySell = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@BuySell,\n\t\tContractYRMTH = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@ContractYRMTH,\n\t\tEndurFutCode = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@EndurFutCode,\n\t\tExchange = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Exchange,\n\t\tGMIFutCode = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@GMIFutCode,\n\t\tPrompt = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@Prompt,\n\t\tPutCall = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@PutCall,\n\t\tStrikePrice = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@StrikePrice,\n\t\tTradeDate = ThrowoutallrecordswhereKeyCountisgreatherthanonetherebysavingthefirstdescriptionperkey@FirstKeyOccurence@TradeDate,\n\t\tTradePrice = TradePrice,\n\t\tQuantityNumeric = QuantityNumeric,\n\t\tDescription = Description,\n\t\tPLTDAT = PLTDAT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin01\nMergeJoin01 derive(Account = Account,\n\t\tBuySell = BuySell,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchange = Exchange,\n\t\tGMIFutCode = GMIFutCode,\n\t\tPrompt = Prompt,\n\t\tPutCall = PutCall,\n\t\tStrikePrice = StrikePrice,\n\t\tTradeDate = TradeDate,\n\t\tTradePrice = TradePrice,\n\t\tQuantityNumeric = QuantityNumeric,\n\t\tDescription = Description,\n\t\tPLTDAT = PLTDAT) ~> MergeJoin0\nMergeJoin0 derive(StrikePriceString = toString(StrikePrice),\n\t\tPLTDATE2 = substring(toString(PLTDAT), toInteger(5), toInteger(2)) + '/' + substring(toString(PLTDAT), toInteger(7), toInteger(2)) + '/' + substring(toString(PLTDAT), toInteger(1), toInteger(4))) ~> Explictilycastingstrikepricetoastringasdefaultcastwastruncating\nExplictilycastingstrikepricetoastringasdefaultcastwastruncating sink(input(\n\t\tAccount as string,\n\t\tDescription as string,\n\t\tStrikePrice as string,\n\t\tContractYRMTH as string,\n\t\tGMIFutCode as string,\n\t\tQuantity as string,\n\t\tBuySell as string,\n\t\tTradePrice as string,\n\t\tExchange as string,\n\t\tPutCall as string,\n\t\tLastTradeDate as string,\n\t\tTradeDate as string,\n\t\tPrompt as string,\n\t\tEndurFutCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAccount,\n\t\tDescription,\n\t\tStrikePrice = StrikePriceString,\n\t\tContractYRMTH,\n\t\tGMIFutCode,\n\t\tQuantity = QuantityNumeric,\n\t\tBuySell,\n\t\tTradePrice,\n\t\tExchange,\n\t\tPutCall,\n\t\tLastTradeDate = PLTDATE2,\n\t\tTradeDate,\n\t\tPrompt,\n\t\tEndurFutCode)) ~> FlatFileDestination"
+    }
+  }
+}

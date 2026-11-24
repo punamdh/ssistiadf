@@ -1,0 +1,33 @@
+{
+  "name" : "bpsa_transhist_trade_volume",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetCurrentdate"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCLIENT_NBR as string,\n\t\tTRADE_DT as timestamp,\n\t\tMONTHENDDT as timestamp,\n\t\tBRANCH_CD as string,\n\t\tACCOUNT_CD as string,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\tCNCL_CMMSN_TRD_CD as string,\n\t\tBRANCH_OFFSET_CD as string,\n\t\tACCOUNT_CLSFN_CD as string,\n\t\tRR_TRANS_CD as string,\n\t\tACCOUNT_OFFSET_CD as string,\n\t\tRR_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Create_dt = currentTimestamp()) ~> GetCurrentdate\nGetCurrentdate derive({Copy of CNCL_CMMSN_TRD_CD} = CNCL_CMMSN_TRD_CD,\n\t\t{Copy of BRANCH_CD} = BRANCH_CD,\n\t\t{Copy of RR_TRANS_CD} = RR_TRANS_CD,\n\t\t{Copy of ACCOUNT_OFFSET_CD} = ACCOUNT_OFFSET_CD,\n\t\t{Copy of CLIENT_NBR} = CLIENT_NBR,\n\t\t{Copy of ACCOUNT_CLSFN_CD} = ACCOUNT_CLSFN_CD,\n\t\t{Copy of RR_CD} = RR_CD,\n\t\t{Copy of BRANCH_OFFSET_CD} = BRANCH_OFFSET_CD,\n\t\t{Copy of TYPE_ACCOUNT_CD} = TYPE_ACCOUNT_CD,\n\t\t{Copy of ACCOUNT_CD} = ACCOUNT_CD) ~> DataConversion\nDataConversion sink(input(\n\t\tTradeDt as string,\n\t\taccount_cd as string,\n\t\tCreate_dt as timestamp 'dd-MM-yyyy',\n\t\tclient_nbr as string,\n\t\tbranch_offset_cd as string,\n\t\tcncl_cmmsn_trd_cd as string,\n\t\tbranch_cd as string,\n\t\tmonthEndDt as timestamp 'dd-MM-yyyy',\n\t\taccount_clsfn_cd as string,\n\t\trr_cd as string,\n\t\ttype_account_cd as string,\n\t\taccount_offset_cd as string,\n\t\trr_trans_cd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTradeDt = TRADE_DT,\n\t\taccount_cd = {Copy of ACCOUNT_CD},\n\t\tCreate_dt,\n\t\tclient_nbr = {Copy of CLIENT_NBR},\n\t\tbranch_offset_cd = {Copy of BRANCH_OFFSET_CD},\n\t\tcncl_cmmsn_trd_cd = {Copy of CNCL_CMMSN_TRD_CD},\n\t\tbranch_cd = {Copy of BRANCH_CD},\n\t\tmonthEndDt = MONTHENDDT,\n\t\taccount_clsfn_cd = {Copy of ACCOUNT_CLSFN_CD},\n\t\trr_cd = {Copy of RR_CD},\n\t\ttype_account_cd = {Copy of TYPE_ACCOUNT_CD},\n\t\taccount_offset_cd = {Copy of ACCOUNT_OFFSET_CD},\n\t\trr_trans_cd = {Copy of RR_TRANS_CD}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

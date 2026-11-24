@@ -1,0 +1,29 @@
+{
+  "name" : "load_tbl_slacp_emailaddress_audit",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPemailAddressaudit"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPemailAddressaudit_outputfilename as string ()\n}\n\nsource(output(\n\t\tdateAction as timestamp,\n\t\tbefore as string,\n\t\tcontraparty as string,\n\t\taction as string,\n\t\tAfter as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tdateAction as string,\n\t\tbefore as string,\n\t\tcontraparty as string,\n\t\taction as string,\n\t\tafter as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tdateAction,\n\t\tbefore,\n\t\tcontraparty,\n\t\taction,\n\t\tafter = After),\n\tpartitionFileNames:[($tblSLACPemailAddressaudit_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPemailAddressaudit"
+    }
+  }
+}

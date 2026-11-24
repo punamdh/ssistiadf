@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tRoom as string,\n\t\tLocation as string,\n\t\tRETURN_SETPOINT as double,\n\t\t{Auto Restart} as string,\n\t\tCRAH_Manuf_Size as string,\n\t\tFanSpeedifApplicable as double,\n\t\tUNIT_ON as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tETLUser as string,\n\t\tFanSpeedifApplicable as double,\n\t\tAuto_Restart as string,\n\t\tRoom as string,\n\t\tUNIT_ON as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double,\n\t\tCRAH_Manuf_Size as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tETLUser,\n\t\tFanSpeedifApplicable,\n\t\tAuto_Restart = {Auto Restart},\n\t\tRoom,\n\t\tUNIT_ON,\n\t\tDate,\n\t\tRETURN_SETPOINT,\n\t\tCRAH_Manuf_Size,\n\t\tLocation),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDATABASE_NAME as string,\n\t\tDATABASE_ID as string,\n\t\tDATABASE_ENTERPRISE_ID as string,\n\t\tINSTANCE_ENTERPRISE_ID as string,\n\t\tDATABASE_STATUS as string,\n\t\tDATABASE_ENVIRONMENT as string,\n\t\tDATABASE_BUSINESS_INTEREST as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tBUSINESS_APP_SYS_CLASS_NAME as string,\n\t\tBUSINESS_APPLICATION_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDATABASE_ID as string,\n\t\tDATABASE_ENTERPRISE_ID as string,\n\t\tDATABASE_NAME as string,\n\t\tINSTANCE_ENTERPRISE_ID as string,\n\t\tDATABASE_ENVIRONMENT as string,\n\t\tBUSINESS_APP_SYS_CLASS_NAME as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tDATABASE_STATUS as string,\n\t\tBUSINESS_APPLICATION_NAME as string,\n\t\tDATABASE_BUSINESS_INTEREST as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATABASE_ID,\n\t\tDATABASE_ENTERPRISE_ID,\n\t\tDATABASE_NAME,\n\t\tINSTANCE_ENTERPRISE_ID,\n\t\tDATABASE_ENVIRONMENT,\n\t\tBUSINESS_APP_SYS_CLASS_NAME,\n\t\timportdate = ImportDate,\n\t\tDATABASE_STATUS,\n\t\tBUSINESS_APPLICATION_NAME,\n\t\tDATABASE_BUSINESS_INTEREST,\n\t\tBUSINESS_APPLICATION_WF_GUID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

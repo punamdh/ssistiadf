@@ -1,0 +1,31 @@
+{
+  "name" : "export_data_to_csv_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tbusDate as date,\n\t\tfailType as string,\n\t\tclientNbr as string,\n\t\tproduct as string,\n\t\tproductTypeCode as string,\n\t\tsuperProductCode as string,\n\t\tdepo as string,\n\t\treportGroup as string,\n\t\treportCategory as string,\n\t\tsodFailCnt as integer,\n\t\teodFailCnt as integer,\n\t\tsettledFails as integer,\n\t\tzeroDaySettled as integer,\n\t\toverallSettledCnt as integer,\n\t\topenforSettToday as integer,\n\t\tageSummation as integer,\n\t\taveAge as integer,\n\t\tclearancePercent as decimal(18,16),\n\t\tfailPercent as decimal(18,16)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive({Copy of clearancePercent} = clearancePercent,\n\t\t{Copy of failPercent} = failPercent) ~> DataConversion\nDataConversion sink(input(\n\t\topenforSettToday as string,\n\t\tproduct as string,\n\t\tfailType as string,\n\t\toverallSettledCnt as string,\n\t\tfailPercent as string,\n\t\tclearancePercent as string,\n\t\tdepo as string,\n\t\tsettledFails as string,\n\t\tageSummation as string,\n\t\tsodFailCnt as string,\n\t\tbusDate as string,\n\t\treportGroup as string,\n\t\tclientNbr as string,\n\t\treportCategory as string,\n\t\tzeroDaySettled as string,\n\t\tsuperProductCode as string,\n\t\taveAge as string,\n\t\tproductTypeCode as string,\n\t\teodFailCnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\topenforSettToday,\n\t\tproduct,\n\t\tfailType,\n\t\toverallSettledCnt,\n\t\tfailPercent = {Copy of failPercent},\n\t\tclearancePercent = {Copy of clearancePercent},\n\t\tdepo,\n\t\tsettledFails,\n\t\tageSummation,\n\t\tsodFailCnt,\n\t\tbusDate,\n\t\treportGroup,\n\t\tclientNbr,\n\t\treportCategory,\n\t\tzeroDaySettled,\n\t\tsuperProductCode,\n\t\taveAge,\n\t\tproductTypeCode,\n\t\teodFailCnt)) ~> FlatFileDestination"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name" : "load_to_staging_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OpicsPlusDB",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsSplitStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "GetLoadDate"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\ttblOpicsSplitStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tCMNE as string,\n\t\tBR as string,\n\t\tDEALNO as string,\n\t\tSEQ as string,\n\t\tPRODUCT as string,\n\t\tPRODTYPE as string,\n\t\tORIGDEALNO as string,\n\t\tORIGSEQ as string,\n\t\tORIGPRODUCT as string,\n\t\tORIGPRODTYPE as string,\n\t\tORIGVDATE as timestamp,\n\t\tORIGPRODSYS as string,\n\t\tCNO as string,\n\t\tPAYRECIND as string,\n\t\tIOPER as string,\n\t\tINPUTDATE as timestamp,\n\t\tVERIND as string,\n\t\tVERDATE as timestamp,\n\t\tVEROPER as string,\n\t\tPAYRECOPER as string,\n\t\tSETTDATE as timestamp,\n\t\tCCY as string,\n\t\tSPLITAMT as decimal(19,4),\n\t\tCCYSMEANS as string,\n\t\tCCYSACCT as string,\n\t\tOFFSETSMEANS as string,\n\t\tOFFSETSACCOUNT as string,\n\t\tCCYRATE_8 as decimal(18,8),\n\t\tCCYBAMT as decimal(19,4),\n\t\tCOST as string,\n\t\tSIIND as string,\n\t\tSWIFTMATCHIND as string,\n\t\tSPOTFWDIND as string,\n\t\tAUTHIND as string,\n\t\tAUTHOPER as string,\n\t\tAUTHDATE as timestamp,\n\t\tREVOPER as string,\n\t\tREVDATE as timestamp,\n\t\tREVREASON as string,\n\t\tREVTEXT as string,\n\t\tDATE1 as timestamp,\n\t\tDATE2 as timestamp,\n\t\tAMT1 as decimal(19,4),\n\t\tAMT2 as decimal(19,4),\n\t\tRATE1_8 as decimal(18,8),\n\t\tRATE2_8 as decimal(18,8),\n\t\tLSTMNTDATE as timestamp,\n\t\tEXCLUDEACCTNGIND as string,\n\t\tPROCESSIND as string,\n\t\tSTATUS as string,\n\t\tLINKDEALNO1 as string,\n\t\tLINKDEALNO2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OpicsPlusDB\tsource(output(\n\t\torigdealno as string,\n\t\torigvdate as timestamp,\n\t\tseq as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOpicsPlusDB derive(LoadDate = toString((currentTimestamp()))) ~> GetLoadDate\nGetLoadDate,LookupLKPTABLE lookup(OpicsPlusDB@ORIGDEALNO == LookupLKPTABLE@origdealno && OpicsPlusDB@ORIGVDATE == LookupLKPTABLE@origvdate && OpicsPlusDB@SEQ == LookupLKPTABLE@seq,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tLoadDate as string,\n\t\tORIGPRODTYPE as string,\n\t\tCCYBAMT as integer,\n\t\tPROCESSIND as string,\n\t\tINPUTDATE as timestamp 'dd-MM-yyyy',\n\t\tORIGPRODUCT as string,\n\t\tVERDATE as timestamp 'dd-MM-yyyy',\n\t\tORIGVDATE as timestamp 'dd-MM-yyyy',\n\t\tREVOPER as string,\n\t\tSTATUS as string,\n\t\tAMT2 as integer,\n\t\tPRODUCT as string,\n\t\tCCYSMEANS as string,\n\t\tAMT1 as integer,\n\t\tDATE2 as timestamp 'dd-MM-yyyy',\n\t\tSIIND as string,\n\t\tSWIFTMATCHIND as string,\n\t\tDATE1 as timestamp 'dd-MM-yyyy',\n\t\tRATE1_8 as integer,\n\t\tPAYRECIND as string,\n\t\tSETTDATE as timestamp 'dd-MM-yyyy',\n\t\tLINKDEALNO1 as string,\n\t\tLINKDEALNO2 as string,\n\t\tEXCLUDEACCTNGIND as string,\n\t\tCCYSACCT as string,\n\t\tOFFSETSACCOUNT as string,\n\t\tORIGDEALNO as string,\n\t\tCMNE as string,\n\t\tSEQ as string,\n\t\tIOPER as string,\n\t\tSPLITAMT as integer,\n\t\tPRODTYPE as string,\n\t\tORIGSEQ as string,\n\t\tCNO as string,\n\t\tREVREASON as string,\n\t\tLSTMNTDATE as timestamp 'dd-MM-yyyy',\n\t\tBR as string,\n\t\tREVTEXT as string,\n\t\tOFFSETSMEANS as string,\n\t\tCOST as string,\n\t\tAUTHIND as string,\n\t\tPAYRECOPER as string,\n\t\tCCYRATE_8 as integer,\n\t\tDEALNO as string,\n\t\tSPOTFWDIND as string,\n\t\tAUTHDATE as timestamp 'dd-MM-yyyy',\n\t\tRATE2_8 as integer,\n\t\tAUTHOPER as string,\n\t\tREVDATE as timestamp 'dd-MM-yyyy',\n\t\tVERIND as string,\n\t\tVEROPER as string,\n\t\tCCY as string,\n\t\tORIGPRODSYS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tORIGPRODTYPE,\n\t\tCCYBAMT,\n\t\tPROCESSIND,\n\t\tINPUTDATE,\n\t\tORIGPRODUCT,\n\t\tVERDATE,\n\t\tORIGVDATE,\n\t\tREVOPER,\n\t\tSTATUS,\n\t\tAMT2,\n\t\tPRODUCT,\n\t\tCCYSMEANS,\n\t\tAMT1,\n\t\tDATE2,\n\t\tSIIND,\n\t\tSWIFTMATCHIND,\n\t\tDATE1,\n\t\tRATE1_8,\n\t\tPAYRECIND,\n\t\tSETTDATE,\n\t\tLINKDEALNO1,\n\t\tLINKDEALNO2,\n\t\tEXCLUDEACCTNGIND,\n\t\tCCYSACCT,\n\t\tOFFSETSACCOUNT,\n\t\tORIGDEALNO,\n\t\tCMNE,\n\t\tSEQ,\n\t\tIOPER,\n\t\tSPLITAMT,\n\t\tPRODTYPE,\n\t\tORIGSEQ,\n\t\tCNO,\n\t\tREVREASON,\n\t\tLSTMNTDATE,\n\t\tBR,\n\t\tREVTEXT,\n\t\tOFFSETSMEANS,\n\t\tCOST,\n\t\tAUTHIND,\n\t\tPAYRECOPER,\n\t\tCCYRATE_8,\n\t\tDEALNO,\n\t\tSPOTFWDIND,\n\t\tAUTHDATE,\n\t\tRATE2_8,\n\t\tAUTHOPER,\n\t\tREVDATE,\n\t\tVERIND,\n\t\tVEROPER,\n\t\tCCY,\n\t\tORIGPRODSYS),\n\tpartitionFileNames:[($tblOpicsSplitStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsSplitStaging"
+    }
+  }
+}

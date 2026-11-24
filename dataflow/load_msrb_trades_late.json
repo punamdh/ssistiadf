@@ -1,0 +1,33 @@
+{
+  "name" : "load_msrb_trades_late",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoadDatatotblMSRBtradesReportedLate"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tLoadDatatotblMSRBtradesReportedLate_outputfilename as string ()\n}\n\nsource(output(\n\t\tCUSIP as string,\n\t\t{B S} as string,\n\t\t{Trade Type} as string,\n\t\tEBS as string,\n\t\tPrice as string,\n\t\tXREF as string,\n\t\t{Trade Date} as string,\n\t\t{Settlement Date} as string,\n\t\t{Submission Date} as string,\n\t\t{Contra Alpha} as string,\n\t\t{Contra Full Name} as string,\n\t\t{Reason for Late} as string,\n\t\t{Group Responsible} as string,\n\t\t{Person Responsible} as string,\n\t\tExplanation as string,\n\t\t{DTC #} as string,\n\t\t{Par Value} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FileName = toString(($sFileName)),\n\t\tLoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn derive({Copy of FileName} = FileName) ~> DataConversion\nDataConversion sink(input(\n\t\tcontraFullName as string,\n\t\treasonForLate as string,\n\t\tgroupResponsible as string,\n\t\tfileName as string,\n\t\tpersonResponsible as string,\n\t\tsubmissionDate as string,\n\t\ttradeDate as string,\n\t\tsettlementDate as string,\n\t\texplanation as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tCUSIP as string,\n\t\tcontraAlpha as string,\n\t\tBS as string,\n\t\tXREF as string,\n\t\tPrice as string,\n\t\tdtcNumber as string,\n\t\tEBS as string,\n\t\tParValue as string,\n\t\ttradeType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcontraFullName = {Contra Full Name},\n\t\treasonForLate = {Reason for Late},\n\t\tgroupResponsible = {Group Responsible},\n\t\tfileName = {Copy of FileName},\n\t\tpersonResponsible = {Person Responsible},\n\t\tsubmissionDate = {Submission Date},\n\t\ttradeDate = {Trade Date},\n\t\tsettlementDate = {Settlement Date},\n\t\texplanation = Explanation,\n\t\tloadDate = LoadDate,\n\t\tCUSIP,\n\t\tcontraAlpha = {Contra Alpha},\n\t\tBS = {B S},\n\t\tXREF,\n\t\tPrice,\n\t\tdtcNumber = {DTC #},\n\t\tEBS,\n\t\tParValue = {Par Value},\n\t\ttradeType = {Trade Type}),\n\tpartitionFileNames:[($LoadDatatotblMSRBtradesReportedLate_outputfilename)],\n\tpartitionBy('hash', 1)) ~> LoadDatatotblMSRBtradesReportedLate"
+    }
+  }
+}

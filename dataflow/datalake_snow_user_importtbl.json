@@ -1,0 +1,31 @@
+{
+  "name" : "datalake_snow_user_importtbl",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ORACLEDataSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "datalakesnowuserimporttbl"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tdatalakesnowuserimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\tU_ELID as string,\n\t\tEMAIL as string,\n\t\tEMPLOYEE_NUMBER as string,\n\t\tNAME as string,\n\t\tWF_GUID as string,\n\t\tTIME_ZONE as string,\n\t\tTITLE as string,\n\t\tUSER_NAME as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ORACLEDataSource\nORACLEDataSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTIME_ZONE as string,\n\t\tWF_GUID as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tEMPLOYEE_NUMBER as string,\n\t\tTITLE as string,\n\t\tU_ELID as string,\n\t\tUSER_NAME as string,\n\t\tEMAIL as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date 'dd-MM-yyyy',\n\t\tNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTIME_ZONE,\n\t\tWF_GUID,\n\t\timportdate,\n\t\tEMPLOYEE_NUMBER,\n\t\tTITLE,\n\t\tU_ELID,\n\t\tUSER_NAME,\n\t\tEMAIL,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tNAME),\n\tpartitionFileNames:[($datalakesnowuserimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> datalakesnowuserimporttbl"
+    }
+  }
+}

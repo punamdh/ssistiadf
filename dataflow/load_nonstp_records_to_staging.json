@@ -1,0 +1,31 @@
+{
+  "name" : "load_nonstp_records_to_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "LoadNonSTPrecords",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsNonSTPTradeVolumeStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblOpicsNonSTPTradeVolumeStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tDEALSRCE as string,\n\t\tLSTMNTDATE as timestamp,\n\t\tNON_STP_COUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LoadNonSTPrecords\nLoadNonSTPrecords derive(LoadDate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as string,\n\t\tDEALSRCE as string,\n\t\tNONSTP_COUNT as string,\n\t\tLSTMNTDATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tDEALSRCE,\n\t\tNONSTP_COUNT = NON_STP_COUNT,\n\t\tLSTMNTDATE),\n\tpartitionFileNames:[($tblOpicsNonSTPTradeVolumeStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsNonSTPTradeVolumeStaging"
+    }
+  }
+}

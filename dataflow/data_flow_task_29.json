@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tproject as string,\n\t\tworkbook as string,\n\t\tview as string,\n\t\taction as string,\n\t\tuser as string,\n\t\tuser_name as string,\n\t\tuser_email as string,\n\t\tlastview as date,\n\t\tlastlogin as date,\n\t\tviewcount as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tworkbook as string,\n\t\tview as string,\n\t\tuser_email as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tuser_name as string,\n\t\tlastlogin as timestamp 'dd-MM-yyyy',\n\t\tproject as string,\n\t\taction as string,\n\t\tlastview as timestamp 'dd-MM-yyyy',\n\t\tviewcount as integer,\n\t\tuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tworkbook,\n\t\tview,\n\t\tuser_email,\n\t\tUploadDate,\n\t\tETLUser,\n\t\tuser_name,\n\t\tlastlogin,\n\t\tproject,\n\t\taction,\n\t\tlastview,\n\t\tviewcount,\n\t\tuser),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tRUN_DATE as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(AddLoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tRun_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus = STATUS,\n\t\tLoad_Date = AddLoadDate,\n\t\tRun_Date = RUN_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

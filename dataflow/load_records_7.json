@@ -1,0 +1,31 @@
+{
+  "name" : "load_records_7",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tsFilename as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tdr_DealDate as string,\n\t\tBranch as string,\n\t\tStatus as string,\n\t\t{I O} as string,\n\t\tType as string,\n\t\t{Value Date} as string,\n\t\t{Deal no} as string,\n\t\tCCY as string,\n\t\t{Amount Bought} as string,\n\t\tRate as string,\n\t\t{Amount Sold} as string,\n\t\t{Deal date} as string,\n\t\t{Customer BIC} as string,\n\t\t{Sender Ref} as string,\n\t\t{Customer Name} as string,\n\t\t{Date Confirmation Received} as string,\n\t\t{Trade Date aging } as string,\n\t\tComments as string,\n\t\tSoldCCY as string,\n\t\t{Aging confirmation} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Loaddate = toString(currentTimestamp()),\n\t\tFilename = toString($sFilename)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tBRANCH as string,\n\t\tSold_CCY as string,\n\t\tCustomer_Name as string,\n\t\tVALUEDATE as string,\n\t\tDate_Confirm_Received as string,\n\t\tRATE as string,\n\t\tComments as string,\n\t\tIO as string,\n\t\tConfirmation_Aging as string,\n\t\tAmount_Bought as string,\n\t\tBought_CCY as string,\n\t\tFilename as string,\n\t\tTrade_Date_Aging as string,\n\t\tDEALDATE as string,\n\t\tCUSTBIC as string,\n\t\tdr_Dealdate as string,\n\t\tSTATUS as string,\n\t\tAmount_Sold as string,\n\t\tLoaddate as string,\n\t\tDEALNO as string,\n\t\tTYPE as string,\n\t\tSENDERREF as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBRANCH = Branch,\n\t\tSold_CCY = SoldCCY,\n\t\tCustomer_Name = {Customer Name},\n\t\tVALUEDATE = {Value Date},\n\t\tDate_Confirm_Received = {Date Confirmation Received},\n\t\tRATE = Rate,\n\t\tComments,\n\t\tIO = {I O},\n\t\tConfirmation_Aging = {Aging confirmation},\n\t\tAmount_Bought = {Amount Bought},\n\t\tBought_CCY = CCY,\n\t\tFilename,\n\t\tTrade_Date_Aging = {Trade Date aging },\n\t\tDEALDATE = {Deal date},\n\t\tCUSTBIC = {Customer BIC},\n\t\tdr_Dealdate = dr_DealDate,\n\t\tSTATUS = Status,\n\t\tAmount_Sold = {Amount Sold},\n\t\tLoaddate,\n\t\tDEALNO = {Deal no},\n\t\tTYPE = Type,\n\t\tSENDERREF = {Sender Ref}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

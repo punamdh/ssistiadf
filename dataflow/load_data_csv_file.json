@@ -1,0 +1,31 @@
+{
+  "name" : "load_data_csv_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{T D} as string,\n\t\t{S D} as string,\n\t\tLoB as string,\n\t\tTicker as string,\n\t\t{1099} as string,\n\t\t{B S} as string,\n\t\tShares as string,\n\t\t{Reference Price} as string,\n\t\t{ACT confirmation} as string,\n\t\tComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTD as string,\n\t\tSD as string,\n\t\tBS as string,\n\t\tComment as string,\n\t\tTicker as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tACTconfirmation as string,\n\t\tShares as string,\n\t\tReferencePrice as string,\n\t\tLoB as string,\n\t\tYN_1099 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTD = {T D},\n\t\tSD = {S D},\n\t\tBS = {B S},\n\t\tComment,\n\t\tTicker,\n\t\tLoad_Date = LoadDate,\n\t\tACTconfirmation = {ACT confirmation},\n\t\tShares,\n\t\tReferencePrice = {Reference Price},\n\t\tLoB,\n\t\tYN_1099 = {1099}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "load_first_staging_table_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromFileSourceConMgr1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcibaaprefdata1cidsalespersrepcodecvrg"
+      } ],
+      "transformations" : [ {
+        "name" : "addadditionalfields"
+      } ],
+      "script" : "parameters{\n\tvFileName as string (),\n\ttotblcibaaprefdata1cidsalespersrepcodecvrg_outputfilename as string ()\n}\n\nsource(output(\n\t\tas_of_dt as string,\n\t\trep_cd as string,\n\t\tsalespers_emp_key_id as string,\n\t\tsalespers_rep_cd_eff_dt as string,\n\t\tsalespers_rep_cd_end_dt as string,\n\t\tsalespers_rep_cd_pct as string,\n\t\tsales_cat_id as string,\n\t\tsales_cat_nm as string,\n\t\tsales_cat_typ as string,\n\t\tstat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromFileSourceConMgr1\nfromFileSourceConMgr1 derive(rowCreateDate = currentTimestamp(),\n\t\tFileName = toString(right(toString($vFileName), 57))) ~> addadditionalfields\naddadditionalfields sink(input(\n\t\tsalespers_rep_cd_pct as double,\n\t\trowCreateDate as date 'dd-MM-yyyy',\n\t\tstat as string,\n\t\tsales_cat_id as short,\n\t\tsales_cat_typ as string,\n\t\tsalespers_rep_cd_eff_dt as date 'dd-MM-yyyy',\n\t\tsalespers_emp_key_id as integer,\n\t\tFileName as string,\n\t\tsalespers_rep_cd_end_dt as date 'dd-MM-yyyy',\n\t\tas_of_dt as date 'dd-MM-yyyy',\n\t\trep_cd as string,\n\t\tsales_cat_nm as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tsalespers_rep_cd_pct,\n\t\trowCreateDate,\n\t\tstat,\n\t\tsales_cat_id,\n\t\tsales_cat_typ,\n\t\tsalespers_rep_cd_eff_dt,\n\t\tsalespers_emp_key_id,\n\t\tFileName,\n\t\tsalespers_rep_cd_end_dt,\n\t\tas_of_dt,\n\t\trep_cd,\n\t\tsales_cat_nm),\n\tpartitionFileNames:[($totblcibaaprefdata1cidsalespersrepcodecvrg_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcibaaprefdata1cidsalespersrepcodecvrg"
+    }
+  }
+}

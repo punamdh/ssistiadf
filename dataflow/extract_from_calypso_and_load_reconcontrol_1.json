@@ -1,0 +1,36 @@
+{
+  "name" : "extract_from_calypso_and_load_reconcontrol_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tEVENT_TYPE as string,\n\t\tSWORIGINALCOUNTERPARTY as string,\n\t\tCOUNTERPARTY as string,\n\t\tNEWCOUNTERPARTY as string,\n\t\tNOMINAL as string,\n\t\tABS_NOMINAL as string,\n\t\tPRODUCT_TYPE as string,\n\t\tPRODUCT_SUB_TYPE as string,\n\t\tPRODUCT_SUBTYPE_KEYWRD as string,\n\t\tINTERNAL_REFERENCE as string,\n\t\tEXECUTION_DATETIME as string,\n\t\tCOMMENTS as string,\n\t\tTRADE_CURRENCY as string,\n\t\tTRADE_DATE_TIME as timestamp,\n\t\tSETTLEMENT_DATE as timestamp,\n\t\tBUY_SELL as string,\n\t\tENTERED_DATE as timestamp,\n\t\tENTERED_USER as string,\n\t\tQUANTITY as double,\n\t\tRATE_INDEX as string,\n\t\tTRADER_NAME as string,\n\t\tCPTYATTRIB_BUSINESSTYPE as string,\n\t\tCPTYATTRIB_IMAGINE_SHORT_NAME as string,\n\t\tCPTYATTRIB_RED_SHORT_NAME as string,\n\t\tEXERCISED_DATETIME as string,\n\t\tEXECUTIONVENUETYPE as string,\n\t\tECN_SOURCE as string,\n\t\tECN_BROKER_BIC as string,\n\t\tREPORTINGEXECUTIONVENUETYPE as string,\n\t\tPORTFOLIO_COMPRESSION as string,\n\t\tTRANSFERTO as string,\n\t\tTRANSFERFROM as string,\n\t\tLEI_CP as string,\n\t\tEXERCISEDUNDER as string,\n\t\tPROCESSING_ORG as string,\n\t\tSTART_WEEK as timestamp,\n\t\tEND_WEEK as timestamp,\n\t\tCREATION_DTE_SHRT as timestamp,\n\t\tCCPTY_FLAG as string,\n\t\tUNDERLYING_SWAP_CH as string,\n\t\tMESSAGE_TYPE as string,\n\t\tPRODUCT_FAMILY as string,\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tBOOK_ID as decimal(38,0),\n\t\tCDSIDX_NOTIONAL as double,\n\t\tCDS_NOTIONAL as double,\n\t\tLE_INTERNAL as string,\n\t\tCREATION_DATE as timestamp,\n\t\tBOOK as string,\n\t\tSTATUS as string,\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tPRODUCT_EXTENDED_TYPE as string,\n\t\tCURRENCY as string,\n\t\tAMENDMENT_DATE as string,\n\t\tTERMINATIONTRADEDATE as string,\n\t\tPRODUCT_DESCRIPTION as string,\n\t\tPRICE as double,\n\t\tCREATE_DTE as timestamp,\n\t\tFIXED_RATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(TRADE_ID = toString(TRADE_ID),\n\t\tQUANTITY = toInteger(QUANTITY),\n\t\t{Copy of UNDERLYING_SWAP_CH} = UNDERLYING_SWAP_CH,\n\t\t{Copy of FIXED_RATE} = toInteger(FIXED_RATE),\n\t\tPRICE = toInteger(PRICE),\n\t\t{Copy of CCPTY_FLAG} = CCPTY_FLAG,\n\t\tPRODUCT_ID = toString(PRODUCT_ID),\n\t\tABS_NOMINAL = toInteger(ABS_NOMINAL),\n\t\tNOMINAL = toInteger(NOMINAL),\n\t\t{Copy of CREATE_DTE} = CREATE_DTE) ~> DataConversion\nOLEDBSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tLEI_CP as string,\n\t\tSETTLEMENT_DATE as timestamp 'dd-MM-yyyy',\n\t\tQUANTITY as integer,\n\t\tEXERCISED_DATETIME as string,\n\t\tEVENT_TYPE as string,\n\t\tENTERED_USER as string,\n\t\tTRADER_NAME as string,\n\t\tREPORTINGEXECUTIONVENUETYPE as string,\n\t\tCPTYATTRIB_IMAGINE_SHORT_NAME as string,\n\t\tPRODUCT_SUB_TYPE as string,\n\t\tRATE_INDEX as string,\n\t\tPRODUCT_DESCRIPTION as string,\n\t\tSTATUS as string,\n\t\tUNDERLYING_SWAP_CH as string,\n\t\tFIXED_RATE as integer,\n\t\tEXECUTIONVENUETYPE as string,\n\t\tTRADE_CURRENCY as string,\n\t\tTRADE_ID as string,\n\t\tCREATION_DTE_SHRT as timestamp 'dd-MM-yyyy',\n\t\tCPTYATTRIB_BUSINESSTYPE as string,\n\t\tPRODUCT_EXTENDED_TYPE as string,\n\t\tPRICE as integer,\n\t\tCREATION_DATE as timestamp 'dd-MM-yyyy',\n\t\tAMENDMENT_DATE as string,\n\t\tECN_SOURCE as string,\n\t\tINTERNAL_REFERENCE as string,\n\t\tNEWCOUNTERPARTY as string,\n\t\tSTART_WEEK as timestamp 'dd-MM-yyyy',\n\t\tENTERED_DATE as timestamp 'dd-MM-yyyy',\n\t\tTERMINATIONTRADEDATE as string,\n\t\tEND_WEEK as timestamp 'dd-MM-yyyy',\n\t\tPORTFOLIO_COMPRESSION as string,\n\t\tEXECUTION_DATETIME as string,\n\t\tCOMMENTS as string,\n\t\tBUY_SELL as string,\n\t\tEXERCISEDUNDER as string,\n\t\tTRANSFERTO as string,\n\t\tCPTY_FLAG as string,\n\t\tCOUNTERPARTY as string,\n\t\tABS_NOMINAL as integer,\n\t\tPROCESSING_ORG as string,\n\t\tCURRENCY as string,\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tCPTYATTRIB_RED_SHORT_NAME as string,\n\t\tNOMINAL as integer,\n\t\tTRADE_DATE_TIME as timestamp 'dd-MM-yyyy',\n\t\tPRODUCT_ID as string,\n\t\tECN_BROKER_BIC as string,\n\t\tPRODUCT_TYPE as string,\n\t\tSWORIGINALCOUNTERPARTY as string,\n\t\tBOOK as string,\n\t\tTRANSFERFROM as string,\n\t\tPRODUCT_SUBTYPE_KEYWRD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLEI_CP,\n\t\tSETTLEMENT_DATE,\n\t\tQUANTITY,\n\t\tEXERCISED_DATETIME,\n\t\tEVENT_TYPE,\n\t\tENTERED_USER,\n\t\tTRADER_NAME,\n\t\tREPORTINGEXECUTIONVENUETYPE,\n\t\tCPTYATTRIB_IMAGINE_SHORT_NAME,\n\t\tPRODUCT_SUB_TYPE,\n\t\tRATE_INDEX,\n\t\tPRODUCT_DESCRIPTION,\n\t\tSTATUS,\n\t\tUNDERLYING_SWAP_CH = {Copy of UNDERLYING_SWAP_CH},\n\t\tFIXED_RATE = {Copy of FIXED_RATE},\n\t\tEXECUTIONVENUETYPE,\n\t\tTRADE_CURRENCY,\n\t\tTRADE_ID,\n\t\tCREATION_DTE_SHRT,\n\t\tCPTYATTRIB_BUSINESSTYPE,\n\t\tPRODUCT_EXTENDED_TYPE,\n\t\tPRICE,\n\t\tCREATION_DATE,\n\t\tAMENDMENT_DATE,\n\t\tECN_SOURCE,\n\t\tINTERNAL_REFERENCE,\n\t\tNEWCOUNTERPARTY,\n\t\tSTART_WEEK,\n\t\tENTERED_DATE,\n\t\tTERMINATIONTRADEDATE,\n\t\tEND_WEEK,\n\t\tPORTFOLIO_COMPRESSION,\n\t\tEXECUTION_DATETIME,\n\t\tCOMMENTS,\n\t\tBUY_SELL,\n\t\tEXERCISEDUNDER,\n\t\tTRANSFERTO,\n\t\tCPTY_FLAG = {Copy of CCPTY_FLAG},\n\t\tCOUNTERPARTY,\n\t\tABS_NOMINAL,\n\t\tPROCESSING_ORG,\n\t\tCURRENCY,\n\t\tCreate_Dte = {Copy of CREATE_DTE},\n\t\tCPTYATTRIB_RED_SHORT_NAME,\n\t\tNOMINAL,\n\t\tTRADE_DATE_TIME,\n\t\tPRODUCT_ID,\n\t\tECN_BROKER_BIC,\n\t\tPRODUCT_TYPE,\n\t\tSWORIGINALCOUNTERPARTY,\n\t\tBOOK,\n\t\tTRANSFERFROM,\n\t\tPRODUCT_SUBTYPE_KEYWRD),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

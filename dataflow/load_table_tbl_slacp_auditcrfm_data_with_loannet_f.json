@@ -1,0 +1,29 @@
+{
+  "name" : "load_table_tbl_slacp_auditcrfm_data_with_loannet_f",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FACSEDSLoanPosition",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "RCtblSLACPauditcrfmdata"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tRCtblSLACPauditcrfmdata_outputfilename as string ()\n}\n\nsource(output(\n\t\tcusip as string,\n\t\tcontractNumber as string,\n\t\teffDate as timestamp,\n\t\tclientId as string,\n\t\tquantity as integer,\n\t\tborrowLoan as string,\n\t\torigin as string,\n\t\tcontractAmount as integer,\n\t\tdeliveryDate as timestamp,\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FACSEDSLoanPosition\nFACSEDSLoanPosition sink(input(\n\t\tcusip as string,\n\t\tContractNumber as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tclientId as string,\n\t\tquantity as string,\n\t\tborrowLoan as string,\n\t\torigin as string,\n\t\tcontractAmount as string,\n\t\tdeliveryDate as timestamp 'dd-MM-yyyy',\n\t\tcontraParty as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcusip,\n\t\tContractNumber = contractNumber,\n\t\teffDate,\n\t\tclientId,\n\t\tquantity,\n\t\tborrowLoan,\n\t\torigin,\n\t\tcontractAmount,\n\t\tdeliveryDate,\n\t\tcontraParty),\n\tpartitionFileNames:[($RCtblSLACPauditcrfmdata_outputfilename)],\n\tpartitionBy('hash', 1)) ~> RCtblSLACPauditcrfmdata"
+    }
+  }
+}

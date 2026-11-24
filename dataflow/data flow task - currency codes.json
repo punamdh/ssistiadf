@@ -1,0 +1,33 @@
+{
+  "name" : "data flow task - currency codes",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSourcep021ispprod",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetCurrentdate"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCCYCD as string,\n\t\tCCYALPHANUM as string,\n\t\tCCYCDDESC as string,\n\t\tCOUNTRY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSourcep021ispprod\nOLEDBSourcep021ispprod derive(loadDate = currentTimestamp()) ~> GetCurrentdate\nGetCurrentdate derive({Copy of CCYCD} = CCYCD,\n\t\t{Copy of COUNTRY} = COUNTRY,\n\t\t{Copy of CCYCDDESC} = CCYCDDESC,\n\t\t{Copy of CCYALPHANUM} = CCYALPHANUM,\n\t\t{Copy of loadDate} = loadDate) ~> DataConversion\nDataConversion sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tCOUNTRY as string,\n\t\tCCYCD as string,\n\t\tCCYALPHANUM as string,\n\t\tCCYCDDESC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = {Copy of loadDate},\n\t\tCOUNTRY = {Copy of COUNTRY},\n\t\tCCYCD = {Copy of CCYCD},\n\t\tCCYALPHANUM = {Copy of CCYALPHANUM},\n\t\tCCYCDDESC = {Copy of CCYCDDESC}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

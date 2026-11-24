@@ -1,0 +1,31 @@
+{
+  "name" : "v2v",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tcluster as string,\n\t\tesx_hosts as string,\n\t\tv_center as string,\n\t\tesx_host_ip as string,\n\t\tOS_VERSION as string,\n\t\tMANUFACTURER as string,\n\t\tMODEL_NAME as string,\n\t\tmodel_number as string,\n\t\tESXi8_compatible as string,\n\t\tENV as string,\n\t\tdatacenter_normalized as string,\n\t\tvm_name as string,\n\t\t{Power Status} as string,\n\t\tvm_ip as string,\n\t\tsubnet as string,\n\t\tRestrictions as string,\n\t\tvm_guest_network as string,\n\t\tvLAN_ID as string,\n\t\t{Rep Start Date} as date 'dd-MM-yyyy',\n\t\t{Rep End Date} as date 'dd-MM-yyyy',\n\t\t{Cutover Date} as date 'dd-MM-yyyy',\n\t\t{Tunnel Closure Date} as date 'dd-MM-yyyy',\n\t\tRAM as double,\n\t\tCPU_CORE as double,\n\t\tDEVICE_SYS_CLASS_DESC as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tMODEL_NAME1 as string,\n\t\tprimary_record as double,\n\t\tapp_id as string,\n\t\tAPPLICATION_NAME as string,\n\t\tLINE_OF_BUSINESS as string,\n\t\tCIO as string,\n\t\tPAA_INDICATOR as string,\n\t\tPRIMARY_APP_DISTRIBUTED_ID as string,\n\t\tdb_app_id as string,\n\t\tDBMS as string,\n\t\tDATABASE_NAME as string,\n\t\tDATABASE_SIZE as string,\n\t\t{DB Data Migrated Y/N} as string,\n\t\t{Replication CR} as string,\n\t\t{CutOver CR} as string,\n\t\t{Tunnel Closure CR} as string,\n\t\t{Replication Status} as string,\n\t\t{Cutover Status} as string,\n\t\tScope as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tcluster as string,\n\t\tsubnet as string,\n\t\tReplication_CR as string,\n\t\tesx_hosts as string,\n\t\tESXi8_compatible as string,\n\t\tENV as string,\n\t\tCutover_Date as timestamp 'dd-MM-yyyy',\n\t\tCutOver_CR as string,\n\t\tRep_End_Date as timestamp 'dd-MM-yyyy',\n\t\tDB_Data_Migrated_Y_N as string,\n\t\tv_center as string,\n\t\tPower_Status as string,\n\t\tdatacenter_normalized as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tdb_app_id as string,\n\t\tLINE_OF_BUSINESS as string,\n\t\tPRIMARY_APP_DISTRIBUTED_ID as string,\n\t\tmodel_number as string,\n\t\tapp_id as string,\n\t\tAPPLICATION_NAME as string,\n\t\tvm_name as string,\n\t\tvm_ip as string,\n\t\tRestrictions as string,\n\t\tvLAN_ID as string,\n\t\tprimary_record as double,\n\t\tReplication_Status as string,\n\t\tMODEL_NAME1 as string,\n\t\tMODEL_NAME as string,\n\t\tDATABASE_NAME as string,\n\t\tCutover_Status as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tRep_Start_Date as timestamp 'dd-MM-yyyy',\n\t\tPAA_INDICATOR as string,\n\t\tCIO as string,\n\t\tDATABASE_SIZE as string,\n\t\tTunnel_Closure_CR as string,\n\t\tMANUFACTURER as string,\n\t\tesx_host_ip as string,\n\t\tCPU_CORE as double,\n\t\tScope as string,\n\t\tvm_guest_network as string,\n\t\tOS_VERSION as string,\n\t\tDBMS as string,\n\t\tTunnel_Closure_Date as timestamp 'dd-MM-yyyy',\n\t\tDEVICE_SYS_CLASS_DESC as string,\n\t\tRAM as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcluster,\n\t\tsubnet,\n\t\tReplication_CR = {Replication CR},\n\t\tesx_hosts,\n\t\tESXi8_compatible,\n\t\tENV,\n\t\tCutover_Date = {Cutover Date},\n\t\tCutOver_CR = {CutOver CR},\n\t\tRep_End_Date = {Rep End Date},\n\t\tDB_Data_Migrated_Y_N = {DB Data Migrated Y/N},\n\t\tv_center,\n\t\tPower_Status = {Power Status},\n\t\tdatacenter_normalized,\n\t\tENVIRONMENT_DESCRIPTION,\n\t\tdb_app_id,\n\t\tLINE_OF_BUSINESS,\n\t\tPRIMARY_APP_DISTRIBUTED_ID,\n\t\tmodel_number,\n\t\tapp_id,\n\t\tAPPLICATION_NAME,\n\t\tvm_name,\n\t\tvm_ip,\n\t\tRestrictions,\n\t\tvLAN_ID,\n\t\tprimary_record,\n\t\tReplication_Status = {Replication Status},\n\t\tMODEL_NAME1,\n\t\tMODEL_NAME,\n\t\tDATABASE_NAME,\n\t\tCutover_Status = {Cutover Status},\n\t\tImportDate,\n\t\tRep_Start_Date = {Rep Start Date},\n\t\tPAA_INDICATOR,\n\t\tCIO,\n\t\tDATABASE_SIZE,\n\t\tTunnel_Closure_CR = {Tunnel Closure CR},\n\t\tMANUFACTURER,\n\t\tesx_host_ip,\n\t\tCPU_CORE,\n\t\tScope,\n\t\tvm_guest_network,\n\t\tOS_VERSION,\n\t\tDBMS,\n\t\tTunnel_Closure_Date = {Tunnel Closure Date},\n\t\tDEVICE_SYS_CLASS_DESC,\n\t\tRAM),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

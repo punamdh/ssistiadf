@@ -1,0 +1,29 @@
+{
+  "name" : "outstanding_cases_aggregation",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tmetricID as integer,\n\t\tL1_redThreshold as string,\n\t\tOutstanding_Cases as integer,\n\t\tMetricDate as timestamp,\n\t\tL1_amberThreshold as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tmetricID as integer,\n\t\tL1_redThreshold as string,\n\t\tOutstanding_Cases as integer,\n\t\tMetricDate as timestamp 'dd-MM-yyyy',\n\t\tL1_amberThreshold as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tmetricID,\n\t\tL1_redThreshold,\n\t\tOutstanding_Cases,\n\t\tMetricDate,\n\t\tL1_amberThreshold),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "loadbalancepool",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "corporatebalancepoolrecords",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblIntellimatchSnapshotGLCorporateBalancePool"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblIntellimatchSnapshotGLCorporateBalancePool_outputfilename as string ()\n}\n\nsource(output(\n\t\tbalancepool as string,\n\t\tcreate_dt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> corporatebalancepoolrecords\ncorporatebalancepoolrecords sink(input(\n\t\tBalancepool as string,\n\t\tCreate_dt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBalancepool = balancepool,\n\t\tCreate_dt = create_dt),\n\tpartitionFileNames:[($tblIntellimatchSnapshotGLCorporateBalancePool_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblIntellimatchSnapshotGLCorporateBalancePool"
+    }
+  }
+}

@@ -1,0 +1,341 @@
+{
+  "name" : "ppl_incomplete_data_load_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_source_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_source_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_source_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_sink_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_sink_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_sink_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_1_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_1_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_Email_Export_File0_0_1_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Archive_Email_Export_File0_0_1_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "FRE_Foreach_Loop_Container_Email_Export_Files_2_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_Foreach_Loop_Container_Email_Export_Files_2').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_0_SET_sFileName2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sFileName2",
+            "value" : {
+              "value" : "@concat('\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "CPD_Archive_Email_Export_File0_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_0_SET_sFileName2",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_source_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_source_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_sink_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_sink_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "DEL_Archive_Email_Export_File0_0_1",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Archive_Email_Export_File0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_1_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_1_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_Email_Export_File0_0_1_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "CompletenessCheckToTEST" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sMoveDestinationPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\Archive\\"
+      },
+      "sFileNameAddDate" : {
+        "type" : "String",
+        "defaultValue" : "04-03-2026"
+      },
+      "FileName" : {
+        "type" : "String",
+        "defaultValue" : "catalyst.trade_17_01_2023_19_35.dat"
+      },
+      "sMoveDestinationPath2" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\Archive\\"
+      },
+      "CompletenessCheckTo" : {
+        "type" : "String",
+        "defaultValue" : "CatalystQlikviewExceptions@wellsfargo.com"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sProcess" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_fromProd_20250306"
+      },
+      "FileDate" : {
+        "type" : "String",
+        "defaultValue" : "'1/17/2023'"
+      },
+      "FileDestination" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Catalyst\\archive\\"
+      },
+      "sCC" : {
+        "type" : "String"
+      },
+      "sFileFullExportPathSuccess" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\CatalystTrade_ETL_CompleteCatalystDataLoad_SUCCESS_04-03-2026.txt"
+      },
+      "sFileNameExportedSuccess" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_CompleteCatalystDataLoad_SUCCESS_"
+      },
+      "ErrorDesc" : {
+        "type" : "String"
+      },
+      "sActualRecords" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileNameExportedFailure" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_CompleteCatalystDataLoad_FAILURE_"
+      },
+      "sStatus" : {
+        "type" : "String"
+      },
+      "FileCountWithEmptyColumns" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Catalyst Trade process failed. This needs immediate attention."
+      },
+      "DataChecksMessageSuccess" : {
+        "type" : "String",
+        "defaultValue" : "All key data fields in the catalyst files loaded in this cycle are complete.  Component: Catalyst Daily Trades ETL"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL"
+      },
+      "sFileRootDirectory_1EQS" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV"
+      },
+      "DataChecksMessage" : {
+        "type" : "String",
+        "defaultValue" : "The following files and records were loaded with missing fields: \\n\\n\\nThe affected files need to be regenerated by Catalyst Support with complete data and reloaded."
+      },
+      "FileSource" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Loading main Catalyst file data to tbl_Catalyst_Trade"
+      },
+      "sFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\catalyst.trade_17_01_2023_19_35.dat"
+      },
+      "DataChecksFilesAndRowCount" : {
+        "type" : "String"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_CatalystTrade_ETL"
+      },
+      "sFileFullExportPathFailure" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\CatalystTrade_ETL_CompleteCatalystDataLoad_FAILURE_04-03-2026.txt"
+      },
+      "FilesLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFileSubDirectory2" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Catalyst\\"
+      },
+      "sFileName2" : {
+        "type" : "String"
+      },
+      "sFileExportSubDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\"
+      },
+      "sFileName3" : {
+        "type" : "String"
+      },
+      "sFileSubDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\"
+      },
+      "FileSize" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

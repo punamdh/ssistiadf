@@ -5,17 +5,20 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "File1ConMgr",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -23,9 +26,11 @@
         "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Asset Alias} as string,\n\t\t{Date and Time of Answer} as date,\n\t\t{Site Alias} as string,\n\t\tAnswer as double,\n\t\t{Record ID} as string,\n\t\tAsset_ID__c as string,\n\t\t{Asset Classification Short Name} as string,\n\t\t{Metric Type} as string,\n\t\t{Property Type} as string,\n\t\tCapacity as integer,\n\t\t{Question Label} as string,\n\t\t{Supports IT Load} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tAssetClassificationShortName as string,\n\t\tMetricType as string,\n\t\tPropertyType as string,\n\t\tQuestionLabel as string,\n\t\tAnswer as double,\n\t\tETLUser as string,\n\t\tCapacity as integer,\n\t\tSiteAlias as string,\n\t\tAssetAlias as string,\n\t\tSupportsITLoad as string,\n\t\tRecordID as string,\n\t\tAssetID as string,\n\t\tDateandTimeofAnswer as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tAssetClassificationShortName = {Asset Classification Short Name},\n\t\tMetricType = {Metric Type},\n\t\tPropertyType = {Property Type},\n\t\tQuestionLabel = {Question Label},\n\t\tAnswer,\n\t\tETLUser,\n\t\tCapacity,\n\t\tSiteAlias = {Site Alias},\n\t\tAssetAlias = {Asset Alias},\n\t\tSupportsITLoad = {Supports IT Load},\n\t\tRecordID = {Record ID},\n\t\tAssetID = Asset_ID__c,\n\t\tDateandTimeofAnswer = {Date and Time of Answer}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Reference Identifier} as string,\n\t\t{Trade Reference Identifier Supplement} as string,\n\t\t{Sub-Product} as string,\n\t\t{Product Type} as string,\n\t\t{Buyer Name} as string,\n\t\t{ContraParty Firm account name} as string,\n\t\t{Counterparty Account Number} as string,\n\t\t{Fixed Rate} as string,\n\t\t{Fixed Rate Payer (Buyer) Swaption Buyer} as string,\n\t\t{Float Rate Payer (Seller) Swaption Seller} as string,\n\t\t{Reference Entity ID} as string,\n\t\t{Reference Entity Name} as string,\n\t\t{Scheduled Termination Date Expiration Date} as string,\n\t\t{Seller Name} as string,\n\t\t{Trade Date} as string,\n\t\t{Warehouse Current State Notional Amount} as string,\n\t\t{Warehouse Current State Notional Currency} as string,\n\t\t{Warehouse Insert Date} as string,\n\t\t{Warehouse Status} as string,\n\t\t{Warehouse Status Reason} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> File1ConMgr\nFile1ConMgr derive({Copy of Sub-Product} = {Sub-Product}) ~> DataConversion\nFile1ConMgr aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tTrade_Date as date 'dd-MM-yyyy',\n\t\tTrade_Reference_Identifier_Supplement as string,\n\t\tFixed_Rate as integer,\n\t\tWarehouse_Insert_Date as string,\n\t\tWarehouse_Status as string,\n\t\tCounterparty_Account_Number as string,\n\t\tFloat_Rate_Payer_Seller_Swaption_Seller as string,\n\t\tWarehouse_Current_State_Notional_Amount as integer,\n\t\tSub_Product as string,\n\t\tReference_Entity_Name as string,\n\t\tSeller_Name as string,\n\t\tScheduled_Termination_Date_Expiration_Date as string,\n\t\tContraParty_Firm_account_name as string,\n\t\tBuyer_Name as string,\n\t\tFixed_Rate_Payer_Buyer_Swaption_Buyer as string,\n\t\tTrade_Reference_Identifier as string,\n\t\tReference_Entity_ID as string,\n\t\tWarehouse_Status_Reason as string,\n\t\tProduct_Type as string,\n\t\tWarehouse_Current_State_Notional_Currency as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTrade_Date = {Trade Date},\n\t\tTrade_Reference_Identifier_Supplement = {Trade Reference Identifier Supplement},\n\t\tFixed_Rate = {Copy of Fixed Rate},\n\t\tWarehouse_Insert_Date = {Warehouse Insert Date},\n\t\tWarehouse_Status = {Warehouse Status},\n\t\tCounterparty_Account_Number = {Counterparty Account Number},\n\t\tFloat_Rate_Payer_Seller_Swaption_Seller = {Float Rate Payer (Seller) Swaption Seller},\n\t\tWarehouse_Current_State_Notional_Amount = {Copy of Warehouse Current State Notional Amount},\n\t\tSub_Product = {Sub-Product},\n\t\tReference_Entity_Name = {Reference Entity Name},\n\t\tSeller_Name = {Seller Name},\n\t\tScheduled_Termination_Date_Expiration_Date = {Scheduled Termination Date Expiration Date},\n\t\tContraParty_Firm_account_name = {ContraParty Firm account name},\n\t\tBuyer_Name = {Buyer Name},\n\t\tFixed_Rate_Payer_Buyer_Swaption_Buyer = {Fixed Rate Payer (Buyer) Swaption Buyer},\n\t\tTrade_Reference_Identifier = {Trade Reference Identifier},\n\t\tReference_Entity_ID = {Reference Entity ID},\n\t\tWarehouse_Status_Reason = {Warehouse Status Reason},\n\t\tProduct_Type = {Product Type},\n\t\tWarehouse_Current_State_Notional_Currency = {Warehouse Current State Notional Currency}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

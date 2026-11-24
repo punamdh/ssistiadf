@@ -1,0 +1,31 @@
+{
+  "name" : "create_tbl_calypso_markitwire_exceptions_mark_trad",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromCALYPSODBATRADEKEYWORD",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsoMarkitWireExceptionsMarkTradesAlreadyInCaly"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblCalypsoMarkitWireExceptionsMarkTradesAlreadyInCaly_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tTRADE_STATUS as string,\n\t\tSWDEAL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromCALYPSODBATRADEKEYWORD\nfromCALYPSODBATRADEKEYWORD derive({Copy of TRADE_ID} = toString(TRADE_ID),\n\t\t{Copy of SWDEAL_ID} = SWDEAL_ID,\n\t\t{Copy of TRADE_STATUS} = TRADE_STATUS) ~> DataConversion\nDataConversion sink(input(\n\t\tTRADE_ID as string,\n\t\tTRADE_STATUS as string,\n\t\tSWDEAL_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTRADE_ID = {Copy of TRADE_ID},\n\t\tTRADE_STATUS = {Copy of TRADE_STATUS},\n\t\tSWDEAL_ID = {Copy of SWDEAL_ID}),\n\tpartitionFileNames:[($totblCalypsoMarkitWireExceptionsMarkTradesAlreadyInCaly_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsoMarkitWireExceptionsMarkTradesAlreadyInCaly"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "name" : "dft_get_otctrade_cancel_correct",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FromtblIMGENERICALLSTATUS",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "FromCalypso",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "FromCalypsousername",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "FromOTCCancor",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "FromTeamMemberDB",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsoLifecycle"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      }, {
+        "name" : "SortTradeId"
+      }, {
+        "name" : "GetCalypsoFields"
+      }, {
+        "name" : "GetCalypsoFields0"
+      }, {
+        "name" : "SortBookName"
+      }, {
+        "name" : "MergeTradeandInvMaster"
+      }, {
+        "name" : "MergeTradeandInvMaster0"
+      }, {
+        "name" : "AssignnullInvMaster"
+      }, {
+        "name" : "Sortusername"
+      }, {
+        "name" : "mergeusernameADENT"
+      }, {
+        "name" : "mergeusernameADENT0"
+      }, {
+        "name" : "SortADENT"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin01"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "AddAuGroup"
+      }, {
+        "name" : "DataConversion1"
+      } ],
+      "script" : "parameters{\n\ttotblCalypsoLifecycle_outputfilename as string (),\n\tstartTime as string ()\n}\n\nsource(output(\n\t\tINVENTORY_NAME as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tDESK_NAME as string,\n\t\tDESK_MANAGER_NAME as string,\n\t\twells_Entity_Name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FromtblIMGENERICALLSTATUS\tsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tTRADE_DATE_TIME as timestamp,\n\t\tCCP as string,\n\t\tPRODUCT_FAMILY as string,\n\t\tPRODUCT_TYPE as string,\n\t\tPRODUCT_SUB_TYPE as string,\n\t\tSHORT_NAME as string,\n\t\tLONG_NAME as string,\n\t\tINTERNAL as string,\n\t\tSALES_PERSON as string,\n\t\tTRADE_STATUS as string,\n\t\tTRADER_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FromCalypso\tsource(output(\n\t\tUSER_NAME as string,\n\t\tADENT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FromCalypsousername\tsource(output(\n\t\tMKey_BDteCRef as string,\n\t\tmodif_date as timestamp,\n\t\tUser_Name as string,\n\t\tCalypso_Reference as string,\n\t\tBook_Name as string,\n\t\tTrade_Status as string,\n\t\tSales_Person as string,\n\t\tTrader as string,\n\t\tamendment as string,\n\t\tamendment_cash as string,\n\t\tnpv_Change as double,\n\t\tfee_Change as double,\n\t\tlifecycle as string,\n\t\tBusiness_Date_Rpt as timestamp,\n\t\tField_Amended as string,\n\t\tField_Mapping as string,\n\t\tBefore as string,\n\t\tAfter as string,\n\t\tAction_Status as string,\n\t\tEnd_Status as string,\n\t\tOriginal_Status as string,\n\t\tRequired_Approval as string,\n\t\tmo_AccessGroup as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FromOTCCancor\tsource(output(\n\t\tAUName as string,\n\t\tADENT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FromTeamMemberDB\nFromOTCCancor derive(oCalypso_Reference = toInteger(Calypso_Reference)) ~> DataConversion\nFromOTCCancor aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sort(asc(oCalypso_Reference, false)) ~> SortTradeId\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nSortTradeId,FromCalypso join(oCalypso_Reference == TRADE_ID,\n\tjoinType:'left',\n\tbroadcast: 'none')~> GetCalypsoFields\nGetCalypsoFields derive(MKey_BDteCRef = MKey_BDteCRef,\n\t\tmodif_date = modif_date,\n\t\tUser_Name = User_Name,\n\t\tBook_Name = Book_Name,\n\t\tTrade_Status = Trade_Status,\n\t\tSales_Person = Sales_Person,\n\t\tTrader = Trader,\n\t\tnpv_Change = npv_Change,\n\t\tfee_Change = fee_Change,\n\t\tlifecycle = lifecycle,\n\t\tBusiness_Date_Rpt = Business_Date_Rpt,\n\t\tField_Amended = Field_Amended,\n\t\tField_Mapping = Field_Mapping,\n\t\tBefore = Before,\n\t\tAfter = After,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOriginal_Status = Original_Status,\n\t\toCalypso_Reference = oCalypso_Reference,\n\t\tRequired_Approval = Required_Approval,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tCCP = CCP,\n\t\tPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\tSHORT_NAME = SHORT_NAME,\n\t\tLONG_NAME = LONG_NAME,\n\t\tINTERNAL = INTERNAL,\n\t\tmo_AccessGroup = mo_AccessGroup) ~> GetCalypsoFields0\nGetCalypsoFields0 sort(asc(Book_Name, false)) ~> SortBookName\nSortBookName,FromtblIMGENERICALLSTATUS join(Book_Name == INVENTORY_NAME,\n\tjoinType:'left',\n\tbroadcast: 'none')~> MergeTradeandInvMaster\nMergeTradeandInvMaster derive(CCP = CCP,\n\t\tPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\tSHORT_NAME = SHORT_NAME,\n\t\tLONG_NAME = LONG_NAME,\n\t\tINTERNAL = INTERNAL,\n\t\tMKey_BDteCRef = MKey_BDteCRef,\n\t\tmodif_date = modif_date,\n\t\tUser_Name = User_Name,\n\t\tBook_Name = Book_Name,\n\t\tTrader = Trader,\n\t\tnpv_Change = npv_Change,\n\t\tfee_Change = fee_Change,\n\t\tlifecycle = lifecycle,\n\t\tBusiness_Date_Rpt = Business_Date_Rpt,\n\t\tField_Amended = Field_Amended,\n\t\tField_Mapping = Field_Mapping,\n\t\tBefore = Before,\n\t\tAfter = After,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOriginal_Status = Original_Status,\n\t\tRequired_Approval = Required_Approval,\n\t\toCalypso_Reference = oCalypso_Reference,\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\tDESK_NAME = DESK_NAME,\n\t\tDESK_MANAGER_NAME = DESK_MANAGER_NAME,\n\t\twells_Entity_Name = wells_Entity_Name,\n\t\tTrade_Status = Trade_Status,\n\t\tSales_Person = Sales_Person,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tmo_AccessGroup = mo_AccessGroup) ~> MergeTradeandInvMaster0\nMergeTradeandInvMaster0 derive(sWellsEntityName = toString((iif(isNull(wells_Entity_Name), 'NOT FOUND IN INV MASTER', wells_Entity_Name))),\n\t\tsDeskName = toString((iif(isNull(DESK_NAME), 'NOT FOUND IN INV MASTER', DESK_NAME)))) ~> AssignnullInvMaster\nAssignnullInvMaster sort(asc(User_Name, false)) ~> Sortusername\nSortusername,FromCalypsousername join(MergeTradeandInvMaster0@User_Name == FromCalypsousername@USER_NAME,\n\tjoinType:'left',\n\tbroadcast: 'none')~> mergeusernameADENT\nmergeusernameADENT derive(CCP = CCP,\n\t\tPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\tSHORT_NAME = SHORT_NAME,\n\t\tLONG_NAME = LONG_NAME,\n\t\tINTERNAL = INTERNAL,\n\t\tMKey_BDteCRef = MKey_BDteCRef,\n\t\tmodif_date = modif_date,\n\t\tUser_Name = User_Name,\n\t\tBook_Name = Book_Name,\n\t\tTrader = Trader,\n\t\tnpv_Change = npv_Change,\n\t\tfee_Change = fee_Change,\n\t\tlifecycle = lifecycle,\n\t\tBusiness_Date_Rpt = Business_Date_Rpt,\n\t\tField_Amended = Field_Amended,\n\t\tField_Mapping = Field_Mapping,\n\t\tBefore = Before,\n\t\tAfter = After,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOriginal_Status = Original_Status,\n\t\tRequired_Approval = Required_Approval,\n\t\toCalypso_Reference = oCalypso_Reference,\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\tDESK_MANAGER_NAME = DESK_MANAGER_NAME,\n\t\tsWellsEntityName = sWellsEntityName,\n\t\tsDeskName = sDeskName,\n\t\tADENT = ADENT,\n\t\tTrade_Status = Trade_Status,\n\t\tSales_Person = Sales_Person,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tmo_AccessGroup = mo_AccessGroup) ~> mergeusernameADENT0\nmergeusernameADENT0 sort(asc(ADENT, false)) ~> SortADENT\nSortADENT,FromTeamMemberDB join(mergeusernameADENT0@ADENT == FromTeamMemberDB@ADENT,\n\tjoinType:'left',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tCCP = CCP,\n\t\tPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\tSHORT_NAME = SHORT_NAME,\n\t\tLONG_NAME = LONG_NAME,\n\t\tINTERNAL = INTERNAL,\n\t\tMKey_BDteCRef = MKey_BDteCRef,\n\t\tmodif_date = modif_date,\n\t\tBook_Name = Book_Name,\n\t\tTrader = Trader,\n\t\tnpv_Change = npv_Change,\n\t\tfee_Change = fee_Change,\n\t\tlifecycle = lifecycle,\n\t\tBusiness_Date_Rpt = Business_Date_Rpt,\n\t\tField_Amended = Field_Amended,\n\t\tField_Mapping = Field_Mapping,\n\t\tBefore = Before,\n\t\tAfter = After,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOriginal_Status = Original_Status,\n\t\tRequired_Approval = Required_Approval,\n\t\toCalypso_Reference = oCalypso_Reference,\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\tDESK_MANAGER_NAME = DESK_MANAGER_NAME,\n\t\tsWellsEntityName = sWellsEntityName,\n\t\tsDeskName = sDeskName,\n\t\tAUName = AUName,\n\t\tTrade_Status = Trade_Status,\n\t\tSales_Person = Sales_Person,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tADENT = FromTeamMemberDB@ADENT,\n\t\tUser_Name = User_Name,\n\t\tmo_AccessGroup = mo_AccessGroup\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin01\nMergeJoin01 derive(CCP = CCP,\n\t\tPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\tPRODUCT_TYPE = PRODUCT_TYPE,\n\t\tPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\tSHORT_NAME = SHORT_NAME,\n\t\tLONG_NAME = LONG_NAME,\n\t\tINTERNAL = INTERNAL,\n\t\tMKey_BDteCRef = MKey_BDteCRef,\n\t\tmodif_date = modif_date,\n\t\tBook_Name = Book_Name,\n\t\tTrader = Trader,\n\t\tnpv_Change = npv_Change,\n\t\tfee_Change = fee_Change,\n\t\tlifecycle = lifecycle,\n\t\tBusiness_Date_Rpt = Business_Date_Rpt,\n\t\tField_Amended = Field_Amended,\n\t\tField_Mapping = Field_Mapping,\n\t\tBefore = Before,\n\t\tAfter = After,\n\t\tAction_Status = Action_Status,\n\t\tEnd_Status = End_Status,\n\t\tOriginal_Status = Original_Status,\n\t\tRequired_Approval = Required_Approval,\n\t\toCalypso_Reference = oCalypso_Reference,\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\tDESK_MANAGER_NAME = DESK_MANAGER_NAME,\n\t\tsWellsEntityName = sWellsEntityName,\n\t\tsDeskName = sDeskName,\n\t\tAUName = AUName,\n\t\tTrade_Status = Trade_Status,\n\t\tSales_Person = Sales_Person,\n\t\tTRADE_DATE_TIME = TRADE_DATE_TIME,\n\t\tADENT = ADENT,\n\t\tUser_Name = User_Name,\n\t\tmo_AccessGroup = mo_AccessGroup) ~> MergeJoin0\nMergeJoin0 derive(sAuGroup = toString((iif(isNull(ADENT), 'Front Office', 'Operations'))),\n\t\tsSystemSource = toString('Rates'),\n\t\tdCreateDate = toString($startTime)) ~> AddAuGroup\nAddAuGroup derive(oDESK_MANAGER_NAME = DESK_MANAGER_NAME,\n\t\toPRODUCT_TYPE = PRODUCT_TYPE,\n\t\toLONG_NAME = LONG_NAME,\n\t\toTrade_Status = Trade_Status,\n\t\toTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\toSHORT_NAME = SHORT_NAME,\n\t\toPRODUCT_SUB_TYPE = PRODUCT_SUB_TYPE,\n\t\toCCP = CCP,\n\t\toPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\toINTERNAL = INTERNAL) ~> DataConversion1\nDataConversion1 sink(input(\n\t\tBefore as string,\n\t\tGroup as string,\n\t\tTrading_Unit as string,\n\t\tWellsEntityName as string,\n\t\tProduct_Sub_Type as string,\n\t\tInternal as string,\n\t\tTrade_Status as string,\n\t\tTrade_Id as string,\n\t\tAU_Group as string,\n\t\tSystem_Source as string,\n\t\tAmendment as double,\n\t\tAction_Status as string,\n\t\tDesk_Name as string,\n\t\tDesk_Manager_Name as string,\n\t\tEnd_Status as string,\n\t\tModif_Date as timestamp 'dd-MM-yyyy',\n\t\tCpty_ShortName as string,\n\t\tField_Mapping as string,\n\t\tField_Amended as string,\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tMO_AccessGroup as string,\n\t\tTrade_Date as timestamp 'dd-MM-yyyy',\n\t\tUser_Name as string,\n\t\tTrader as string,\n\t\tCpty_LongName as string,\n\t\tBook_Name as string,\n\t\tCCP as string,\n\t\tSales_Person as string,\n\t\tProduct_Family as string,\n\t\tRequired_Approval as string,\n\t\tAfter as string,\n\t\tOriginal_Status as string,\n\t\tAmendment_Cash as double,\n\t\tProduct_Type as string,\n\t\tLifecycle_Event as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBefore,\n\t\tGroup = AUName,\n\t\tTrading_Unit = oTRADING_UNIT_NAME,\n\t\tWellsEntityName = sWellsEntityName,\n\t\tProduct_Sub_Type = oPRODUCT_SUB_TYPE,\n\t\tInternal = oINTERNAL,\n\t\tTrade_Status = oTrade_Status,\n\t\tTrade_Id = oCalypso_Reference,\n\t\tAU_Group = sAuGroup,\n\t\tSystem_Source = sSystemSource,\n\t\tAmendment = npv_Change,\n\t\tAction_Status,\n\t\tDesk_Name = sDeskName,\n\t\tDesk_Manager_Name = oDESK_MANAGER_NAME,\n\t\tEnd_Status,\n\t\tModif_Date = modif_date,\n\t\tCpty_ShortName = oSHORT_NAME,\n\t\tField_Mapping,\n\t\tField_Amended,\n\t\tCreate_Dte = dCreateDate,\n\t\tMO_AccessGroup = mo_AccessGroup,\n\t\tTrade_Date = TRADE_DATE_TIME,\n\t\tUser_Name,\n\t\tTrader,\n\t\tCpty_LongName = oLONG_NAME,\n\t\tBook_Name,\n\t\tCCP = oCCP,\n\t\tSales_Person,\n\t\tProduct_Family = oPRODUCT_FAMILY,\n\t\tRequired_Approval,\n\t\tAfter,\n\t\tOriginal_Status,\n\t\tAmendment_Cash = fee_Change,\n\t\tProduct_Type = oPRODUCT_TYPE,\n\t\tLifecycle_Event = lifecycle),\n\tpartitionFileNames:[($totblCalypsoLifecycle_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsoLifecycle"
+    }
+  }
+}

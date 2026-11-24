@@ -1,0 +1,53 @@
+{
+  "name" : "csv_load_14",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBCommand"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumneffDatesplit"
+      }, {
+        "name" : "DerivedColumneffDateaddzerosifneeded"
+      }, {
+        "name" : "DerivedColumneffDateFinalFormat"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      }, {
+        "name" : "LookupIsMatch"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tOLEDBCommand_outputfilename as string ()\n}\n\nsource(output(\n\t\tkriName as string,\n\t\teffDate as date,\n\t\tmetricValue as string,\n\t\t{Column 1} as string,\n\t\t{Column 0} as string,\n\t\t{Column 2} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tkriName as string,\n\t\teffDate as string,\n\t\tmetricValue as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource derive(effDay = notConvertedectfunctiondateday(effDate),\n\t\teffMonth = month(effDate),\n\t\teffYear = year(effDate)) ~> DerivedColumneffDatesplit\nDerivedColumneffDatesplit derive(effDayDerived = iif((length(toString(effDay)) > 1), toString(effDay), '0' + toString(effDay)),\n\t\teffMonthDerived = iif((length(toString(effMonth)) > 1), toString(effMonth), '0' + toString(effMonth)),\n\t\teffYearDerived = toString(effYear)) ~> DerivedColumneffDateaddzerosifneeded\nDerivedColumneffDateaddzerosifneeded derive(effDateDerived = toString((effMonthDerived + '/' + effDayDerived + '/' + effYearDerived))) ~> DerivedColumneffDateFinalFormat\nDerivedColumneffDateFinalFormat,LookupLKPTABLE lookup({Column 0} == LookupLKPTABLE@kriName && effDateDerived == LookupLKPTABLE@effDate,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\teffDateDerived = effDateDerived,\n\t\teffDayDerived = effDayDerived,\n\t\teffMonthDerived = effMonthDerived,\n\t\teffYearDerived = effYearDerived,\n\t\teffDay = effDay,\n\t\teffMonth = effMonth,\n\t\teffYear = effYear,\n\t\tkriName = FlatFileSource@kriName,\n\t\teffDate = DerivedColumneffDatesplit@effDate,\n\t\tmetricValue = FlatFileSource@metricValue,\n\t\t{Column 1} = {Column 1},\n\t\t{Column 0} = {Column 0},\n\t\t{Column 2} = {Column 2}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup0\nLookup0 split(isMatch(), disjoint: true) ~> LookupIsMatch@(Match,NotMatch)\nLookupIsMatch@Match sink(input(\n\t\t{Column 2} as string,\n\t\t{Column 0} as string,\n\t\t{Column 1} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{Column 2} = Param_0,\n\t\t{Column 0} = Param_1,\n\t\t{Column 1} = Param_2),\n\tpartitionFileNames:[($OLEDBCommand_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBCommand\nLookupIsMatch@NotMatch sink(input(\n\t\tkriName as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tmetricValue as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tkriName = {Column 0},\n\t\teffDate = {Column 1},\n\t\tmetricValue = {Column 2}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name" : "dft-_load_calypso_wf_rule_definition",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSrceClyRule",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSrceOTCTradeRuleDef",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDESTOTCCLYRuleDef"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversionVarchar"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin01"
+      }, {
+        "name" : "MergeJoin0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDESTOTCCLYRuleDef_outputfilename as string ()\n}\n\nsource(output(\n\t\tRULE_NAME as string,\n\t\tWORKFLOW_ID as decimal(38,0),\n\t\tSTATUS as string,\n\t\tPOSSIBLE_ACTION as string,\n\t\tRESULTING_STATUS as string,\n\t\tCREATE_DTE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSrceClyRule\tsource(output(\n\t\tImpacted_Keyword as string,\n\t\tCreate_Dte as timestamp,\n\t\tRule as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSrceOTCTradeRuleDef\nOLEDBSrceClyRule derive(sPOSSIBLE_ACTION = POSSIBLE_ACTION,\n\t\tsRULE_NAME = RULE_NAME,\n\t\tsRESULTING_STATUS = RESULTING_STATUS,\n\t\tsWORKFLOW_ID = toString(WORKFLOW_ID),\n\t\tsCREATE_DTE = CREATE_DTE,\n\t\tsSTATUS = STATUS) ~> DataConversionVarchar\nDataConversionVarchar sort(asc(sRULE_NAME, false)) ~> Sort\nOLEDBSrceOTCTradeRuleDef,Sort join(Rule == sRULE_NAME,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tsCREATE_DTE = OLEDBSrceOTCTradeRuleDef@sCREATE_DTE,\n\t\tRule_Name = sRULE_NAME,\n\t\tWORKFLOW_ID = sWORKFLOW_ID,\n\t\tImpacted_Keyword = Impacted_Keyword,\n\t\tOriginal_Status = sSTATUS,\n\t\tPossible_Action = sPOSSIBLE_ACTION,\n\t\tResulting_Status = sRESULTING_STATUS\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin01\nMergeJoin01 derive(Impacted_Keyword = Impacted_Keyword,\n\t\tsRULE_NAME = sRULE_NAME,\n\t\tsSTATUS = sSTATUS,\n\t\tsPOSSIBLE_ACTION = sPOSSIBLE_ACTION,\n\t\tsRESULTING_STATUS = sRESULTING_STATUS,\n\t\tsCREATE_DTE = sCREATE_DTE,\n\t\tsWORKFLOW_ID = sWORKFLOW_ID) ~> MergeJoin0\nMergeJoin0 sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tRule_Name as string,\n\t\tWORKFLOW_ID as string,\n\t\tImpacted_Keyword as string,\n\t\tOriginal_Status as string,\n\t\tPossible_Action as string,\n\t\tResulting_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = sCREATE_DTE,\n\t\tRule_Name = sRULE_NAME,\n\t\tWORKFLOW_ID = sWORKFLOW_ID,\n\t\tImpacted_Keyword,\n\t\tOriginal_Status = sSTATUS,\n\t\tPossible_Action = sPOSSIBLE_ACTION,\n\t\tResulting_Status = sRESULTING_STATUS),\n\tpartitionFileNames:[($OLEDBDESTOTCCLYRuleDef_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDESTOTCCLYRuleDef"
+    }
+  }
+}

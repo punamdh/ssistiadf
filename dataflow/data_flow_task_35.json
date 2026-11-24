@@ -5,32 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSNo as decimal(18,0),\n\t\t{Site Location} as string,\n\t\t{Start Date} as date,\n\t\t{End Date} as date,\n\t\t{Cage Name} as string,\n\t\tUsableCapacityKW as float,\n\t\t{Source  (A)} as float,\n\t\t{Source  (B)} as float,\n\t\t{Total Cons(KW)} as float,\n\t\t{Total Cons(Kwh)} as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tCageName as string,\n\t\tSiteLocation as string,\n\t\tUsableCapacityKW as double,\n\t\tEndDate as string,\n\t\tFName as string,\n\t\tStartDate as string,\n\t\tTotalConsKwh as double,\n\t\tEtlUser as string,\n\t\tSourceB as double,\n\t\tSourceA as double,\n\t\tSNo as integer,\n\t\tTotalConsKW as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tCageName = {Cage Name},\n\t\tSiteLocation = {Site Location},\n\t\tUsableCapacityKW,\n\t\tEndDate = {End Date},\n\t\tFName,\n\t\tStartDate = {Start Date},\n\t\tTotalConsKwh = {Total Cons(Kwh)},\n\t\tEtlUser,\n\t\tSourceB = {Source  (B)},\n\t\tSourceA = {Source  (A)},\n\t\tSNo,\n\t\tTotalConsKW = {Total Cons(KW)}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODTYPE as string,\n\t\tCTRCCY as string,\n\t\tCCYREVALRATE as double,\n\t\tCTRNPVRATE_10 as integer,\n\t\tCTRDISCNPVRATE_10 as integer,\n\t\tCCYSPOTDATE as timestamp,\n\t\tBIDOFFERIND as string,\n\t\tCTRSPOTRATE as double,\n\t\tPRODCODE as string,\n\t\tCTRREVALRATE as double,\n\t\tCCYDISCNPVRATE_10 as integer,\n\t\tBR as string,\n\t\tCTRSPOTDATE as timestamp,\n\t\tCTRDISCNPVFACTOR_10 as integer,\n\t\tCCYNPVFACTOR_10 as integer,\n\t\tCTRNPVFACTOR_10 as integer,\n\t\tCCY as string,\n\t\tCCYSPOTRATE as double,\n\t\tPAIRSPOTDATE as timestamp,\n\t\tCCYNPVRATE_10 as integer,\n\t\tVDATE as timestamp,\n\t\tCCYDISCNPVFACTOR_10 as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPRODTYPE as string,\n\t\tCTRCCY as string,\n\t\tCCYREVALRATE as double,\n\t\tCTRNPVRATE_10 as double,\n\t\tCTRDISCNPVRATE_10 as double,\n\t\tCCYSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tBIDOFFERIND as string,\n\t\tCTRSPOTRATE as double,\n\t\tPRODCODE as string,\n\t\tCTRREVALRATE as double,\n\t\tCCYDISCNPVRATE_10 as double,\n\t\tBR as string,\n\t\tCTRSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tCTRDISCNPVFACTOR_10 as double,\n\t\tCCYNPVFACTOR_10 as double,\n\t\tCTRNPVFACTOR_10 as double,\n\t\tCCY as string,\n\t\tCCYSPOTRATE as double,\n\t\tPAIRSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tCCYNPVRATE_10 as double,\n\t\tVDATE as timestamp 'dd-MM-yyyy',\n\t\tCCYDISCNPVFACTOR_10 as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPRODTYPE,\n\t\tCTRCCY,\n\t\tCCYREVALRATE,\n\t\tCTRNPVRATE_10,\n\t\tCTRDISCNPVRATE_10,\n\t\tCCYSPOTDATE,\n\t\tBIDOFFERIND,\n\t\tCTRSPOTRATE,\n\t\tPRODCODE,\n\t\tCTRREVALRATE,\n\t\tCCYDISCNPVRATE_10,\n\t\tBR,\n\t\tCTRSPOTDATE,\n\t\tCTRDISCNPVFACTOR_10,\n\t\tCCYNPVFACTOR_10,\n\t\tCTRNPVFACTOR_10,\n\t\tCCY,\n\t\tCCYSPOTRATE,\n\t\tPAIRSPOTDATE,\n\t\tCCYNPVRATE_10,\n\t\tVDATE,\n\t\tCCYDISCNPVFACTOR_10),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

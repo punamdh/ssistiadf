@@ -1,0 +1,214 @@
+{
+  "name" : "ppl_clean_up_--_delete_files_older_than_30_days_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_old_files_ContainerName' AND PIPELINE_NAME = 'ppl_recon7listfutposrecon') AS DELDelete_old_files_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_old_files_FileName' AND PIPELINE_NAME = 'ppl_recon7listfutposrecon') AS DELDelete_old_files_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_old_files_FilePath' AND PIPELINE_NAME = 'ppl_recon7listfutposrecon') AS DELDelete_old_files_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "DELDelete_old_files_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(notConvertedectfunctiondatedatediff('dd', string((concat(substring(variables('sFileName2'), 1, 4),'-',substring(variables('sFileName2'), 6, 2),'-',substring(variables('sFileName2'), 9, 2)))), utcNow()),30)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DEL_DELDelete_old_files",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_old_files_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_old_files_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_old_files_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sMoveDestinationPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\Archive\\2023-06-23_152219 - Test"
+      },
+      "sSQLGetResultsData" : {
+        "type" : "String",
+        "defaultValue" : "SELECT  ReconciliationID, CompareType, Key0, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key10, Key11, Key12, Key13, Key14, Value0, Value1, Value2, Value3, Value4, Value5, Value6, Value7, Value8, \\n                         Value9, Value10, Value11, Value12, Value13, Value14, Value15, Value16, Value17, Value18, Value19, Value20, Value21, Value22, Value23, Value24, Value25, Value26, Value27, Value28, Value29, Value30, Value31, Value32, \\n                         Value33, Value34, Value35, Value36, Value37, Value38, Value39, Value40, Value41, Value42, Value43, Value44, Value45, Value46, Value47, Value48, Value49, Value50, Value51, Value52, Value53, Value54, Value55, Value56, \\n                         Value57, Value58, Value59, Value60, Value61, Value62, Value63, Value64, Value65, Value66, Value67, Value68, Value69, Value70, Value71, Value72, Value73, Value74, Value75, Value76, Value77, Value78, Value79, Report0, \\n                         Report1, Report2, Report3, Report4, Report5, Report6, Report7, Report8, Report9, Report10, Report11, Report12, Report13, Report14 \\nFROM            ReconEngine.dbo.tbl_ReconEngine_Results\\nWHERE        (ReconciliationID = 7) and reconrunid = 0"
+      },
+      "iInsertedReconRunID" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileName" : {
+        "type" : "String",
+        "defaultValue" : "Test"
+      },
+      "sFileNameEndurCompare" : {
+        "type" : "String",
+        "defaultValue" : "EndurCompare.txt"
+      },
+      "sFileDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\"
+      },
+      "iReconciliationID" : {
+        "type" : "String",
+        "defaultValue" : "7"
+      },
+      "sPathEndurExportSource" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\drsprod\\WFSOpsKRIReporting\\DropZone\\Endur\\TopDayPositions\\EndurEOD.txt"
+      },
+      "sPathEndurExportWorking" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\EndurEOD.txt"
+      },
+      "sFileNameGMIExport" : {
+        "type" : "String",
+        "defaultValue" : "EODFUTDAY1.csv"
+      },
+      "sMessage" : {
+        "type" : "String"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Recon7ListedFuturesTopDayPositionsEndur"
+      },
+      "sWFS" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "sMoveSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\Test"
+      },
+      "sFileNameGMICompare" : {
+        "type" : "String",
+        "defaultValue" : "GMICompare.txt"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "iReconRunID" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sPathGMIExportSource" : {
+        "type" : "String",
+        "defaultValue" : "\\\\aloxnhf503.wellsfargo.net\\drsprod\\WFSOpsKRIReporting\\DropZone\\GMI\\Duco\\EODFUTDAY1.csv"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String"
+      },
+      "sPathGMIExportWorking" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\EODFUTDAY1.csv"
+      },
+      "sFileNameEndurExport" : {
+        "type" : "String",
+        "defaultValue" : "EndurEOD.txt"
+      },
+      "sFullSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\Archive\\2022-10-26_201044 - GMICompare.txt"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFileName2" : {
+        "type" : "String",
+        "defaultValue" : "2022-10-26_201044 - GMICompare.txt"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sSQLGetReconRun" : {
+        "type" : "String",
+        "defaultValue" : "select * from .tbl_ReconEngine_ReconRun where ID = 0"
+      },
+      "sSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\ReconEngine\\Recon7-GMIToEndurTopDayListedFuturesPositions\\Archive"
+      }
+    }
+  }
+}

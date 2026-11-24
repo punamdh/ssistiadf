@@ -1,0 +1,50 @@
+{
+  "name" : "df_get_calypso_records",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetCalypsoCashAdjustment",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "GetInventoryMaster",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "toReconControl"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "DCGetCurrentDate"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tdCurrentDate as timestamp (toTimestamp('4/16/2019 9:48:57 AM')),\n\ttoReconControl_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tBOOK_NAME as string,\n\t\tFEE_DATE as timestamp,\n\t\tFEE_TYPE as string,\n\t\tCURRENCY_CODE as string,\n\t\tAMOUNT as double,\n\t\tLEGAL_ENTITY as string,\n\t\tPAY_REC as string,\n\t\tDESCRIPTION as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetCalypsoCashAdjustment\tsource(output(\n\t\tbook_name as string,\n\t\tdesk_name as string,\n\t\tTRADING_UNIT_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetInventoryMaster\nGetCalypsoCashAdjustment derive(oTRADE_ID = TRADE_ID,\n\t\toBOOK_NAME = BOOK_NAME,\n\t\toPAY_REC = PAY_REC,\n\t\toFEE_DATE = FEE_DATE,\n\t\toDESCRIPTION = DESCRIPTION,\n\t\toFEE_TYPE = FEE_TYPE,\n\t\toCURRENCY_CODE = CURRENCY_CODE,\n\t\toAMOUNT = AMOUNT,\n\t\toLEGAL_ENTITY = LEGAL_ENTITY) ~> DataConversion\nDataConversion sort(asc(oBOOK_NAME, false)) ~> Sort\nSort,GetInventoryMaster join(oBOOK_NAME == book_name,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(oBOOK_NAME = oBOOK_NAME,\n\t\toTRADE_ID = oTRADE_ID,\n\t\toFEE_DATE = oFEE_DATE,\n\t\toFEE_TYPE = oFEE_TYPE,\n\t\toCURRENCY_CODE = oCURRENCY_CODE,\n\t\toAMOUNT = oAMOUNT,\n\t\toLEGAL_ENTITY = oLEGAL_ENTITY,\n\t\toPAY_REC = oPAY_REC,\n\t\toDESCRIPTION = oDESCRIPTION,\n\t\tdesk_name = desk_name,\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME) ~> MergeJoin0\nMergeJoin0 derive(dCurrentDate = toDate(toString($dCurrentDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DCGetCurrentDate\nMergeJoin0 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDCGetCurrentDate sink(input(\n\t\tLEGAL_ENTITY as string,\n\t\tcreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tFEE_TYPE as string,\n\t\tAMOUNT as double,\n\t\tDESCRIPTION as string,\n\t\tBOOK_NAME as string,\n\t\tPAY_REC as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tTRADE_ID as integer,\n\t\tCURRENCY_CODE as string,\n\t\tFEE_DATE as timestamp 'dd-MM-yyyy',\n\t\tDESK_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 10000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLEGAL_ENTITY = oLEGAL_ENTITY,\n\t\tcreate_Dte = dCurrentDate,\n\t\tFEE_TYPE = oFEE_TYPE,\n\t\tAMOUNT = oAMOUNT,\n\t\tDESCRIPTION = oDESCRIPTION,\n\t\tBOOK_NAME = oBOOK_NAME,\n\t\tPAY_REC = oPAY_REC,\n\t\tTRADING_UNIT_NAME,\n\t\tTRADE_ID = oTRADE_ID,\n\t\tCURRENCY_CODE = oCURRENCY_CODE,\n\t\tFEE_DATE = oFEE_DATE,\n\t\tDESK_NAME = desk_name),\n\tpartitionFileNames:[($toReconControl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> toReconControl\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

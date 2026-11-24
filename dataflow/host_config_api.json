@@ -1,0 +1,31 @@
+{
+  "name" : "host_config_api",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "hostconfigurationAPI",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "HostConfigAPI"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tHostConfigAPI_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tModel as string,\n\t\tCluster as string,\n\t\tGPUs as string,\n\t\t{Running VMs} as string,\n\t\t{Total Cores} as string,\n\t\t{CPU Total Capacity (MHZ)} as string,\n\t\t{CPU Usage (MHZ)} as string,\n\t\t{Allocated VCPUs} as string,\n\t\t{Powered on vCPUs} as string,\n\t\t{CPU - P99} as string,\n\t\t{CPU - P95} as string,\n\t\t{CPU - P75} as string,\n\t\t{CPU - P50} as string,\n\t\t{CPU - Max} as string,\n\t\t{CPU - Average} as string,\n\t\t{CPU Contention %} as string,\n\t\t{CPU Provisioned MHZ} as string,\n\t\t{Memory - Total} as string,\n\t\t{Allocated Memory (GB)} as string,\n\t\t{Powered on Memory (GB)} as string,\n\t\t{Memory - Utilization (GB)} as string,\n\t\t{Memory - P99} as string,\n\t\t{Memory - P95} as string,\n\t\t{Memory - P75} as string,\n\t\t{Memory - P50} as string,\n\t\t{Memory - Max} as string,\n\t\t{Memory - Average} as string,\n\t\t{Memory - Balloon} as string,\n\t\t{Memory Contention %} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> hostconfigurationAPI\nhostconfigurationAPI derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\t{CPU_-_Max} as string,\n\t\tGPUs as string,\n\t\t{Memory_-_P95} as string,\n\t\tRunning_VMs as string,\n\t\t{Memory_-_P75} as string,\n\t\tCPU_Provisioned_MHZ as string,\n\t\t{Memory_-_Total} as string,\n\t\t{Memory_-_P50} as string,\n\t\tName as string,\n\t\t{CPU_-_P95} as string,\n\t\tAllocated_Memory__GB_ as string,\n\t\t{CPU_-_P50} as string,\n\t\t{CPU_-_P99} as string,\n\t\t{Memory_-_Average} as string,\n\t\t{CPU_-_P75} as string,\n\t\t{Memory_-_Balloon} as string,\n\t\t{CPU_-_Average} as string,\n\t\tCPU_Contention__ as string,\n\t\tTotal_Cores as string,\n\t\t{Memory_-_Max} as string,\n\t\tPowered_on_vCPUs as string,\n\t\tMemory_Contention__ as string,\n\t\tInterval_Breakdown as string,\n\t\tCluster as string,\n\t\tCPU_Total_Capacity__MHZ_ as string,\n\t\t{Memory_-_Utilization__GB_} as string,\n\t\tAllocated_VCPUs as string,\n\t\tPowered_on_Memory__GB_ as string,\n\t\t{Memory_-_P99} as string,\n\t\tModel as string,\n\t\tCPU_Usage__MHZ_ as string,\n\t\treport_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{CPU_-_Max} = {CPU - Max},\n\t\tGPUs,\n\t\t{Memory_-_P95} = {Memory - P95},\n\t\tRunning_VMs = {Running VMs},\n\t\t{Memory_-_P75} = {Memory - P75},\n\t\tCPU_Provisioned_MHZ = {CPU Provisioned MHZ},\n\t\t{Memory_-_Total} = {Memory - Total},\n\t\t{Memory_-_P50} = {Memory - P50},\n\t\tName,\n\t\t{CPU_-_P95} = {CPU - P95},\n\t\tAllocated_Memory__GB_ = {Allocated Memory (GB)},\n\t\t{CPU_-_P50} = {CPU - P50},\n\t\t{CPU_-_P99} = {CPU - P99},\n\t\t{Memory_-_Average} = {Memory - Average},\n\t\t{CPU_-_P75} = {CPU - P75},\n\t\t{Memory_-_Balloon} = {Memory - Balloon},\n\t\t{CPU_-_Average} = {CPU - Average},\n\t\tCPU_Contention__ = {CPU Contention %},\n\t\tTotal_Cores = {Total Cores},\n\t\t{Memory_-_Max} = {Memory - Max},\n\t\tPowered_on_vCPUs = {Powered on vCPUs},\n\t\tMemory_Contention__ = {Memory Contention %},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tCluster,\n\t\tCPU_Total_Capacity__MHZ_ = {CPU Total Capacity (MHZ)},\n\t\t{Memory_-_Utilization__GB_} = {Memory - Utilization (GB)},\n\t\tAllocated_VCPUs = {Allocated VCPUs},\n\t\tPowered_on_Memory__GB_ = {Powered on Memory (GB)},\n\t\t{Memory_-_P99} = {Memory - P99},\n\t\tModel,\n\t\tCPU_Usage__MHZ_ = {CPU Usage (MHZ)},\n\t\treport_name),\n\tpartitionFileNames:[($HostConfigAPI_outputfilename)],\n\tpartitionBy('hash', 1)) ~> HostConfigAPI"
+    }
+  }
+}

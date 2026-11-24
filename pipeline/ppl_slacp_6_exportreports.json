@@ -1,0 +1,529 @@
+{
+  "name" : "ppl_slacp_6_exportreports",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Get_Prev_Qtr_End_Dt_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT eff_date\nFROM ReconControl.dbo.tbl_SLACP_text_blocks",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_dtPrevQtrBusEnd",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Prev_Qtr_End_Dt_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "dtPrevQtrBusEnd",
+        "value" : "@string(activity('ST_Get_Prev_Qtr_End_Dt_0').output.resultSets[0].rows[0].eff_date)"
+      }
+    }, {
+      "name" : "LKP_Get_Contraparty_List_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Prev_Qtr_End_Dt_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "--SELECT DISTINCT [contraParty]\n--  FROM [ReconControl].[dbo].[tbl_SLACP_counterparty_list]\n--  WHERE [emailReady] = 'yes';\n\n\nSELECT *\nFROM tbl_SLACP_counterparty_list \nWHERE emailReady = 'yes' \nAND (processed IS NULL OR processed = '' OR processed = 'no')\nAND emailAddress2 IS NOT NULL\n\t\t ",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : false
+      }
+    }, {
+      "name" : "FRE_Load_PDFS_and_Emails_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Get_Contraparty_List_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_dtPrevQtrBusEnd",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Get_Contraparty_List_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_SET_Contraparty",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "Contraparty",
+            "value" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "SETVAR_SET_line1",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "line1",
+            "value" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "SETVAR_SET_emailAddress2",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "emailAddress2",
+            "value" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_Find_Recordcount_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_SET_emailAddress2",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SET_Contraparty",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SET_line1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT COUNT(*) AS 'RecordCount'\nFROM tbl_SLACP_auditcrfm_data a\nWHERE a.contraParty = @{variables('Contraparty')}\n     AND a.borrowLoan IN ('B', 'L');",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_RecordCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Find_Recordcount_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "RecordCount",
+            "value" : "@int(activity('ST_Find_Recordcount_0').output.resultSets[0].rows[0].RecordCount)"
+          }
+        }, {
+          "name" : "EP_Get_Reference_Number_0_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_RecordCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_load_pdfs_and_emails_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "Set_sStatus_Failure",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FRE_Load_PDFS_and_Emails_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Script Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Set_sStatus_Failure",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Set_sStatus_Success",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FRE_Load_PDFS_and_Emails_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Script Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Set_sStatus_Success",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "Construct_Subject",
+      "type" : "AzureFunctionActivity",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "Set_sStatus_Failure",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "Set_sStatus_Success",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : "Script Task",
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "AzureFunction1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "functionName" : {
+          "value" : "Construct_Subject",
+          "type" : "Expression"
+        },
+        "method" : "POST",
+        "headers" : { }
+      }
+    }, {
+      "name" : "ST_Write_to_SSIS_Log_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Construct_Subject",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO dbo.tbl_SSIS_log\nVALUES(@{variables('sProcessName')}, 'Loading TeamMemberTableRefreshUATtoDEV data', @{variables('StartTime')}, CURRENT_TIMESTAMP, @{variables('RecordCount')}, @{variables('sStatus')}, 'DRSAUTOSYSUAT_ReconControl', @{variables('StartTime')}, 'DRSAUTOSYSUAT_ReconControl', CURRENT_TIMESTAMP, NULL, @{variables('RecordCount')});",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Failure_Mail_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Construct_Subject",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@and(not(equals(variables('sEnvironment'),'LOCAL')), equals(variables('sStatus'),'Failure'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Failure_Mail",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Contraparty" : {
+        "type" : "String",
+        "defaultValue" : "test"
+      },
+      "ReportEmailCC" : {
+        "type" : "String",
+        "defaultValue" : "StockLoanConfirms@wellsfargo.com"
+      },
+      "year" : {
+        "type" : "String",
+        "defaultValue" : "2026"
+      },
+      "ReportMessage" : {
+        "type" : "String",
+        "defaultValue" : "From:  StockLoanConfirms@wellsfargo.com\\nWells Fargo 250/2480. \\n612-316-1181 (phone).\\n\\nIf you feel this has been sent in error (if you have already sent a response to the first request), please resend.  My apologies. Note that the attached document includes contracts open over 30 days with you at the end of the quarter.  In accordance with SEC rule 17a-13, we ask that you confirm those contracts over 30 days, noting any exceptions.\\n \\nPlease sign and fax back to 612-667-2565 or email StockLoanConfirms@wellsfargo.com ; \\nAttn: Stock Loan Operations.\\nIf you have any questions, please call 612-667-9458 or 612-316-1181.\\n\\nThanks.\\n\\nStock Loan Operations\\nWells Fargo Securities\\n90 S 7th Street, 5th Floor\\nMinneapolis, MN  55402"
+      },
+      "emailAddress2" : {
+        "type" : "String",
+        "defaultValue" : "tony.hodges@wellsfargo.com"
+      },
+      "RequestNumber" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sCC" : {
+        "type" : "String"
+      },
+      "newFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDEV\\WFSOpsKRIReporting\\DropZone\\SLACP\\2026 Q1"
+      },
+      "emailFileName" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDEV\\WFSOpsKRIReporting\\DropZone\\SLACP\\test.pdf"
+      },
+      "sStatus" : {
+        "type" : "String"
+      },
+      "ReportEmailFROM" : {
+        "type" : "String",
+        "defaultValue" : "StockLoanConfirms@wellsfargo.com"
+      },
+      "line1" : {
+        "type" : "String",
+        "defaultValue" : "test"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "The SLACP_6_exportReports process completed"
+      },
+      "ReportSubject" : {
+        "type" : "String",
+        "defaultValue" : "RE: Quarterly Confirms | Quarter 1 | ClientId: test | Request number 0"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "SLACP_6_exportReports"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "reportURL" : {
+        "type" : "String",
+        "defaultValue" : "https://pbirs-uat.wellsfargo.net/reportserver?/WSD/Reports/SLACP/SLACP_Counterparty&rs:Format=PDF&contraParty="
+      },
+      "ReportEmailTO" : {
+        "type" : "String",
+        "defaultValue" : "tony.hodges@wellsfargo.com"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "ReportMessageHTML" : {
+        "type" : "String",
+        "defaultValue" : "<p><font size='5' color = 'red'>From:  StockLoanConfirms@wellsfargo.com</font></p><p><font size='5' color = 'blue'>Wells Fargo 250/2480.</font></p><p><font size='5' color = 'blue'> 612-316-1181 (phone).</font></p><br><br><font size = '3' color = 'blue'>If you feel this has been sent in error (if you have already sent a response to the first request), please resend.  My apologies.</font><br><br><p><font size='5' color = 'blue'> Note that the attached document includes contracts open over 30 days with you at the end of the quarter.  In accordance with SEC rule 17a-13, we ask that you confirm those contracts over 30 days, noting any exceptions.</font></p><p><font size='5' color = 'blue'> Please sign and fax back to 612-667-2565 or email StockLoanConfirms@wellsfargo.com ; Attn: Stock Loan Operations.</font></p><p><font size='5' color = 'blue'> If you have any questions, please call 612-667-9458 or 612-316-1181.</font></p><p><font size='5' color = 'blue'> Thanks.</font></p><p><font size='5' color = 'blue'> Stock Loan Operations</font></p><p><font size='5' color = 'blue'> Wells Fargo Securities</font></p><p><font size='5' color = 'blue'> 90 S 7th Street, 5th Floor </font></p><p><font size='5' color = 'blue'> Minneapolis, MN  55402</font></p>"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "strFileFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDEV\\WFSOpsKRIReporting\\DropZone\\SLACP\\"
+      },
+      "dtPrevQtrBusEnd" : {
+        "type" : "String",
+        "defaultValue" : "'12/31/2025'"
+      },
+      "Contraparty_List" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "ReportEmailSubject" : {
+        "type" : "String",
+        "defaultValue" : "RE: Quarterly Confirms | Quarter 1 | ClientId: test | Request number 0"
+      },
+      "RecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDEV"
+      },
+      "newFolderName" : {
+        "type" : "String",
+        "defaultValue" : "2026 Q1"
+      },
+      "quarter" : {
+        "type" : "String",
+        "defaultValue" : "1"
+      }
+    }
+  }
+}

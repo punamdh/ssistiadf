@@ -1,0 +1,286 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_application_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_ORACLESOURCE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_ORACLESOURCE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_ORACLESOURCE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Datalake_application_importtbl_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_Datalakeapplicationimporttbl_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Datalake_application_importtbl_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_Datalakeapplicationimporttbl_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Datalake_application_importtbl_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import' AND DATAFLOW_NAME = 'datalake_application_importtbl') AS Datalake_application_importtbl_Datalakeapplicationimporttbl_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Datalake_application_importtbl0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import') AS Datalake_application_importtbl0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Datalake_application_importtbl0_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_application_data_import') AS Datalake_application_importtbl0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_select_script_for_oracle_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC  [import].[datalake_application_data_import_sp]\n@{variables('selectquery')} OUTPUT",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_TRUNCATE_datalake_application_importtb_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_select_script_for_oracle_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE [import].[datalake_application_importtbl]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Datalake_application_importtbl",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_TRUNCATE_datalake_application_importtb_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Datalake_application_importtbl",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Datalake_application_importtbl",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Datalake_application_importtbl",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "datalake_application_importtbl",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Datalakeapplicationimporttbl_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "Datalakeapplicationimporttbl" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "ORACLESOURCE" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_ORACLESOURCE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_ORACLESOURCE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_ORACLESOURCE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Datalake_application_importtbl_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Datalake_application_importtbl0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Datalake_application_importtbl",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl_Datalakeapplicationimporttbl_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Datalake_application_importtbl0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_EXEC_asset_application_data_refresh_sp_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Datalake_application_importtbl0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[asset_application_data_refresh_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "Datalake_application_importtbl_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "selectquery" : {
+        "type" : "String",
+        "defaultValue" : "SELECT      b.business_application_wf_guid,      b.install_status,      b.install_status_description,      b.au_num,      b.cost_center,      b.business_app_classification,      b.bus_app_class_description,      b.business_application_id,      b.cftc,      b.business_app_sys_class_name,      b.correlation_id,      b.sox_significant_code,      b.sys_created_on,      b.sys_created_by,      b.data_classification_code,      b.short_description,      b.high_dollar_payment_app,      b.distributed_app_id,      b.mainframe_id,      b.managed_by_group_guid,      b.managed_by_group_name,      b.name AS APPLICATION_NAME,      b.operational_status_id,      b.operational_status_description,      b.operational_status_group,      b.platform_owner_group_guid,      b.platform_owner_group_name,      b.pci,      b.paa_indicator,      b.record_class,      b.soc1,      b.soc2,      b.support_group_guid,      b.support_group_name,      b.u_third_party_engagement_id,      b.trpc,      b.trtc,      b.sys_updated_on,      b.sys_updated_by,      b.user_count,      b.it_app_manager_name,      b.it_app_manager_elid,      b.it_app_manager_emp_id,      b.it_app_manager_email,      b.owned_by_name,      b.owned_by_elid,      b.owned_by_emp_id,      b.owned_by_email,      b.mnpi_code,      b.finra_regulated,      b.assembled_date,      b.deployed_date,      b.end_of_life_date,      b.installation_date,      b.technology_plan_text,      b.application_production_website,      b.cto_cao_name,      b.group_cio_name,      b.technology_portfolio_name,      b.customer_facing_code,      b.alt_business_owner_email,      b.alt_business_owner_name,      b.alt_business_owner_elid,      b.alt_business_owner_emp_id,      b.alt_technical_manager_email,      b.alt_technical_manager_name,      b.alt_technical_manager_emp_id,      b.alt_technical_manager_elid,      b.technical_architect_name,      b.technical_architect_emp_id,      b.technical_architect_email,      b.business_description,      b.business_group,      b.line_of_business,      b.dynamic_web_service_code,      b.number_of_external_users,      b.number_of_internal_users,      b.paa_hosting_type_code,      b.software_type_description,      b.wam_application_identifier,      b.payment_processing,      b.todsh_business_effective_date,      b.cloud_service_type,      b.business_criticality,      b.platform_host,      b.architecture_type,      b.business_group_name,      b.deployment_type,      e.LEADERSHIP_LVL1_NAME,      e.LEADERSHIP_LVL2_NAME,      e.LEADERSHIP_LVL3_NAME,      e.DISPOSED_DATE,      c.technology_owner_name,      e.TECHNOLOGY_AREA_NAME,      b.APP_TIER_RATING,     c.IWP_FLAG,   c.APM_APPLICATION_FAMILY,   c.APM_APPLICATION_FAMILY_NAME,   c.APM_APPLICATION_CATEGORY,   c.APM_APPLICATION_CATEGORY_NAME,  a.ISECPA          FROM itm_curated.business_application_dimension b    LEFT JOIN itm_curated.EXT_BUSINESS_APPLICATION_DIM e        ON b.BUSINESS_APPLICATION_WF_GUID = e.BUSINESS_APPLICATION_WF_GUID   LEFT JOIN todsh_etl_exa.cltd_business_application c       ON b.BUSINESS_APPLICATION_WF_GUID = c.BUSINESS_APPLICATION_WF_GUID LEFT JOIN ITM_BAM.VW_APPONE_CORE_OPRISK_INFORMATIONSECURITY a ON a.BUSINESS_APPLICATION_WF_GUID = b.BUSINESS_APPLICATION_WF_GUID"
+      }
+    }
+  }
+}

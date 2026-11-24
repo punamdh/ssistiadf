@@ -1,0 +1,29 @@
+{
+  "name" : "create_logicstage2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblY14TradeTestingStage1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblY14TradeTestingLogicStage2"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblY14TradeTestingLogicStage2_outputfilename as string ()\n}\n\nsource(output(\n\t\tHigh as integer,\n\t\tLow as integer,\n\t\tSOR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblY14TradeTestingStage1\nfromtblY14TradeTestingStage1 sink(input(\n\t\tHigh as integer,\n\t\tLow as integer,\n\t\tSOR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tHigh,\n\t\tLow,\n\t\tSOR),\n\tpartitionFileNames:[($totblY14TradeTestingLogicStage2_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblY14TradeTestingLogicStage2"
+    }
+  }
+}

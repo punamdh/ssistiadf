@@ -1,0 +1,40 @@
+{
+  "name" : "load_gungeoff1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string ('gungeodf1_20231127.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAccount_Type as string,\n\t\tOffice_Number as string,\n\t\tAccount_No as string,\n\t\tClient_Name as string,\n\t\tTrade_Date as string,\n\t\tDirection as string,\n\t\tContract_Quantity as string,\n\t\tProduct_Information as string,\n\t\tCall_Put as string,\n\t\tStrike_Price as string,\n\t\tFuture_Price as string,\n\t\tFuture_Code as string,\n\t\tDelivery_Month as string,\n\t\tOTE as string,\n\t\tTotal_IM as string,\n\t\tReason as string,\n\t\tCounterparty_Broker as string,\n\t\tCurrency as string,\n\t\tConversion_Rate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(Account_No == '', disjoint: true) ~> ConditionalSplit@(BR,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput derive(FileName = toString((right($sFileName, 22))),\n\t\tFileDate = (substring(toString($sFileName), toInteger(11), toInteger(4)) + '-' + substring(toString($sFileName), toInteger(15), toInteger(2)) + '-' + substring(toString($sFileName), toInteger(17), toInteger(2))),\n\t\tTradeDate = toString((substring(toString(Trade_Date), toInteger(1), toInteger(4)) + '-' + substring(toString(Trade_Date), toInteger(5), toInteger(2)) + '-' + substring(toString(Trade_Date), toInteger(7), toInteger(2))))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileName} = FileName,\n\t\t{Copy of TradeDate} = TradeDate) ~> DataConversion\nDerivedColumn aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tClient_Name as string,\n\t\tOTE as string,\n\t\tTrade_Date as date 'dd-MM-yyyy',\n\t\tAccount_Type as string,\n\t\tFileName as string,\n\t\tFuture_Code as string,\n\t\tDelivery_Month as string,\n\t\tDirection as string,\n\t\tTotal_IM as string,\n\t\tReason as string,\n\t\tConversion_Rate as string,\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tProduct_Information as string,\n\t\tCounterparty_Broker as string,\n\t\tFuture_Price as string,\n\t\tStrike_Price as string,\n\t\tCurrency as string,\n\t\tCall_Put as string,\n\t\tOffice_Number as string,\n\t\tAccount_No as string,\n\t\tContract_Quantity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tClient_Name,\n\t\tOTE,\n\t\tTrade_Date = {Copy of TradeDate},\n\t\tAccount_Type,\n\t\tFileName = {Copy of FileName},\n\t\tFuture_Code,\n\t\tDelivery_Month,\n\t\tDirection,\n\t\tTotal_IM,\n\t\tReason,\n\t\tConversion_Rate,\n\t\tFileDate,\n\t\tProduct_Information,\n\t\tCounterparty_Broker,\n\t\tFuture_Price,\n\t\tStrike_Price,\n\t\tCurrency,\n\t\tCall_Put,\n\t\tOffice_Number,\n\t\tAccount_No,\n\t\tContract_Quantity),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

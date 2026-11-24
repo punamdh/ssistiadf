@@ -1,0 +1,63 @@
+{
+  "name" : "load_data_in_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OpicPlusDBDLDT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OpicPlusDBFXDH",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsTradeCancelCorrectStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "ConvertDatecolumnstostring0"
+      }, {
+        "name" : "ConvertDatecolumnstostring"
+      }, {
+        "name" : "ConvertDatecolumnstostring00"
+      }, {
+        "name" : "ConvertDatecolumnstostring01"
+      }, {
+        "name" : "ConverttoDate0"
+      }, {
+        "name" : "ConverttoDate"
+      }, {
+        "name" : "UnionAll"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\ttblOpicsTradeCancelCorrectStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tBRANCH as string,\n\t\tDEALSRCE as string,\n\t\tDEALDATE as string,\n\t\tVDATE as string,\n\t\tREVDATE as string,\n\t\tDEALNO as string,\n\t\tSEQ as string,\n\t\tCCY as string,\n\t\tTRAD as string,\n\t\tPORT as string,\n\t\tCORPTRAD as string,\n\t\tCORPPORT as string,\n\t\tIOPER as string,\n\t\tREVOPER as string,\n\t\tREVREASON as string,\n\t\tREVTEXT as string,\n\t\tPAYAUTHDTE as timestamp,\n\t\tINPUTDATE as string,\n\t\tPRODUCT as string,\n\t\tPS as string,\n\t\tCCYAMT as decimal(19,4),\n\t\tINTRATE as string,\n\t\tSPREAD_8 as decimal(18,8),\n\t\tCTRAMT as string,\n\t\tCMNE as string,\n\t\tCFN1 as string,\n\t\tCTRCCY as string,\n\t\tOPERNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OpicPlusDBDLDT\tsource(output(\n\t\tBRANCH as string,\n\t\tDEALSRCE as string,\n\t\tCMNE as string,\n\t\tCFN1 as string,\n\t\tDEALDATE as string,\n\t\tVDATE as string,\n\t\tREVDATE as string,\n\t\tDEALNO as string,\n\t\tSEQ as string,\n\t\tCCY as string,\n\t\tCCYAMT as decimal(19,4),\n\t\tCTRCCY as string,\n\t\tCTRAMT as decimal(19,4),\n\t\tCCYRATE_8 as decimal(18,8),\n\t\tTRAD as string,\n\t\tPORT as string,\n\t\tCORPTRAD as string,\n\t\tCORPPORT as string,\n\t\tIOPER as string,\n\t\tREVOPER as string,\n\t\tREVREASON as string,\n\t\tREVTEXT as string,\n\t\tPAYAUTHDTE as timestamp,\n\t\tINPUTDATE as string,\n\t\tPRODUCT as string,\n\t\tPS as string,\n\t\tINTRATE as string,\n\t\tOPERNAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OpicPlusDBFXDH\tsource(output(\n\t\tDealno as string,\n\t\tREVDATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOpicPlusDBDLDT derive({Copy of INTRATE} = INTRATE,\n\t\t{Copy of REVDATE} = REVDATE,\n\t\t{Copy of SPREAD_8} = toString(SPREAD_8),\n\t\t{Copy of CTRAMT} = CTRAMT,\n\t\t{Copy of PS} = PS) ~> ConvertDatecolumnstostring0\nOpicPlusDBFXDH derive({Copy of REVDATE} = REVDATE,\n\t\t{Copy of CTRAMT} = toString(CTRAMT),\n\t\t{Copy of INTRATE} = INTRATE,\n\t\t{Copy of PS} = PS,\n\t\t{Copy of CCYRATE_8} = toString(CCYRATE_8)) ~> ConvertDatecolumnstostring\nConvertDatecolumnstostring0 select(mapColumn(\n\t\t{Copy of REVDATE} = {Copy of REVDATE},\n\t\t{Copy of SPREAD_8} = {Copy of SPREAD_8},\n\t\t{Copy of INTRATE} = {Copy of INTRATE},\n\t\t{Copy of CTRAMT} = {Copy of CTRAMT},\n\t\t{Copy of PS} = {Copy of PS},\n\t\tSPREAD_8 = SPREAD_8,\n\t\tPS = PS,\n\t\tREVDATE = REVDATE,\n\t\tINTRATE = INTRATE,\n\t\tCTRAMT = CTRAMT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> ConvertDatecolumnstostring00\nConvertDatecolumnstostring select(mapColumn(\n\t\t{Copy of REVDATE} = {Copy of REVDATE},\n\t\t{Copy of CCYRATE_8} = {Copy of CCYRATE_8},\n\t\t{Copy of CTRAMT} = {Copy of CTRAMT},\n\t\t{Copy of PS} = {Copy of PS},\n\t\t{Copy of INTRATE} = {Copy of INTRATE},\n\t\tPS = PS,\n\t\tREVDATE = REVDATE,\n\t\tCCYRATE_8 = CCYRATE_8,\n\t\tINTRATE = INTRATE,\n\t\tCTRAMT = CTRAMT\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> ConvertDatecolumnstostring01\nConvertDatecolumnstostring00 derive(drv2_REVDATE = toTimestamp(toString(({Copy of REVDATE}), 'MM/dd/yyyy'), 'MM/dd/yyyy')) ~> ConverttoDate0\nConvertDatecolumnstostring01 derive(drv2_REVDATE = toTimestamp(toString(({Copy of REVDATE}), 'MM/dd/yyyy'), 'MM/dd/yyyy'),\n\t\tCTRAMT = toString(CTRAMT),\n\t\tCCYRATE_8 = toDecimal(CCYRATE_8,18,8)) ~> ConverttoDate\nConverttoDate,ConverttoDate0 union(byName: true) ~> UnionAll\nUnionAll derive({Copy of OPERNAME} = OPERNAME,\n\t\t{Copy of CFN1} = CFN1,\n\t\t{Copy of CORPTRAD} = CORPTRAD,\n\t\t{Copy of IOPER} = IOPER,\n\t\t{Copy of CTRCCY} = CTRCCY,\n\t\t{Copy of BRANCH} = BRANCH,\n\t\t{Copy of DEALNO} = DEALNO,\n\t\t{Copy of CCYRATE_8} = toString(CCYRATE_8),\n\t\t{Copy of drv3_REVDATE} = toString(drv3_REVDATE),\n\t\t{Copy of PS} = PS,\n\t\t{Copy of CMNE} = CMNE,\n\t\t{Copy of CCY} = CCY,\n\t\t{Copy of TRAD} = TRAD,\n\t\t{Copy of CCYAMT} = toString(CCYAMT),\n\t\t{Copy of CORPPORT} = CORPPORT,\n\t\t{Copy of REVTEXT} = REVTEXT,\n\t\t{Copy of CTRAMT} = CTRAMT,\n\t\t{Copy of INTRATE} = INTRATE,\n\t\t{Copy of PORT} = PORT,\n\t\t{Copy of INPUTDATE} = INPUTDATE,\n\t\t{Copy of DEALSRCE} = DEALSRCE,\n\t\t{Copy of REVREASON} = REVREASON,\n\t\t{Copy of DEALDATE} = DEALDATE,\n\t\t{Copy of REVOPER} = REVOPER,\n\t\t{Copy of SEQ} = SEQ,\n\t\t{Copy of PRODUCT} = PRODUCT,\n\t\t{Copy of VDATE} = VDATE) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of DEALNO} == LookupLKPTABLE@Dealno && {Copy of drv3_REVDATE} == LookupLKPTABLE@REVDATE,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\t{Copy of VDATE} = {Copy of VDATE},\n\t\t{Copy of TRAD} = {Copy of TRAD},\n\t\t{Copy of SEQ} = {Copy of SEQ},\n\t\t{Copy of REVTEXT} = {Copy of REVTEXT},\n\t\t{Copy of REVREASON} = {Copy of REVREASON},\n\t\t{Copy of REVOPER} = {Copy of REVOPER},\n\t\t{Copy of PS} = {Copy of PS},\n\t\t{Copy of PRODUCT} = {Copy of PRODUCT},\n\t\t{Copy of PORT} = {Copy of PORT},\n\t\t{Copy of OPERNAME} = {Copy of OPERNAME},\n\t\t{Copy of IOPER} = {Copy of IOPER},\n\t\t{Copy of INTRATE} = {Copy of INTRATE},\n\t\t{Copy of INPUTDATE} = {Copy of INPUTDATE},\n\t\t{Copy of drv3_REVDATE} = {Copy of drv3_REVDATE},\n\t\t{Copy of DEALSRCE} = {Copy of DEALSRCE},\n\t\t{Copy of DEALNO} = {Copy of DEALNO},\n\t\t{Copy of DEALDATE} = {Copy of DEALDATE},\n\t\t{Copy of CTRCCY} = {Copy of CTRCCY},\n\t\t{Copy of CTRAMT} = {Copy of CTRAMT},\n\t\t{Copy of CORPTRAD} = {Copy of CORPTRAD},\n\t\t{Copy of CORPPORT} = {Copy of CORPPORT},\n\t\t{Copy of CMNE} = {Copy of CMNE},\n\t\t{Copy of CFN1} = {Copy of CFN1},\n\t\t{Copy of CCYRATE_8} = {Copy of CCYRATE_8},\n\t\t{Copy of CCYAMT} = {Copy of CCYAMT},\n\t\t{Copy of CCY} = {Copy of CCY},\n\t\t{Copy of BRANCH} = {Copy of BRANCH},\n\t\tCTRCCY = CTRCCY,\n\t\tPS = PS,\n\t\tINPUTDATE = INPUTDATE,\n\t\tTRAD = TRAD,\n\t\tREVREASON = REVREASON,\n\t\tOPERNAME = OPERNAME,\n\t\tDEALDATE = DEALDATE,\n\t\tREVOPER = REVOPER,\n\t\tREVTEXT = REVTEXT,\n\t\tPRODUCT = PRODUCT,\n\t\tCCYRATE_8 = CCYRATE_8,\n\t\tDEALNO = UnionAll@DEALNO,\n\t\tCFN1 = CFN1,\n\t\tdrv3_REVDATE = drv3_REVDATE,\n\t\tCTRAMT = CTRAMT,\n\t\tCORPPORT = CORPPORT,\n\t\tVDATE = VDATE,\n\t\tBRANCH = BRANCH,\n\t\tCCYAMT = CCYAMT,\n\t\tPORT = PORT,\n\t\tINTRATE = INTRATE,\n\t\tDEALSRCE = DEALSRCE,\n\t\tCCY = CCY,\n\t\tCORPTRAD = CORPTRAD,\n\t\tSEQ = SEQ,\n\t\tIOPER = IOPER,\n\t\tCMNE = CMNE,\n\t\tPAYAUTHDTE = PAYAUTHDTE,\n\t\tdrv2_REVDATE = drv2_REVDATE,\n\t\t{Copy of REVDATE} = {Copy of REVDATE},\n\t\tREVDATE = LookupLKPTABLE@REVDATE,\n\t\tDealno = UnionAll@DEALNO\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tCTRCCY as string,\n\t\tPS as string,\n\t\tINPUTDATE as string,\n\t\tTRAD as string,\n\t\tREVREASON as string,\n\t\tOPERNAME as string,\n\t\tDEALDATE as string,\n\t\tREVOPER as string,\n\t\tREVTEXT as string,\n\t\tPRODUCT as string,\n\t\tCCYRATE_8 as string,\n\t\tDEALNO as string,\n\t\tCFN1 as string,\n\t\tPAYAUTHDTE as string,\n\t\tCTRAMT as string,\n\t\tCORPPORT as string,\n\t\tVDATE as string,\n\t\tBRANCH as string,\n\t\tCCYAMT as string,\n\t\tPORT as string,\n\t\tREVDATE as string,\n\t\tDEALSRCE as string,\n\t\tintrate as string,\n\t\tCCY as string,\n\t\tCORPTRAD as string,\n\t\tSEQ as string,\n\t\tCMNE as string,\n\t\tIOPER as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCTRCCY = {Copy of CTRCCY},\n\t\tPS = {Copy of PS},\n\t\tINPUTDATE = {Copy of INPUTDATE},\n\t\tTRAD = {Copy of TRAD},\n\t\tREVREASON = {Copy of REVREASON},\n\t\tOPERNAME = {Copy of OPERNAME},\n\t\tDEALDATE = {Copy of DEALDATE},\n\t\tREVOPER = {Copy of REVOPER},\n\t\tREVTEXT = {Copy of REVTEXT},\n\t\tPRODUCT = {Copy of PRODUCT},\n\t\tCCYRATE_8,\n\t\tDEALNO = {Copy of DEALNO},\n\t\tCFN1 = {Copy of CFN1},\n\t\tPAYAUTHDTE,\n\t\tCTRAMT = {Copy of CTRAMT},\n\t\tCORPPORT = {Copy of CORPPORT},\n\t\tVDATE = {Copy of VDATE},\n\t\tBRANCH = {Copy of BRANCH},\n\t\tCCYAMT = CTRAMT,\n\t\tPORT = {Copy of PORT},\n\t\tREVDATE = drv3_REVDATE,\n\t\tDEALSRCE = {Copy of DEALSRCE},\n\t\tintrate = {Copy of INTRATE},\n\t\tCCY = {Copy of CCY},\n\t\tCORPTRAD = {Copy of CORPTRAD},\n\t\tSEQ = {Copy of SEQ},\n\t\tCMNE = {Copy of CMNE},\n\t\tIOPER = {Copy of IOPER}),\n\tpartitionFileNames:[($tblOpicsTradeCancelCorrectStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsTradeCancelCorrectStaging"
+    }
+  }
+}

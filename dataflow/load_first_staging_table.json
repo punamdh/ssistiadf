@@ -1,0 +1,31 @@
+{
+  "name" : "load_first_staging_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromFileSourceConMgr1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcibaaprefdata1cidaccountpartyrelationship"
+      } ],
+      "transformations" : [ {
+        "name" : "addadditionalfields"
+      } ],
+      "script" : "parameters{\n\tvFileName as string (),\n\ttotblcibaaprefdata1cidaccountpartyrelationship_outputfilename as string ()\n}\n\nsource(output(\n\t\tas_of_dt as string,\n\t\tacct_id as string,\n\t\tacct_cd as string,\n\t\trelshp_typ as string,\n\t\trelshp_pct as string,\n\t\tjnt_and_several_flag as string,\n\t\tpri_pty_flag as string,\n\t\tsynthc_ent_flag as string,\n\t\tpty_id as string,\n\t\tpty_id_src_cd as string,\n\t\tbus_acct_relshp_pty_link_dt as string,\n\t\taml_ind as string,\n\t\tbu_nm as string,\n\t\twfs_bus_acct_nm as string,\n\t\tdoc_sh_nm as string,\n\t\tacct_stat as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromFileSourceConMgr1\nfromFileSourceConMgr1 derive(rowCreateDate = currentTimestamp(),\n\t\tFileName = toString(right(toString($vFileName), 62))) ~> addadditionalfields\naddadditionalfields sink(input(\n\t\trelshp_typ as string,\n\t\tpty_id_src_cd as string,\n\t\tjnt_and_several_flag as string,\n\t\tFileName as string,\n\t\tdoc_sh_nm as string,\n\t\trelshp_pct as integer,\n\t\tas_of_dt as date 'dd-MM-yyyy',\n\t\tacct_stat as string,\n\t\tbus_acct_relshp_pty_link_dt as date 'dd-MM-yyyy',\n\t\tbu_nm as string,\n\t\trowCreateDate as date 'dd-MM-yyyy',\n\t\tacct_id as string,\n\t\twfs_bus_acct_nm as string,\n\t\tacct_cd as string,\n\t\taml_ind as string,\n\t\tpty_id as string,\n\t\tpri_pty_flag as string,\n\t\tsynthc_ent_flag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\trelshp_typ,\n\t\tpty_id_src_cd,\n\t\tjnt_and_several_flag,\n\t\tFileName,\n\t\tdoc_sh_nm,\n\t\trelshp_pct,\n\t\tas_of_dt,\n\t\tacct_stat,\n\t\tbus_acct_relshp_pty_link_dt,\n\t\tbu_nm,\n\t\trowCreateDate,\n\t\tacct_id,\n\t\twfs_bus_acct_nm,\n\t\tacct_cd,\n\t\taml_ind,\n\t\tpty_id,\n\t\tpri_pty_flag,\n\t\tsynthc_ent_flag),\n\tpartitionFileNames:[($totblcibaaprefdata1cidaccountpartyrelationship_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcibaaprefdata1cidaccountpartyrelationship"
+    }
+  }
+}

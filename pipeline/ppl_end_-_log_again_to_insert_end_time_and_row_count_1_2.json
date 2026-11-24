@@ -1,0 +1,355 @@
+{
+  "name" : "ppl_end_-_log_again_to_insert_end_time_and_row_count_1_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "End_-_LOG_again_to_insert_End_Time_and_row_count__",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(pipeline().parameters.iActualRowLoadedINT,pipeline().parameters.iRowCountINT)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_End_-_LOG_again_to_insert_End_Time_and_row_coun",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sCommentINT')},\n@status = 'Success',\n@num_of_records = @{variables('iRowCountINT')},\n@actual_records = @{variables('iActualRowLoadedINT')},\n@FileName= 'NA'\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_End_-_LOG_Failure_Container_3_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_LOG_again_to_insert_End_Time_and_row_coun",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sCommentST4')},\n@status = 'Success',\n@num_of_records = 0,\n@actual_records = -1,\n@FileName= 'NA'\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_SP-_Update_EOM_tables_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_LOG_again_to_insert_End_Time_and_row_coun",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "execute sp_upd_GMI_Fee_Recon_NFA_EOM \n@EOM = @{variables('dStartPreviousMonth')}",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_End_-_LOG_Failure_INT_0_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_LOG_again_to_insert_End_Time_and_row_coun",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_end_-_log_again_to_insert_end_time_and_row_count__",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "EP_Failure_Mail_INT_NFA",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_LOG_Failure_Container_3_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "ST_End_-_LOG_Failure_Update_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_SP-_Update_EOM_tables_0",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sCommentUpdate')},\n@status = 'Success',\n@num_of_records = @{variables('iUpdateFailure')},\n@actual_records = @{variables('iUpdateSuccess')},\n@FileName= 'NA'\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_End_Log_Update_Success_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_SP-_Update_EOM_tables_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sCommentUpdate')},\n@status = 'Success',\n@num_of_records = @{variables('iUpdateSuccess')},\n@actual_records = @{variables('iUpdateSuccess')},\n@FileName= 'NA'\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Failure_Mail_INT",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_End_-_LOG_Failure_Update_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "iRowCountINT" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "iActualRowLoadedINT" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "iActualRowLoadedGL" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "dStartPreviousMonth" : {
+        "type" : "String",
+        "defaultValue" : "'6/1/2021'"
+      },
+      "iRowCountINT" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sCommentGL" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading NFA GL for  FCM GMI Fee Recon - Step 2 of 3"
+      },
+      "sCommentUpdate" : {
+        "type" : "String",
+        "defaultValue" : "Start update FCM GMI Fee Recon of table Intellimatch, St4 and GL"
+      },
+      "sCommentINT" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading NFA Intellimatch for FCM GMI Fee Recon - Step 3 of 3"
+      },
+      "sSQLCmdINTMEOM" : {
+        "type" : "String",
+        "defaultValue" : "select  [itemId], [effDate], riskMonth, [rc],[co], [dda], [subAccount],[name1],[description],[balancePool], [entryDate],[riskDate],[currency],[dr] ,[cr],[amount],[amtOrig], [create_dt]  from [kpikriReporting].[dbo].[tbl_lvlThreeDetail_GL]  where rc  = '0010842'  and dda = '4402998' and co = '00037' \\nand entryDate >= (cast(DATEADD(m,-1,DATEADD(mm, DATEDIFF(m,0,getdate()), 0)) as date)) and \\n(entryDate < cast (Dateadd(dd, -Datepart(dd, Getdate()) + 1, Getdate()) as DATE)) and \\ncast(effDate as date) = cast('5/31/2021' as date) union select  [itemId], [effDate], riskMonth, [rc],[co], [dda], [subAccount],[name1],[description],[balancePool], [entryDate],[riskDate],[currency],[dr] ,[cr],[amount],[amtOrig], [create_dt]  from [kpikriReporting].[dbo].[tbl_lvlThreeDetail_GL]  where rc  = '0198086'  and dda = '4402882' and co = '00037' \\nand entryDate >= (cast(DATEADD(m,-1,DATEADD(mm, DATEDIFF(m,0,getdate()), 0)) as date)) and \\n(entryDate < cast (Dateadd(dd, -Datepart(dd, Getdate()) + 1, Getdate()) as DATE)) and \\ncast(effDate as date) = cast('5/31/2021' as date)"
+      },
+      "sRecordStatus" : {
+        "type" : "String",
+        "defaultValue" : "PR"
+      },
+      "sMsgFailSt4" : {
+        "type" : "String",
+        "defaultValue" : "Process failed loading NFA ST4 records for EOM"
+      },
+      "sMsgFailINT" : {
+        "type" : "String",
+        "defaultValue" : "Process failed loading NFA Intellimatch for EOM"
+      },
+      "iActualRowLoadedST4" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "dEndPreviousMonth" : {
+        "type" : "String",
+        "defaultValue" : "'7/1/2021'"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "FCM_GMI_Fee_Recon_NFA"
+      },
+      "sCommentST4" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading NFA ST4 for FCM GMI Fee Recon - Step 1 of 3"
+      },
+      "sVitolDefault" : {
+        "type" : "String",
+        "defaultValue" : "Post To GL"
+      },
+      "iRowCountST4" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMsgFailGL" : {
+        "type" : "String",
+        "defaultValue" : "Process failed loading NFA GL records for EOM"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "iUpdateFailure" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iUpdateSuccess" : {
+        "type" : "String",
+        "defaultValue" : "1"
+      },
+      "sSQLCmdST4EOM_A" : {
+        "type" : "String",
+        "defaultValue" : "Select effDate, PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM,  PEXCH, PFC, PGIVF,  PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM, '0010842' as AU_Number, sum(PTPRIC) as PTPRIC, sum(PFEE1) as PFEE1, sum(PFEE2) as PFEE2, sum(PFEE4) as PFEE4, sum(PFEE1 + PFEE2 + PFEE4) as total_fee, sum(PCOMM) as PCOMM,  sum(PFEE3) as PFEE3,  sum(PQTY) as PQTY from vStaging_LoadGMI_ST4F1History where PRECID in ('A', 'B', 'E', 'T', 'V', 'X')  and PSUBCL Not in ( 'D')  and PCLASS = 'C' and PFIRM Not in ('E') and effDate   >=  convert (varchar(10), '6/1/2021', 102) and effDate < convert(varchar(10), '7/1/2021' , 102) group by effDate,  PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM, PEXCH, PFC, PGIVF, PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM having sum(PFEE3) <> 0  union\\n Select effDate, PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM,  PEXCH, PFC, PGIVF,  PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM, '0010842' as AU_Number, sum(PTPRIC) as PTPRIC, sum(PFEE1) as PFEE1, sum(PFEE2) as PFEE2, sum(PFEE4) as PFEE4, sum(PFEE1 + PFEE2 + PFEE4) as total_fee, sum(PCOMM) as PCOMM,  sum(PFEE3) as PFEE3,  sum(PQTY) as PQTY from vStaging_LoadGMI_ST4F1History where PRECID in ('A', 'B', 'E', 'T', 'V', 'X')  and PSUBCL Not in ( 'D')  and PCLASS = 'H' and PFIRM Not in ('E') and PEXCH not in ('02', '16', '9C') and effDate   >=  convert (varchar(10), '6/1/2021', 102) and effDate < convert(varchar(10), '7/1/2021' , 102) group by effDate,  PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM, PEXCH, PFC, PGIVF, PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM having sum(PFEE3) <> 0 union  Select effDate, PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM,  PEXCH, PFC, PGIVF,  PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM, '0010842' as AU_Number, sum(PTPRIC) as PTPRIC, sum(PFEE1) as PFEE1, sum(PFEE2) as PFEE2, sum(PFEE4) as PFEE4, sum(PFEE1 + PFEE2 + PFEE4) as total_fee,  sum(PCOMM) as PCOMM,  sum(PFEE3) as PFEE3,  sum(PQTY) as PQTY from vStaging_LoadGMI_ST4F1History where PRECID in ('A', 'B', 'E', 'T', 'V', 'X') and PEXCH in ('02', '16', '9C') and PSUBCL Not in ( 'D', 'A')  and PCLASS = 'H' and PFIRM Not in ('E') and effDate   >=  convert (varchar(10), '6/1/2021', 102) and effDate < convert(varchar(10), '7/1/2021' , 102) group by effDate,  PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM, PEXCH, PFC, PGIVF, PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM having sum(PFEE3) <> 0 union  Select effDate, PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM,  PEXCH, PFC, PGIVF,  PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM, '0010842' as AU_Number, sum(PTPRIC) as PTPRIC, sum(PFEE1) as PFEE1, sum(PFEE2) as PFEE2, sum(PFEE4) as PFEE4, sum(PFEE1 + PFEE2 + PFEE4) as total_fee, sum(PCOMM) as PCOMM,  sum(PFEE3) as PFEE3,  sum(PQTY) as PQTY from vStaging_LoadGMI_ST4F1History where PRECID in ('A', 'B', 'E', 'T', 'V', 'X') and PSUBCL = 'D'  and PCLASS = 'F' and PFIRM  = 'B' and effDate   >=  convert (varchar(10), '6/1/2021', 102) and effDate < convert(varchar(10), '7/1/2021' , 102) group by effDate,  PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM, PEXCH, PFC, PGIVF, PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM having sum(PFEE3) <> 0 union Select effDate, PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM,  PEXCH, PFC, PGIVF,  PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM, case when PEXCH in ('7B', '9B') then '0198086'  else 'NA' end as AU_Number, sum(PTPRIC) as PTPRIC, sum(PFEE1) as PFEE1, sum(PFEE2) as PFEE2, sum(PFEE4) as PFEE4, sum(PFEE1 + PFEE2 + PFEE4) as total_fee, sum(PCOMM) as PCOMM,  sum(PFEE3) as PFEE3,  sum(PQTY) as PQTY from vStaging_LoadGMI_ST4F1History where PRECID in ('A', 'B', 'E', 'T', 'V', 'X') and PSUBCL not in ('D')  and PCLASS in ('C', 'H', 'Z') and PEXCH in ('7B', '9B') and effDate   >=  convert (varchar(10), '6/1/2021', 102) and effDate < convert(varchar(10), '7/1/2021' , 102) group by effDate,  PACCT, PATFE1, PATFE2, PATFE3, PCALC, PCLASS, PCMNT1, PCTYM, PEXCH, PFC, PGIVF, PGIVIO, POFFIC, PRECID, PSDSC1, PSNAME, PSPRED, PSTYPE, PSUBCL, PSUBTY, PTTYPE, PTYPE, PUSER, PTDATE, PFIRM"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_FCM_GMI_Fee_Recon_NFA_"
+      },
+      "iActualRowLoadedINT" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "dLastBusDateMonth" : {
+        "type" : "String",
+        "defaultValue" : "'5/31/2021'"
+      },
+      "iRowCountGL" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iRowCountST4B" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sSQLCmdGLEOM" : {
+        "type" : "String",
+        "defaultValue" : "SELECT EFFECTIVE_DATE, GL_COMPANY_NBR,  GL_ACCOUNT_NBR,  GL_AU_NBR,  AMOUNT,  AMOUNT_CR,  AMOUNT_DR,  ENTERED_AMOUNT,  ENTERED_CR,  ENTERED_DR,  CURRENCY_CODE, Ltrim(ATTRIBUTE1) as DESC1, ATTRIBUTE7,  JE_LINE_NUM, JE_HEADER_ID, external_Reference, Rtrim((right(LEFT([ATTRIBUTE7], 140),5))) + (right(LEFT([ATTRIBUTE7], 110),5)) as gmiaccnt, getdate() as create_dte FROM dbo.GeneralLedger_GL_TXS_USX WHERE GL_ACCOUNT_NBR = '4402998' and GL_AU_NBR = '0010842' and GL_COMPANY_NBR = '00037' and charindex('Revaluation', ATTRIBUTE1, 1) = 0 and EFFECTIVE_DATE >=   cast('6/1/2021' as date)  and  EFFECTIVE_DATE < cast('7/1/2021' as date) union SELECT EFFECTIVE_DATE, GL_COMPANY_NBR,  GL_ACCOUNT_NBR,  GL_AU_NBR,  AMOUNT,  AMOUNT_CR,  AMOUNT_DR,  ENTERED_AMOUNT,  ENTERED_CR,  ENTERED_DR,  CURRENCY_CODE, Ltrim(ATTRIBUTE1) as DESC1, ATTRIBUTE7,  JE_LINE_NUM, JE_HEADER_ID, external_Reference, Rtrim((right(LEFT([ATTRIBUTE7], 140),5))) + (right(LEFT([ATTRIBUTE7], 110),5)) as gmiaccnt, getdate() as create_dte FROM dbo.GeneralLedger_GL_TXS_USX WHERE GL_ACCOUNT_NBR = '4402882' and GL_AU_NBR = '0198086' and GL_COMPANY_NBR = '00037' and charindex('Revaluation', ATTRIBUTE1, 1) = 0 and EFFECTIVE_DATE >=   cast('6/1/2021' as date)  and  EFFECTIVE_DATE < cast('7/1/2021' as date)"
+      },
+      "iRowCountST4A" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iRowCountST4C" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

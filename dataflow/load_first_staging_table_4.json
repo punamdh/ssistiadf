@@ -1,0 +1,31 @@
+{
+  "name" : "load_first_staging_table_4",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromFileSourceConMgr1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcibaaprefdata1lususersupervisorrelationship"
+      } ],
+      "transformations" : [ {
+        "name" : "addadditionalfields"
+      } ],
+      "script" : "parameters{\n\tvFileName as string (),\n\ttotblcibaaprefdata1lususersupervisorrelationship_outputfilename as string ()\n}\n\nsource(output(\n\t\tas_of_dt as string,\n\t\tuser_id as string,\n\t\temp_key_id as string,\n\t\tlogin_id as string,\n\t\tfull_nm as string,\n\t\tspvr_user_id as string,\n\t\tspvr_emp_key_id as string,\n\t\tspvr_login_id as string,\n\t\tspvr_full_nm as string,\n\t\tuser_typ_cd as string,\n\t\ttrd_op_ofc as string,\n\t\tact_as_user_typ_cd as string,\n\t\tvald_login_flag as string,\n\t\tpos_grp_ownr_id as string,\n\t\tpos_grp_ownr_id_for_spvr as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromFileSourceConMgr1\nfromFileSourceConMgr1 derive(rowCreateDate = currentTimestamp(),\n\t\tFileName = toString(right(toString($vFileName), 62))) ~> addadditionalfields\naddadditionalfields sink(input(\n\t\ttrd_op_ofc as string,\n\t\tlogin_id as string,\n\t\tuser_typ_cd as string,\n\t\tFileName as string,\n\t\tfull_nm as string,\n\t\tas_of_dt as date 'dd-MM-yyyy',\n\t\tspvr_full_nm as string,\n\t\tpos_grp_ownr_id_for_spvr as string,\n\t\tspvr_user_id as short,\n\t\trowCreateDate as date 'dd-MM-yyyy',\n\t\tuser_id as short,\n\t\tpos_grp_ownr_id as string,\n\t\tvald_login_flag as string,\n\t\temp_key_id as integer,\n\t\tact_as_user_typ_cd as string,\n\t\tspvr_emp_key_id as integer,\n\t\tspvr_login_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrd_op_ofc,\n\t\tlogin_id,\n\t\tuser_typ_cd,\n\t\tFileName,\n\t\tfull_nm,\n\t\tas_of_dt,\n\t\tspvr_full_nm,\n\t\tpos_grp_ownr_id_for_spvr,\n\t\tspvr_user_id,\n\t\trowCreateDate,\n\t\tuser_id,\n\t\tpos_grp_ownr_id,\n\t\tvald_login_flag,\n\t\temp_key_id,\n\t\tact_as_user_typ_cd,\n\t\tspvr_emp_key_id,\n\t\tspvr_login_id),\n\tpartitionFileNames:[($totblcibaaprefdata1lususersupervisorrelationship_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcibaaprefdata1lususersupervisorrelationship"
+    }
+  }
+}

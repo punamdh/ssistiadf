@@ -1,0 +1,31 @@
+{
+  "name" : "load_product_group_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tBOOK_ID as decimal(38,0),\n\t\tBOOK_NAME as string,\n\t\tLEGAL_ENTITY as string,\n\t\tLONG_NAME as string,\n\t\tLOCATION as string,\n\t\tACTIVITY as string,\n\t\tACCOUNTINGLINK as string,\n\t\tBASE_CURRENCY as string,\n\t\tBUSINESSTYPE as string,\n\t\tPROFITCENTER as string,\n\t\tOPICSLBOOK as string,\n\t\tOPICSSPOTBOOK as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(CaptureDate = toString(toDate(toString((currentTimestamp()), 'MM/dd/yyyy'), \"MM/dd/yyyy\"))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tBook_ID as integer,\n\t\tOpicsSpotBook as string,\n\t\tAccountingLink as string,\n\t\tProfitCenter as string,\n\t\tBase_Currency as string,\n\t\tBusinessType as string,\n\t\tBOOK_NAME as string,\n\t\tActivity as string,\n\t\tCaptureDate as string,\n\t\tLEGAL_ENTITY as string,\n\t\tLONG_NAME as string,\n\t\tOpicsLBook as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBook_ID = BOOK_ID,\n\t\tOpicsSpotBook = OPICSSPOTBOOK,\n\t\tAccountingLink = ACCOUNTINGLINK,\n\t\tProfitCenter = PROFITCENTER,\n\t\tBase_Currency = BASE_CURRENCY,\n\t\tBusinessType = BUSINESSTYPE,\n\t\tBOOK_NAME,\n\t\tActivity = ACTIVITY,\n\t\tCaptureDate,\n\t\tLEGAL_ENTITY,\n\t\tLONG_NAME,\n\t\tOpicsLBook = OPICSLBOOK,\n\t\tLocation = LOCATION)) ~> FlatFileDestination"
+    }
+  }
+}

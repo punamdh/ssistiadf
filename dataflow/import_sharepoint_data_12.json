@@ -1,0 +1,29 @@
+{
+  "name" : "import_sharepoint_data_12",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tOrigin as string,\n\t\t{Reporting Date} as string,\n\t\t{Title (Title)} as string,\n\t\tInstrument as string,\n\t\t{First Notice Day} as string,\n\t\tLong as string,\n\t\t{Last Trade Date} as string,\n\t\tShort as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tOrigin as string,\n\t\tReporting_Date as timestamp 'dd-MM-yyyy',\n\t\tTitle__Title_ as string,\n\t\tInstrument as string,\n\t\tFirst_Notice_Day as string,\n\t\tLong as double,\n\t\tLast_Trade_Date as string,\n\t\tShort as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOrigin,\n\t\tReporting_Date = {Reporting Date},\n\t\tTitle__Title_ = {Title (Title)},\n\t\tInstrument,\n\t\tFirst_Notice_Day = {First Notice Day},\n\t\tLong,\n\t\tLast_Trade_Date = {Last Trade Date},\n\t\tShort),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

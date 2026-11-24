@@ -1,0 +1,31 @@
+{
+  "name" : "load_calypso_usd_libor_trade_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFilePath as string ('\\\\ cwcnhf501.wellsfargo.com\\\\DRSUAT\\\\WFSOpsKRIReporting\\\\DropZone\\\\Calypso\\\\LiborSofr_FallbackTrades'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Id} as string,\n\t\t{TRADE_KEYWORD SWDealId} as string,\n\t\t{TRADE_KEYWORD CCPTradeID} as string,\n\t\t{External Reference} as string,\n\t\t{Product Type} as string,\n\t\t{Sub Type} as string,\n\t\t{CounterParty Attribute WF_InterCoClassification} as string,\n\t\t{CounterParty Attribute INTERNAL} as string,\n\t\t{Trade Date} as string,\n\t\t{Maturity Date} as string,\n\t\t{Entered Date} as string,\n\t\t{Updated Date} as string,\n\t\tTrader as string,\n\t\t{Trade Currency} as string,\n\t\t{Product Description} as string,\n\t\tTradeStatus as string,\n\t\tBook as string,\n\t\t{TRADE_KEYWORD LEI_US} as string,\n\t\tCounterParty as string,\n\t\t{TRADE_KEYWORD LEI_CP} as string,\n\t\t{CounterParty Attribute LegalType} as string,\n\t\t{Trade Comment} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FileName = toString((substring(toString($FilePath), toInteger(97), toInteger(35)))),\n\t\tFileDate = toString((substring(toString($FilePath), toInteger(124), toInteger(8)))),\n\t\tLoaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as string,\n\t\tTradeCurrency as string,\n\t\tSubType as string,\n\t\tTRADE_KEYWORD_LEI_CP as string,\n\t\tUpdatedDate as string,\n\t\tTrader as string,\n\t\tTradeID as string,\n\t\tFileName as string,\n\t\tProductType as string,\n\t\tEnteredDate as string,\n\t\tTRADE_KEYWORD_SWDeal_ID as string,\n\t\tCounterPartyAttributeINTERNAL as string,\n\t\tMaturityDate as string,\n\t\tCounterPartyAttributeWF_InterCoClassification as string,\n\t\tTRADE_KEYWORD_LEI_US as string,\n\t\tCounterParty as string,\n\t\tExternalReference as string,\n\t\tBook as string,\n\t\tTRADE_KEYWORD_CCPTrade_ID as string,\n\t\tTradeDate as string,\n\t\tCounterPartyAttributeLegalType as string,\n\t\tProductDescription as string,\n\t\tTradeStatus as string,\n\t\tTradeComment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = Loaddate,\n\t\tTradeCurrency = {Trade Currency},\n\t\tSubType = {Sub Type},\n\t\tTRADE_KEYWORD_LEI_CP = {TRADE_KEYWORD LEI_CP},\n\t\tUpdatedDate = {Updated Date},\n\t\tTrader,\n\t\tTradeID = {Trade Id},\n\t\tFileName,\n\t\tProductType = {Product Type},\n\t\tEnteredDate = {Entered Date},\n\t\tTRADE_KEYWORD_SWDeal_ID = {TRADE_KEYWORD SWDealId},\n\t\tCounterPartyAttributeINTERNAL = {CounterParty Attribute INTERNAL},\n\t\tMaturityDate = {Maturity Date},\n\t\tCounterPartyAttributeWF_InterCoClassification = {CounterParty Attribute WF_InterCoClassification},\n\t\tTRADE_KEYWORD_LEI_US = {TRADE_KEYWORD LEI_US},\n\t\tCounterParty,\n\t\tExternalReference = {External Reference},\n\t\tBook,\n\t\tTRADE_KEYWORD_CCPTrade_ID = {TRADE_KEYWORD CCPTradeID},\n\t\tTradeDate = {Trade Date},\n\t\tCounterPartyAttributeLegalType = {CounterParty Attribute LegalType},\n\t\tProductDescription = {Product Description},\n\t\tTradeStatus,\n\t\tTradeComment = {Trade Comment}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

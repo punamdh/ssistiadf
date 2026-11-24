@@ -1,0 +1,31 @@
+{
+  "name" : "load_records_6",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDEALNO as string,\n\t\tVDATE as timestamp,\n\t\tSENDERBIC as string,\n\t\tSENDERREF as string,\n\t\tCNO as string,\n\t\tTYPE as string,\n\t\tMATCHSENDERBIC as string,\n\t\tMATCHSENDERREF as string,\n\t\tMATCHREFDATE as timestamp,\n\t\tCUSTBIC as string,\n\t\tCOMMONREF as string,\n\t\t{Conf Type} as string,\n\t\tBRANCH as string,\n\t\tSTATUS as string,\n\t\tIO as string,\n\t\tOPER as string,\n\t\t{Bought CCY} as string,\n\t\t{Amount Bought} as string,\n\t\tRATE as string,\n\t\t{Sold CCY} as string,\n\t\t{Amount Sold} as string,\n\t\tDEALDATE as string,\n\t\t{Date Confirm Received} as timestamp,\n\t\t{Time Confirm Received} as string,\n\t\tCtype as string,\n\t\t{Customer Name} as string,\n\t\tREGION as string,\n\t\t{Deal Aging} as string,\n\t\t{Confirmation Aging} as string,\n\t\tMAIQ_NOTES as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSENDERBIC as string,\n\t\tDate_Confirm_Received as string,\n\t\tCustomer_Name as string,\n\t\tCNO as string,\n\t\tRATE as string,\n\t\tAmount_Bought as string,\n\t\tMATCHSENDERBIC as string,\n\t\tMAIQ_NOTES as string,\n\t\tDEALDATE as string,\n\t\tMATCHREFDATE as string,\n\t\tSTATUS as string,\n\t\tMATCHSENDERREF as string,\n\t\tLoaddate as string,\n\t\tDEALNO as string,\n\t\tTime_Confirm_Received as string,\n\t\tCtype as string,\n\t\tSENDERREF as string,\n\t\tTYPE as string,\n\t\tVDATE as string,\n\t\tCOMMONREF as string,\n\t\tBRANCH as string,\n\t\tSold_CCY as string,\n\t\tConfType as string,\n\t\tIO as string,\n\t\tConfirmation_Aging as string,\n\t\tBought_CCY as string,\n\t\tOPER as string,\n\t\tCUSTBIC as string,\n\t\tAmount_Sold as string,\n\t\tRegion as string,\n\t\tDeal_Aging as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSENDERBIC,\n\t\tDate_Confirm_Received = {Date Confirm Received},\n\t\tCustomer_Name = {Customer Name},\n\t\tCNO,\n\t\tRATE,\n\t\tAmount_Bought = {Amount Bought},\n\t\tMATCHSENDERBIC,\n\t\tMAIQ_NOTES,\n\t\tDEALDATE,\n\t\tMATCHREFDATE,\n\t\tSTATUS,\n\t\tMATCHSENDERREF,\n\t\tLoaddate,\n\t\tDEALNO,\n\t\tTime_Confirm_Received = {Time Confirm Received},\n\t\tCtype,\n\t\tSENDERREF,\n\t\tTYPE,\n\t\tVDATE,\n\t\tCOMMONREF,\n\t\tBRANCH,\n\t\tSold_CCY = {Sold CCY},\n\t\tConfType = {Conf Type},\n\t\tIO,\n\t\tConfirmation_Aging = {Confirmation Aging},\n\t\tBought_CCY = {Bought CCY},\n\t\tOPER,\n\t\tCUSTBIC,\n\t\tAmount_Sold = {Amount Sold},\n\t\tRegion = REGION,\n\t\tDeal_Aging = {Deal Aging}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

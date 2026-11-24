@@ -1,0 +1,31 @@
+{
+  "name" : "staging_feed_redid",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcalypsotradekeywordFeedRedid",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tocalypsotradeservtkeywordfeedredid"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttocalypsotradeservtkeywordfeedredid_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tKEYWORD_NAME as string,\n\t\tKEYWORD_VALUE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsotradekeywordFeedRedid\nfromcalypsotradekeywordFeedRedid derive({FEED_REDID$} = KEYWORD_VALUE,\n\t\t{TRADE_ID$} = toString(TRADE_ID)) ~> DataConversion\nDataConversion sink(input(\n\t\ttrade_id as string,\n\t\tkeyword_value as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrade_id = {TRADE_ID$},\n\t\tkeyword_value = {FEED_REDID$}),\n\tpartitionFileNames:[($tocalypsotradeservtkeywordfeedredid_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tocalypsotradeservtkeywordfeedredid"
+    }
+  }
+}

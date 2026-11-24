@@ -1,0 +1,391 @@
+{
+  "name" : "ppl_gptm_nape_trialbal_daily",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_START_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sMessage')}",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Previous_Business_Day_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_START_-_Log_to_Table_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT CONVERT(VARCHAR(12), (GETDATE()-10), 101)  AS PreviousBusinessDay",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_sPrevBusDay_0",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Previous_Business_Day_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "sPrevBusDay",
+        "value" : "@string(activity('ST_Get_Previous_Business_Day_0').output.resultSets[0].rows[0].PreviousBusinessDay)"
+      }
+    }, {
+      "name" : "ST_Delete_Old_Records_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_sPrevBusDay_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DECLARE @Deleted_Rows INT;  \n\nSET @Deleted_Rows = 1;\n\nWHILE (@Deleted_Rows > 0) \n\nBEGIN\nBEGIN TRANSACTION\nDELETE TOP (50000) [dbo].[tbl_GPTM_NAPE_TrialBalance] \n     \nWHERE EFFDATE < @{variables('sPrevBusDay')}\nSET @Deleted_Rows = @@ROWCOUNT;\nCOMMIT TRANSACTION\n\nEND ",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "Load_Last_10_Days_0",
+      "type" : "Until",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_Old_Records_0",
+        "dependencyConditions" : [ "Completed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@variables('iCounter') >= 1",
+          "type" : "Expression"
+        },
+        "timeout" : "0.12:00:00",
+        "activities" : [ {
+          "name" : "ST_Get_Previous_Business_Day0_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}), 101) AS PreviousBusinessDay\n,RIGHT(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),4) + LEFT(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),2) + SUBSTRING(CONVERT(VARCHAR(12), (GETDATE()-@{variables('iCounter')}),101),4,2) AS PreviousBusinessDayInt",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sPrevBusDay",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_Previous_Business_Day0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sPrevBusDay",
+            "value" : "@string(activity('ST_Get_Previous_Business_Day0_0').output.resultSets[0].rows[0].PreviousBusinessDay)"
+          }
+        }, {
+          "name" : "SETVAR_sPrevBusDayInt",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_Previous_Business_Day0_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sPrevBusDayInt",
+            "value" : "@int(activity('ST_Get_Previous_Business_Day0_0').output.resultSets[0].rows[0].PreviousBusinessDayInt)"
+          }
+        }, {
+          "name" : "Debugging_Show_Day_Counter",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sPrevBusDayInt",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_sPrevBusDay",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : "Script Task",
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Debugging_Show_Day_Counter",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        }, {
+          "name" : "ST_Check_if_not_loaded_or_Avg_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "Debugging_Show_Day_Counter",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT CASE WHEN (SELECT COUNT(*) as count FROM dbo.tbl_GPTM_NAPE_TrialBalance WHERE EFFDATE = @{variables('sPrevBusDay')}) \n\t\t          <= ((SELECT AVG(t.Count) FROM (SELECT COUNT(*) as count FROM dbo.tbl_GPTM_NAPE_TrialBalance  t GROUP BY EFFDATE) as t)*.75)  \n\t\t    THEN 'NO'\n\t\t    ELSE 'YES' END as YesNo",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_IsLoaded",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_not_loaded_or_Avg_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "IsLoaded",
+            "value" : "@string(activity('ST_Check_if_not_loaded_or_Avg_0').output.resultSets[0].rows[0].YesNo)"
+          }
+        }, {
+          "name" : "EP_Script_Task_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_IsLoaded",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_load_last_10_days_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    }, {
+      "name" : "ST_Insert_General_Failure_into_Utility_Alert_for_E",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Last_10_Days_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n  @TO = 'wfsrs@wellsfargo.com'\n ,@SUBJECT = 'WFSR&S_ProcessAlert_DEV_GPTM_NAPE_TrialBal_Daily_FAILURE' \n ,@BODY = 'Component: GPTM Trial Balance Reporting '\n ,@BodyFormat = '2'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Success_-_Log_to_Table_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "Load_Last_10_Days_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  = @{variables('sProcessName')},\n @comment = @{variables('sMessage')},\n @status = 'Success',\n @num_of_records = @{variables('sRowCount')},\n @actual_records = @{variables('sRowCount')}Final,\n @FileName='N/A'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "GPTM_NAPE_TrialBal_Daily"
+      },
+      "sPrevBusDay" : {
+        "type" : "String"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSQL" : {
+        "type" : "String",
+        "defaultValue" : "SELECT b.balance_id, b.EFF_DT AS EffDATE,SUBSTR(b.ledger,-3) AS CLIENT_NBR,b.Account AS BR_ACCOUNT_NM,b.Currency AS ISO_CURRENCY_CD ,b.Corporate_Ledger_Account AS CorporateLedgerAccount,SUBSTR(b.Account,1,3) AS BR_BRANCH_CD ,CASE SUBSTR(b.ledger,-3) WHEN '095' THEN '01139' WHEN '140' THEN '01400' WHEN '117' THEN '00000' WHEN '127' THEN '00037' ELSE '' END AS GL_COMPANY_CD ,cla.account_number AS GL_ACCOUNT_CD ,pa.organizational_unit AS GL_AU_CD ,b.ptd_balance ,b.ytd_balance ,LTD_Balance ,b.instrument, i.isin ,i.cusip ,i.sedol ,i.bps_inst_ref, SUBSTR(Trading_Account,-4) AS trader ,pa.account_name ,b.trading_account FROM GPTM_NAPE.BALANCE_HIST b LEFT OUTER JOIN gptm_nape.corp_ledger_account_hist cla ON b.eff_dt = cla.eff_dt AND b.corporate_ledger_account = cla.df_ref LEFT OUTER JOIN gptm_nape.party_account_hist pa ON b.eff_dt = pa.eff_dt AND b.trading_account = pa.df_ref LEFT OUTER JOIN gptm_nape.instrument_hist i ON b.eff_dt = i.eff_dt AND b.instrument = i.df_ref WHERE b.EFF_DT =  '17-FEB-23'"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "IsLoaded" : {
+        "type" : "String",
+        "defaultValue" : "YES"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_GPTM_NAPE_TrialBal_Daily"
+      },
+      "TempCounter" : {
+        "type" : "String"
+      },
+      "sSQLQry" : {
+        "type" : "String",
+        "defaultValue" : "SELECT b.balance_id, b.EFF_DT AS EffDATE,SUBSTR(b.ledger,-3) AS CLIENT_NBR,b.Account AS BR_ACCOUNT_NM,b.Currency AS ISO_CURRENCY_CD ,b.Corporate_Ledger_Account AS CorporateLedgerAccount,SUBSTR(b.Account,1,3) AS BR_BRANCH_CD ,CASE SUBSTR(b.ledger,-3) WHEN '095' THEN '01139' WHEN '140' THEN '01400' WHEN '117' THEN '00000' WHEN '127' THEN '00037' ELSE '' END AS GL_COMPANY_CD ,cla.account_number AS GL_ACCOUNT_CD ,pa.organizational_unit AS GL_AU_CD ,b.ptd_balance ,b.ytd_balance ,LTD_Balance ,b.instrument, i.isin ,i.cusip ,i.sedol ,i.bps_inst_ref, SUBSTR(Trading_Account,-4) AS trader ,pa.account_name ,b.trading_account FROM GPTM_NAPE.BALANCE_HIST b LEFT OUTER JOIN gptm_nape.corp_ledger_account_hist cla ON b.eff_dt = cla.eff_dt AND b.corporate_ledger_account = cla.df_ref LEFT OUTER JOIN gptm_nape.party_account_hist pa ON b.eff_dt = pa.eff_dt AND b.trading_account = pa.df_ref LEFT OUTER JOIN gptm_nape.instrument_hist i ON b.eff_dt = i.eff_dt AND b.instrument = i.df_ref WHERE"
+      },
+      "iCounter" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sPrevBusDayInt" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sSQLVars" : {
+        "type" : "String"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Component: GPTM Trial Balance Reporting"
+      }
+    }
+  }
+}

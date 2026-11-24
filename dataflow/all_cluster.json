@@ -1,0 +1,31 @@
+{
+  "name" : "all_cluster",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCluster as string,\n\t\tvCenter as string,\n\t\t{Total GHz} as string,\n\t\t{Socket Count} as string,\n\t\t{Core Count} as string,\n\t\t{Thread Count} as string,\n\t\t{Memory (GB)} as string,\n\t\t{HA Enabled} as string,\n\t\t{HA Failover Level} as string,\n\t\t{HA Admission Control} as string,\n\t\t{HA Restart Priority} as string,\n\t\t{HA Isolation Response} as string,\n\t\t{HA VM Monitoring} as string,\n\t\t{HA Advanced Options} as string,\n\t\t{DRS Enabled} as string,\n\t\t{DRS Automation Level} as string,\n\t\t{DRS vMotion Rate} as string,\n\t\t{DRS Advanced Options} as string,\n\t\t{DPM Enabled} as string,\n\t\t{vMotion Count} as string,\n\t\t{Host Count} as string,\n\t\t{Datastore Count} as string,\n\t\t{VM Count} as string,\n\t\t{Resource Pool Count} as string,\n\t\tOwner as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tVM_Count as string,\n\t\tOwner as string,\n\t\tDPM_Enabled as string,\n\t\tHA_Enabled as string,\n\t\tDatastore_Count as string,\n\t\tTotal_GHz as string,\n\t\tDRS_vMotion_Rate as string,\n\t\tHA_Restart_Priority as string,\n\t\tHA_Isolation_Response as string,\n\t\tvMotion_Count as string,\n\t\tvCenter as string,\n\t\tDRS_Automation_Level as string,\n\t\tResource_Pool_Count as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tHA_Failover_Level as string,\n\t\tCluster as string,\n\t\tDRS_Enabled as string,\n\t\tSocket_Count as string,\n\t\tCore_Count as string,\n\t\tHA_Advanced_Options as string,\n\t\tThread_Count as string,\n\t\tMemory__GB_ as string,\n\t\tDRS_Advanced_Options as string,\n\t\tHost_Count as string,\n\t\tHA_VM_Monitoring as string,\n\t\tHA_Admission_Control as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVM_Count = {VM Count},\n\t\tOwner,\n\t\tDPM_Enabled = {DPM Enabled},\n\t\tHA_Enabled = {HA Enabled},\n\t\tDatastore_Count = {Datastore Count},\n\t\tTotal_GHz = {Total GHz},\n\t\tDRS_vMotion_Rate = {DRS vMotion Rate},\n\t\tHA_Restart_Priority = {HA Restart Priority},\n\t\tHA_Isolation_Response = {HA Isolation Response},\n\t\tvMotion_Count = {vMotion Count},\n\t\tvCenter,\n\t\tDRS_Automation_Level = {DRS Automation Level},\n\t\tResource_Pool_Count = {Resource Pool Count},\n\t\tImportDate,\n\t\tHA_Failover_Level = {HA Failover Level},\n\t\tCluster,\n\t\tDRS_Enabled = {DRS Enabled},\n\t\tSocket_Count = {Socket Count},\n\t\tCore_Count = {Core Count},\n\t\tHA_Advanced_Options = {HA Advanced Options},\n\t\tThread_Count = {Thread Count},\n\t\tMemory__GB_ = {Memory (GB)},\n\t\tDRS_Advanced_Options = {DRS Advanced Options},\n\t\tHost_Count = {Host Count},\n\t\tHA_VM_Monitoring = {HA VM Monitoring},\n\t\tHA_Admission_Control = {HA Admission Control}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

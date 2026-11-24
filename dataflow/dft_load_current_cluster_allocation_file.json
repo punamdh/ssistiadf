@@ -1,0 +1,31 @@
+{
+  "name" : "dft_load_current_cluster_allocation_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "Clusterallocation0",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ClusterAllocation"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tClusterAllocation_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tDataCenter as string,\n\t\t{Number of Hosts} as string,\n\t\t{Number of Virtual Guests} as string,\n\t\t{Number of Powered on Guests} as string,\n\t\t{Total CPU Cores} as string,\n\t\t{Allocated vCPUs} as string,\n\t\t{Powered on vCPUs} as string,\n\t\t{Total RAM} as string,\n\t\t{Total RAM - Overhead} as string,\n\t\t{Allocated RAM} as string,\n\t\t{Powered on RAM} as string,\n\t\t{Total Disk Space} as string,\n\t\t{Allocated Disk Space} as string,\n\t\t{Allocated Disk Space + Overhead} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> Clusterallocation0\nClusterallocation0 derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tNumber_of_Hosts as string,\n\t\tNumber_of_Virtual_Guests as string,\n\t\tPowered_on_vCPUs as string,\n\t\tInterval_Breakdown as string,\n\t\tAllocated_RAM as string,\n\t\tNumber_of_Powered_on_Guests as string,\n\t\tTotal_RAM as string,\n\t\tAllocated_Disk_Space___Overhead as string,\n\t\tName as string,\n\t\tTotal_CPU_Cores as string,\n\t\tPowered_on_RAM as string,\n\t\tDataCenter as string,\n\t\tTotal_Disk_Space as string,\n\t\tAllocated_vCPUs as string,\n\t\treport_name as string,\n\t\t{Total_RAM_-_Overhead} as string,\n\t\tAllocated_Disk_Space as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNumber_of_Hosts = {Number of Hosts},\n\t\tNumber_of_Virtual_Guests = {Number of Virtual Guests},\n\t\tPowered_on_vCPUs = {Powered on vCPUs},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tAllocated_RAM = {Allocated RAM},\n\t\tNumber_of_Powered_on_Guests = {Number of Powered on Guests},\n\t\tTotal_RAM = {Total RAM},\n\t\tAllocated_Disk_Space___Overhead = {Allocated Disk Space + Overhead},\n\t\tName,\n\t\tTotal_CPU_Cores = {Total CPU Cores},\n\t\tPowered_on_RAM = {Powered on RAM},\n\t\tDataCenter,\n\t\tTotal_Disk_Space = {Total Disk Space},\n\t\tAllocated_vCPUs = {Allocated vCPUs},\n\t\treport_name,\n\t\t{Total_RAM_-_Overhead} = {Total RAM - Overhead},\n\t\tAllocated_Disk_Space = {Allocated Disk Space}),\n\tpartitionFileNames:[($ClusterAllocation_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ClusterAllocation"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "tbl_otc_fx_rates",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "opicsplusdbfxrrevp",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOTCFXRates"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblOTCFXRates_outputfilename as string ()\n}\n\nsource(output(\n\t\tBR as string,\n\t\tPERIOD1 as string,\n\t\tTERMS as string,\n\t\tCCY as string,\n\t\tSPOTRATE_8 as integer,\n\t\tLSTMNTDATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> opicsplusdbfxrrevp\nopicsplusdbfxrrevp sink(input(\n\t\tBR as string,\n\t\tPERIOD1 as string,\n\t\tTERMS as string,\n\t\tCCY as string,\n\t\tSPOTRATE_8 as integer,\n\t\tLSTMNTDATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBR,\n\t\tPERIOD1,\n\t\tTERMS,\n\t\tCCY,\n\t\tSPOTRATE_8,\n\t\tLSTMNTDATE),\n\tpartitionFileNames:[($tblOTCFXRates_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOTCFXRates"
+    }
+  }
+}

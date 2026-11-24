@@ -1,0 +1,31 @@
+{
+  "name" : "load_mapping_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ImGenericAllstatus",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblGSFIMGENERICALLSTATUSMapping"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttblGSFIMGENERICALLSTATUSMapping_outputfilename as string ()\n}\n\nsource(output(\n\t\tbook as string,\n\t\tinventory_name as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tstatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ImGenericAllstatus\nImGenericAllstatus derive({Copy of TRADING_UNIT_NAME} = TRADING_UNIT_NAME,\n\t\t{Copy of status} = status,\n\t\t{Copy of inventory_name} = inventory_name) ~> DataConversion\nDataConversion sink(input(\n\t\tStatus as string,\n\t\tTrading_Unit_Name as string,\n\t\tInventory_Name as string,\n\t\tBook as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus = {Copy of status},\n\t\tTrading_Unit_Name = {Copy of TRADING_UNIT_NAME},\n\t\tInventory_Name = {Copy of inventory_name},\n\t\tBook = book),\n\tpartitionFileNames:[($tblGSFIMGENERICALLSTATUSMapping_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFIMGENERICALLSTATUSMapping"
+    }
+  }
+}

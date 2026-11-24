@@ -1,0 +1,29 @@
+{
+  "name" : "load_new_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetCalypso",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "ToReconControl"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tToReconControl_outputfilename as string ()\n}\n\nsource(output(\n\t\tMODIFIED_USER as string,\n\t\tPRODUCT_TYPE as string,\n\t\tRATESMOEMAIL as string,\n\t\tBOOK as string,\n\t\tBOOK_ID as integer,\n\t\tCOUNTERPARTY as string,\n\t\tUPDATED_DATE as timestamp,\n\t\tSALES_PERSON as string,\n\t\tTRADE_ID as integer,\n\t\tTRADE_STATUS as string,\n\t\tDESK_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetCalypso\nGetCalypso sink(input(\n\t\tMODIFIED_USER as string,\n\t\tPRODUCT_TYPE as string,\n\t\tRATESMOEMAIL as string,\n\t\tBOOK as string,\n\t\tBOOK_ID as integer,\n\t\tCOUNTERPARTY as string,\n\t\tUPDATED_DATE as timestamp 'dd-MM-yyyy',\n\t\tSALES_PERSON as string,\n\t\tTRADE_ID as integer,\n\t\tTRADE_STATUS as string,\n\t\tDESK_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMODIFIED_USER,\n\t\tPRODUCT_TYPE,\n\t\tRATESMOEMAIL,\n\t\tBOOK,\n\t\tBOOK_ID,\n\t\tCOUNTERPARTY,\n\t\tUPDATED_DATE,\n\t\tSALES_PERSON,\n\t\tTRADE_ID,\n\t\tTRADE_STATUS,\n\t\tDESK_NAME),\n\tpartitionFileNames:[($ToReconControl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ToReconControl"
+    }
+  }
+}

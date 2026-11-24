@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Account Number} as decimal(18,0),\n\t\t{Order Number} as string,\n\t\tIBX as string,\n\t\t{Unique Space ID} as string,\n\t\t{Order Status} as string,\n\t\t{Create Date} as date,\n\t\t{Order Closed Date} as date,\n\t\t{Customer Reference #} as string,\n\t\t{PO Number} as string,\n\t\t{Ordering Contact Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tUniqueSpaceID as string,\n\t\tPoNumber as string,\n\t\tOrderNumber as string,\n\t\tOrderingContactName as string,\n\t\tCreateDate as string,\n\t\tFName as string,\n\t\tAccountNumber as integer,\n\t\tEtlUser as string,\n\t\tOrderStatus as string,\n\t\tCustomerReference as string,\n\t\tIBX as string,\n\t\tOrderClosedDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tUniqueSpaceID = {Unique Space ID},\n\t\tPoNumber = {PO Number},\n\t\tOrderNumber = {Order Number},\n\t\tOrderingContactName = {Ordering Contact Name},\n\t\tCreateDate = {Create Date},\n\t\tFName,\n\t\tAccountNumber = {Account Number},\n\t\tEtlUser,\n\t\tOrderStatus = {Order Status},\n\t\tCustomerReference = {Customer Reference #},\n\t\tIBX,\n\t\tOrderClosedDate = {Order Closed Date}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Entity Name} as string,\n\t\tCCY as string,\n\t\t{CCY Amount} as string,\n\t\t{USD Equiv Amount} as string,\n\t\t{Source Type} as string,\n\t\t{Value Date} as string,\n\t\t{Age Business days} as string,\n\t\t{Age Calender days} as string,\n\t\t{Trade ID} as string,\n\t\t{Transfer ID} as string,\n\t\t{Front Office ID} as string,\n\t\tBook as string,\n\t\t{Product Type} as string,\n\t\t{Product Sub Type} as string,\n\t\t{Transfer Type} as string,\n\t\t{Transfer Status} as string,\n\t\t{Desk Name} as string,\n\t\t{Charge Off Date} as string,\n\t\tBDt as string,\n\t\tComments as string,\n\t\t{Settlement Method} as string,\n\t\t{Entity Class} as string,\n\t\t{Reg W} as string,\n\t\t{Counterparty Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tBusinessType = 'NONBANK') ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tChargeOffDate as string,\n\t\tSettlementMethod as string,\n\t\tCounterpartyName as string,\n\t\tComments as string,\n\t\tTradeID as string,\n\t\tFrontOfficeID as string,\n\t\tProductSubType as string,\n\t\tAmount as string,\n\t\tSourceType as string,\n\t\tProductType as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tBusinessType as string,\n\t\tTransferType as string,\n\t\tDeskName as string,\n\t\tAge_CalenderDays as string,\n\t\tBDt as string,\n\t\tTransferStatus as string,\n\t\tValueDate as string,\n\t\tDesk as string,\n\t\tAge as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tChargeOffDate = {Charge Off Date},\n\t\tSettlementMethod = {Settlement Method},\n\t\tCounterpartyName = {Counterparty Name},\n\t\tComments,\n\t\tTradeID = {Trade ID},\n\t\tFrontOfficeID = {Front Office ID},\n\t\tProductSubType = {Product Sub Type},\n\t\tAmount = {USD Equiv Amount},\n\t\tSourceType = {Source Type},\n\t\tProductType = {Product Type},\n\t\tLoad_Date = LoadDate,\n\t\tBusinessType,\n\t\tTransferType = {Transfer Type},\n\t\tDeskName = {Desk Name},\n\t\tAge_CalenderDays = {Age Calender days},\n\t\tBDt,\n\t\tTransferStatus = {Transfer Status},\n\t\tValueDate = {Value Date},\n\t\tDesk = Book,\n\t\tAge = {Age Business days}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

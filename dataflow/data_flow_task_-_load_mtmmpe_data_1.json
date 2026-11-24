@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_task_-_load_mtmmpe_data_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "MTMMPEFlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoadtblCDBOCORSMTMPPE"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tLoadtblCDBOCORSMTMPPE_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Column 3} as string,\n\t\t{Column 0} as string,\n\t\t{Column 2} as string,\n\t\t{Column 1} as string,\n\t\t{Column 4} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MTMMPEFlatFileSource\nMTMMPEFlatFileSource sink(input(\n\t\tMPE as integer,\n\t\tTradeID as string,\n\t\tMTM as integer,\n\t\tProduct as string,\n\t\tOfficer as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMPE = {Column 3},\n\t\tTradeID = {Column 0},\n\t\tMTM = {Column 2},\n\t\tProduct = {Column 1},\n\t\tOfficer = {Column 4}),\n\tpartitionFileNames:[($LoadtblCDBOCORSMTMPPE_outputfilename)],\n\tpartitionBy('hash', 1)) ~> LoadtblCDBOCORSMTMPPE"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "create_prod_reconrun_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetReconRunDatafromlowerenvironment",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "WriteReconRundatatoPROD"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tWriteReconRundatatoPROD_outputfilename as string ()\n}\n\nsource(output(\n\t\tCreatedBy as string,\n\t\tReconciliationID as integer,\n\t\tSource1RecordCount as integer,\n\t\tSource2RecordCount as integer,\n\t\tCreateTimestamp as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetReconRunDatafromlowerenvironment\nGetReconRunDatafromlowerenvironment sink(input(\n\t\tCreatedBy as string,\n\t\tReconciliationID as integer,\n\t\tSource1RecordCount as integer,\n\t\tSource2RecordCount as integer,\n\t\tCreateTimestamp as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreatedBy,\n\t\tReconciliationID,\n\t\tSource1RecordCount,\n\t\tSource2RecordCount,\n\t\tCreateTimestamp),\n\tpartitionFileNames:[($WriteReconRundatatoPROD_outputfilename)],\n\tpartitionBy('hash', 1)) ~> WriteReconRundatatoPROD"
+    }
+  }
+}

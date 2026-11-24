@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_1_14",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tWF_GUID as string,\n\t\tSYS_CLASS_NAME as string,\n\t\tDISCOVERED_PRODUCT_NAME as string,\n\t\tDISCOVERED_PUBLISHER as string,\n\t\tDISCOVERED_VERSION as string,\n\t\tINSTALL_DATE as timestamp,\n\t\tDEVICE_GUID as string,\n\t\tINSTALLED_ON as string,\n\t\tPACKAGE_NAME as string,\n\t\tU_VENDOR_END_OF_LIFE as timestamp,\n\t\tU_TSC_OBSOLETE_DATE as timestamp,\n\t\tU_WF_EXTENDED_SUPPORT_DATE as timestamp,\n\t\tU_WELLS_FARGO_RETIREMENT_DATE as timestamp,\n\t\tU_TSC_LIFECYCLE as string,\n\t\tU_TSC_CATEGORY_DESCRIPTION as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tU_VENDOR_END_OF_LIFE as timestamp 'dd-MM-yyyy',\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tU_WF_EXTENDED_SUPPORT_DATE as timestamp 'dd-MM-yyyy',\n\t\tU_TSC_OBSOLETE_DATE as timestamp 'dd-MM-yyyy',\n\t\tDISCOVERED_VERSION as string,\n\t\tDEVICE_GUID as string,\n\t\tU_TSC_LIFECYCLE as string,\n\t\tDISCOVERED_PUBLISHER as string,\n\t\tDISCOVERED_PRODUCT_NAME as string,\n\t\tU_WELLS_FARGO_RETIREMENT_DATE as timestamp 'dd-MM-yyyy',\n\t\tU_TSC_CATEGORY_DESCRIPTION as string,\n\t\tSYS_CLASS_NAME as string,\n\t\tWF_GUID as string,\n\t\tINSTALL_DATE as timestamp 'dd-MM-yyyy',\n\t\tINSTALLED_ON as string,\n\t\tPACKAGE_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tU_VENDOR_END_OF_LIFE,\n\t\tImportDate,\n\t\tU_WF_EXTENDED_SUPPORT_DATE,\n\t\tU_TSC_OBSOLETE_DATE,\n\t\tDISCOVERED_VERSION,\n\t\tDEVICE_GUID,\n\t\tU_TSC_LIFECYCLE,\n\t\tDISCOVERED_PUBLISHER,\n\t\tDISCOVERED_PRODUCT_NAME,\n\t\tU_WELLS_FARGO_RETIREMENT_DATE,\n\t\tU_TSC_CATEGORY_DESCRIPTION,\n\t\tSYS_CLASS_NAME,\n\t\tWF_GUID,\n\t\tINSTALL_DATE,\n\t\tINSTALLED_ON,\n\t\tPACKAGE_NAME),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

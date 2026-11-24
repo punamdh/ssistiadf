@@ -1,0 +1,43 @@
+{
+  "name" : "load_failed_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAgreement as string,\n\t\tPrincipalCode as string,\n\t\t{External ID} as string,\n\t\tMovement as string,\n\t\tPrincipal as string,\n\t\tCounterparty as string,\n\t\tCounterpartyCode as string,\n\t\t{Asset Class} as string,\n\t\t{Asset Type} as string,\n\t\t{Collateral Status} as string,\n\t\t{Instrument Id} as string,\n\t\t{Ticket Id} as string,\n\t\tValuation as string,\n\t\tCurrency as string,\n\t\t{Creation Date} as string,\n\t\t{Settlement Date} as string,\n\t\t{Nominal Amount} as string,\n\t\t{Reported Collateral Value} as string,\n\t\t{Reporting Currency} as string,\n\t\tComment as string,\n\t\t{Settlement Comment} as string,\n\t\tOriginator as string,\n\t\tSettler as string,\n\t\t{Pending Settlement} as string,\n\t\tRegion as string,\n\t\tGroup as string,\n\t\tUDF as string,\n\t\t{Issued Amount} as string,\n\t\t{Group Booking Collateral Value} as string,\n\t\tDifference as string,\n\t\t{IM Amount} as string,\n\t\t{VM Amount} as string,\n\t\tPrc_CONTRA as string,\n\t\tCpty_CONTRA as string,\n\t\t{Base CCY} as string,\n\t\t{Instrument ID Type} as string,\n\t\tEvent_Id as string,\n\t\tFail_Age as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tfileDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource derive(loadDate = currentTimestamp(),\n\t\tIMAmount_Drv = toFloat(iif({IM Amount} == '', 0, toInteger(toFloat({IM Amount})))),\n\t\tVMAmount_Drv = toFloat(iif({VM Amount} == '', 0, toInteger(toFloat({VM Amount})))),\n\t\tFileDate_Drv = toString((substring(toString($sFileName), toInteger(locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, 1)+1)+1)+1) + 1), toInteger(2)))) + '/' + toString((substring(toString($sFileName), toInteger(locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, 1)+1)+1)+1) + 3), toInteger(2)))) + '/' + toString((substring(toString($sFileName), toInteger(locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, locate('_', $sFileName, 1)+1)+1)+1) + 5), toInteger(4)))),\n\t\tValuation_Drv = iif(Valuation == '', 0, toInteger(toLong(Valuation))),\n\t\tNominal_Amount_Drv = toFloat(iif({Nominal Amount} == '', 0, toInteger(toFloat({Nominal Amount})))),\n\t\tReported_Collateral_Value_Drv = toFloat(iif({Reported Collateral Value} == '', 0, toInteger(toFloat({Reported Collateral Value})))),\n\t\tIssued_Amount_Drv = toFloat(iif({Issued Amount} == '', 0, toInteger(toFloat({Issued Amount})))),\n\t\tGroup_Booking_Collateral_Value_Drv = toFloat(iif({Group Booking Collateral Value} == '', 0, toInteger(toFloat({Group Booking Collateral Value})))),\n\t\tDifference_Drv = toFloat(iif(Difference == '', 0, toInteger(toFloat(Difference)))),\n\t\tFail_Age_Drv = iif(Fail_Age == '', 0, toInteger(toLong(Fail_Age)))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileDate_Drv} = toDate(FileDate_Drv, \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of FileDate_Drv} == fileDate,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tinstrumentId as string,\n\t\tprcContra as string,\n\t\toriginator as string,\n\t\tassetClass as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tprincipal as string,\n\t\tcounterpartyCode as string,\n\t\tprincipalCode as string,\n\t\tsettler as string,\n\t\tnominalAmount as double,\n\t\tcurrency as string,\n\t\timAmount as double,\n\t\tvmAmount as double,\n\t\tgroup as string,\n\t\teventId as string,\n\t\tissuedAmount as double,\n\t\treportingCurrency as string,\n\t\tagreement as string,\n\t\tcollateralStatus as string,\n\t\tbaseCcy as string,\n\t\tcptyContra as string,\n\t\tgroupBookingCollateralValue as double,\n\t\texternalId as string,\n\t\tsettlementDate as date 'dd-MM-yyyy',\n\t\tfileDate as date 'dd-MM-yyyy',\n\t\tcreationDate as date 'dd-MM-yyyy',\n\t\tinstrumentIdType as string,\n\t\tassetType as string,\n\t\tvaluation as integer,\n\t\tudf as string,\n\t\tpendingSettlement as string,\n\t\treportedCollateralValue as double,\n\t\tcounterparty as string,\n\t\tdifference as double,\n\t\tcomment as string,\n\t\tsettlementComment as string,\n\t\tregion as string,\n\t\tmovement as string,\n\t\tticketId as string,\n\t\tage as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tinstrumentId = {Instrument Id},\n\t\tprcContra = Prc_CONTRA,\n\t\toriginator = Originator,\n\t\tassetClass = {Asset Class},\n\t\tloadDate,\n\t\tprincipal = Principal,\n\t\tcounterpartyCode = CounterpartyCode,\n\t\tprincipalCode = PrincipalCode,\n\t\tsettler = Settler,\n\t\tnominalAmount = Nominal_Amount_Drv,\n\t\tcurrency = Currency,\n\t\timAmount = IMAmount_Drv,\n\t\tvmAmount = VMAmount_Drv,\n\t\tgroup = Group,\n\t\teventId = Event_Id,\n\t\tissuedAmount = Issued_Amount_Drv,\n\t\treportingCurrency = {Reporting Currency},\n\t\tagreement = Agreement,\n\t\tcollateralStatus = {Collateral Status},\n\t\tbaseCcy = {Base CCY},\n\t\tcptyContra = Cpty_CONTRA,\n\t\tgroupBookingCollateralValue = Group_Booking_Collateral_Value_Drv,\n\t\texternalId = {External ID},\n\t\tsettlementDate = {Settlement Date},\n\t\tfileDate = {Copy of FileDate_Drv},\n\t\tcreationDate = {Creation Date},\n\t\tinstrumentIdType = {Instrument ID Type},\n\t\tassetType = {Asset Type},\n\t\tvaluation = Valuation_Drv,\n\t\tudf = UDF,\n\t\tpendingSettlement = {Pending Settlement},\n\t\treportedCollateralValue = Reported_Collateral_Value_Drv,\n\t\tcounterparty = Counterparty,\n\t\tdifference = Difference_Drv,\n\t\tcomment = Comment,\n\t\tsettlementComment = {Settlement Comment},\n\t\tregion = Region,\n\t\tmovement = Movement,\n\t\tticketId = {Ticket Id},\n\t\tage = Fail_Age_Drv),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

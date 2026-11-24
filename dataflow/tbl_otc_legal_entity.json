@@ -1,0 +1,29 @@
+{
+  "name" : "tbl_otc_legal_entity",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tINACTIVE_DATE as timestamp,\n\t\tLEGAL_ENTITY_ID as integer,\n\t\tENTERED_USER as string,\n\t\tVERSION_NUM as integer,\n\t\tCLASSIFICATION as integer,\n\t\tCOMMENTS as string,\n\t\tEXTERNAL_REF as string,\n\t\tLE_STATUS as string,\n\t\tPARENT_LE_ID as integer,\n\t\tSHORT_NAME as string,\n\t\tHOLIDAYS as string,\n\t\tTRIPARTY_ALLOC_TYPE as integer,\n\t\tCOUNTRY as string,\n\t\tLONG_NAME as string,\n\t\tENTERED_DATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tINACTIVE_DATE as timestamp 'dd-MM-yyyy',\n\t\tLEGAL_ENTITY_ID as integer,\n\t\tENTERED_USER as string,\n\t\tVERSION_NUM as integer,\n\t\tCLASSIFICATION as integer,\n\t\tCOMMENTS as string,\n\t\tEXTERNAL_REF as string,\n\t\tLE_STATUS as string,\n\t\tPARENT_LE_ID as integer,\n\t\tSHORT_NAME as string,\n\t\tHOLIDAYS as string,\n\t\tTRIPARTY_ALLOC_TYPE as integer,\n\t\tCOUNTRY as string,\n\t\tLONG_NAME as string,\n\t\tENTERED_DATE as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINACTIVE_DATE,\n\t\tLEGAL_ENTITY_ID,\n\t\tENTERED_USER,\n\t\tVERSION_NUM,\n\t\tCLASSIFICATION,\n\t\tCOMMENTS,\n\t\tEXTERNAL_REF,\n\t\tLE_STATUS,\n\t\tPARENT_LE_ID,\n\t\tSHORT_NAME,\n\t\tHOLIDAYS,\n\t\tTRIPARTY_ALLOC_TYPE,\n\t\tCOUNTRY,\n\t\tLONG_NAME,\n\t\tENTERED_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

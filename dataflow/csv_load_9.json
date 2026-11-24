@@ -1,0 +1,43 @@
+{
+  "name" : "csv_load_9",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DailyTradeEventsReportValidated",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "checkarchivetopreventdupesLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblEndurCommoditiesTradeEventsValidatedStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "checkarchivetopreventdupes"
+      }, {
+        "name" : "checkarchivetopreventdupes0"
+      } ],
+      "script" : "parameters{\n\tsFilename as string (),\n\ttblEndurCommoditiesTradeEventsValidatedStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tevent_date as string,\n\t\tdeal_tracking_num as string,\n\t\ttoolset as string,\n\t\tins_type as string,\n\t\tname as string,\n\t\tshort_name as string,\n\t\tinternal_external as string,\n\t\ttype_of_event as string,\n\t\ttrade_time as string,\n\t\ttrader_name as string,\n\t\texecuted_by as string,\n\t\tmarketer_name as string,\n\t\ttrade_event_category as string,\n\t\taction_interval_days as string,\n\t\tbooked_to_new_by as string,\n\t\tnew_validated_by as string,\n\t\ttran_num as string,\n\t\treference as string,\n\t\tlast_name as string,\n\t\ttitle as string,\n\t\tvalidatedAmended_by as string,\n\t\tvalidateAmend_reason as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DailyTradeEventsReportValidated\tsource(output(\n\t\tfilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> checkarchivetopreventdupesLKPTABLE\nDailyTradeEventsReportValidated derive(FileName = toString($sFilename),\n\t\tLoadDate_drv = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn derive({Copy of trader_name} = trader_name,\n\t\t{Copy of deal_tracking_num} = deal_tracking_num) ~> DataConversion\nDataConversion,checkarchivetopreventdupesLKPTABLE lookup(DerivedColumn@FileName == checkarchivetopreventdupesLKPTABLE@filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> checkarchivetopreventdupes\ncheckarchivetopreventdupes filter(!isMatch()) ~> checkarchivetopreventdupes0\ncheckarchivetopreventdupes0 sink(input(\n\t\tAction_Interval_Days as integer,\n\t\tEventDate as string,\n\t\tInternal_External as string,\n\t\tReference as string,\n\t\tTrade_Time as string,\n\t\tFileName as string,\n\t\tIns_Type as string,\n\t\tFile_LoadDate as string,\n\t\tExecuted_by as string,\n\t\tMarketer_Name as string,\n\t\tlast_name as string,\n\t\tTitle as string,\n\t\tBooked_to_New_By as string,\n\t\tToolset as string,\n\t\tName as string,\n\t\tDeal_Tracking_Num as string,\n\t\tType_of_Event as string,\n\t\tNew_Validated_By as string,\n\t\tShort_Name as string,\n\t\tTrade_Event_Category as string,\n\t\tTrader_Name as string,\n\t\ttran_num as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAction_Interval_Days = action_interval_days,\n\t\tEventDate = event_date,\n\t\tInternal_External = internal_external,\n\t\tReference = reference,\n\t\tTrade_Time = trade_time,\n\t\tFileName,\n\t\tIns_Type = ins_type,\n\t\tFile_LoadDate = LoadDate_drv,\n\t\tExecuted_by = executed_by,\n\t\tMarketer_Name = marketer_name,\n\t\tlast_name,\n\t\tTitle = title,\n\t\tBooked_to_New_By = booked_to_new_by,\n\t\tToolset = toolset,\n\t\tName = name,\n\t\tDeal_Tracking_Num = deal_tracking_num,\n\t\tType_of_Event = type_of_event,\n\t\tNew_Validated_By = new_validated_by,\n\t\tShort_Name = short_name,\n\t\tTrade_Event_Category = trade_event_category,\n\t\tTrader_Name = {Copy of trader_name},\n\t\ttran_num),\n\tpartitionFileNames:[($tblEndurCommoditiesTradeEventsValidatedStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblEndurCommoditiesTradeEventsValidatedStaging"
+    }
+  }
+}

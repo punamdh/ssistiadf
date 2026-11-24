@@ -1,0 +1,33 @@
+{
+  "name" : "load_nsrt_to_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "LoadNSRT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsSTPNonSTPVolumeNSRTStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Loaddate"
+      } ],
+      "script" : "parameters{\n\ttblOpicsSTPNonSTPVolumeNSRTStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tSTP_NONSTP as string,\n\t\tBUSINESS_GROUP as string,\n\t\t{COUNT(*)} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LoadNSRT\nLoadNSRT derive({Copy of COUNT(*)} = {COUNT(*)},\n\t\t{Copy of BUSINESS_GROUP} = BUSINESS_GROUP,\n\t\t{Copy of STP_NONSTP} = STP_NONSTP) ~> DataConversion\nDataConversion derive(LoadDate = toString(currentTimestamp())) ~> Loaddate\nLoaddate sink(input(\n\t\tLoaddate as string,\n\t\tBusiness_Group as string,\n\t\tSTP_NONSTP as string,\n\t\tCount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoaddate = LoadDate,\n\t\tBusiness_Group = {Copy of BUSINESS_GROUP},\n\t\tSTP_NONSTP = {Copy of STP_NONSTP},\n\t\tCount = {Copy of COUNT(*)}),\n\tpartitionFileNames:[($tblOpicsSTPNonSTPVolumeNSRTStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsSTPNonSTPVolumeNSRTStaging"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "import_sharepoint_data_4",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAccount as string,\n\t\t{Reporting Date} as string,\n\t\t{Net Value} as string,\n\t\t{Title (Title)} as string,\n\t\tProduct as string,\n\t\t{Comments Action} as string,\n\t\tClient as string,\n\t\tAge as string,\n\t\tDate as string,\n\t\t{Net Position} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tAccount as string,\n\t\tReporting_Date as string,\n\t\tNet_Value as double,\n\t\tTitle__Title_ as string,\n\t\tProduct as string,\n\t\tComments_Action as string,\n\t\tClient as string,\n\t\tAge as double,\n\t\tDate as string,\n\t\tNet_Position as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAccount,\n\t\tReporting_Date = {Reporting Date},\n\t\tNet_Value = {Net Value},\n\t\tTitle__Title_ = {Title (Title)},\n\t\tProduct,\n\t\tComments_Action = {Comments Action},\n\t\tClient,\n\t\tAge,\n\t\tDate,\n\t\tNet_Position = {Net Position}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name" : "load_splt",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OpicsplusDBSPLT",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsSTPVolumeDailyStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttblOpicsSTPVolumeDailyStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tSTP_NONSTP as string,\n\t\tBUSINESS_GROUP as string,\n\t\t{COUNT(*)} as string,\n\t\t{'SPLT'} as string,\n\t\tASOFDATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OpicsplusDBSPLT\nOpicsplusDBSPLT derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn derive({Copy of STP_NONSTP} = STP_NONSTP,\n\t\t{Copy of BUSINESS_GROUP} = BUSINESS_GROUP,\n\t\t{Copy of COUNT(*)} = {COUNT(*)},\n\t\t{Copy of Loaddate} = Loaddate) ~> DataConversion\nDataConversion sink(input(\n\t\tLoadDate as string,\n\t\tBusiness_Group as string,\n\t\tAsofDate as string,\n\t\tSTP_NonSTP as string,\n\t\tCount as string,\n\t\tSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = {Copy of Loaddate},\n\t\tBusiness_Group = BUSINESS_GROUP,\n\t\tAsofDate = ASOFDATE,\n\t\tSTP_NonSTP = {Copy of STP_NONSTP},\n\t\tCount = {Copy of COUNT(*)},\n\t\tSource = {'SPLT'}),\n\tpartitionFileNames:[($tblOpicsSTPVolumeDailyStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsSTPVolumeDailyStaging"
+    }
+  }
+}

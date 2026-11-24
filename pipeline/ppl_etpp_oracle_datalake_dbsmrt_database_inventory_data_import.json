@@ -1,0 +1,338 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Source_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_OracleSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Source_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_OracleSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Source_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_OracleSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Target_import_table_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_Targetimporttable_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Target_import_table_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_Targetimporttable_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Target_import_table_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import' AND DATAFLOW_NAME = 'load_import_table') AS Load_import_table_Targetimporttable_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_import_table0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import') AS Load_import_table0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_import_table0_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_dbsmrt_database_inventory_data_import') AS Load_import_table0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Execute_datalake_dbsmrt_database_inventory_data",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "EXEC [import].[datalake_dbsmrt_database_inventory_data_import_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_FirstPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_dbsmrt_database_inventory_data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FirstPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_dbsmrt_database_inventory_data').output.resultSets[0].rows[0].0)"
+      }
+    }, {
+      "name" : "SETVAR_SecondPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_dbsmrt_database_inventory_data",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SecondPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_dbsmrt_database_inventory_data').output.resultSets[0].rows[0].1)"
+      }
+    }, {
+      "name" : "ST_Truncate_datalake_dbsmrt_database_inventory_imp",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_SecondPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_FirstPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE [import].[datalake_dbsmrt_database_inventory_importtbl]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Load_import_table",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_datalake_dbsmrt_database_inventory_imp",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Load_import_table",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Load_import_table",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Load_import_table",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "load_import_table",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "Targetimporttable_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "Targetimporttable" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OracleSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_import_table_OracleSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_OracleSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_OracleSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Load_import_table_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Load_import_table0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Load_import_table",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_import_table_Targetimporttable_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_import_table0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_import_table0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_EXEC_STORED_PROC_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Load_import_table0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[asset_master_database_inventory_refresh_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "Load_import_table_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "FirstPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : "SELECT DISTINCT       b.INSTANCE_ID     , b.INSTANCE_ENTERPRISE_ID     , b.INSTANCE_STATUS     , b.INSTANCE_NAME     , b.INSTANCE_TYPE     , b.INSTANCE_ENVIRONMENT     , b.INSTANCE_SUPPORT_GROUP     , b.database_name     , b.database_id     , b.dbms     , b.DATABASE_STATUS     , b.database_type     , b.database_environment     , b.database_support_group     , b.database_size     , b.database_encryption_status     , b.database_goldengate_status     , b.database_oracle_datavault_status     , b.database_description     , b.database_created_datetime     , b.database_last_updated_datetime     , b.database_last_discovery_run_datetime     , enterprise_mainframe_Distributed_id     , host_name     , tsc_name     , f.u_tsc_version_group     , f.u_tsc_lifecycle     , f.u_technopedia_product_id     , f.u_vendor_end_of_life     , e.enterprise_id AS BUSINESS_APPLICATION_WF_GUID     , b.database_business_interest     , b.database_business_interest_entry_type     , b.eapp_dct_business_effective_date     , b.database_business_interest_indicator     , b.instance_business_interest_indicator     , a.APPLICATION_DATABASE_CERTIFICATION_STATUS     , b.instance_discovered_version     , b.DATABASE_ENTERPRISE_ID  FROM ITM_DBSMRT.INVENTORY b INNER JOIN ITM_DBSMRT.inventory_host c     ON b.INSTANCE_ID = c.INSTANCE_ID LEFT JOIN ITM_DBSMRT.inventory_database_application_relationship a     ON a.DATABASE_ID = b.DATABASE_ID LEFT JOIN ITM_DBSMRT.APPLICATION e     ON a.application_id = e.application_id LEFT JOIN ITM_CURATED.ITMP_SOFTWARE_PRODUCT_MODEL f     ON b.instance_enterprise_product_id = f.u_technopedia_product_id    AND f.u_tsc_version_group IS NOT NULL    AND f.u_tsc_lifecycle = 'MAINSTREAM' WHERE b.DATABASE_STATUS NOT IN ('RETIRED')   AND b.INSTANCE_STATUS NOT IN ('RETIRED')"
+      },
+      "SecondPart_SQL" : {
+        "type" : "String"
+      },
+      "SQL_Final" : {
+        "type" : "String",
+        "defaultValue" : "SELECT DISTINCT       b.INSTANCE_ID     , b.INSTANCE_ENTERPRISE_ID     , b.INSTANCE_STATUS     , b.INSTANCE_NAME     , b.INSTANCE_TYPE     , b.INSTANCE_ENVIRONMENT     , b.INSTANCE_SUPPORT_GROUP     , b.database_name     , b.database_id     , b.dbms     , b.DATABASE_STATUS     , b.database_type     , b.database_environment     , b.database_support_group     , b.database_size     , b.database_encryption_status     , b.database_goldengate_status     , b.database_oracle_datavault_status     , b.database_description     , b.database_created_datetime     , b.database_last_updated_datetime     , b.database_last_discovery_run_datetime     , enterprise_mainframe_Distributed_id     , host_name     , tsc_name     , f.u_tsc_version_group     , f.u_tsc_lifecycle     , f.u_technopedia_product_id     , f.u_vendor_end_of_life     , e.enterprise_id AS BUSINESS_APPLICATION_WF_GUID     , b.database_business_interest     , b.database_business_interest_entry_type     , b.eapp_dct_business_effective_date     , b.database_business_interest_indicator     , b.instance_business_interest_indicator     , a.APPLICATION_DATABASE_CERTIFICATION_STATUS     , b.instance_discovered_version     , b.DATABASE_ENTERPRISE_ID  FROM ITM_DBSMRT.INVENTORY b INNER JOIN ITM_DBSMRT.inventory_host c     ON b.INSTANCE_ID = c.INSTANCE_ID LEFT JOIN ITM_DBSMRT.inventory_database_application_relationship a     ON a.DATABASE_ID = b.DATABASE_ID LEFT JOIN ITM_DBSMRT.APPLICATION e     ON a.application_id = e.application_id LEFT JOIN ITM_CURATED.ITMP_SOFTWARE_PRODUCT_MODEL f     ON b.instance_enterprise_product_id = f.u_technopedia_product_id    AND f.u_tsc_version_group IS NOT NULL    AND f.u_tsc_lifecycle = 'MAINSTREAM' WHERE b.DATABASE_STATUS NOT IN ('RETIRED')   AND b.INSTANCE_STATUS NOT IN ('RETIRED')"
+      }
+    }
+  }
+}

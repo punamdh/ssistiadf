@@ -1,0 +1,29 @@
+{
+  "name" : "load_new_dept",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblIntellimatchSnapshotdepartments"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblIntellimatchSnapshotdepartments_outputfilename as string ()\n}\n\nsource(output(\n\t\tDepartment as string,\n\t\tloaddate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDepartment as string,\n\t\tLoaddate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDepartment,\n\t\tLoaddate = loaddate),\n\tpartitionFileNames:[($tblIntellimatchSnapshotdepartments_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblIntellimatchSnapshotdepartments"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name" : "load_ctac_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_DATETIME as string,\n\t\tORDER_ID as string,\n\t\tCOUNTERPARTY_ID as string,\n\t\tCOUNTERPARTY_ACCOUNT_CODE as string,\n\t\tSALESPERSON as string,\n\t\tBUY_SELL as string,\n\t\tALLOCATION_QUANTITY as float,\n\t\tINSTRUMENT_CODE as string,\n\t\tGROSS_PRICE as float,\n\t\tEXCHANGE_ID as string,\n\t\tCOMMISSION as float,\n\t\tTRADE_ID as string,\n\t\tALLOCATION_ID as string,\n\t\tALLOCATION_VERSION as string,\n\t\tSTEP_OUT as string,\n\t\tSEND_TO as string,\n\t\tREPORT_TO_ACT as string,\n\t\tMARKUP as string,\n\t\tSALESCREDIT as string,\n\t\tCOMMISSION_INDICATOR as string,\n\t\tCREDIT_BREAKDOWN as string,\n\t\tCUSTOMER_FUND_ID as string,\n\t\tISIN_CODE as string,\n\t\tDEALT_CURRENCY as string,\n\t\tSETTLEMENT_CURRENCY as string,\n\t\tBUY_SELL_QUALIFIER as string,\n\t\tSTATUS as string,\n\t\tINSTRUMENT_ID as string,\n\t\tEXPORTABLE_INDICATOR as string,\n\t\tSTEPOUT_ACRONYM as string,\n\t\tINSTRUMENT_TYPE as string,\n\t\tUNDERLYING_INSTRUMENT_FIM_CODE as string,\n\t\tEXPIRY_DATE as string,\n\t\tOPTION_TYPE as string,\n\t\tSTRIKE_PRICE as string,\n\t\tEXERCISE_TYPE as string,\n\t\tSTATUS_CHANGE_TIMESTAMP as string,\n\t\tCOUNTERPARTY_VIEW_CODE as string,\n\t\tNET_NET_CONSIDERATION as string,\n\t\tVALUE_DATE as string,\n\t\tTRADING_ENTITY_ID as string,\n\t\tFOLIO_PREFIX as string,\n\t\tFOLIO_NUMBER as string,\n\t\tFOLIO_DATETIME as string,\n\t\tSUB_FOLIO_NUMBER as string,\n\t\tETC_SERVICE as string,\n\t\tBOI_CODE as string,\n\t\tRESEARCH_FEE as string,\n\t\tBROKER_OF_CREDIT as string,\n\t\tSTEP_IN as string,\n\t\tSTEPPED_OUT_FROM_MPID as string,\n\t\tSTEPPED_OUT_FROM_CLEARING_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FileName = toString(($sFileName))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileName} = FileName) ~> DataConversion\nDerivedColumn aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tSTRIKE_PRICE as string,\n\t\tCOUNTERPARTY_VIEW_CODE as string,\n\t\tFOLIO_PREFIX as string,\n\t\tSTEPPED_OUT_FROM_MPID as string,\n\t\tTRADING_ENTITY_ID as string,\n\t\tEXCHANGE_ID as string,\n\t\tSALESCREDIT as string,\n\t\tREPORT_TO_ACT as string,\n\t\tETC_SERVICE as string,\n\t\tSTATUS as string,\n\t\tSTEP_IN as string,\n\t\tSETTLEMENT_CURRENCY as string,\n\t\tALLOCATION_ID as string,\n\t\tTRADE_ID as string,\n\t\tBUY_SELL_QUALIFIER as string,\n\t\tINSTRUMENT_TYPE as string,\n\t\tDEALT_CURRENCY as string,\n\t\tUNDERLYING_INSTRUMENT_FIM_CODE as string,\n\t\tSALESPERSON as string,\n\t\tGROSS_PRICE as float,\n\t\tVALUE_DATE as string,\n\t\tSTATUS_CHANGE_TIMESTAMP as string,\n\t\tINSTRUMENT_ID as string,\n\t\tEXERCISE_TYPE as string,\n\t\tEXPORTABLE_INDICATOR as string,\n\t\tBOI_CODE as string,\n\t\tMARKUP as string,\n\t\tSUB_FOLIO_NUMBER as string,\n\t\tALLOCATION_QUANTITY as float,\n\t\tCREDIT_BREAKDOWN as string,\n\t\tFileName as string,\n\t\tCOMMISSION_INDICATOR as string,\n\t\tBUY_SELL as string,\n\t\tEXPIRY_DATE as string,\n\t\tTRADE_DATETIME as string,\n\t\tCUSTOMER_FUND_ID as string,\n\t\tBROKER_OF_CREDIT as string,\n\t\tSTEPPED_OUT_FROM_CLEARING_CODE as string,\n\t\tFOLIO_DATETIME as string,\n\t\tCOUNTERPARTY_ID as string,\n\t\tSEND_TO as string,\n\t\tCOUNTERPARTY_ACCOUNT_CODE as string,\n\t\tSTEP_OUT as string,\n\t\tSTEPOUT_ACRONYM as string,\n\t\tRESEARCH_FEE as string,\n\t\tINSTRUMENT_CODE as string,\n\t\tFOLIO_NUMBER as string,\n\t\tCOMMISSION as float,\n\t\tNET_NET_CONSIDERATION as float,\n\t\tORDER_ID as string,\n\t\tALLOCATION_VERSION as string,\n\t\tISIN_CODE as string,\n\t\tOPTION_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSTRIKE_PRICE,\n\t\tCOUNTERPARTY_VIEW_CODE,\n\t\tFOLIO_PREFIX,\n\t\tSTEPPED_OUT_FROM_MPID,\n\t\tTRADING_ENTITY_ID,\n\t\tEXCHANGE_ID,\n\t\tSALESCREDIT,\n\t\tREPORT_TO_ACT,\n\t\tETC_SERVICE,\n\t\tSTATUS,\n\t\tSTEP_IN,\n\t\tSETTLEMENT_CURRENCY,\n\t\tALLOCATION_ID,\n\t\tTRADE_ID,\n\t\tBUY_SELL_QUALIFIER,\n\t\tINSTRUMENT_TYPE,\n\t\tDEALT_CURRENCY,\n\t\tUNDERLYING_INSTRUMENT_FIM_CODE,\n\t\tSALESPERSON,\n\t\tGROSS_PRICE,\n\t\tVALUE_DATE,\n\t\tSTATUS_CHANGE_TIMESTAMP,\n\t\tINSTRUMENT_ID,\n\t\tEXERCISE_TYPE,\n\t\tEXPORTABLE_INDICATOR,\n\t\tBOI_CODE,\n\t\tMARKUP,\n\t\tSUB_FOLIO_NUMBER,\n\t\tALLOCATION_QUANTITY,\n\t\tCREDIT_BREAKDOWN,\n\t\tFileName = {Copy of FileName},\n\t\tCOMMISSION_INDICATOR,\n\t\tBUY_SELL,\n\t\tEXPIRY_DATE,\n\t\tTRADE_DATETIME,\n\t\tCUSTOMER_FUND_ID,\n\t\tBROKER_OF_CREDIT,\n\t\tSTEPPED_OUT_FROM_CLEARING_CODE,\n\t\tFOLIO_DATETIME,\n\t\tCOUNTERPARTY_ID,\n\t\tSEND_TO,\n\t\tCOUNTERPARTY_ACCOUNT_CODE,\n\t\tSTEP_OUT,\n\t\tSTEPOUT_ACRONYM,\n\t\tRESEARCH_FEE,\n\t\tINSTRUMENT_CODE,\n\t\tFOLIO_NUMBER,\n\t\tCOMMISSION,\n\t\tNET_NET_CONSIDERATION,\n\t\tORDER_ID,\n\t\tALLOCATION_VERSION,\n\t\tISIN_CODE,\n\t\tOPTION_TYPE),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

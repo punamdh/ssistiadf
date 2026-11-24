@@ -1,0 +1,31 @@
+{
+  "name" : "guest_utilization",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GuestUtilization",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\t{Creation Date} as string,\n\t\t{Powered On} as string,\n\t\tCluster as string,\n\t\tHost as string,\n\t\t{CPU Provisioned} as string,\n\t\t{CPU Utilization - P99} as string,\n\t\t{CPU Utilization - P95} as string,\n\t\t{CPU Utilization - P75} as string,\n\t\t{CPU Utilization - P50} as string,\n\t\t{CPU Utilization - MAX} as string,\n\t\t{CPU Utilization - AVG} as string,\n\t\t{CPU Provisioned MHZ} as string,\n\t\t{CPU Demand %} as string,\n\t\t{CPU Contention %} as string,\n\t\t{CPU Ready %} as string,\n\t\t{CPU Co-Stop %} as string,\n\t\t{RAM Provisioned} as string,\n\t\t{RAM Utilization - P99} as string,\n\t\t{RAM Utilization - P95} as string,\n\t\t{RAM Utilization - P75} as string,\n\t\t{RAM Utilization - P50} as string,\n\t\t{RAM Utilization - MAX} as string,\n\t\t{RAM Utilization - AVG} as string,\n\t\t{RAM Balloon} as string,\n\t\t{Memory Contention %} as string,\n\t\t{Memory Consumed (GB)} as string,\n\t\t{Host Demand (GB)} as string,\n\t\t{Guest Demand (GB)} as string,\n\t\t{Disk Space} as string,\n\t\t{Disk Space Used} as string,\n\t\t{File System Capacity} as string,\n\t\t{File System Utilization} as string,\n\t\t{VM Disk Read Latency (ms)} as string,\n\t\t{VM Disk Write Latency (ms)} as string,\n\t\t{vROps CPU Recommended Size (MHz)} as string,\n\t\t{vROps RAM Recommended Size (GB)} as string,\n\t\tUUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GuestUtilization\nGuestUtilization derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tGuest_Demand__GB_ as string,\n\t\tCPU_Demand__ as string,\n\t\tVM_Disk_Write_Latency__ms_ as string,\n\t\tCPU_Ready__ as string,\n\t\tHost_Demand__GB_ as string,\n\t\tVM_Disk_Read_Latency__ms_ as string,\n\t\t{CPU_Co-Stop__} as string,\n\t\tDisk_Space_Used as string,\n\t\tCPU_Provisioned_MHZ as string,\n\t\tuuid as string,\n\t\tName as string,\n\t\t{RAM_Utilization_-_P50} as string,\n\t\tMemory_Consumed__GB_ as string,\n\t\tRAM_Balloon as string,\n\t\t{RAM_Utilization_-_P95} as string,\n\t\t{RAM_Utilization_-_P75} as string,\n\t\tCPU_Contention__ as string,\n\t\t{RAM_Utilization_-_P99} as string,\n\t\t{RAM_Utilization_-_AVG} as string,\n\t\tFile_System_Utilization as string,\n\t\tRAM_Provisioned as string,\n\t\t{CPU_Utilization_-_MAX} as string,\n\t\tMemory_Contention__ as string,\n\t\tInterval_Breakdown as string,\n\t\tCluster as string,\n\t\tvROps_RAM_Recommended_Size__GB_ as string,\n\t\tHost as string,\n\t\tCPU_Provisioned as string,\n\t\t{CPU_Utilization_-_P75} as string,\n\t\t{CPU_Utilization_-_P99} as string,\n\t\tDisk_Space as string,\n\t\t{CPU_Utilization_-_AVG} as string,\n\t\t{RAM_Utilization_-_MAX} as string,\n\t\tCreation_Date as string,\n\t\t{CPU_Utilization_-_P50} as string,\n\t\treport_name as string,\n\t\tPowered_On as string,\n\t\tFile_System_Capacity as string,\n\t\tvROps_CPU_Recommended_Size__MHz_ as string,\n\t\t{CPU_Utilization_-_P95} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGuest_Demand__GB_ = {Guest Demand (GB)},\n\t\tCPU_Demand__ = {CPU Demand %},\n\t\tVM_Disk_Write_Latency__ms_ = {VM Disk Write Latency (ms)},\n\t\tCPU_Ready__ = {CPU Ready %},\n\t\tHost_Demand__GB_ = {Host Demand (GB)},\n\t\tVM_Disk_Read_Latency__ms_ = {VM Disk Read Latency (ms)},\n\t\t{CPU_Co-Stop__} = {CPU Co-Stop %},\n\t\tDisk_Space_Used = {Disk Space Used},\n\t\tCPU_Provisioned_MHZ = {CPU Provisioned MHZ},\n\t\tuuid = UUID,\n\t\tName,\n\t\t{RAM_Utilization_-_P50} = {RAM Utilization - P50},\n\t\tMemory_Consumed__GB_ = {Memory Consumed (GB)},\n\t\tRAM_Balloon = {RAM Balloon},\n\t\t{RAM_Utilization_-_P95} = {RAM Utilization - P95},\n\t\t{RAM_Utilization_-_P75} = {RAM Utilization - P75},\n\t\tCPU_Contention__ = {CPU Contention %},\n\t\t{RAM_Utilization_-_P99} = {RAM Utilization - P99},\n\t\t{RAM_Utilization_-_AVG} = {RAM Utilization - AVG},\n\t\tFile_System_Utilization = {File System Utilization},\n\t\tRAM_Provisioned = {RAM Provisioned},\n\t\t{CPU_Utilization_-_MAX} = {CPU Utilization - MAX},\n\t\tMemory_Contention__ = {Memory Contention %},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tCluster,\n\t\tvROps_RAM_Recommended_Size__GB_ = {vROps RAM Recommended Size (GB)},\n\t\tHost,\n\t\tCPU_Provisioned = {CPU Provisioned},\n\t\t{CPU_Utilization_-_P75} = {CPU Utilization - P75},\n\t\t{CPU_Utilization_-_P99} = {CPU Utilization - P99},\n\t\tDisk_Space = {Disk Space},\n\t\t{CPU_Utilization_-_AVG} = {CPU Utilization - AVG},\n\t\t{RAM_Utilization_-_MAX} = {RAM Utilization - MAX},\n\t\tCreation_Date = {Creation Date},\n\t\t{CPU_Utilization_-_P50} = {CPU Utilization - P50},\n\t\treport_name,\n\t\tPowered_On = {Powered On},\n\t\tFile_System_Capacity = {File System Capacity},\n\t\tvROps_CPU_Recommended_Size__MHz_ = {vROps CPU Recommended Size (MHz)},\n\t\t{CPU_Utilization_-_P95} = {CPU Utilization - P95}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

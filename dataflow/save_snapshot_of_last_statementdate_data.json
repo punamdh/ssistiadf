@@ -1,0 +1,51 @@
+{
+  "name" : "save_snapshot_of_last_statementdate_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "RetrieveLatestStatementData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "RetrieveTags",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Aggregate"
+      }, {
+        "name" : "Sort1"
+      }, {
+        "name" : "Aggregatedistinct"
+      }, {
+        "name" : "Aggregatedistinct0"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "AddProcessingDate"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCompositeKey as string,\n\t\tBank as string,\n\t\tCCY as string,\n\t\tStatementDate as date,\n\t\tLedgerBalance as string,\n\t\tStatementBalance as string,\n\t\tUSD_eqv as string,\n\t\tAnnual_ODIR as string,\n\t\tOD_USD_eqv as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> RetrieveLatestStatementData\tsource(output(\n\t\tSourceCompositeKey as string,\n\t\tListTag as string,\n\t\tTextTag as string,\n\t\tLastEditedUser as string,\n\t\tLastEditedDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> RetrieveTags\nRetrieveLatestStatementData sort(asc(CompositeKey, false),asc(Bank, false),asc(CCY, false),asc(StatementDate, false),asc(LedgerBalance, false),asc(StatementBalance, false),asc(USD_eqv, false),asc(Annual_ODIR, false),asc(OD_USD_eqv, false)) ~> Aggregate\nRetrieveTags sort(asc(SourceCompositeKey, false)) ~> Sort1\nAggregate window(over(CompositeKey,\n\t\tBank,\n\t\tCCY,\n\t\tStatementDate,\n\t\tLedgerBalance,\n\t\tStatementBalance,\n\t\tUSD_eqv,\n\t\tAnnual_ODIR,\n\t\tOD_USD_eqv),\n\tasc(CompositeKey, true),\n\tasc(Bank, true),\n\tasc(CCY, true),\n\tasc(StatementDate, true),\n\tasc(LedgerBalance, true),\n\tasc(StatementBalance, true),\n\tasc(USD_eqv, true),\n\tasc(Annual_ODIR, true),\n\tasc(OD_USD_eqv, true),\n\tRank_col = rowNumber()) ~> Aggregatedistinct\nAggregatedistinct filter(Rank_col == 1) ~> Aggregatedistinct0\nAggregatedistinct0 sort(asc(CompositeKey, false)) ~> Sort\nSort,Sort1 join(CompositeKey == SourceCompositeKey,\n\tjoinType:'left',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(CompositeKey = CompositeKey,\n\t\tSourceCompositeKey = SourceCompositeKey,\n\t\tBank = Bank,\n\t\tCCY = CCY,\n\t\tStatementDate = StatementDate,\n\t\tLedgerBalance = LedgerBalance,\n\t\tStatementBalance = StatementBalance,\n\t\tUSD_eqv = USD_eqv,\n\t\tAnnual_ODIR = Annual_ODIR,\n\t\tOD_USD_eqv = OD_USD_eqv,\n\t\tListTag = ListTag,\n\t\tTextTag = TextTag) ~> MergeJoin0\nMergeJoin0 derive(ProcessingDate = currentTimestamp()) ~> AddProcessingDate\nAddProcessingDate sink(input(\n\t\tComment as string,\n\t\tOD_USD_eqv as string,\n\t\tBank as string,\n\t\tDaysOD as string,\n\t\tLedgerBalance as integer,\n\t\tAnnual_ODIR as string,\n\t\tCCY as string,\n\t\tStatementDate as date 'dd-MM-yyyy',\n\t\tProcessingDate as date 'dd-MM-yyyy',\n\t\tStatementBalance as integer,\n\t\tUSD_eqv as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors', outputRejectedData: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tComment = TextTag,\n\t\tOD_USD_eqv,\n\t\tBank,\n\t\tDaysOD = ListTag,\n\t\tLedgerBalance,\n\t\tAnnual_ODIR,\n\t\tCCY,\n\t\tStatementDate,\n\t\tProcessingDate,\n\t\tStatementBalance,\n\t\tUSD_eqv),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

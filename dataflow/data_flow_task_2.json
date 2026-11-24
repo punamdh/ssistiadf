@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ExcelSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Excel1",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "ETPPDEV"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Asset Alias} as string,\n\t\t{Date and Time of Answer} as date,\n\t\t{Site Alias} as string,\n\t\tAnswer as double,\n\t\t{Record ID} as string,\n\t\tAsset_ID__c as string,\n\t\t{Asset Classification Short Name} as string,\n\t\t{Metric Type} as string,\n\t\t{Property Type} as string,\n\t\tCapacity as integer,\n\t\t{Question Label} as string,\n\t\t{Supports IT Load} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tAssetClassificationShortName as string,\n\t\tMetricType as string,\n\t\tPropertyType as string,\n\t\tQuestionLabel as string,\n\t\tAnswer as double,\n\t\tETLUser as string,\n\t\tCapacity as integer,\n\t\tSiteAlias as string,\n\t\tAssetAlias as string,\n\t\tSupportsITLoad as string,\n\t\tRecordID as string,\n\t\tAssetID as string,\n\t\tDateandTimeofAnswer as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tAssetClassificationShortName = {Asset Classification Short Name},\n\t\tMetricType = {Metric Type},\n\t\tPropertyType = {Property Type},\n\t\tQuestionLabel = {Question Label},\n\t\tAnswer,\n\t\tETLUser,\n\t\tCapacity,\n\t\tSiteAlias = {Site Alias},\n\t\tAssetAlias = {Asset Alias},\n\t\tSupportsITLoad = {Supports IT Load},\n\t\tRecordID = {Record ID},\n\t\tAssetID = Asset_ID__c,\n\t\tDateandTimeofAnswer = {Date and Time of Answer}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tDataCenter as string,\n\t\t{Parent vCenter} as string,\n\t\t{CPU - Total Physical} as double,\n\t\t{CPU - Allocated Logical} as double,\n\t\t{CPU - P95} as double,\n\t\t{CPU - Max} as double,\n\t\t{CPU - Average} as double,\n\t\t{Memory - Total} as double,\n\t\t{Memory - Allocated} as double,\n\t\t{Memory - P95} as double,\n\t\t{Memory - Max} as double,\n\t\t{Memory - Average} as double,\n\t\t{Memory - Balloon#1} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\t{CPU_-_Max} as double,\n\t\t{Memory_-_Max} as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\t{Memory_-_Balloon_1} as double,\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\t{Memory_-_P95} as double,\n\t\t{Memory_-_Total} as double,\n\t\tName as string,\n\t\t{CPU_-_Allocated_Logical} as double,\n\t\tDataCenter as string,\n\t\tParent_vCenter as string,\n\t\t{Memory_-_Allocated} as double,\n\t\t{CPU_-_P95} as double,\n\t\t{CPU_-_Total_Physical} as double,\n\t\t{Memory_-_Average} as double,\n\t\t{CPU_-_Average} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{CPU_-_Max} = {CPU - Max},\n\t\t{Memory_-_Max} = {Memory - Max},\n\t\timportdate = ImportDate,\n\t\t{Memory_-_Balloon_1} = {Memory - Balloon#1},\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\t{Memory_-_P95} = {Memory - P95},\n\t\t{Memory_-_Total} = {Memory - Total},\n\t\tName,\n\t\t{CPU_-_Allocated_Logical} = {CPU - Allocated Logical},\n\t\tDataCenter,\n\t\tParent_vCenter = {Parent vCenter},\n\t\t{Memory_-_Allocated} = {Memory - Allocated},\n\t\t{CPU_-_P95} = {CPU - P95},\n\t\t{CPU_-_Total_Physical} = {CPU - Total Physical},\n\t\t{Memory_-_Average} = {Memory - Average},\n\t\t{CPU_-_Average} = {CPU - Average}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
     }
   }
 }

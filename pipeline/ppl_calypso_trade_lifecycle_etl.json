@@ -1,0 +1,269 @@
+{
+  "name" : "ppl_calypso_trade_lifecycle_etl",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_CALYPSODBA_trade_keyword_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_CALYPSODBA_trade_keyword_FileName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_CALYPSODBA_trade_keyword_FilePath' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Calypso_TradeLifecycleCapture_ExecutionTime_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Calypso_TradeLifecycleCapture_ExecutionTime_FileName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_Calypso_TradeLifecycleCapture_ExecutionTime_FilePath' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl' AND DATAFLOW_NAME = 'create_tbl_calypso_tradelifecyclecapture_execution') AS Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl') AS Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_TableName' AND PIPELINE_NAME = 'ppl_calypso_trade_lifecycle_etl') AS Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_clear_tbl_Calypso_TradeLifecycleCapture_Executi",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "delete from tbl_Calypso_TradeLifecycleCapture_ExecutionTime",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Create_tbl_Calypso_TradeLifecycleCapture_E",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_clear_tbl_Calypso_TradeLifecycleCapture_Executi",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Create_tbl_Calypso_TradeLifecycleCapture_Execution",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Create_tbl_Calypso_TradeLifecycleCapture_Execut",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Create_tbl_Calypso_TradeLifecycleCapture_E",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "create_tbl_calypso_tradelifecyclecapture_execution",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "totblCalypsoTradeLifecycleCaptureExecutionTime_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "fromCALYPSODBAtradekeyword" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_fromCALYPSODBAtradekeyword_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "totblCalypsoTradeLifecycleCaptureExecutionTime" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Create_tbl_Calypso_TradeLifecycleCapture_Execution_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Create_tbl_Calypso_TradeLifecycleCapture_Execu",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Create_tbl_Calypso_TradeLifecycleCapture_Execut",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Execution_totblCalypsoTradeLifecycleCaptureExecutionTime_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Create_tbl_Calypso_TradeLifecycleCapture_Executio0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_remove_trades_with_invalid_execution_date_forma",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Create_tbl_Calypso_TradeLifecycleCapture_Execu",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "delete\nFROM [ReconControl].[dbo].[tbl_Calypso_TradeLifecycleCapture_ExecutionTime]\nwhere keyword_name ='EXECUTION_DATETIME'\nand isdate([keyword_value]) = 0",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Create_tbl_Calypso_TradeLifecycleCapture_Execution_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Calypso_Trade_Status_Monitoring_Data_Load"
+      },
+      "sSourceBOATradeChangeStatusQuery" : {
+        "type" : "String",
+        "defaultValue" : "SELECT ENTITY_ID, ENTITY_FIELD_NAME, OLD_VALUE, NEW_VALUE, AUDIT_ACTION, Modif_Date\\nFROM CALYPSODBA.BO_AUDIT\\nwhere MODIF_DATE between TRUNC(SYSDATE)-11 and TRUNC(SYSDATE) and Entity_Field_name in ('_status')\\norder by entity_id, modif_date"
+      }
+    }
+  }
+}

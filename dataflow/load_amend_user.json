@@ -1,0 +1,31 @@
+{
+  "name" : "load_amend_user",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "AmendmentUser",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblEndurCommoditiesTradeEventsAmendUserStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblEndurCommoditiesTradeEventsAmendUserStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Adent UserID} as string,\n\t\tOffice_Type as string,\n\t\tFullName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> AmendmentUser\nAmendmentUser derive(Load_dt = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tFullName as string,\n\t\tOffice_Type as string,\n\t\tAdent_UserID as string,\n\t\tloaddate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFullName,\n\t\tOffice_Type,\n\t\tAdent_UserID = {Adent UserID},\n\t\tloaddate = Load_dt),\n\tpartitionFileNames:[($tblEndurCommoditiesTradeEventsAmendUserStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblEndurCommoditiesTradeEventsAmendUserStaging"
+    }
+  }
+}

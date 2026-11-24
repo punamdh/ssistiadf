@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_current_adp",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn2"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCLIENT_NBR as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tCusip as string,\n\t\tccyCd as string,\n\t\teffdate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn2\nDerivedColumn2 sink(input(\n\t\tSECURITY_ADP_NBR as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tCLIENT_NBR as string,\n\t\tccyCd as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tCusip as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSECURITY_ADP_NBR,\n\t\teffDate = effdate,\n\t\tCLIENT_NBR,\n\t\tccyCd,\n\t\tloadDate,\n\t\tCusip),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

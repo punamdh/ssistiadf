@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "PNLinAvgPriceSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,10 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "PNLinAvgPriceDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tnumber as string,\n\t\tcity as string,\n\t\tboma_type_overriden as string,\n\t\tcampus as string,\n\t\tname as string,\n\t\tactive as string,\n\t\tboma_type as string,\n\t\tcapacity_ratio as string,\n\t\tcmn_location_source as string,\n\t\tcapacity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tnumber as string,\n\t\tcity as string,\n\t\tboma_type_overriden as string,\n\t\tcampus as string,\n\t\tname as string,\n\t\tactive as string,\n\t\tboma_type as string,\n\t\tcapacity_ratio as boolean,\n\t\tcmn_location_source as string,\n\t\tcapacity as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tnumber,\n\t\tcity,\n\t\tboma_type_overriden,\n\t\tcampus,\n\t\tname,\n\t\tactive,\n\t\tboma_type,\n\t\tcapacity_ratio,\n\t\tcmn_location_source,\n\t\tcapacity),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "ToAddLoadDate"
+      } ],
+      "script" : "parameters{\n\tPNLinAvgPriceDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{DTD PL} as decimal(26,8),\n\t\t{MTD PL} as decimal(25,8),\n\t\t{YTD PL} as decimal(25,8),\n\t\tCUSIP as string,\n\t\tTYPE as string,\n\t\tBREAKTYPE as string,\n\t\tAGEDDAYS as integer,\n\t\tACTUALDATE as timestamp,\n\t\tINVENTORY as string,\n\t\tQUANTITY as decimal(24,8),\n\t\t{MARKET VALUE} as decimal(24,8),\n\t\tTICKERSYMBOL as string,\n\t\tINSTRUMENTDESCRIPTION1 as string,\n\t\tPRODUCTTYPE1 as string,\n\t\tPRODUCTTYPE2 as string,\n\t\tDIVISIONDESCRIPTION as string,\n\t\tDISTRICTDESCRIPTION as string,\n\t\tSUBDISTRICT1DESCRIPTION as string,\n\t\tCUSTOMERDESCRIPTION1 as string,\n\t\tFAILTORECEIVEQUANTITYCURRENTAMT as decimal(24,8),\n\t\tFAILTODELIVERQUANTITYCURRENTAMT as decimal(24,8),\n\t\tAGINGCATEGORY as string,\n\t\tSOURCESYSTEMNAME as string,\n\t\tSOURCEPOSITIONID as string,\n\t\tUNREALIZEDGAINLOSSAMT as decimal(24,8),\n\t\tREALIZEDGAINLOSSAMT as decimal(24,8)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> PNLinAvgPriceSource\nPNLinAvgPriceSource derive(ToAddLoaddate = currentTimestamp()) ~> ToAddLoadDate\nToAddLoadDate sink(input(\n\t\tSubDistrict1Description as string,\n\t\tProductType2 as string,\n\t\tProductType1 as string,\n\t\tFailToDeliverQuantityCurrentAmt as integer,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tActualDate as timestamp 'dd-MM-yyyy',\n\t\tCUSIP as string,\n\t\tMarketValue as integer,\n\t\tSOURCESYSTEMNAME as string,\n\t\tAgedDays as integer,\n\t\tCustomerDescription1 as string,\n\t\tTickerSymbol as string,\n\t\tDistrictDescription as string,\n\t\tMTD_PL as integer,\n\t\tAGINGCATEGORY as string,\n\t\tFailToReceiveQuantityCurrentAmt as integer,\n\t\tSOURCEPOSITIONID as string,\n\t\tInstrumentDescription1 as string,\n\t\tBreakType as string,\n\t\tQuantity as integer,\n\t\tDivisionDescription as string,\n\t\tYTD_PL as integer,\n\t\tDTD_PL as integer,\n\t\tType as string,\n\t\tInventory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSubDistrict1Description = SUBDISTRICT1DESCRIPTION,\n\t\tProductType2 = PRODUCTTYPE2,\n\t\tProductType1 = PRODUCTTYPE1,\n\t\tFailToDeliverQuantityCurrentAmt = FAILTODELIVERQUANTITYCURRENTAMT,\n\t\tLoad_Date = ToAddLoaddate,\n\t\tActualDate = ACTUALDATE,\n\t\tCUSIP,\n\t\tMarketValue = {MARKET VALUE},\n\t\tSOURCESYSTEMNAME,\n\t\tAgedDays = AGEDDAYS,\n\t\tCustomerDescription1 = CUSTOMERDESCRIPTION1,\n\t\tTickerSymbol = TICKERSYMBOL,\n\t\tDistrictDescription = DISTRICTDESCRIPTION,\n\t\tMTD_PL = {MTD PL},\n\t\tAGINGCATEGORY,\n\t\tFailToReceiveQuantityCurrentAmt = FAILTORECEIVEQUANTITYCURRENTAMT,\n\t\tSOURCEPOSITIONID,\n\t\tInstrumentDescription1 = INSTRUMENTDESCRIPTION1,\n\t\tBreakType = BREAKTYPE,\n\t\tQuantity = QUANTITY,\n\t\tDivisionDescription = DIVISIONDESCRIPTION,\n\t\tYTD_PL = {YTD PL},\n\t\tDTD_PL = {DTD PL},\n\t\tType = TYPE,\n\t\tInventory = INVENTORY),\n\tpartitionFileNames:[($PNLinAvgPriceDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> PNLinAvgPriceDestination"
     }
   }
 }

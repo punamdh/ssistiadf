@@ -1,0 +1,38 @@
+{
+  "name" : "load_ctp_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tWFSENTRYDATE as date,\n\t\tEQDWMSGID as string,\n\t\tWFSDBMSGID as string,\n\t\tWFSSYSTEMID as string,\n\t\tWFSDESKID as string,\n\t\tWFSMSGTYPE as string,\n\t\tAVGPX_6 as float,\n\t\tCLORDID_11 as string,\n\t\tCOMMISSION_12 as string,\n\t\tCOMMTYPE_13 as string,\n\t\tCURRENCY_15 as string,\n\t\tSECURITYIDSOURCE_22 as string,\n\t\tLASTMKT_30 as string,\n\t\tMSGSEQNUM_34 as string,\n\t\tORDERID_37 as string,\n\t\tSECURITYID_48 as string,\n\t\tSENDERCOMPID_49 as string,\n\t\tSENDERSUBID_50 as string,\n\t\tSENDINGTIME_52 as string,\n\t\tQUANTITY_53 as float,\n\t\tSIDE_54 as string,\n\t\tSYMBOL_55 as string,\n\t\tTARGETCOMPID_56 as string,\n\t\tTEXT_58 as string,\n\t\tTRANSACTTIME_60 as string,\n\t\tSETTLTYPE_63 as string,\n\t\tSETTLDATE_64 as date,\n\t\tALLOCID_70 as string,\n\t\tALLOCTRANSTYPE_71 as string,\n\t\tREFALLOCID_72 as string,\n\t\tNOORDERS_73 as string,\n\t\tTRADEDATE_75 as date,\n\t\tNOALLOCS_78 as string,\n\t\tALLOCACCOUNT_79 as string,\n\t\tPOSSRESEND_97 as string,\n\t\tCLIENTID_109 as string,\n\t\tSETTLCURRENCY_120 as string,\n\t\tSETTLCURRFXRATE_155 as string,\n\t\tSETTLCURRFXRATECALC_156 as string,\n\t\tSECURITYEXCHANGE_207 as string,\n\t\tGROSSTRADEAMT_381 as float,\n\t\tFIDESSATRADEFLAGS_6450 as string,\n\t\tERRCOUNT as string,\n\t\tCREATEDTMSTP as timestamp,\n\t\tCREATEDUSER as string,\n\t\tLASTMODIFIEDTMSTP as string,\n\t\tLASTMODIFIEDUSER as string,\n\t\tVOLUMEDONE_80 as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 derive(FileName = toString(($sFileName))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileName} = FileName) ~> DataConversion\nDerivedColumn aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tALLOCACCOUNT_79 as string,\n\t\tMSGSEQNUM_34 as string,\n\t\tWFSSYSTEMID as string,\n\t\tSETTLDATE_64 as timestamp 'dd-MM-yyyy',\n\t\tREFALLOCID_72 as string,\n\t\tSENDINGTIME_52 as string,\n\t\tCREATEDTMSTP as timestamp 'dd-MM-yyyy',\n\t\tCLIENTID_109 as string,\n\t\tSIDE_54 as string,\n\t\tGROSSTRADEAMT_381 as float,\n\t\tSETTLCURRENCY_120 as string,\n\t\tSENDERCOMPID_49 as string,\n\t\tORDERID_37 as string,\n\t\tSECURITYID_48 as string,\n\t\tWFSMSGTYPE as string,\n\t\tTRADEDATE_75 as timestamp 'dd-MM-yyyy',\n\t\tWFSDESKID as string,\n\t\tTARGETCOMPID_56 as string,\n\t\tLASTMKT_30 as string,\n\t\tAVGPX_6 as float,\n\t\tSECURITYIDSOURCE_22 as string,\n\t\tTEXT_58 as string,\n\t\tCREATEDUSER as string,\n\t\tVOLUMEDONE_80 as float,\n\t\tWFSDBMSGID as string,\n\t\tCOMMISSION_12 as string,\n\t\tALLOCTRANSTYPE_71 as string,\n\t\tTRANSACTTIME_60 as string,\n\t\tPOSSRESEND_97 as string,\n\t\tFileName as string,\n\t\tNOALLOCS_78 as string,\n\t\tWFSENTRYDATE as timestamp 'dd-MM-yyyy',\n\t\tCURRENCY_15 as string,\n\t\tSENDERSUBID_50 as string,\n\t\tSECURITYEXCHANGE_207 as string,\n\t\tALLOCID_70 as string,\n\t\tLASTMODIFIEDTMSTP as string,\n\t\tLASTMODIFIEDUSER as string,\n\t\tEQDWMSGID as string,\n\t\tSETTLCURRFXRATE_155 as string,\n\t\tSYMBOL_55 as string,\n\t\tNOORDERS_73 as string,\n\t\tQUANTITY_53 as float,\n\t\tERRCOUNT as string,\n\t\tCOMMTYPE_13 as string,\n\t\tSETTLTYPE_63 as string,\n\t\tSETTLCURRFXRATECALC_156 as string,\n\t\tFIDESSATRADEFLAGS_6450 as string,\n\t\tCLORDID_11 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tALLOCACCOUNT_79,\n\t\tMSGSEQNUM_34,\n\t\tWFSSYSTEMID,\n\t\tSETTLDATE_64,\n\t\tREFALLOCID_72,\n\t\tSENDINGTIME_52,\n\t\tCREATEDTMSTP,\n\t\tCLIENTID_109,\n\t\tSIDE_54,\n\t\tGROSSTRADEAMT_381,\n\t\tSETTLCURRENCY_120,\n\t\tSENDERCOMPID_49,\n\t\tORDERID_37,\n\t\tSECURITYID_48,\n\t\tWFSMSGTYPE,\n\t\tTRADEDATE_75,\n\t\tWFSDESKID,\n\t\tTARGETCOMPID_56,\n\t\tLASTMKT_30,\n\t\tAVGPX_6,\n\t\tSECURITYIDSOURCE_22,\n\t\tTEXT_58,\n\t\tCREATEDUSER,\n\t\tVOLUMEDONE_80,\n\t\tWFSDBMSGID,\n\t\tCOMMISSION_12,\n\t\tALLOCTRANSTYPE_71,\n\t\tTRANSACTTIME_60,\n\t\tPOSSRESEND_97,\n\t\tFileName = {Copy of FileName},\n\t\tNOALLOCS_78,\n\t\tWFSENTRYDATE,\n\t\tCURRENCY_15,\n\t\tSENDERSUBID_50,\n\t\tSECURITYEXCHANGE_207,\n\t\tALLOCID_70,\n\t\tLASTMODIFIEDTMSTP,\n\t\tLASTMODIFIEDUSER,\n\t\tEQDWMSGID,\n\t\tSETTLCURRFXRATE_155,\n\t\tSYMBOL_55,\n\t\tNOORDERS_73,\n\t\tQUANTITY_53,\n\t\tERRCOUNT,\n\t\tCOMMTYPE_13,\n\t\tSETTLTYPE_63,\n\t\tSETTLCURRFXRATECALC_156,\n\t\tFIDESSATRADEFLAGS_6450,\n\t\tCLORDID_11),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

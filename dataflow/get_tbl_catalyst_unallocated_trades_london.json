@@ -1,0 +1,43 @@
+{
+  "name" : "get_tbl_catalyst_unallocated_trades_london",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCatalystTrade",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystUnallocatedTradesLondonStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DataConversion0"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\ttotblCatalystUnallocatedTradesLondonStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tcatalyst_trade_number as string,\n\t\tentry_time as date,\n\t\ttrade_date as string,\n\t\tsettle_date as string,\n\t\tbuy_sell as string,\n\t\tcounterparty as string,\n\t\tisin as string,\n\t\tcurrency as string,\n\t\ttotal_cash as string,\n\t\tprincipal as string,\n\t\tcurrent_par as string,\n\t\tprice as string,\n\t\tsalesperson as string,\n\t\timport_source as string,\n\t\tsecurity_description as string,\n\t\taccrued_interest as string,\n\t\tcusip as string,\n\t\tcaptureDate as timestamp,\n\t\tlegal_entity as string,\n\t\tproduct_type as string,\n\t\tinventory as string,\n\t\tDESK_NAME as string,\n\t\tTRADING_UNIT_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCatalystTrade\tsource(output(\n\t\tentry_time as date,\n\t\tcatalyst_trade_number as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nfromtblCatalystTrade derive({Copy of DESK_NAME} = DESK_NAME,\n\t\t{Copy of TRADING_UNIT_NAME} = TRADING_UNIT_NAME) ~> DataConversion\nDataConversion select(mapColumn(\n\t\t{Copy of DESK_NAME} = {Copy of DESK_NAME},\n\t\t{Copy of TRADING_UNIT_NAME} = {Copy of TRADING_UNIT_NAME},\n\t\tTRADING_UNIT_NAME = TRADING_UNIT_NAME,\n\t\tDESK_NAME = DESK_NAME\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> DataConversion0\nDataConversion0,LookupLKPTABLE lookup(DataConversion0@entry_time == entry_time && DataConversion0@catalyst_trade_number == catalyst_trade_number,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tcurrent_par as string,\n\t\tentry_time as date 'dd-MM-yyyy',\n\t\ttotal_cash as string,\n\t\tcusip as string,\n\t\tsettle_date as timestamp 'dd-MM-yyyy',\n\t\tsecurity_description as string,\n\t\tinventory as string,\n\t\ttrade_date as timestamp 'dd-MM-yyyy',\n\t\tcatalyst_trade_number as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tprincipal as string,\n\t\tsalesperson as string,\n\t\tdeskName as string,\n\t\ttradingUnitName as string,\n\t\tprice as string,\n\t\tcounterparty as string,\n\t\tcurrency as string,\n\t\tlegal_entity as string,\n\t\taccrued_interest as string,\n\t\tbuy_sell as string,\n\t\timport_source as string,\n\t\tisin as string,\n\t\tproductType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcurrent_par,\n\t\tentry_time,\n\t\ttotal_cash,\n\t\tcusip,\n\t\tsettle_date,\n\t\tsecurity_description,\n\t\tinventory,\n\t\ttrade_date,\n\t\tcatalyst_trade_number,\n\t\tloadDate = captureDate,\n\t\tprincipal,\n\t\tsalesperson,\n\t\tdeskName = {Copy of DESK_NAME},\n\t\ttradingUnitName = {Copy of TRADING_UNIT_NAME},\n\t\tprice,\n\t\tcounterparty,\n\t\tcurrency,\n\t\tlegal_entity,\n\t\taccrued_interest,\n\t\tbuy_sell,\n\t\timport_source,\n\t\tisin,\n\t\tproductType = product_type),\n\tpartitionFileNames:[($totblCatalystUnallocatedTradesLondonStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystUnallocatedTradesLondonStaging"
+    }
+  }
+}

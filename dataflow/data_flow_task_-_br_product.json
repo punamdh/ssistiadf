@@ -1,0 +1,45 @@
+{
+  "name" : "data_flow_task_-_br_product",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSource1",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort1"
+      }, {
+        "name" : "Sort"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEffDate as timestamp,\n\t\tadp as string,\n\t\tproducttype1 as string,\n\t\tIsin as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tloadDate as timestamp,\n\t\tCLIENT_NBR as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tCusip as string,\n\t\tccyCd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource1\nOLEDBSource sort(asc(adp, false)) ~> Sort1\nOLEDBSource1 sort(asc(SECURITY_ADP_NBR, false)) ~> Sort\nSort,Sort1 join(SECURITY_ADP_NBR == adp,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin derive(loadDate = loadDate,\n\t\tCLIENT_NBR = CLIENT_NBR,\n\t\tSECURITY_ADP_NBR = SECURITY_ADP_NBR,\n\t\tCusip = Cusip,\n\t\tccyCd = ccyCd,\n\t\tadp = adp,\n\t\tEffDate = EffDate,\n\t\tproducttype1 = producttype1,\n\t\tIsin = Isin) ~> MergeJoin0\nMergeJoin0 derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tproducttype1 as string,\n\t\tadp as string,\n\t\tIsin as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\teffDate = EffDate,\n\t\tproducttype1,\n\t\tadp,\n\t\tIsin,\n\t\tloadDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

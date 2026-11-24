@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -26,11 +26,11 @@
         "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "AddLoadDate"
       }, {
         "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tAccount as decimal(18,0),\n\t\t{Customer Name} as string,\n\t\t{Product Offering} as string,\n\t\t{Cage Asset} as string,\n\t\tIBX as string,\n\t\tCage as string,\n\t\t{Cage Serial} as string,\n\t\t{Metering Type} as string,\n\t\t{Usable kVA} as double,\n\t\t{Average Draw} as double,\n\t\t{Daily Peak Draw} as double,\n\t\t{Average 30 day Peak Draw kVA-to-Draw} as double,\n\t\t{Redundant Draw} as double,\n\t\t{Draw Cap} as double,\n\t\t{Primary Draw } as double,\n\t\t{Average 30 day Peak Draw} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tDailyPeakDraw as double,\n\t\tAccount as string,\n\t\tAverageDraw as double,\n\t\tAvg30dayPeakDraw as double,\n\t\tUploadDate as string,\n\t\tCage as string,\n\t\tUsablekVA as double,\n\t\tAvg30dayPeakDrawkVAtoDraw as double,\n\t\tPrimaryDraw as double,\n\t\tCageSerial as string,\n\t\tFName as string,\n\t\tDate as string,\n\t\tDrawCap as double,\n\t\tEtlUser as string,\n\t\tCageAsset as string,\n\t\tProductOffering as string,\n\t\tRedundantDraw as double,\n\t\tCustomerName as string,\n\t\tIBX as string,\n\t\tMeteringType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDailyPeakDraw = {Daily Peak Draw},\n\t\tAccount,\n\t\tAverageDraw = {Average Draw},\n\t\tAvg30dayPeakDraw = {Average 30 day Peak Draw},\n\t\tUploadDate,\n\t\tCage,\n\t\tUsablekVA = {Usable kVA},\n\t\tAvg30dayPeakDrawkVAtoDraw = {Average 30 day Peak Draw kVA-to-Draw},\n\t\tPrimaryDraw = {Primary Draw },\n\t\tCageSerial = {Cage Serial},\n\t\tFName,\n\t\tDate,\n\t\tDrawCap = {Draw Cap},\n\t\tEtlUser,\n\t\tCageAsset = {Cage Asset},\n\t\tProductOffering = {Product Offering},\n\t\tRedundantDraw = {Redundant Draw},\n\t\tCustomerName = {Customer Name},\n\t\tIBX,\n\t\tMeteringType = {Metering Type}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSETTLEMENT_METHOD as string,\n\t\tPAYMENT_STATUS as string,\n\t\tTRANSFER_ID as decimal(38,0),\n\t\tTRANSFER_TYPE as string,\n\t\tTRADE_ID as decimal(38,0),\n\t\tAMOUNT as double,\n\t\tVALUE_DATE as string,\n\t\tSETTLE_DATE as string,\n\t\tTRADE_DATE as string,\n\t\tTRADE_CCY as string,\n\t\tSETTLE_CCY as string,\n\t\tNETTED_TRANSFER as decimal(38,0),\n\t\tIS_PAYMENT as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(LoadDate = currentTimestamp()) ~> AddLoadDate\nOLEDBSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nAddLoadDate sink(input(\n\t\tLOAD_DATE as timestamp 'dd-MM-yyyy',\n\t\tPAYMENT_STATUS as string,\n\t\tAMOUNT as integer,\n\t\tTRADE_CCY as string,\n\t\tTRANSFER_ID as string,\n\t\tTRADE_DATE as string,\n\t\tTRANSFER_TYPE as string,\n\t\tSETTLE_DATE as string,\n\t\tVALUE_DATE as string,\n\t\tTRADE_ID as string,\n\t\tSETTLE_CCY as string,\n\t\tSETTLEMENT_METHOD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLOAD_DATE = LoadDate,\n\t\tPAYMENT_STATUS,\n\t\tAMOUNT,\n\t\tTRADE_CCY,\n\t\tTRANSFER_ID,\n\t\tTRADE_DATE,\n\t\tTRANSFER_TYPE,\n\t\tSETTLE_DATE,\n\t\tVALUE_DATE,\n\t\tTRADE_ID,\n\t\tSETTLE_CCY,\n\t\tSETTLEMENT_METHOD),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

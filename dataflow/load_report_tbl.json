@@ -1,0 +1,29 @@
+{
+  "name" : "load_report_tbl",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblOpicsSTPVolumeDailyArchive",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsSTPVolumeDailyReport"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblOpicsSTPVolumeDailyReport_outputfilename as string ()\n}\n\nsource(output(\n\t\tLoaddate as timestamp,\n\t\tBusiness_Group as string,\n\t\tAsofdate as string,\n\t\tSTP_NonSTP as string,\n\t\tCount as string,\n\t\tSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblOpicsSTPVolumeDailyArchive\ntblOpicsSTPVolumeDailyArchive sink(input(\n\t\tLoadDate as string,\n\t\tBusiness_Group as string,\n\t\tAsofDate as string,\n\t\tSTP_NonSTP as string,\n\t\tCount as string,\n\t\tSource as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = Loaddate,\n\t\tBusiness_Group,\n\t\tAsofDate = Asofdate,\n\t\tSTP_NonSTP,\n\t\tCount,\n\t\tSource),\n\tpartitionFileNames:[($tblOpicsSTPVolumeDailyReport_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsSTPVolumeDailyReport"
+    }
+  }
+}

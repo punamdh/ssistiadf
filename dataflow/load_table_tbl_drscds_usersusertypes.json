@@ -1,0 +1,29 @@
+{
+  "name" : "load_table_tbl_drscds_usersusertypes",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "UserUserTypes",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblDRSCDSUsersUserTypes"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblDRSCDSUsersUserTypes_outputfilename as string ()\n}\n\nsource(output(\n\t\tuserTypeCode as string,\n\t\tcustomerSelectMethod as string,\n\t\teffDate as timestamp,\n\t\tcacheKey as integer,\n\t\tendDate as timestamp,\n\t\tuserId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> UserUserTypes\nUserUserTypes sink(input(\n\t\tuserTypeCode as string,\n\t\tcustomerSelectMethod as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tcacheKey as integer,\n\t\tendDate as timestamp 'dd-MM-yyyy',\n\t\tuserId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tuserTypeCode,\n\t\tcustomerSelectMethod,\n\t\teffDate,\n\t\tcacheKey,\n\t\tendDate,\n\t\tuserId),\n\tpartitionFileNames:[($tblDRSCDSUsersUserTypes_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblDRSCDSUsersUserTypes"
+    }
+  }
+}

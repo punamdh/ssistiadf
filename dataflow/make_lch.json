@@ -1,0 +1,95 @@
+{
+  "name" : "make_lch",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "IRSSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "lch106",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "lch1061",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "LCHCompare"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "ConditionalSplit1"
+      }, {
+        "name" : "Sort31"
+      }, {
+        "name" : "Sort1"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "DerivedColumn13"
+      }, {
+        "name" : "Sort3"
+      }, {
+        "name" : "DerivedColumn122"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "Sort22"
+      }, {
+        "name" : "MergeJoin01"
+      }, {
+        "name" : "DerivedColumn111"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "DerivedColumn1211"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "Sort211"
+      }, {
+        "name" : "Sort4"
+      }, {
+        "name" : "Sort5"
+      }, {
+        "name" : "MergeJoin1"
+      }, {
+        "name" : "MergeJoin101"
+      }, {
+        "name" : "MergeJoin10"
+      }, {
+        "name" : "DerivedColumn1"
+      }, {
+        "name" : "CleanUpRubble"
+      }, {
+        "name" : "FixSpreadetc"
+      }, {
+        "name" : "FixRate"
+      }, {
+        "name" : "MaturityDateBeforeoronToday"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tLchMatchedTradeRef as string,\n\t\tParty_A_LegType as string,\n\t\tNotionalAmount as string,\n\t\tParty_A_Rate as string,\n\t\tCurrency as string,\n\t\tParty_A_EffectiveDate as string,\n\t\tMaturityDate as string,\n\t\tParty_A_Spread as string,\n\t\tParty_B_Rate as string,\n\t\tParty_B_Spread as string,\n\t\tParty_B_EffectiveDate as string,\n\t\tParty_B_LegType as string,\n\t\tActualNPV as string,\n\t\tTradeDate as string,\n\t\tParty_A_DayCountFraction as string,\n\t\tParty_A_PmtFrequency as string,\n\t\tProductType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IRSSource\tsource(output(\n\t\tCobDate as string,\n\t\tParty_A_MbrMnemonic as string,\n\t\tParty_A_SdMnemonic as string,\n\t\tParty_A_Account as string,\n\t\tLchMatchedTradeRef as string,\n\t\tExternalSourceRef as string,\n\t\tParty_A_SdTradeId as string,\n\t\tCurrency as string,\n\t\tNotionalAmount as string,\n\t\tParty_A_LegDescription as string,\n\t\tParty_A_LegType as string,\n\t\tCashFlowType as string,\n\t\tPeriodStartDate as date,\n\t\tParty_A_Rate as string,\n\t\tSpread as string,\n\t\tParty_A_IndexName as string,\n\t\tParty_A_FirstTenor as string,\n\t\tParty_A_SecondTenor as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> lch106\tsource(output(\n\t\tLchMatchedTradeRef as string,\n\t\tNotionalAmount as string,\n\t\tPeriodStartDate as date,\n\t\tParty_A_LegDescription as string,\n\t\tParty_A_LegType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> lch1061\nIRSSource split(isNull(LchMatchedTradeRef) == 0, disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nlch106 split((greaterOrEqual(toDate(PeriodStartDate, \"MM/dd/yyyy\"),currentDate())), disjoint: true) ~> ConditionalSplit1@(Case1,ConditionalSplitDefaultOutput)\nlch1061 sort(asc(LchMatchedTradeRef, false),asc(PeriodStartDate, false),asc(Party_A_LegDescription, false),asc(Party_A_LegType, false)) ~> Sort31\nConditionalSplit@Case1 sort(asc(LchMatchedTradeRef, false)) ~> Sort1\nConditionalSplit1@ConditionalSplitDefaultOutput aggregate(groupBy(LchMatchedTradeRef,Party_A_LegDescription,Party_A_LegType),\n\tPeriodStartDate = min(PeriodStartDate)) ~> Aggregate\nSort1 derive(DIRECTION = 'Pay',\n\t\tParty_B_Rate = iifNull(Party_B_Rate,'0'),\n\t\tParty_A_Rate = iifNull(Party_A_Rate,'0')) ~> DerivedColumn13\nAggregate sort(asc(LchMatchedTradeRef, false),asc(PeriodStartDate, false),asc(Party_A_LegDescription, false),asc(Party_A_LegType, false)) ~> Sort3\nDerivedColumn13 derive(Party_A_LegType = iif(Party_A_LegType == 'FIX', 'Fixed', 'Float')) ~> DerivedColumn122\nSort3,Sort31 join(Aggregate@LchMatchedTradeRef == lch1061@LchMatchedTradeRef && Aggregate@PeriodStartDate == lch1061@PeriodStartDate && Aggregate@Party_A_LegDescription == lch1061@Party_A_LegDescription && Aggregate@Party_A_LegType == lch1061@Party_A_LegType,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nDerivedColumn122 sort(asc(LchMatchedTradeRef, false)) ~> Sort22\nMergeJoin select(mapColumn(\n\t\tLchMatchedTradeRef = lch1061@LchMatchedTradeRef,\n\t\tPeriodStartDate = lch1061@PeriodStartDate,\n\t\tNotionalAmount = NotionalAmount,\n\t\tParty_A_LegDescription = lch1061@Party_A_LegDescription,\n\t\t{Party_A_LegDescription (1)} = {Party_A_LegDescription (1)},\n\t\tParty_A_LegType = lch1061@Party_A_LegType\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin01\nSort22 derive(DIRECTION = 'Receive',\n\t\tParty_B_Rate = iifNull(Party_B_Rate,'0'),\n\t\tParty_A_Rate = iifNull(Party_A_Rate,'0')) ~> DerivedColumn111\nMergeJoin01 derive(LchMatchedTradeRef = LchMatchedTradeRef,\n\t\tPeriodStartDate = PeriodStartDate,\n\t\tNotionalAmount = NotionalAmount,\n\t\tParty_A_LegDescription = Party_A_LegDescription,\n\t\t{Party_A_LegDescription 1} = {Party_A_LegDescription 1},\n\t\tParty_A_LegType = Party_A_LegType) ~> MergeJoin0\nDerivedColumn111 derive(Party_B_LegType = iif(Party_B_LegType == 'FIX', 'Fixed', 'Float')) ~> DerivedColumn1211\nMergeJoin0 derive({Derived Column 1} = iif(Party_A_LegDescription == 'P', 'Pay', 'Receive'),\n\t\t{Derived Column 2} = iif(Party_A_LegType == 'FIX', 'Fixed', 'Float')) ~> DerivedColumn\nDerivedColumn1211 sort(asc(LchMatchedTradeRef, false)) ~> Sort211\nDerivedColumn sort(asc(LchMatchedTradeRef, false),asc({Derived Column 1}, false),asc({Derived Column 2}, false)) ~> Sort4\nMerge sort(asc(LchMatchedTradeRef, false),asc(DIRECTION, false),asc(Party_A_LegType, false)) ~> Sort5\nSort5,Sort4 join(Merge@LchMatchedTradeRef == MergeJoin0@LchMatchedTradeRef && DIRECTION == {Derived Column 1} && LegType == {Derived Column 2},\n\tjoinType:'left',\n\tbroadcast: 'none')~> MergeJoin1\nMergeJoin1 select(mapColumn(\n\t\tLchMatchedTradeRef = Merge@LchMatchedTradeRef,\n\t\tNotionalAmount = Merge@NotionalAmount,\n\t\tMaturityDate = MaturityDate,\n\t\tCurrency = Currency,\n\t\tDIRECTION = DIRECTION,\n\t\tTradeDate = TradeDate,\n\t\tLegType = LegType,\n\t\tParty_A_Rate = Party_A_Rate,\n\t\tParty_A_Spread = Party_A_Spread,\n\t\tParty_A_PmtFrequency = Party_A_PmtFrequency,\n\t\tParty_A_DayCountFraction = Party_A_DayCountFraction,\n\t\tPeriodStartDate = PeriodStartDate,\n\t\t{NotionalAmount (1)} = {NotionalAmount (1)},\n\t\tParty_A_LegDescription = Party_A_LegDescription,\n\t\tProductType = ProductType\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin101\nMergeJoin101 derive(LchMatchedTradeRef = LchMatchedTradeRef,\n\t\tNotionalAmount = NotionalAmount,\n\t\tMaturityDate = MaturityDate,\n\t\tCurrency = Currency,\n\t\tDIRECTION = DIRECTION,\n\t\tTradeDate = TradeDate,\n\t\tLegType = LegType,\n\t\tParty_A_Rate = Party_A_Rate,\n\t\tParty_A_Spread = Party_A_Spread,\n\t\tParty_A_PmtFrequency = Party_A_PmtFrequency,\n\t\tParty_A_DayCountFraction = Party_A_DayCountFraction,\n\t\tPeriodStartDate = PeriodStartDate,\n\t\t{NotionalAmount 1} = {NotionalAmount 1},\n\t\tParty_A_LegDescription = Party_A_LegDescription,\n\t\tProductType = ProductType) ~> MergeJoin10\nMergeJoin10 derive(FWDRate = '0',\n\t\tParty_A_PmtFrequency = iif(ProductType == 'Inflation ZC', 'ZC', Party_A_PmtFrequency),\n\t\tNotionalAmount = iif(isNull({NotionalAmount (1)}) == 1, NotionalAmount, {NotionalAmount (1)})) ~> DerivedColumn1\nDerivedColumn1 derive(Party_A_Spread = iif(iif(isNull(Spread) == 1, '0.0', substring(toString(Spread), toInteger(1), toInteger(1)) == '.'), '0' + Spread, Spread),\n\t\tTradeDate = replace(EffectiveDate, toString('/'), toString('-')),\n\t\tMaturityDate = replace(MaturityDate, toString('/'), toString('-')),\n\t\tParty_A_Rate = iif(iif(substring(toString(Rate), toInteger(1), toInteger(1)) == '0', '0.0', substring(toString(Rate), toInteger(1), toInteger(1)) == '.'), '0' + Rate, iifNull(Rate,'0')),\n\t\tLegType = replace(replace(LegType, toString('FIX'), toString('Fixed')), toString('FLT'), toString('Float'))) ~> CleanUpRubble\nCleanUpRubble derive(Party_A_Spread = replace(Spread, toString('-.'), toString('-0.')),\n\t\tParty_A_Rate = replace(Rate, toString('-.'), toString('-0.'))) ~> FixSpreadetc\nFixSpreadetc derive(Party_A_Spread = iif(Spread == '0', '0.0', Spread),\n\t\tParty_A_PmtFrequency = replace(replace(replace(replace(replace(PaymentFreq, toString('6M'), toString('SA')), toString('3M'), toString('QTR')), toString('1M'), toString('MTH')), toString('1Y'), toString('PA')), toString('1T'), toString('ZC')),\n\t\tMaturityDate = toDate(MaturityDate, \"MM/dd/yyyy\"),\n\t\tParty_A_Rate = iif(isNull(Rate) == 1, replace(ltrim(toString(rtrim(toString(Rate),' ')),' '), toString(''), toString('0')), replace(ltrim(toString(rtrim(toString(Rate),' ')),' '), toString(''), toString('0'))),\n\t\tParty_A_DayCountFraction = replace(replace(replace(DayCount, toString('ACT/365.FIXED'), toString('ACT/365')), toString('ACT/ACT.ICMA'), toString('ACTB/ACTB')), toString('ACT/ACT.ISDA'), toString('ACT/ACT'))) ~> FixRate\nFixRate split(toDate(MaturityDate, \"MM/dd/yyyy\") > toDate(FileDate, \"MM/dd/yyyy\"), disjoint: true) ~> MaturityDateBeforeoronToday@(Case1,ConditionalSplitDefaultOutput)\nMaturityDateBeforeoronToday@Case1 derive({Copy of Spread} = Party_A_Spread,\n\t\t{Copy of LegType} = LegType,\n\t\t{Copy of Currency} = Currency,\n\t\t{Copy of NotionalAmount} = toInteger(NotionalAmount),\n\t\t{Copy of Direction} = DIRECTION,\n\t\t{Copy of FWDRate} = toInteger(FWDRate),\n\t\t{Copy of PeriodStartDate} = PeriodStartDate,\n\t\t{Copy of MaturityDate} = toDate(MaturityDate, \"MM/dd/yyyy\"),\n\t\t{Copy of Rate} = toInteger(Party_A_Rate),\n\t\t{Copy of PaymentFreq} = Party_A_PmtFrequency,\n\t\t{Copy of DayCount} = Party_A_DayCountFraction,\n\t\t{Copy of LchMatchedTradeRef} = LchMatchedTradeRef,\n\t\t{Copy of EffectiveDate} = toDate(TradeDate, \"MM/dd/yyyy\")) ~> DataConversion\nDataConversion sink(input(\n\t\tSpread as string,\n\t\tParty_A_LegType as string,\n\t\tRate as string,\n\t\tCurrency as string,\n\t\tDayCount as string,\n\t\tNotionalAmount as string,\n\t\tLchMatchedTradeRef as string,\n\t\tMaturityDate as string,\n\t\tEffectiveDt as string,\n\t\tPaymentFreq as string,\n\t\tDirection as string,\n\t\tFWDRate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSpread = {Copy of Spread},\n\t\tParty_A_LegType = {Copy of LegType},\n\t\tRate = {Copy of Rate},\n\t\tCurrency = {Copy of Currency},\n\t\tDayCount = {Copy of DayCount},\n\t\tNotionalAmount = {Copy of NotionalAmount},\n\t\tLchMatchedTradeRef = {Copy of LchMatchedTradeRef},\n\t\tMaturityDate = {Copy of MaturityDate},\n\t\tEffectiveDt = {Copy of EffectiveDate},\n\t\tPaymentFreq = {Copy of PaymentFreq},\n\t\tDirection = {Copy of Direction},\n\t\tFWDRate = {Copy of FWDRate})) ~> LCHCompare"
+    }
+  }
+}

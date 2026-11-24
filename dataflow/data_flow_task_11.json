@@ -5,27 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_TGT",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "FlatFileDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Site Alias} as string,\n\t\t{Asset Alias} as string,\n\t\tAsset_ID__c as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tAssetID = left(trim(replace(Asset_ID__c, toString('''), toString(''))), 6)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tsitealias as string,\n\t\tassetalias as string,\n\t\tAssetID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tETLUser,\n\t\tsitealias = {Site Alias},\n\t\tassetalias = {Asset Alias},\n\t\tAssetID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{TRADE KEYWORD LEI CP} as string,\n\t\tTrader as string,\n\t\t{TRADE KEYWORD OP CLRELG LCHUK DESC} as string,\n\t\tComments as string,\n\t\t{TRADE KEYWORD OP ISDA Product Type} as string,\n\t\t{TRADE KEYWORD End User Clearing Exception Election} as string,\n\t\t{Trade Id} as string,\n\t\t{TRADE KEYWORD OP CLRELG CME DESC} as string,\n\t\t{CounterParty Full Name} as string,\n\t\tFileDate as date,\n\t\t{Sales Person} as string,\n\t\t{TRADE KEYWORD OP Clearing Eligibility} as string,\n\t\tBook as string,\n\t\t{Product Type} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tTRADE_KEYWORD_LEI_CP as string,\n\t\tTrader as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC as string,\n\t\tComments as string,\n\t\tTRADE_KEYWORD_OP_ISDA_Product_Type as string,\n\t\tTRADE_KEYWORD_End_User_Clearing_Exception_Election as string,\n\t\tTrade_Id as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC as string,\n\t\tCounterParty_Full_Name as string,\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tSales_Person as string,\n\t\tTRADE_KEYWORD_OP_Clearing_Eligibility as string,\n\t\tBook as string,\n\t\tProduct_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTRADE_KEYWORD_LEI_CP = {TRADE KEYWORD LEI CP},\n\t\tTrader,\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC = {TRADE KEYWORD OP CLRELG LCHUK DESC},\n\t\tComments,\n\t\tTRADE_KEYWORD_OP_ISDA_Product_Type = {TRADE KEYWORD OP ISDA Product Type},\n\t\tTRADE_KEYWORD_End_User_Clearing_Exception_Election = {TRADE KEYWORD End User Clearing Exception Election},\n\t\tTrade_Id = {Trade Id},\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC = {TRADE KEYWORD OP CLRELG CME DESC},\n\t\tCounterParty_Full_Name = {CounterParty Full Name},\n\t\tFileDate,\n\t\tSales_Person = {Sales Person},\n\t\tTRADE_KEYWORD_OP_Clearing_Eligibility = {TRADE KEYWORD OP Clearing Eligibility},\n\t\tBook,\n\t\tProduct_Type = {Product Type})) ~> FlatFileDestination"
     }
   }
 }

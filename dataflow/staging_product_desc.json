@@ -1,0 +1,31 @@
+{
+  "name" : "staging_product_desc",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcalypsoproductdesc",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tocalypsotradeservproductdesc"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversionProductId"
+      } ],
+      "script" : "parameters{\n\ttocalypsotradeservproductdesc_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tPRODUCT_FAMILY as string,\n\t\tMATURITY_DATE as timestamp,\n\t\tDESCRIPTION as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsoproductdesc\nfromcalypsoproductdesc derive({Copy of DESCRIPTION} = DESCRIPTION,\n\t\t{PRODUCT_ID$} = toString(PRODUCT_ID),\n\t\t{PRODUCT_FAMILY$} = PRODUCT_FAMILY,\n\t\t{Copy of MATURITY_DATE} = MATURITY_DATE) ~> DataConversionProductId\nDataConversionProductId sink(input(\n\t\tproduct_family as string,\n\t\tproduct_id as string,\n\t\tdescription as string,\n\t\tmaturity_date as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tproduct_family = {PRODUCT_FAMILY$},\n\t\tproduct_id = {PRODUCT_ID$},\n\t\tdescription = {Copy of DESCRIPTION},\n\t\tmaturity_date = MATURITY_DATE),\n\tpartitionFileNames:[($tocalypsotradeservproductdesc_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tocalypsotradeservproductdesc"
+    }
+  }
+}

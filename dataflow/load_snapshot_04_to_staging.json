@@ -1,0 +1,41 @@
+{
+  "name" : "load_snapshot_04_to_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SnapshotIM04",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupFilenameLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSnapshotIM04DailyStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "LookupFilename"
+      }, {
+        "name" : "LookupFilename0"
+      } ],
+      "script" : "parameters{\n\tsFilename_SnpshtIM as string (),\n\ttblSnapshotIM04DailyStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tCO as string,\n\t\tDDA as string,\n\t\tRC as string,\n\t\tMatchId as string,\n\t\tItemState as string,\n\t\tSubAccount as string,\n\t\t{Balance Pool} as string,\n\t\tSource as string,\n\t\tDirector as string,\n\t\tSnapshot as string,\n\t\tDivision as string,\n\t\t{Risk Date} as string,\n\t\tSide as string,\n\t\tAmount as decimal(18,2),\n\t\t{D C} as string,\n\t\tEqAmount as decimal(18,2),\n\t\tName1 as string,\n\t\tDesc2 as string,\n\t\tDesc3 as string,\n\t\t{Ap St} as string,\n\t\t{Trd Ref} as string,\n\t\t{Trn Ref} as string,\n\t\t{Ops Control} as string,\n\t\t{Case#} as string,\n\t\tCusip as string,\n\t\tCurrency as string,\n\t\t{Entry Date} as string,\n\t\t{Review Date} as string,\n\t\tStd as string,\n\t\t{#Day} as string,\n\t\t{Ext Trk} as string,\n\t\t{Item Id} as string,\n\t\t{C C} as string,\n\t\tEffectiveDate as string,\n\t\t{Category Name} as string,\n\t\tcompanyId as string,\n\t\tDept as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SnapshotIM04\tsource(output(\n\t\tfilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupFilenameLKPTABLE\nSnapshotIM04 derive(Loaddate = toString(currentTimestamp()),\n\t\tFilename = toString(($sFilename_SnpshtIM))) ~> DerivedColumn\nDerivedColumn,LookupFilenameLKPTABLE lookup(DerivedColumn@Filename == LookupFilenameLKPTABLE@filename,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupFilename\nLookupFilename filter(!isMatch()) ~> LookupFilename0\nLookupFilename0 sink(input(\n\t\tDDA as string,\n\t\tSTD as short,\n\t\tReviewDate as string,\n\t\tC_C as string,\n\t\tD_C as string,\n\t\tDesc2 as string,\n\t\tSource as string,\n\t\tDesc3 as string,\n\t\tApSt as string,\n\t\tSide as string,\n\t\tCaseNo as string,\n\t\tDepartment as string,\n\t\tCurrency as string,\n\t\tLoaddate as string,\n\t\tDivision as string,\n\t\tOpsControl as string,\n\t\tName1 as string,\n\t\tTrdRef as string,\n\t\tExtTrk as string,\n\t\tCompanyId as string,\n\t\tAmount as integer,\n\t\tDirector as string,\n\t\tFilename as string,\n\t\tCO as string,\n\t\tItemID as string,\n\t\tRiskDate as string,\n\t\tCusip as string,\n\t\tRC as string,\n\t\tSnapshot as string,\n\t\tTrnRef as string,\n\t\tEqAmount as integer,\n\t\tBalancePool as string,\n\t\tMatchId as string,\n\t\tItemState as string,\n\t\tSubAccount as string,\n\t\tEntryDate as string,\n\t\tCategoryName as string,\n\t\tNo_Day as string,\n\t\tEffectiveDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDDA,\n\t\tSTD = Std,\n\t\tReviewDate = {Review Date},\n\t\tC_C = {C C},\n\t\tD_C = {D C},\n\t\tDesc2,\n\t\tSource,\n\t\tDesc3,\n\t\tApSt = {Ap St},\n\t\tSide,\n\t\tCaseNo = {Case#},\n\t\tDepartment = Dept,\n\t\tCurrency,\n\t\tLoaddate,\n\t\tDivision,\n\t\tOpsControl = {Ops Control},\n\t\tName1,\n\t\tTrdRef = {Trd Ref},\n\t\tExtTrk = {Ext Trk},\n\t\tCompanyId = companyId,\n\t\tAmount,\n\t\tDirector,\n\t\tFilename,\n\t\tCO,\n\t\tItemID = {Item Id},\n\t\tRiskDate = {Risk Date},\n\t\tCusip,\n\t\tRC,\n\t\tSnapshot,\n\t\tTrnRef = {Trn Ref},\n\t\tEqAmount,\n\t\tBalancePool = {Balance Pool},\n\t\tMatchId,\n\t\tItemState,\n\t\tSubAccount,\n\t\tEntryDate = {Entry Date},\n\t\tCategoryName = {Category Name},\n\t\tNo_Day = {#Day},\n\t\tEffectiveDate),\n\tpartitionFileNames:[($tblSnapshotIM04DailyStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSnapshotIM04DailyStaging"
+    }
+  }
+}

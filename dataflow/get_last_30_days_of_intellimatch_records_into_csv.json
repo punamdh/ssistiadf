@@ -1,0 +1,29 @@
+{
+  "name" : "get_last_30_days_of_intellimatch_records_into_csv",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblIntellimatchGLMonthlyHistorical",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "LastThirtyDaysIntellimatch"
+      } ],
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\tProcessedDate as timestamp,\n\t\trecCnt_Before as string,\n\t\tFilename as string,\n\t\trecCnt_After as integer,\n\t\treconDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblIntellimatchGLMonthlyHistorical\ntblIntellimatchGLMonthlyHistorical sink(input(\n\t\tProcessedDate as string,\n\t\trecCnt_before as string,\n\t\tFilename as string,\n\t\trecCnt_After as string,\n\t\tReconDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProcessedDate,\n\t\trecCnt_before = recCnt_Before,\n\t\tFilename,\n\t\trecCnt_After,\n\t\tReconDate = reconDate)) ~> LastThirtyDaysIntellimatch"
+    }
+  }
+}

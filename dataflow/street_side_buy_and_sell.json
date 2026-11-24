@@ -1,0 +1,31 @@
+{
+  "name" : "street_side_buy_and_sell",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFilePathBuySellBreaks as string ('\\\\ cwcnhf501.wellsfargo.com\\\\DRSDev\\\\WFSOpsKRIReporting\\\\DropZone\\\\Broadridge\\\\StreetsideActivity\\\\BuyAndSellBreaks\\\\Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tMO as string,\n\t\tINV as string,\n\t\tACCOUNT as string,\n\t\t{T D} as string,\n\t\t{S D} as string,\n\t\t{B  S} as string,\n\t\tQTY as string,\n\t\tSYM as string,\n\t\tPX as string,\n\t\tAMOUNT as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tFileName = toString((substring(toString($FilePathBuySellBreaks), toInteger(111), toInteger(43)))),\n\t\tFileDate = toString((substring(toString($FilePathBuySellBreaks), toInteger(146), toInteger(8))))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tINV as string,\n\t\tTD as date 'dd-MM-yyyy',\n\t\tSD as date 'dd-MM-yyyy',\n\t\tBS as string,\n\t\tMO as string,\n\t\tACCOUNT as string,\n\t\tAMOUNT as integer,\n\t\tSymbol as string,\n\t\tQTY as string,\n\t\tFileName as string,\n\t\tPX as integer,\n\t\tLoad_Date as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINV,\n\t\tTD = {T D},\n\t\tSD = {S D},\n\t\tBS = {B  S},\n\t\tMO,\n\t\tACCOUNT,\n\t\tAMOUNT,\n\t\tSymbol = SYM,\n\t\tQTY,\n\t\tFileName,\n\t\tPX,\n\t\tLoad_Date = LoadDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

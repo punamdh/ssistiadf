@@ -1,0 +1,254 @@
+{
+  "name" : "ppl_calypso_markitwire_exceptions_commentalert",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Get_alert_data_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "ASTFieldExpression{expression=null, name='sSQLSelectAlertData'}",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : false
+      }
+    }, {
+      "name" : "FRE_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Get_alert_data_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Get_alert_data_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_sSQLRegisterAlert",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sSQLRegisterAlert",
+            "value" : {
+              "value" : "@concat('exec sp_ins_ssis_utility_alert ''RatesMOIndia@wellsfargo.com;WFSRS@wellsfargo.com'',''', variables('sReportSubject'), ''',''', variables('sHTMLTable'), ' ', variables('sReportHyperLink'), ''', 2')",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "SETVAR_SET_sHTMLTable",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sHTMLTable",
+            "value" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_RegisterAlert_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sSQLRegisterAlert",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SET_sHTMLTable",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('sSQLRegisterAlert')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_Send_Failure_EMail_Task",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_RegisterAlert_0",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "EP_Send_Failure_EMail_Task0",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Get_alert_data_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "FRE_Foreach_Loop_Container_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "ST_Set_the_Invocation_Flag_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FRE_Foreach_Loop_Container_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "UPDATE tbl_DataTagger_Tags\nSET ListTag = 'No', ModifiedUserName = 'Manual Invocation Job', ModifiedDate = getdate()\nFROM tbl_DataTagger_ManualJobInvocations \nINNER JOIN tbl_DataTagger_Tags ON tbl_DataTagger_ManualJobInvocations.SourceDataSetID = tbl_DataTagger_Tags.SourceDataSetID\nWHERE tbl_DataTagger_ManualJobInvocations.PackageName = 'Calypso_MarkitWire_Exceptions_CommentAlert.dtsx'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Calypso_MarkitWire_Exceptions_CommentAlert"
+      },
+      "sSQLSelectAlertData" : {
+        "type" : "String",
+        "defaultValue" : "EXEC sp_sel_Utility_SelectToHTMLTable  'SELECT [Trade_ID],[System],[Product Type],[TradeStatus],[ContractState],[PrivateProcessState],[Nominal],[Reason],[Reason_CreatedBy],[Reason_CreateDte]  FROM [ReconControl].[dbo].[vw_Calypso_Markitwire_Exceptions_Comments] where Reason is not null'    WITH RESULT SETS ( ( HTML NVARCHAR(MAX) ) )"
+      },
+      "sSQLRegisterAlert" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'RatesMOIndia@wellsfargo.com;WFSRS@wellsfargo.com','WFSR&S_Process_Alert_DEV_Calypso_MarkitWire_Exceptions_CommentAlert_SUCCESS',' <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Markitwire_Exceptions_Report\\\">CLICK HERE TO GO TO THE WEB REPORT</a>', 2"
+      },
+      "oQueryResult" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sStatusSuccess" : {
+        "type" : "String",
+        "defaultValue" : "_SUCCESS"
+      },
+      "sReportHyperLink" : {
+        "type" : "String",
+        "defaultValue" : "<a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Markitwire_Exceptions_Report\\\">CLICK HERE TO GO TO THE WEB REPORT</a>"
+      },
+      "sHTMLTable" : {
+        "type" : "String"
+      },
+      "sReportSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_Process_Alert_DEV_Calypso_MarkitWire_Exceptions_CommentAlert_SUCCESS"
+      }
+    }
+  }
+}

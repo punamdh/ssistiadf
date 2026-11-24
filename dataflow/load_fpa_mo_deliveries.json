@@ -1,0 +1,31 @@
+{
+  "name" : "load_fpa_mo_deliveries",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFilePathFPA_Deliveries as string ('\\\\ csl831nvs1.wellsfargo.com\\\\1EQSUAT\\\\1EQSDEV\\\\WFSOpsKRIReporting\\\\DropZone\\\\Calypso\\\\FPA_Deliveries\\\\FLOAT_MO_DELIVERIES_SET10-15-2025.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Purchase Dt} as date,\n\t\t{Settle Date} as date,\n\t\t{Trade Id} as string,\n\t\t{External Ref } as string,\n\t\t{Counter Party} as string,\n\t\t{Security Code} as string,\n\t\tDescription as string,\n\t\tPrice as string,\n\t\t{Withd Dt} as date,\n\t\t{Maturity Amt} as string,\n\t\t{Face Amt} as string,\n\t\t{Payment Amt} as string,\n\t\tYield as string,\n\t\tDayCount as string,\n\t\t{Cmp Freq} as string,\n\t\t{Scheduled Cash} as string,\n\t\tInterest as string,\n\t\t{Scheduled Deposit Date} as date,\n\t\t{Scheduled Withdrawal Date} as date,\n\t\t{Payment Method} as string,\n\t\tRemark as string,\n\t\t{Pay Receive} as string,\n\t\t{Deliverable Types} as string,\n\t\t{Eligible Types} as string,\n\t\t{Max Index} as string,\n\t\t{Dis Max Fwd} as string,\n\t\tPV as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tFileName = toString((substring(toString($FilePathFPA_Deliveries), toInteger(87), toInteger(33)))),\n\t\tFileDate = toString((substring(toString($FilePathFPA_Deliveries), toInteger(110), toInteger(10))))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMaturityAmt as string,\n\t\tDescription as string,\n\t\tWithdDate as date 'dd-MM-yyyy',\n\t\tPV as string,\n\t\tExternalRef as string,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tRemark as string,\n\t\tInterest as string,\n\t\tDisMaxFwd as string,\n\t\tFaceAmt as string,\n\t\tDayCount as string,\n\t\tMaxIndex as string,\n\t\tSettleDate as date 'dd-MM-yyyy',\n\t\tSecurityCode as string,\n\t\tTradeId as string,\n\t\tScheduledDepositDate as date 'dd-MM-yyyy',\n\t\tScheduledCash as string,\n\t\tCounterParty as string,\n\t\tPayReceive as string,\n\t\tEligibleTypes as string,\n\t\tCmpFreq as string,\n\t\tPrice as string,\n\t\tPaymentAmt as string,\n\t\tPurchaseDate as date 'dd-MM-yyyy',\n\t\tPaymentMethod as string,\n\t\tDeliverableTypes as string,\n\t\tYield as string,\n\t\tScheduledWithdrawalDate as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMaturityAmt = {Maturity Amt},\n\t\tDescription,\n\t\tWithdDate = {Withd Dt},\n\t\tPV,\n\t\tExternalRef = {External Ref },\n\t\tLoad_Date = LoadDate,\n\t\tRemark,\n\t\tInterest,\n\t\tDisMaxFwd = {Dis Max Fwd},\n\t\tFaceAmt = {Face Amt},\n\t\tDayCount,\n\t\tMaxIndex = {Max Index},\n\t\tSettleDate = {Settle Date},\n\t\tSecurityCode = {Security Code},\n\t\tTradeId = {Trade Id},\n\t\tScheduledDepositDate = {Scheduled Deposit Date},\n\t\tScheduledCash = {Scheduled Cash},\n\t\tCounterParty = {Counter Party},\n\t\tPayReceive = {Pay Receive},\n\t\tEligibleTypes = {Eligible Types},\n\t\tCmpFreq = {Cmp Freq},\n\t\tPrice,\n\t\tPaymentAmt = {Payment Amt},\n\t\tPurchaseDate = {Purchase Dt},\n\t\tPaymentMethod = {Payment Method},\n\t\tDeliverableTypes = {Deliverable Types},\n\t\tYield,\n\t\tScheduledWithdrawalDate = {Scheduled Withdrawal Date}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

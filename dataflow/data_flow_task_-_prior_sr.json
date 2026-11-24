@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_prior_sr",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCLIENT_NBR as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tccyCd as string,\n\t\tCUSIP_INTRL_NBR as string,\n\t\tBRANCH_CD as string,\n\t\taccount_cd as string,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\tHOLDER_PRICE_TXT as string,\n\t\teffdate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCUSIP_INTRL_NBR as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tBRANCH_CD as string,\n\t\tCLIENT_NBR as string,\n\t\tHOLDER_PRICE_TXT as string,\n\t\tccyCd as string,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\teffdate as timestamp 'dd-MM-yyyy',\n\t\taccount_cd as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCUSIP_INTRL_NBR,\n\t\tSECURITY_ADP_NBR,\n\t\tBRANCH_CD,\n\t\tCLIENT_NBR,\n\t\tHOLDER_PRICE_TXT,\n\t\tccyCd,\n\t\tTYPE_ACCOUNT_CD,\n\t\teffdate,\n\t\taccount_cd,\n\t\tloadDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

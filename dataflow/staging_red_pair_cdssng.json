@@ -1,0 +1,31 @@
+{
+  "name" : "staging_red_pair_cdssng",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromleattribute",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservRedPairCdsSng"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblcalypsotradeservRedPairCdsSng_outputfilename as string ()\n}\n\nsource(output(\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tSHORT_NAME as string,\n\t\tATTRIBUTE_TYPE as string,\n\t\tATTRIBUTE_VALUE as string,\n\t\tLONG_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromleattribute\nfromleattribute derive({Copy of LONG_NAME} = LONG_NAME,\n\t\t{Copy of ATTRIBUTE_TYPE} = ATTRIBUTE_TYPE,\n\t\t{Copy of SHORT_NAME} = SHORT_NAME,\n\t\t{Copy of LEGAL_ENTITY_ID} = toString(LEGAL_ENTITY_ID),\n\t\t{Copy of ATTRIBUTE_VALUE} = ATTRIBUTE_VALUE) ~> DataConversion\nDataConversion sink(input(\n\t\tIssuer_Short_Name as string,\n\t\tLegal_Entity_Id as string,\n\t\tIssuer_Long_Name as string,\n\t\tAttribute_Value as string,\n\t\tAttribute_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tIssuer_Short_Name = {Copy of SHORT_NAME},\n\t\tLegal_Entity_Id = {Copy of LEGAL_ENTITY_ID},\n\t\tIssuer_Long_Name = {Copy of LONG_NAME},\n\t\tAttribute_Value = {Copy of ATTRIBUTE_VALUE},\n\t\tAttribute_Type = {Copy of ATTRIBUTE_TYPE}),\n\tpartitionFileNames:[($totblcalypsotradeservRedPairCdsSng_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservRedPairCdsSng"
+    }
+  }
+}

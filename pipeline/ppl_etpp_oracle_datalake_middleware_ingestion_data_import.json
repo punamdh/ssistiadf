@@ -1,0 +1,423 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_middleware_ingestion_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_ORACLESOURCE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_ORACLESOURCE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ORACLE_SOURCE_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_ORACLESOURCE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEV_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_DEV_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEV_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_DEV_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DEV_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import' AND DATAFLOW_NAME = 'oracle_datalake_middleware') AS oracle_datalake_middleware_DEV_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'oracle_datalake_middleware0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import') AS oracle_datalake_middleware0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'oracle_datalake_middleware0_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_middleware_ingestion_data_import') AS oracle_datalake_middleware0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "EXEC [import].[datalake_middleware_ingestion_data_import_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_FirstPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FirstPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_middleware_ingestion_data_impo').output.resultSets[0].rows[0].0)"
+      }
+    }, {
+      "name" : "SETVAR_SecondPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SecondPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_middleware_ingestion_data_impo').output.resultSets[0].rows[0].1)"
+      }
+    }, {
+      "name" : "SETVAR_ThirdPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "ThirdPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_middleware_ingestion_data_impo').output.resultSets[0].rows[0].2)"
+      }
+    }, {
+      "name" : "SETVAR_FourthPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FourthPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_middleware_ingestion_data_impo').output.resultSets[0].rows[0].3)"
+      }
+    }, {
+      "name" : "SETVAR_FifthPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_middleware_ingestion_data_impo",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FifthPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_middleware_ingestion_data_impo').output.resultSets[0].rows[0].4)"
+      }
+    }, {
+      "name" : "ST_TRUNCATE_datalake_middleware_ingestion_importtb",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_FifthPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_FirstPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_SecondPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_ThirdPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_FourthPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE import.datalake_middleware_ingestion_importtbl",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_oracle_datalake_middleware",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_TRUNCATE_datalake_middleware_ingestion_importtb",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "oracle_datalake_middleware",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_oracle_datalake_middleware",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_oracle_datalake_middleware",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "oracle_datalake_middleware",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "DEV_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "ORACLESOURCE" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_ORACLESOURCE_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_ORACLESOURCE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_ORACLESOURCE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "DEV" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.oracle_datalake_middleware_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_oracle_datalake_middleware0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_oracle_datalake_middleware",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware_DEV_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.oracle_datalake_middleware0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Execute_asset_master_middleware_sp_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_oracle_datalake_middleware0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[asset_master_middleware_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "oracle_datalake_middleware_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "ThirdPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : "CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBMSSQL' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_MSSQL_DATABASE')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBORACLE' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_ORA_CATALOG')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID A"
+      },
+      "SecondPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : "GHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'SOLACE' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEST_LVL4_WF_GUID = DD.DEVICE_WF_GUID  WHERE DEST_LVL2_SYS_CLASS_NAME = 'U_CMDB_CI_SOLACE_VPN'    UNION ALL    SELECT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'KAFKA' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  LEFT JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEST_LVL4_WF_GUID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME = 'CMDB_CI_APPL_KAFKA_TOPIC'    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,"
+      },
+      "SQL_Final" : {
+        "type" : "String",
+        "defaultValue" : "SELECT DISTINCT * FROM (  SELECT        TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'MQ' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEVICE_GUID = DD.DEVICE_WF_GUID  WHERE DEST_LVL2_SYS_CLASS_NAME = 'CMDB_CI_APPL_IBM_WMQ_QUEUE'    UNION ALL    SELECT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'SOLACE' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEST_LVL4_WF_GUID = DD.DEVICE_WF_GUID  WHERE DEST_LVL2_SYS_CLASS_NAME = 'U_CMDB_CI_SOLACE_VPN'    UNION ALL    SELECT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'KAFKA' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  LEFT JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEST_LVL4_WF_GUID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME = 'CMDB_CI_APPL_KAFKA_TOPIC'    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBMSSQL' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_MSSQL_DATABASE')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBORACLE' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_ORA_CATALOG')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBMYSQL' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_MYSQL_CATALOG')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBCATALOG' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_CATALOG')  ) X"
+      },
+      "FirstPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : "SELECT DISTINCT * FROM (  SELECT        TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      NULL DBMS,      'MQ' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON TOPO.DEVICE_GUID = DD.DEVICE_WF_GUID  WHERE DEST_LVL2_SYS_CLASS_NAME = 'CMDB_CI_APPL_IBM_WMQ_QUEUE'    UNION ALL    SELECT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEI"
+      },
+      "FifthPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : ",      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBCATALOG' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_CATALOG')  ) X"
+      },
+      "FourthPart_SQL" : {
+        "type" : "String",
+        "defaultValue" : "S DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD,      DD.DATA_CENTER_ZONE,      DD.U_RPT_CPU_TOTAL_CORES,      DD.U_DC_NEIGHBORHOOD,      DD.U_DC_ZONE,      DD.U_NEW_PUBLICLY_ACCESSIBLE,      DD.COMMON_NAME,      DD.U_DC_NEIGHBORHOOD_NAME,      DD.U_DC_ZONE_NAME,      II.DBMS,      'DBMYSQL' AS COMPONENT_TYPE  FROM ITM_CURATED.BUSINESS_APPLICATION_TOPOLOGY TOPO  JOIN ITM_CURATED.CONFIGURATION_ITEM_ALL CI      ON TOPO.DEST_LVL2_WF_GUID = CI.U_WF_GUID  LEFT JOIN ITM_DBSMRT.INVENTORY II      ON TOPO.DEST_LVL2_WF_GUID = II.DATABASE_ENTERPRISE_ID  LEFT JOIN ITM_DBSMRT.inventory_host IH      ON II.INSTANCE_ID = IH.INSTANCE_ID  LEFT JOIN ITM_CURATED.DEVICE_DIMENSION DD      ON IH.ENTERPRISE_ID = DD.DEVICE_WF_GUID  WHERE TOPO.DEST_LVL2_SYS_CLASS_NAME IN ('CMDB_CI_DB_MYSQL_CATALOG')    UNION ALL    SELECT DISTINCT       TOPO.BUSINESS_APPLICATION_WF_GUID AS BUSINESS_APPLICATION_WF_GUID,       TOPO.BUSINESS_APPLICATION_NAME AS BUSINESS_APPLICATION_NAME,       TOPO.DEST_LVL1_WF_GUID AS DEST_LVL1_WF_GUID,       TOPO.DEST_LVL1_NAME AS DEST_LVL1_NAME,       TOPO.DEST_LVL1_SYS_CLASS_NAME AS DEST_LVL1_SYS_CLASS_NAME,       TOPO.DEST_LVL2_WF_GUID AS DEST_LVL2_WF_GUID,       TOPO.DEST_LVL2_NAME AS DEST_LVL2_NAME,       TOPO.DEST_LVL2_SYS_CLASS_NAME AS DEST_LVL2_SYS_CLASS_NAME,       TOPO.DEST_LVL3_WF_GUID AS DEST_LVL3_WF_GUID,       TOPO.DEST_LVL3_NAME AS DEST_LVL3_NAME,       TOPO.DEST_LVL3_SYS_CLASS_NAME AS DEST_LVL3_SYS_CLASS_NAME,      TOPO.DEST_LVL4_WF_GUID AS DEST_LVL4_WF_GUID,       TOPO.DEST_LVL4_NAME AS DEST_LVL4_NAME,       TOPO.DEST_LVL4_SYS_CLASS_NAME AS DEST_LVL4_SYS_CLASS_NAME,       TOPO.DEST_LVL5_WF_GUID AS DEST_LVL5_WF_GUID,       TOPO.DEST_LVL5_NAME AS DEST_LVL5_NAME,       TOPO.DEST_LVL5_SYS_CLASS_NAME AS DEST_LVL5_SYS_CLASS_NAME,       TOPO.DEST_LVL6_WF_GUID AS DEST_LVL6_WF_GUID,       TOPO.DEST_LVL6_NAME AS DEST_LVL6_NAME,       TOPO.DEST_LVL6_SYS_CLASS_NAME AS DEST_LVL6_SYS_CLASS_NAME,      CI.NAME,       CI.ENVIRONMENT_ID,      CI.ENVIRONMENT_DESCRIPTION,      CI.OPERATIONAL_STATUS_DESCRIPTION,      CASE WHEN CI.OPERATIONAL_STATUS_GROUP = 'ACTIVE' THEN 1 ELSE 0 END AS ACTIVE,      CI.SYS_CLASS_NAME AS SYS_CALSS_NAME,      CI.SYS_CLASS_DESCRIPTION AS SYS_CLASS_DESCRIPTION,      CI.TARGET_TABLE_NAME AS TARGET_TABLE_NAME,      CI.SYS_CREATED_ON AS SYS_CREATED_ON,      CI.SYS_UPDATED_ON AS SYS_UPDATED_ON,      NULL AS RETIRED_DATE,      NULL AS NON_OPERATIONAL_DATE,      DD.NAME DEVICE_NAME,      DD.DEVICE_WF_GUID,      DD.DATA_CENTER_NAME,      DD.DATA_CENTER_NEIGHBORHOOD"
+      }
+    }
+  }
+}

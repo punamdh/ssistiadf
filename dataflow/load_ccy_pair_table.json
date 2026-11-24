@@ -1,0 +1,47 @@
+{
+  "name" : "load_ccy_pair_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tFilePath as string ('\\\\ cslnhf501.wellsfargo.com\\\\DRSProd\\\\WFSOpsKRIReporting\\\\DropZone\\\\Calypso\\\\LiveTradeStatus'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Id} as string,\n\t\t{Product Type} as string,\n\t\t{Currency Pair} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\tsource(output(\n\t\t{Trade Id} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource1 derive(FileName = toString((substring(toString($FilePath), toInteger(89), toInteger(120)))),\n\t\tFileDate = toString((substring(toString($FilePath), toInteger(104), toInteger(10))))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileDate} = toDate(FileDate, \"MM/dd/yyyy\")) ~> DataConversion1\nDataConversion1 split(Currency Pair != '', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1,LookupLKPTABLE lookup(ConditionalSplit@Case1@{Trade Id} == LookupLKPTABLE@{Trade Id},\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\t{Currency Pair} = {Currency Pair},\n\t\t{Copy of FileDate} = {Copy of FileDate},\n\t\tFileDate = FileDate,\n\t\tFileName = FileName,\n\t\t{Trade Id} = LookupLKPTABLE@{Trade Id},\n\t\t{Product Type} = {Product Type}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tCurrency_Pair as string,\n\t\tFileName as string,\n\t\tTrade_Id as string,\n\t\tProduct_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFileDate,\n\t\tCurrency_Pair = {Currency Pair},\n\t\tFileName,\n\t\tTrade_Id = {Trade Id},\n\t\tProduct_Type = {Product Type}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

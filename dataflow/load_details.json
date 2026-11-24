@@ -1,0 +1,33 @@
+{
+  "name" : "load_details",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Event Date} as string,\n\t\t{Event ID} as string,\n\t\t{External ID} as string,\n\t\tRegion as string,\n\t\t{Action Movement} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn derive({Copy of Loaddate} = toString(Loaddate)) ~> DataConversion\nDataConversion sink(input(\n\t\tLoadDate as string,\n\t\tAction as string,\n\t\tRegion as string,\n\t\texternal_id as string,\n\t\tEvent_Date as string,\n\t\tEvent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = {Copy of Loaddate},\n\t\tAction = {Action Movement},\n\t\tRegion,\n\t\texternal_id = {External ID},\n\t\tEvent_Date = {Event Date},\n\t\tEvent_id = {Event ID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

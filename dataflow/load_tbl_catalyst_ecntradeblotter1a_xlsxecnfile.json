@@ -1,0 +1,31 @@
+{
+  "name" : "load_tbl_catalyst_ecntradeblotter1a_xlsxecnfile",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromECNCATBLOTTERcsv",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystEcnTradeBlotter1a"
+      } ],
+      "transformations" : [ {
+        "name" : "addrowCreateDate"
+      } ],
+      "script" : "parameters{\n\ttotblCatalystEcnTradeBlotter1a_outputfilename as string ()\n}\n\nsource(output(\n\t\tInventory as string,\n\t\t{BBG Trade Number} as string,\n\t\t{Ticket Number} as string,\n\t\tCusip as string,\n\t\t{Security Description} as string,\n\t\t{B S} as string,\n\t\tAmount as string,\n\t\t{Total Cash} as string,\n\t\tCounterparty as string,\n\t\t{Trade Date} as string,\n\t\t{Settle Date} as string,\n\t\t{Trade Status} as string,\n\t\tTrader as string,\n\t\tSalesperson as string,\n\t\t{Sales Credit} as string,\n\t\t{Entry Date} as string,\n\t\t{Entered By} as string,\n\t\t{Canceled Date} as string,\n\t\t{Trace MPID} as string,\n\t\t{Trace MPID Override} as string,\n\t\tOrigin as string,\n\t\t{Trace Control Number} as string,\n\t\t{Trace Status String} as string,\n\t\t{Impact Trade Number} as string,\n\t\t{Msrb Code} as string,\n\t\t{Sales Credit Code} as string,\n\t\t{Default Sales Credit} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromECNCATBLOTTERcsv\nfromECNCATBLOTTERcsv derive(rowCreateDate = currentTimestamp()) ~> addrowCreateDate\naddrowCreateDate sink(input(\n\t\tOrigin as string,\n\t\tDefault_Sales_Credit as string,\n\t\tTrade_Status as string,\n\t\tEntered_By as string,\n\t\tImpact_Trade_Number as string,\n\t\tEntry_Date as string,\n\t\tTrace_Control_Number as string,\n\t\tTrace_MPID_Override as string,\n\t\tCanceled_Date as string,\n\t\tSales_Credit as double,\n\t\tSales_Credit_Code as string,\n\t\trowCreateDate as timestamp 'dd-MM-yyyy',\n\t\tCounterparty as string,\n\t\tB_S as string,\n\t\tSecurity_Description as string,\n\t\tSettle_Date as string,\n\t\tTrace_Status_String as string,\n\t\tTrade_Date as string,\n\t\tTrader as string,\n\t\tAmount as double,\n\t\tTicket_Number as string,\n\t\tMsrb_Code as string,\n\t\tCusip as string,\n\t\tBBG_Trade_Number as string,\n\t\tTrace_MPID as string,\n\t\tInventory as string,\n\t\tSalesperson as string,\n\t\tTotal_Cash as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOrigin,\n\t\tDefault_Sales_Credit = {Default Sales Credit},\n\t\tTrade_Status = {Trade Status},\n\t\tEntered_By = {Entered By},\n\t\tImpact_Trade_Number = {Impact Trade Number},\n\t\tEntry_Date = {Entry Date},\n\t\tTrace_Control_Number = {Trace Control Number},\n\t\tTrace_MPID_Override = {Trace MPID Override},\n\t\tCanceled_Date = {Canceled Date},\n\t\tSales_Credit = {Sales Credit},\n\t\tSales_Credit_Code = {Sales Credit Code},\n\t\trowCreateDate,\n\t\tCounterparty,\n\t\tB_S = {B S},\n\t\tSecurity_Description = {Security Description},\n\t\tSettle_Date = {Settle Date},\n\t\tTrace_Status_String = {Trace Status String},\n\t\tTrade_Date = {Trade Date},\n\t\tTrader,\n\t\tAmount,\n\t\tTicket_Number = {Ticket Number},\n\t\tMsrb_Code = {Msrb Code},\n\t\tCusip,\n\t\tBBG_Trade_Number = {BBG Trade Number},\n\t\tTrace_MPID = {Trace MPID},\n\t\tInventory,\n\t\tSalesperson,\n\t\tTotal_Cash = {Total Cash}),\n\tpartitionFileNames:[($totblCatalystEcnTradeBlotter1a_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystEcnTradeBlotter1a"
+    }
+  }
+}

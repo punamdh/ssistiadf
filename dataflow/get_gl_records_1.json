@@ -1,0 +1,36 @@
+{
+  "name" : "get_gl_records_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OleDBfromFACSUATGL",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "GLRowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OleDBtoReconControl"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "GLRowCount0"
+      } ],
+      "script" : "parameters{\n\tdStartPreviousMonth as timestamp (toTimestamp('6/1/2021')),\n\tsRecordStatus as string ('PR'),\n\tOleDBtoReconControl_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFECTIVE_DATE as timestamp,\n\t\tGL_COMPANY_NBR as string,\n\t\tGL_ACCOUNT_NBR as string,\n\t\tGL_AU_NBR as string,\n\t\tAMOUNT as decimal(24,8),\n\t\tAMOUNT_CR as decimal(24,8),\n\t\tAMOUNT_DR as decimal(24,8),\n\t\tENTERED_AMOUNT as decimal(24,8),\n\t\tENTERED_CR as decimal(24,8),\n\t\tENTERED_DR as decimal(24,8),\n\t\tCURRENCY_CODE as string,\n\t\tDESC1 as string,\n\t\tATTRIBUTE7 as string,\n\t\tJE_LINE_NUM as double,\n\t\tcreate_dte as timestamp,\n\t\tJE_HEADER_ID as double,\n\t\texternal_Reference as string,\n\t\tgmiaccnt as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OleDBfromFACSUATGL\nOleDBfromFACSUATGL derive(RiskEOM = $dStartPreviousMonth,\n\t\tRecordSts = toString($sRecordStatus),\n\t\tRiskAdjEOM = $dStartPreviousMonth) ~> DerivedColumn\nOleDBfromFACSUATGL aggregate(groupBy(),\n\trowcount = count(1)) ~> GLRowCount0\nDerivedColumn sink(input(\n\t\tEFFECTIVE_DATE as date 'dd-MM-yyyy',\n\t\tJE_LINE_NUM as double,\n\t\tATTRIBUTE1 as string,\n\t\tGL_AU_NBR as string,\n\t\tExternal_reference as string,\n\t\triskMonth_Dte as date 'dd-MM-yyyy',\n\t\tENTERED_DR as double,\n\t\tENTERED_AMOUNT as double,\n\t\tENTERED_CR as double,\n\t\tGMI_ACCOUNT as string,\n\t\tJE_HEADER_ID as double,\n\t\tRecord_Status as string,\n\t\tGL_COMPANY_NBR as string,\n\t\tATTRIBUTE7 as string,\n\t\tCURRENCY_CODE as string,\n\t\tGL_ACCOUNT_NBR as string,\n\t\tAMOUNT_DR as double,\n\t\tAMOUNT_CR as double,\n\t\tcreate_dte as timestamp 'dd-MM-yyyy',\n\t\tAMOUNT as double,\n\t\triskMonth_Adj_Dte as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 10000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEFFECTIVE_DATE,\n\t\tJE_LINE_NUM,\n\t\tATTRIBUTE1 = DESC1,\n\t\tGL_AU_NBR,\n\t\tExternal_reference = external_Reference,\n\t\triskMonth_Dte = RiskEOM,\n\t\tENTERED_DR,\n\t\tENTERED_AMOUNT,\n\t\tENTERED_CR,\n\t\tGMI_ACCOUNT = gmiaccnt,\n\t\tJE_HEADER_ID,\n\t\tRecord_Status = RecordSts,\n\t\tGL_COMPANY_NBR,\n\t\tATTRIBUTE7,\n\t\tCURRENCY_CODE,\n\t\tGL_ACCOUNT_NBR,\n\t\tAMOUNT_DR,\n\t\tAMOUNT_CR,\n\t\tcreate_dte,\n\t\tAMOUNT,\n\t\triskMonth_Adj_Dte = RiskAdjEOM),\n\tpartitionFileNames:[($OleDBtoReconControl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OleDBtoReconControl\nGLRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> GLRowCountCACHESINK"
+    }
+  }
+}

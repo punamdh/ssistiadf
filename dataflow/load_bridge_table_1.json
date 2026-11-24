@@ -1,0 +1,29 @@
+{
+  "name" : "load_bridge_table_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblGSFDailyWFSIWFBNReportBridgeforView"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblGSFDailyWFSIWFBNReportBridgeforView_outputfilename as string ()\n}\n\nsource(output(\n\t\tParentId as string,\n\t\tStatus as string,\n\t\tTradeVersion as string,\n\t\tEntity as string,\n\t\tTrading_Unit_Name as string,\n\t\tCreatedBy as string,\n\t\tEventType as string,\n\t\tFullname as string,\n\t\tSourceSubSystem as string,\n\t\tReasoncode as string,\n\t\tGsfMapKey as string,\n\t\tAsOfDate as string,\n\t\tBook as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tParentId as string,\n\t\tStatus as string,\n\t\tTradeVersion as string,\n\t\tEntity as string,\n\t\tTrading_Unit_Name as string,\n\t\tCreatedBy as string,\n\t\tEventType as string,\n\t\tFullname as string,\n\t\tSourceSubSystem as string,\n\t\tReasonCode as string,\n\t\tGsfMapKey as string,\n\t\tAsOfDate as string,\n\t\tBook as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tParentId,\n\t\tStatus,\n\t\tTradeVersion,\n\t\tEntity,\n\t\tTrading_Unit_Name,\n\t\tCreatedBy,\n\t\tEventType,\n\t\tFullname,\n\t\tSourceSubSystem,\n\t\tReasonCode = Reasoncode,\n\t\tGsfMapKey,\n\t\tAsOfDate,\n\t\tBook),\n\tpartitionFileNames:[($tblGSFDailyWFSIWFBNReportBridgeforView_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFDailyWFSIWFBNReportBridgeforView"
+    }
+  }
+}

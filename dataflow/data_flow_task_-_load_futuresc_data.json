@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_load_futuresc_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn2"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tPGROSS as double,\n\t\tPCLASS as string,\n\t\tPSUBCL as string,\n\t\tPRECID as string,\n\t\tPEXCH as string,\n\t\tPCARD as string,\n\t\tPCALC as string,\n\t\tPQTY as double,\n\t\tPFIRM as string,\n\t\tPOFFIC as string,\n\t\tPACCT as string,\n\t\tPGIVIO as string,\n\t\tPGIVF as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn2\nDerivedColumn2 sink(input(\n\t\tPEXCH as string,\n\t\tPCALC as string,\n\t\tPQTY as double,\n\t\tPOFFIC as string,\n\t\tPSUBCL as string,\n\t\tPGROSS as double,\n\t\tPCARD as string,\n\t\tPFIRM as string,\n\t\tPACCT as string,\n\t\tEFFDATE as timestamp 'dd-MM-yyyy',\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tPRECID as string,\n\t\tPCLASS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 5000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPEXCH,\n\t\tPCALC,\n\t\tPQTY,\n\t\tPOFFIC,\n\t\tPSUBCL,\n\t\tPGROSS,\n\t\tPCARD,\n\t\tPFIRM,\n\t\tPACCT,\n\t\tEFFDATE,\n\t\tloadDate,\n\t\tPRECID,\n\t\tPCLASS),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

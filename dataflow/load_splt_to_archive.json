@@ -1,0 +1,31 @@
+{
+  "name" : "load_splt_to_archive",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblOpicsSTPNonSTPVolumeSPLTStaging",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsSTPNonSTPVolumeSPLTArchive"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblOpicsSTPNonSTPVolumeSPLTArchive_outputfilename as string ()\n}\n\nsource(output(\n\t\tSTP_NONSTP as string,\n\t\tBusiness_Group as string,\n\t\tCount as string,\n\t\tLoaddate as string,\n\t\tMonth as string,\n\t\tYear as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblOpicsSTPNonSTPVolumeSPLTStaging\ntblOpicsSTPNonSTPVolumeSPLTStaging derive(TradeMonth = toString((Month + '-' + Year))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTradeMonth as string,\n\t\tBusiness_Group as string,\n\t\tLoaddate as string,\n\t\tSTP_NONSTP as string,\n\t\tCount as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTradeMonth,\n\t\tBusiness_Group,\n\t\tLoaddate,\n\t\tSTP_NONSTP,\n\t\tCount),\n\tpartitionFileNames:[($tblOpicsSTPNonSTPVolumeSPLTArchive_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsSTPNonSTPVolumeSPLTArchive"
+    }
+  }
+}

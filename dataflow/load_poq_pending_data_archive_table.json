@@ -1,0 +1,33 @@
+{
+  "name" : "load_poq_pending_data_archive_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "POQPending",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFileName_Exported as string ('POQ Pending Trades for COB_2025_6_30.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tNotSettledMorethan3days as integer,\n\t\tcounterparty as string,\n\t\tcusip as string,\n\t\tisParentChild as string,\n\t\tTrading_Unit_Name as string,\n\t\tDesk_Name as string,\n\t\tDesk_ManagerName as string,\n\t\tisInternational as string,\n\t\tTicketNumber as string,\n\t\tEntryDate as string,\n\t\tTradeDate as string,\n\t\tSettleDate as string,\n\t\tTicketTypeCode as string,\n\t\tEntered_By as string,\n\t\tTraderName as string,\n\t\tApproved_By as string,\n\t\tPositionGroupDesc as string,\n\t\tTradeStatusString as string,\n\t\tSales as string,\n\t\tPar as string,\n\t\tTradePrice as string,\n\t\tTotalCash as string,\n\t\tPreviousTicketNumber as string,\n\t\tLoaddate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> POQPending\nPOQPending derive({Copy of EntryDate} = toDate(EntryDate, \"MM/dd/yyyy\"),\n\t\t{Copy of TradeDate} = toDate(TradeDate, \"MM/dd/yyyy\"),\n\t\t{Copy of Trading_Unit_Name} = Trading_Unit_Name,\n\t\t{Copy of Desk_Name} = Desk_Name,\n\t\t{Copy of Desk_ManagerName} = Desk_ManagerName,\n\t\t{Copy of SettleDate} = toDate(SettleDate, \"MM/dd/yyyy\")) ~> DataConversion1\nDataConversion1 derive(FileName = toString($FileName_Exported)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tPar as string,\n\t\tTraderName as string,\n\t\tcusip as string,\n\t\tFileName as string,\n\t\tEntered_By as string,\n\t\tApproved_By as string,\n\t\tTradeStatusString as string,\n\t\tPreviousTicketNumber as string,\n\t\tSales as string,\n\t\tisInternational as string,\n\t\tTicketNumber as string,\n\t\tDesk_Name as string,\n\t\tLoaddate as timestamp 'dd-MM-yyyy',\n\t\tTradeDate as string,\n\t\tSettleDate as string,\n\t\tTicketTypeCode as string,\n\t\tTrading_Unit_Name as string,\n\t\tTradePrice as string,\n\t\tDesk_ManagerName as string,\n\t\tisParentChild as string,\n\t\tPositionGroupDesc as string,\n\t\tTotalCash as string,\n\t\tEntryDate as string,\n\t\tcounterparty as string,\n\t\tNotSettledMorethan3days as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPar,\n\t\tTraderName,\n\t\tcusip,\n\t\tFileName,\n\t\tEntered_By,\n\t\tApproved_By,\n\t\tTradeStatusString,\n\t\tPreviousTicketNumber,\n\t\tSales,\n\t\tisInternational,\n\t\tTicketNumber,\n\t\tDesk_Name = {Copy of Desk_Name},\n\t\tLoaddate,\n\t\tTradeDate = {Copy of TradeDate},\n\t\tSettleDate = {Copy of SettleDate},\n\t\tTicketTypeCode,\n\t\tTrading_Unit_Name = {Copy of Trading_Unit_Name},\n\t\tTradePrice,\n\t\tDesk_ManagerName = {Copy of Desk_ManagerName},\n\t\tisParentChild,\n\t\tPositionGroupDesc,\n\t\tTotalCash,\n\t\tEntryDate = {Copy of EntryDate},\n\t\tcounterparty,\n\t\tNotSettledMorethan3days),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

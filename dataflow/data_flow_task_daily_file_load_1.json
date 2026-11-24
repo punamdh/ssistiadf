@@ -1,0 +1,41 @@
+{
+  "name" : "data_flow_task_daily_file_load_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCLIENT as string,\n\t\tPRODUCT as string,\n\t\tACCOUNT_NUMBER as string,\n\t\tTYPE as string,\n\t\tChk as string,\n\t\tACCOUNT_NAME as string,\n\t\tCUSIP as string,\n\t\tSymbol as string,\n\t\tQuantity as string,\n\t\tORIGINAL_PRICE as string,\n\t\tNET_AMOUNT as string,\n\t\tDTC as string,\n\t\tCUSTOMER_NUMBER as string,\n\t\tMARKET_STATUS as string,\n\t\tCageKey as string,\n\t\tBuySell as string,\n\t\tTRADE_DATE as string,\n\t\tSETTLEMENT_DATE as string,\n\t\tAFFIRMATION_DATE1 as string,\n\t\tAFFIRMED1 as string,\n\t\tIDControl as string,\n\t\tBlotter as string,\n\t\tINV as string,\n\t\tBRRepID1 as string,\n\t\tSALES_PERSON as string,\n\t\tSALES_ASSISTANT as string,\n\t\tSALES_MANAGER as string,\n\t\tBACK_UP1 as string,\n\t\tSALES_GROUP as string,\n\t\tADP_NUMBER as string,\n\t\tDescription as string,\n\t\tTRADE_NUMBER as string,\n\t\tIsCancel as string,\n\t\tOFFSET as string,\n\t\tCurrency as string,\n\t\tOrigin as string,\n\t\tCPNRATE as string,\n\t\tLegalID as string,\n\t\tLegalName as string,\n\t\tCOMMENTS as string,\n\t\tCommentDate1 as string,\n\t\tCommenter1 as string,\n\t\tReason as string,\n\t\tBRRR as string,\n\t\tDO_CLH_NBR as string,\n\t\tCLIENT_CLNAME_PROD as string,\n\t\tCounterParty as string,\n\t\tPOSITION_GROUP_DESCRIPTION as string,\n\t\tSPIN as string,\n\t\tAGENTINTACCOUNTNUMBER1 as string,\n\t\tDTCAGENTBANKNUMBER as string,\n\t\tDTCINSTID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tTrade_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource derive(loadDate = currentTimestamp(),\n\t\tAffirmation_Date_Drv = iif(isNull(AFFIRMATION_DATE1) || (AFFIRMATION_DATE1 == ''), toDate(toString(null(), 'MM/dd/yyyy'), \"MM/dd/yyyy\"), toDate(AFFIRMATION_DATE1, \"MM/dd/yyyy\")),\n\t\tCommentDate_Drv = iif(isNull(CommentDate1) || (CommentDate1 == ''), toDate(toString(null(), 'MM/dd/yyyy'), \"MM/dd/yyyy\"), toDate(CommentDate1, \"MM/dd/yyyy\")),\n\t\tCPNRATE_Drv = iif(isNull(CPNRATE) || (CPNRATE == ''), toFloat(null()), toFloat(CPNRATE)),\n\t\tORIGINAL_PRICE_Drv = iif(isNull(ORIGINAL_PRICE) || (ORIGINAL_PRICE == ''), toFloat(null()), toFloat(ORIGINAL_PRICE)),\n\t\tTRADE_DATE_Drv = iif(isNull(TRADE_DATE) || (TRADE_DATE == ''), toDate(toString(null(), 'MM/dd/yyyy'), \"MM/dd/yyyy\"), toDate(TRADE_DATE, \"MM/dd/yyyy\")),\n\t\tSETTLEMENT_DATE_Drv = iif(isNull(SETTLEMENT_DATE) || (SETTLEMENT_DATE == ''), toDate(toString(null(), 'MM/dd/yyyy'), \"MM/dd/yyyy\"), toDate(SETTLEMENT_DATE, \"MM/dd/yyyy\"))) ~> DerivedColumn\nDerivedColumn,LookupLKPTABLE lookup(FlatFileSource@TRADE_DATE == LookupLKPTABLE@Trade_Date,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tOrigin as string,\n\t\tIDControl as string,\n\t\tDTCINSTID as string,\n\t\tSETTLEMENT_DATE as date 'dd-MM-yyyy',\n\t\tChk as string,\n\t\tBuySell as string,\n\t\tBlotter as string,\n\t\tBRRR as string,\n\t\tACCOUNT_NAME as string,\n\t\tPRODUCT as string,\n\t\tCurrency as string,\n\t\tACCOUNT_NUMBER as string,\n\t\tTYPE as string,\n\t\tSALES_MANAGER as string,\n\t\tLegalName as string,\n\t\tCUSTOMER_NUMBER as string,\n\t\tNET_AMOUNT as string,\n\t\tCLIENT_CLNAME_PROD as string,\n\t\tAGENTINTACCOUNTNUMBER as string,\n\t\tDTC as string,\n\t\tADP_NUMBER as string,\n\t\tTRADE_DATE as date 'dd-MM-yyyy',\n\t\tMARKET_STATUS as string,\n\t\tDTCAGENTBANKNUMBER as string,\n\t\tCageKey as string,\n\t\tORIGINAL_PRICE as double,\n\t\tDescription as string,\n\t\tSymbol as string,\n\t\tCOMMENTS as string,\n\t\tReason as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tCommentDate as date 'dd-MM-yyyy',\n\t\tTRADE_NUMBER as string,\n\t\tCUSIP as string,\n\t\tINV as string,\n\t\tSALES_GROUP as string,\n\t\tCPNRATE as double,\n\t\tSALES_ASSISTANT as string,\n\t\tSALES_PERSON as string,\n\t\tOFFSET as string,\n\t\tSPIN as string,\n\t\tIsCancel as string,\n\t\tQuantity as string,\n\t\tBACK_UP as string,\n\t\tPOSITION_GROUP_DESCRIPTION as string,\n\t\tCLIENT as string,\n\t\tDO_CLH_NBR as string,\n\t\tAFFIRMATION_DATE as date 'dd-MM-yyyy',\n\t\tCounterParty as string,\n\t\tBRRepID as string,\n\t\tLegalID as string,\n\t\tCommenter as string,\n\t\tAFFIRMED as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOrigin,\n\t\tIDControl,\n\t\tDTCINSTID,\n\t\tSETTLEMENT_DATE = SETTLEMENT_DATE_Drv,\n\t\tChk,\n\t\tBuySell,\n\t\tBlotter,\n\t\tBRRR,\n\t\tACCOUNT_NAME,\n\t\tPRODUCT,\n\t\tCurrency,\n\t\tACCOUNT_NUMBER,\n\t\tTYPE,\n\t\tSALES_MANAGER,\n\t\tLegalName,\n\t\tCUSTOMER_NUMBER,\n\t\tNET_AMOUNT,\n\t\tCLIENT_CLNAME_PROD,\n\t\tAGENTINTACCOUNTNUMBER = AGENTINTACCOUNTNUMBER1,\n\t\tDTC,\n\t\tADP_NUMBER,\n\t\tTRADE_DATE = TRADE_DATE_Drv,\n\t\tMARKET_STATUS,\n\t\tDTCAGENTBANKNUMBER,\n\t\tCageKey,\n\t\tORIGINAL_PRICE = ORIGINAL_PRICE_Drv,\n\t\tDescription,\n\t\tSymbol,\n\t\tCOMMENTS,\n\t\tReason,\n\t\tloadDate,\n\t\tCommentDate = CommentDate_Drv,\n\t\tTRADE_NUMBER,\n\t\tCUSIP,\n\t\tINV,\n\t\tSALES_GROUP,\n\t\tCPNRATE = CPNRATE_Drv,\n\t\tSALES_ASSISTANT,\n\t\tSALES_PERSON,\n\t\tOFFSET,\n\t\tSPIN,\n\t\tIsCancel,\n\t\tQuantity,\n\t\tBACK_UP = BACK_UP1,\n\t\tPOSITION_GROUP_DESCRIPTION,\n\t\tCLIENT,\n\t\tDO_CLH_NBR,\n\t\tAFFIRMATION_DATE = Affirmation_Date_Drv,\n\t\tCounterParty,\n\t\tBRRepID = BRRepID1,\n\t\tLegalID,\n\t\tCommenter = Commenter1,\n\t\tAFFIRMED = AFFIRMED1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

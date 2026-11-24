@@ -1,0 +1,35 @@
+{
+  "name" : "load_fcm_allocations_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FCMAllocations",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DeriveFileName"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tsFileName as string ('Blackrock_fcmallocfile_01082020_120834037.csv'),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Tran Type} as string,\n\t\tQuantity as string,\n\t\t{BLK Ticker} as string,\n\t\t{Product Code} as string,\n\t\t{Security Type} as string,\n\t\t{Maturity Month} as string,\n\t\t{Maturity Year} as string,\n\t\t{Security Description} as string,\n\t\t{Price Premium} as string,\n\t\t{Put or Call} as string,\n\t\t{Strike Price} as string,\n\t\t{Executing Broker} as string,\n\t\t{Trade Date} as string,\n\t\t{Settle Date} as string,\n\t\tPortfolio as string,\n\t\t{FCM Account} as string,\n\t\tInvnum as string,\n\t\t{Touch Count} as string,\n\t\tFCM as string,\n\t\t{Commission Type} as string,\n\t\t{Trade Type} as string,\n\t\t{OCC Symbol} as string,\n\t\t{Maturity Date} as string,\n\t\t{Exercise Type} as string,\n\t\tExchange as string,\n\t\tCurrency as string,\n\t\t{Net Money} as string,\n\t\t{Alloc Type} as string,\n\t\t{Trade ID} as string,\n\t\t{Executing Commission} as string,\n\t\t{Clearing Commission} as string,\n\t\t{Exchange Fee} as string,\n\t\t{Other Fee} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FCMAllocations\nFCMAllocations split(isNull(Tran Type) || Tran Type == '', disjoint: true) ~> ConditionalSplit@(BlankTranType,HasTranType)\nConditionalSplit@HasTranType derive(LoadDate = currentTimestamp(),\n\t\tFileName = $sFileName,\n\t\tFileDate = substring(toString($sFileName), toInteger(24), toInteger(8))) ~> DeriveFileName\nDeriveFileName derive({Copy of FileName} = FileName,\n\t\t{Copy of FileDate} = FileDate) ~> DataConversion\nDataConversion sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tTranType as string,\n\t\tExecutingCommission as string,\n\t\tSecurityType as string,\n\t\tInvnum as string,\n\t\tClearingCommission as string,\n\t\tTradeID as string,\n\t\tFileName as string,\n\t\tTradeType as string,\n\t\tExchangeFee as string,\n\t\tFileDate as string,\n\t\tExecutingBroker as string,\n\t\tMaturityYear as string,\n\t\tBLKTicker as string,\n\t\tCurrency as string,\n\t\tNetMoney as string,\n\t\tTradeDate as string,\n\t\tFCMAccount as string,\n\t\tSettleDate as string,\n\t\tStrikePrice as string,\n\t\tTouchCount as string,\n\t\tProductCode as string,\n\t\tPortfolio as string,\n\t\tQuantity as string,\n\t\tAllocType as string,\n\t\tMaturityDate as string,\n\t\tOCCSymbol as string,\n\t\tExerciseType as string,\n\t\tExchange as string,\n\t\tFCM as string,\n\t\tMaturityMonth as string,\n\t\tSecurityDescription as string,\n\t\tOtherFee as string,\n\t\tPutorCall as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tTranType = {Tran Type},\n\t\tExecutingCommission = {Executing Commission},\n\t\tSecurityType = {Security Type},\n\t\tInvnum,\n\t\tClearingCommission = {Clearing Commission},\n\t\tTradeID = {Trade ID},\n\t\tFileName = {Copy of FileName},\n\t\tTradeType = {Trade Type},\n\t\tExchangeFee = {Exchange Fee},\n\t\tFileDate = {Copy of FileDate},\n\t\tExecutingBroker = {Executing Broker},\n\t\tMaturityYear = {Maturity Year},\n\t\tBLKTicker = {BLK Ticker},\n\t\tCurrency,\n\t\tNetMoney = {Net Money},\n\t\tTradeDate = {Trade Date},\n\t\tFCMAccount = {FCM Account},\n\t\tSettleDate = {Settle Date},\n\t\tStrikePrice = {Strike Price},\n\t\tTouchCount = {Touch Count},\n\t\tProductCode = {Product Code},\n\t\tPortfolio,\n\t\tQuantity,\n\t\tAllocType = {Alloc Type},\n\t\tMaturityDate = {Maturity Date},\n\t\tOCCSymbol = {OCC Symbol},\n\t\tExerciseType = {Exercise Type},\n\t\tExchange,\n\t\tFCM,\n\t\tMaturityMonth = {Maturity Month},\n\t\tSecurityDescription = {Security Description},\n\t\tOtherFee = {Other Fee},\n\t\tPutorCall = {Put or Call}),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1"
+    }
+  }
+}

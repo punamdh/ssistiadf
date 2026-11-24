@@ -1,0 +1,31 @@
+{
+  "name" : "load_customer_info_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tFilePathFPA_Deliveries as string ('\\\\ csl831nvs1.wellsfargo.com\\\\1EQSUAT\\\\1EQSDEV\\\\WFSOpsKRIReporting\\\\DropZone\\\\Calypso\\\\FPA_Deliveries\\\\CustomerInfoFile\\\\CustomerInformationDatabase_09-12-2025.csv'),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tID as string,\n\t\tShort_Name as string,\n\t\tCustomer as string,\n\t\tAccount_Name as string,\n\t\tCalypso as string,\n\t\tPhase3 as string,\n\t\tContact as string,\n\t\tFax as string,\n\t\tPhone as string,\n\t\tEmail as string,\n\t\tBank_Name as string,\n\t\tDTC as string,\n\t\tABA as string,\n\t\tRouting_Symbol as string,\n\t\tAccount_Number as string,\n\t\tComments as string,\n\t\tAddl_Instructions as string,\n\t\tFurther_Credit as string,\n\t\tReference as string,\n\t\tInfinity_Remark as string,\n\t\tTrans as string,\n\t\tTrade as string,\n\t\tType_of_Deal as string,\n\t\tInterest_Payments as string,\n\t\tAttention as string,\n\t\tdeal_yield as string,\n\t\tSBR as string,\n\t\tMatured as string,\n\t\tLive as string,\n\t\t{Internal Reference} as string,\n\t\tLast_updated as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp(),\n\t\tFileName = toString((substring(toString($FilePathFPA_Deliveries), toInteger(87), toInteger(29)))),\n\t\tFileDate = toString((substring(toString($FilePathFPA_Deliveries), toInteger(102), toInteger(10))))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tABA as string,\n\t\tEmail as string,\n\t\tInterest_Payments as string,\n\t\tCustomer as string,\n\t\tInternalReference as string,\n\t\tAddl_Instructions as string,\n\t\tLast_updated as string,\n\t\tRouting_Symbol as string,\n\t\tTrade as string,\n\t\tCalypso as string,\n\t\tPhase3 as string,\n\t\tInfinity_Remark as string,\n\t\tPhone as string,\n\t\tAccount_Name as string,\n\t\tID as string,\n\t\tAccount_Number as string,\n\t\tTrans as string,\n\t\tType_of_Deal as string,\n\t\tSBR as string,\n\t\tMatured as string,\n\t\tComments as string,\n\t\tReference as string,\n\t\tAttention as string,\n\t\tLive as string,\n\t\tFurther_Credit as string,\n\t\tContact as string,\n\t\tDeal_yield as string,\n\t\tDTC as string,\n\t\tBank_Name as string,\n\t\tShort_Name as string,\n\t\tFax as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tABA,\n\t\tEmail,\n\t\tInterest_Payments,\n\t\tCustomer,\n\t\tInternalReference = {Internal Reference},\n\t\tAddl_Instructions,\n\t\tLast_updated,\n\t\tRouting_Symbol,\n\t\tTrade,\n\t\tCalypso,\n\t\tPhase3,\n\t\tInfinity_Remark,\n\t\tPhone,\n\t\tAccount_Name,\n\t\tID,\n\t\tAccount_Number,\n\t\tTrans,\n\t\tType_of_Deal,\n\t\tSBR,\n\t\tMatured,\n\t\tComments,\n\t\tReference,\n\t\tAttention,\n\t\tLive,\n\t\tFurther_Credit,\n\t\tContact,\n\t\tDeal_yield = deal_yield,\n\t\tDTC,\n\t\tBank_Name,\n\t\tShort_Name,\n\t\tFax),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

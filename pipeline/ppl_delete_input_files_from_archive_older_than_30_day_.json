@@ -1,0 +1,151 @@
+{
+  "name" : "ppl_delete_input_files_from_archive_older_than_30_day_",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_Archive_File_ContainerName' AND PIPELINE_NAME = 'ppl_intellimatchfxnostrostatementandledgerbalanceimport') AS DELDelete_Archive_File_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_Archive_File_FileName' AND PIPELINE_NAME = 'ppl_intellimatchfxnostrostatementandledgerbalanceimport') AS DELDelete_Archive_File_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'DELDelete_Archive_File_FilePath' AND PIPELINE_NAME = 'ppl_intellimatchfxnostrostatementandledgerbalanceimport') AS DELDelete_Archive_File_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "DELDelete_Archive_File_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(notConvertedectfunctiondatedatediff('dd', (concat(substring(variables('sFileName'), 5, 2),'-',substring(variables('sFileName'), 7, 2),'-',substring(variables('sFileName'), 1, 4))), utcNow()),30)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "DEL_DELDelete_Archive_File",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_Archive_File_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_Archive_File_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.DELDelete_Archive_File_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sBody" : {
+        "type" : "String",
+        "defaultValue" : "This e-mail alert provides the job status of the job which loads the four, daily intellimatch files necessary to produce the FX Overdraft Statement USD Equivalent Report"
+      },
+      "sFileName" : {
+        "type" : "String",
+        "defaultValue" : "20180928_112153Nostros and Opics.csv"
+      },
+      "sCurrentTimestamp" : {
+        "type" : "String",
+        "defaultValue" : "20181015_104051"
+      },
+      "sSourceDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\DailyFXNostroBalances"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_FXNostroStatementAndLedgerBalanceImport"
+      },
+      "sArchivePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\DailyFXNostroBalances\\Archive\\20181015_10405120180928_112153Nostros and Opics.csv"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sArchiveDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\DailyFXNostroBalances\\Archive"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sMessage" : {
+        "type" : "String"
+      },
+      "sDeleteArchiveFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\DailyFXNostroBalances\\Archive\\20180928_112153Nostros and Opics.csv"
+      },
+      "sSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Intellimatch\\DailyFXNostroBalances\\20180928_112153Nostros and Opics.csv"
+      }
+    }
+  }
+}

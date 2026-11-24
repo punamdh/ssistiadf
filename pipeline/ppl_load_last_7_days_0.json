@@ -1,0 +1,163 @@
+{
+  "name" : "ppl_load_last_7_days_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "FRE_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "ST_Load_Only_New_Files_Into_Table_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT FileImported = IIF(@item.name IN (SELECT DISTINCT FileName FROM [ReconControl].[dbo].[tbl_BlackRock_FCMAllocation]), 'YES', 'NO' );",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sFileImported",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Load_Only_New_Files_Into_Table_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sFileImported",
+            "value" : "@string(activity('ST_Load_Only_New_Files_Into_Table_0').output.resultSets[0].rows[0].FileImported)"
+          }
+        }, {
+          "name" : "EP_Load_FCM_Allocations_File_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sFileImported",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_foreach_loop_container_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "BlackRock_FCM_AllocationAndClearing"
+      },
+      "sFolderPath_FileName" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\\\Blackrock_fcmallocfile_01082020_120834037.csv"
+      },
+      "sFileName" : {
+        "type" : "String",
+        "defaultValue" : "Blackrock_fcmallocfile_01082020_120834037.csv"
+      },
+      "sTotalRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sActualInserted" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "dDate" : {
+        "type" : "String",
+        "defaultValue" : "'9/12/2025 8:29:30 AM'"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_BlackRock_FCM_AllocationAndClearing"
+      },
+      "TempCounter" : {
+        "type" : "String"
+      },
+      "sFileImported" : {
+        "type" : "String",
+        "defaultValue" : "YES"
+      },
+      "sFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\"
+      },
+      "iCounter" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFolderPathArchive" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Blackrock\\allocations\\Archive\\"
+      },
+      "sRecordCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sMessage" : {
+        "type" : "String"
+      }
+    }
+  }
+}

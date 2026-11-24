@@ -1,0 +1,336 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_database_catalog_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Datalake_Source_Query_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Datalake_Source_Query_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Oracle_Datalake_Source_Query_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ETPP_Import_table_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ETPP_Import_table_Destination_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'ETPP_Import_table_Destination_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import' AND DATAFLOW_NAME = 'load_data_datalake_inventory_importtbl') AS LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'LOAD_DATA_datalake_inventory_importtbl0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import') AS LOAD_DATA_datalake_inventory_importtbl0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'LOAD_DATA_datalake_inventory_importtbl0_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_database_catalog_data_import') AS LOAD_DATA_datalake_inventory_importtbl0_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Execute_datalake_database_catalog_data_import_s",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "EXEC [import].[datalake_database_catalog_data_import_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_FirstPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_database_catalog_data_import_s",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "FirstPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_database_catalog_data_import_s').output.resultSets[0].rows[0].0)"
+      }
+    }, {
+      "name" : "SETVAR_SecondPart_SQL",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_datalake_database_catalog_data_import_s",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "SecondPart_SQL",
+        "value" : "@string(activity('ST_Execute_datalake_database_catalog_data_import_s').output.resultSets[0].rows[0].1)"
+      }
+    }, {
+      "name" : "ST_TRUNCATE_datalake_database_catalog_importtbl_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_SecondPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_FirstPart_SQL",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE import.datalake_database_catalog_importtbl",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_LOAD_DATA_datalake_inventory_importtbl",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_TRUNCATE_datalake_database_catalog_importtbl_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "LOAD_DATA_datalake_inventory_importtbl",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_LOAD_DATA_datalake_inventory_importtbl",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_LOAD_DATA_datalake_inventory_importtbl",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "load_data_datalake_inventory_importtbl",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "ETPPImporttableDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OracleDatalakeSourceQuery" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_OracleDatalakeSourceQuery_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "ETPPImporttableDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.LOAD_DATA_datalake_inventory_importtbl_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_LOAD_DATA_datalake_inventory_importtbl0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_LOAD_DATA_datalake_inventory_importtbl",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl_ETPPImporttableDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.LOAD_DATA_datalake_inventory_importtbl0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Execute_asset_master_database_catalog_sp_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_LOAD_DATA_datalake_inventory_importtbl0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[asset_master_database_catalog_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "LOAD_DATA_datalake_inventory_importtbl_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "FirstPart_SQL" : {
+        "type" : "String"
+      },
+      "SecondPart_SQL" : {
+        "type" : "String"
+      },
+      "SQL_Final" : {
+        "type" : "String"
+      }
+    }
+  }
+}

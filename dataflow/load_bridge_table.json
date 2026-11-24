@@ -1,0 +1,29 @@
+{
+  "name" : "load_bridge_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblGSFDailyBridgetableReport"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblGSFDailyBridgetableReport_outputfilename as string ()\n}\n\nsource(output(\n\t\tGSF_ParentId as string,\n\t\tGSF_Weekly as timestamp,\n\t\tGSF_Trading_Unit_Name as string,\n\t\tGSF_EventType as string,\n\t\tGSF_Book as string,\n\t\tGSF_TradeVersion as string,\n\t\tSource as string,\n\t\tGSF_CreatedBy as string,\n\t\tGSF_Status as string,\n\t\tGSF_TicketId as string,\n\t\tGSF_Counterparty as string,\n\t\tGSF_AsOfDate as date,\n\t\tGSF_SourceSubSystem as string,\n\t\tGSF_Reasoncode as string,\n\t\tGSF_Entity as string,\n\t\tGSF_GsfMapKey as string,\n\t\tGSF_Fullname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tGSF_ParentId as string,\n\t\tGSF_Weekly as string,\n\t\tGSF_Trading_Unit_Name as string,\n\t\tGSF_EventType as string,\n\t\tGSF_Book as string,\n\t\tGSF_TradeVersion as string,\n\t\tSource as string,\n\t\tGSF_CreatedBy as string,\n\t\tGSF_Status as string,\n\t\tGSF_TicketId as string,\n\t\tGSF_Counterparty as string,\n\t\tGSF_AsOfDate as string,\n\t\tGSF_SourceSubSystem as string,\n\t\tGSF_ReasonCode as string,\n\t\tGSF_Entity as string,\n\t\tGSF_GsfMapKey as string,\n\t\tGSF_Fullname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGSF_ParentId,\n\t\tGSF_Weekly,\n\t\tGSF_Trading_Unit_Name,\n\t\tGSF_EventType,\n\t\tGSF_Book,\n\t\tGSF_TradeVersion,\n\t\tSource,\n\t\tGSF_CreatedBy,\n\t\tGSF_Status,\n\t\tGSF_TicketId,\n\t\tGSF_Counterparty,\n\t\tGSF_AsOfDate,\n\t\tGSF_SourceSubSystem,\n\t\tGSF_ReasonCode = GSF_Reasoncode,\n\t\tGSF_Entity,\n\t\tGSF_GsfMapKey,\n\t\tGSF_Fullname),\n\tpartitionFileNames:[($tblGSFDailyBridgetableReport_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFDailyBridgetableReport"
+    }
+  }
+}

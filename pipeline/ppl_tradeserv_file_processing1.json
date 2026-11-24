@@ -1,0 +1,515 @@
+{
+  "name" : "ppl_tradeserv_file_processing1",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File1_Con_Mgr_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_File1ConMgr_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File1_Con_Mgr_FileName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_File1ConMgr_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File1_Con_Mgr_FilePath' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_File1ConMgr_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions' AND DATAFLOW_NAME = 'data_flow_task_12') AS Data_Flow_Task_12_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_120_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions') AS Data_Flow_Task_120_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_120_sink_TableName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions') AS Data_Flow_Task_120_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1201_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions') AS Data_Flow_Task_1201_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1201_sink_TableName' AND PIPELINE_NAME = 'ppl_calypso_tradeserv_exceptions') AS Data_Flow_Task_1201_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "FRE_File_Loader_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_File_Loader_Foreach_Loop_Container').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_SET_sFileName",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sFileName",
+            "value" : {
+              "value" : "@concat('\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\TradeServ\\', item().name)",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Data_Flow_Task_12",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_SET_sFileName",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Data_Flow_Task_12",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Data_Flow_Task_120",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Data_Flow_Task_12",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Data_Flow_Task_12",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Data_Flow_Task_12",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Data_Flow_Task_120",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "data_flow_task_12",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "OLEDBDestination_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                }
+              },
+              "datasetParameters" : {
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "File1ConMgr" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_File1ConMgr_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_File1ConMgr_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_File1ConMgr_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Data_Flow_Task_12_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Data_Flow_Task_1201",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Data_Flow_Task_12",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1201_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1201_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_sRowCount0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Data_Flow_Task_1201",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(coalesce(activity('DF_Data_Flow_Task_12').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "CPD_Data_Flow_Task_120",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sRowCount0",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_12_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_120_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_120_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_sRowCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Data_Flow_Task_120",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(coalesce(activity('DF_Data_Flow_Task_12').output.runStatus.metrics?.RowCountCACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "SETVAR_sSQLRegisterAlertFailure",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Data_Flow_Task_120",
+            "dependencyConditions" : [ "Failed" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sSQLRegisterAlertFailure",
+            "value" : {
+              "value" : "@concat('exec sp_ins_ssis_utility_alert ''mark.silke@wellsfargo.com;Gianfranco.Bartellino@wellsfargo.com;Robin.Hummel@wellsfargo.com;WFSOpsReportingAndSolutions@wellsfargo.com;tony.hodges@wellsfargo.com'',\n''', variables('sEmailTeamId'), variables('sEnvironment'), '_', variables('sProcessName'), variables('sStatusFailed'), ''',\n''', variables('sHTMLTable'), '<br/><br/>JIRA Component: Calypso_TradeServ_Exceptions. <br/><br/>job 1IDB_DRSBATCH_WFSRS_Calypso_Tradeserv_Exceptions_Box has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com'',\n 2')",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_ins_ssis_utility_alert_failure_email_2_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sSQLRegisterAlertFailure",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_sRowCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('sSQLRegisterAlertFailure')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Failure_-_Log_to_Table1_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_ins_ssis_utility_alert_failure_email_2_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : "Inactive",
+          "description" : null,
+          "onInactiveMarkAs" : "Succeeded",
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "EXEC  sp_ssis_log_insert_update_new\n @exec_pt  = 'END',\n @proc_pack_nm  =  concat(pipeline().parameters.BasePath, '/', @item().name),\n @status = 'Failed',\n @num_of_records = concat(pipeline().parameters.BasePath, '/', @item().name),\n @actual_records = concat(pipeline().parameters.BasePath, '/', @item().name),\n @FileName=concat(pipeline().parameters.BasePath, '/', @item().name), \n @ComponentID = concat(pipeline().parameters.BasePath, '/', @item().name), \n @StatusID = 3,\n @comment = concat(pipeline().parameters.BasePath, '/', @item().name)\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Data_Flow_Task_12_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      },
+      "BasePath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sMoveDestinationPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\TradeServ\\Archive\\"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Calypso_TradeServ_Exceptions"
+      },
+      "sFileName" : {
+        "type" : "String"
+      },
+      "sSQLRegisterAlert" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'DTCCDocumentation1@wellsfargo.com;WFSRS@wellsfargo.com;tony.hodges@wellsfargo.com',\\n'WFSR&S_ProcessAlert_DEV_Calypso_TradeServ_Exceptions_SUCCESS',\\n'<p> <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Tradeserv_Exceptions_Navigation\\\">Click here to go to the navigation page</a></p><br/><br/>JIRA Component: Calypso_TradeServ_Exceptions. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com',\\n 2"
+      },
+      "sRowCountFinal" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileSubFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\TradeServ\\"
+      },
+      "sSQLRegisterAlertFailure" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'mark.silke@wellsfargo.com;Gianfranco.Bartellino@wellsfargo.com;Robin.Hummel@wellsfargo.com;WFSOpsReportingAndSolutions@wellsfargo.com;tony.hodges@wellsfargo.com',\\n'WFSR&S_ProcessAlert_DEV_Calypso_TradeServ_Exceptions_FAILED',\\n'<p> <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Tradeserv_Exceptions_Navigation\\\">Click here to go to the navigation page</a></p><br/><br/>JIRA Component: Calypso_TradeServ_Exceptions. <br/><br/>job 1IDB_DRSBATCH_WFSRS_Calypso_Tradeserv_Exceptions_Box has experienced an error. <br/><br/> Please review Autosys logs for error details <br/><br/> If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com',\\n 2"
+      },
+      "iComponentID" : {
+        "type" : "String",
+        "defaultValue" : "9999"
+      },
+      "sHTMLTable" : {
+        "type" : "String",
+        "defaultValue" : "<p> <a href=\\\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports/Calypso/Calypso_Tradeserv_Exceptions_Navigation\\\">Click here to go to the navigation page</a></p>"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEmailTeamId" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sStatusSuccess" : {
+        "type" : "String",
+        "defaultValue" : "_SUCCESS"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sStatusFailed" : {
+        "type" : "String",
+        "defaultValue" : "_FAILED"
+      }
+    }
+  }
+}

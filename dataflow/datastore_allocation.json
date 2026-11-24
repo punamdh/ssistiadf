@@ -1,0 +1,31 @@
+{
+  "name" : "datastore_allocation",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "DataStoreAllocation0",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "datastoreallocation"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tReportName as string ('pfoxd105d vSphere World'),\n\tdatastoreallocation_outputfilename as string ()\n}\n\nsource(output(\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tDataCenter as string,\n\t\t{Total Capacity} as string,\n\t\t{Total Provisioned} as string,\n\t\t{Free Space} as string,\n\t\tOverhead as string,\n\t\t{Datastore Status} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> DataStoreAllocation0\nDataStoreAllocation0 derive(report_name = toString($ReportName),\n\t\timportdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDataCenter as string,\n\t\tTotal_Provisioned as string,\n\t\tTotal_Capacity as string,\n\t\tOverhead as string,\n\t\tInterval_Breakdown as string,\n\t\tDatastore_Status as string,\n\t\treport_name as string,\n\t\tName as string,\n\t\tFree_Space as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDataCenter,\n\t\tTotal_Provisioned = {Total Provisioned},\n\t\tTotal_Capacity = {Total Capacity},\n\t\tOverhead,\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tDatastore_Status = {Datastore Status},\n\t\treport_name,\n\t\tName,\n\t\tFree_Space = {Free Space}),\n\tpartitionFileNames:[($datastoreallocation_outputfilename)],\n\tpartitionBy('hash', 1)) ~> datastoreallocation"
+    }
+  }
+}

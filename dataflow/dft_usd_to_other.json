@@ -1,0 +1,44 @@
+{
+  "name" : "dft_usd_to_other",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblCLYFXCURRENCYCONVERSION"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblCLYFXCURRENCYCONVERSIONHIST"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tdPrevcalNoTime as timestamp (toTimestamp('1/27/2026')),\n\tsStartTime as timestamp (toTimestamp('1/28/2026 9:44:32 AM')),\n\ttblCLYFXCURRENCYCONVERSION_outputfilename as string (),\n\ttblCLYFXCURRENCYCONVERSIONHIST_outputfilename as string ()\n}\n\nsource(output(\n\t\tQUOTE_DATE as timestamp,\n\t\tCNVRT_TO as string,\n\t\tSRCE_CCY as string,\n\t\tCLOSE_QUOTE as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive({Copy of SRCE_CCY} = SRCE_CCY,\n\t\t{Copy of QUOTE_DATE} = QUOTE_DATE,\n\t\t{Copy of CLOSE_QUOTE} = CLOSE_QUOTE,\n\t\t{Copy of CNVRT_TO} = CNVRT_TO) ~> DataConversion\nOLEDBSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion derive(sCreateDate = $sStartTime,\n\t\tCloseQuote = toDouble(1) / {Copy of CLOSE_QUOTE},\n\t\tdCalcQuoteDate = $dPrevcalNoTime) ~> DerivedColumn\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nDerivedColumn sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tSRCE_CURR as string,\n\t\tCLOSE_QUOTE as double,\n\t\tQuote_Date as timestamp 'dd-MM-yyyy',\n\t\tCNVRT_TO as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 100,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = sCreateDate,\n\t\tSRCE_CURR = {Copy of SRCE_CCY},\n\t\tCLOSE_QUOTE = CloseQuote,\n\t\tQuote_Date = dCalcQuoteDate,\n\t\tCNVRT_TO = {Copy of CNVRT_TO}),\n\tpartitionFileNames:[($tblCLYFXCURRENCYCONVERSION_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblCLYFXCURRENCYCONVERSION\nDerivedColumn sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tCLOSE_QUOTE as double,\n\t\tSRCE_CURR as string,\n\t\tQuote_Date as timestamp 'dd-MM-yyyy',\n\t\tCNVRT_TO as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = sCreateDate,\n\t\tCLOSE_QUOTE = CloseQuote,\n\t\tSRCE_CURR = {Copy of SRCE_CCY},\n\t\tQuote_Date = dCalcQuoteDate,\n\t\tCNVRT_TO = {Copy of CNVRT_TO}),\n\tpartitionFileNames:[($tblCLYFXCURRENCYCONVERSIONHIST_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblCLYFXCURRENCYCONVERSIONHIST"
+    }
+  }
+}

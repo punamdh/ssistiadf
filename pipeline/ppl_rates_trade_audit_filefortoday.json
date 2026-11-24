@@ -1,0 +1,368 @@
+{
+  "name" : "ppl_rates_trade_audit_filefortoday",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "SETVAR_Set_FileForToday_value",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : "Expression Task",
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vFileForToday",
+        "value" : {
+          "value" : "@concat('PnLByTradeDetails_', substring(concat('0', string(formatDateTime(addDays(utcNow(), -1), 'MM'))), sub(length(concat('0', string(formatDateTime(addDays(utcNow(), -1), 'MM')))), 2), 2), substring(concat('0', string(dayOfMonth(addDays(utcNow(), -1)))), sub(length(concat('0', string(dayOfMonth(addDays(utcNow(), -1))))), 2), 2), string(formatDateTime(addDays(utcNow(), -1), 'yyyy')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "SETVAR_Set_vFileForTodayEvaluation_to_False",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : "Expression Task",
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vFileForTodayEvaluation",
+        "value" : {
+          "value" : "@false",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Loop_Through_Files_In_Folder_ContainerName' AND PIPELINE_NAME = 'ppl_rates_trade_audit_filefortoday') AS GMD_Loop_Through_Files_In_Folder_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Loop_Through_Files_In_Folder_FileName' AND PIPELINE_NAME = 'ppl_rates_trade_audit_filefortoday') AS GMD_Loop_Through_Files_In_Folder_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'GMD_Loop_Through_Files_In_Folder_FilePath' AND PIPELINE_NAME = 'ppl_rates_trade_audit_filefortoday') AS GMD_Loop_Through_Files_In_Folder_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "GMD_Loop_Through_Files_In_Folder",
+      "type" : "GetMetadata",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "SETVAR_Set_FileForToday_value",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "SETVAR_Set_vFileForTodayEvaluation_to_False",
+        "dependencyConditions" : [ "Succeeded" ]
+      }, {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "fieldList" : [ "childItems" ],
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "Container" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Loop_Through_Files_In_Folder_ContainerName",
+              "type" : "Expression"
+            },
+            "FileName" : {
+              "value" : "",
+              "type" : "Expression"
+            },
+            "Directory" : {
+              "value" : "@activity('LKP_Fetch_Param').output.firstRow.GMD_Loop_Through_Files_In_Folder_FilePath",
+              "type" : "Expression"
+            },
+            "ColumnDelimiter" : ","
+          }
+        },
+        "storeSettings" : {
+          "type" : "AzureBlobStorageReadSettings",
+          "enablePartitionDiscovery" : false
+        },
+        "formatSettings" : {
+          "type" : "DelimitedTextReadSettings"
+        }
+      }
+    }, {
+      "name" : "FLTR_Loop_Through_Files_In_Folder",
+      "type" : "Filter",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "GMD_Loop_Through_Files_In_Folder",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('GMD_Loop_Through_Files_In_Folder').output.childItems",
+          "type" : "Expression"
+        },
+        "condition" : {
+          "value" : "@and(equals(item().type, 'File'), and(startswith(item().name, 'PnLByTradeDetails_'), endswith(item().name, '.*')))",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "FRE_Loop_Through_Files_In_Folder_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "FLTR_Loop_Through_Files_In_Folder",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('FLTR_Loop_Through_Files_In_Folder').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_Is_vFileForTodayEvaluation_set_to_True",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : "Expression Task",
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "(vFileForTodayEvaluation",
+            "value" : {
+              "value" : "@if(variables('= True'), variables('True'), variables('False'))",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "EP_Check_for_TodaysFile_and_set_vFileForTodayEvaluat_",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_Is_vFileForTodayEvaluation_set_to_True",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_loop_through_files_in_folder_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "SETVAR_Set_FileForToday_value_to_nothing",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "FRE_Loop_Through_Files_In_Folder_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : "Expression Task",
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "vFileForToday",
+        "value" : {
+          "value" : "\"nothing\"",
+          "type" : "Expression"
+        }
+      }
+    }, {
+      "name" : "Email_when_todays_File_Found_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_Set_FileForToday_value_to_nothing",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('vFileForTodayEvaluation'),true)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Email_when_todays_File_Found_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "INSERT INTO [Utility].[dbo].[tbl_ssis_utility] ([To], [Subject], [body], [ReceiveDate], [SendDate], [BodyFormat], [CC])\nVALUES\n('WFSRS@wellsfargo.com', \n'WFSR&S_ProcessAlert_UAT_Rates_Trade_Audit_FileFound',\nCONCAT('<p>File Found</a></p>', '<p> File Name: PnLByTradeDetails_', replace(convert(varchar(10), getdate()-1, 101), '/', ''), '</p>', '<p> Component Name: Calypso_Rates_Trade_Audit_ETL </p>'),\nGETDATE(), \nNULL, \n2, \n'Manoj.Bhattarai@wellsfargo.com')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    }, {
+      "name" : "Email_When_Todays_File_Missing_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_Set_FileForToday_value_to_nothing",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@equals(variables('vFileForTodayEvaluation'),variables('False'))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_Email_When_Todays_File_Missing_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "\nINSERT INTO [Utility].[dbo].[tbl_ssis_utility] ([To], [Subject], [body], [ReceiveDate], [SendDate], [BodyFormat], [CC])\nVALUES\n('WFSRS@wellsfargo.com', \n'WFSR&S_ProcessAlert_UAT_Rates_Trade_Audit_FileNotFound',\nCONCAT('<p>File NOT Found</a></p>', '<p> File Name: PnLByTradeDetails_', replace(convert(varchar(10), getdate()-1, 101), '/', ''), '</p>', '<p> Component Name: Calypso_Rates_Trade_Audit_ETL </p>'),\nGETDATE(), \nNULL, \n2, \n'Manoj.Bhattarai@wellsfargo.com')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "vFileForTodayEvaluation" : {
+        "type" : "Boolean",
+        "defaultValue" : false
+      },
+      "ProcessName" : {
+        "type" : "String",
+        "defaultValue" : "Rates_Trade_Audit_ETL_FileForToday"
+      },
+      "FileFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Rates\\"
+      },
+      "PathFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Rates\\"
+      },
+      "FileName" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "vFileForToday" : {
+        "type" : "String"
+      },
+      "IsLoadAndFileEqual" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageFailure" : {
+        "type" : "String",
+        "defaultValue" : "Process Failed. Please review"
+      }
+    }
+  }
+}

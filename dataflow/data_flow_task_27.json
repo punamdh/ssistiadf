@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -21,9 +21,23 @@
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileSource01"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVarianceNotes as string,\n\t\tInsertTs as date,\n\t\tdc as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tVarianceNotes as string,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVarianceNotes,\n\t\tInsertTs,\n\t\tDC = dc),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "FlatFileSourceErrorReformat"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "FlatFileSource0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Event Date} as string,\n\t\t{Breach Status} as string,\n\t\t{External ID} as string,\n\t\t{Event ID} as string,\n\t\t{Notification SLA} as string,\n\t\t{Notification Time(EST)} as string,\n\t\t{Issued Time(EST)} as string,\n\t\t{Lapsed Time(EST)} as string,\n\t\t{Action Movement} as string,\n\t\t{Call Status} as string,\n\t\t{Interface Status} as string,\n\t\t{Distribution Medium} as string,\n\t\t{Statement Status} as string,\n\t\tRegion as string,\n\t\t{Issuing User} as string,\n\t\t{Colline Comments} as string,\n\t\t{Custom Tech Comments} as string,\n\t\t{Agreement Requirement} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nFlatFileSource derive() ~> FlatFileSourceErrorReformat\nDerivedColumn derive({Copy of Region} = Region) ~> DataConversion\nFlatFileSourceErrorReformat derive() ~> FlatFileSource0\nDataConversion sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tExternal_ID as string,\n\t\tStatement_Status as string,\n\t\tNotification_SLA as string,\n\t\tBreach_Status as string,\n\t\tNotification_Time_EST_ as string,\n\t\tColline_Comments as string,\n\t\tCustom_Tech_Comments as string,\n\t\tIssuing_User as string,\n\t\tEvent_ID as string,\n\t\tLapsed_Time_EST_ as string,\n\t\tAgreement_Requirement as string,\n\t\tIssued_Time_EST_ as string,\n\t\tDistribution_Medium as string,\n\t\tInterface_Status as string,\n\t\tAction_Movement as string,\n\t\tRegion as string,\n\t\tEvent_Date as string,\n\t\tCall_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tExternal_ID = {Copy of External ID},\n\t\tStatement_Status = {Copy of Statement Status},\n\t\tNotification_SLA = {Copy of Notification SLA},\n\t\tBreach_Status = {Copy of Breach Status},\n\t\tNotification_Time_EST_ = {Copy of Notification Time(EST)},\n\t\tColline_Comments = {Copy of Colline Comments},\n\t\tCustom_Tech_Comments = {Copy of Custom Tech Comments},\n\t\tIssuing_User = {Copy of Issuing User},\n\t\tEvent_ID = {Copy of Event ID},\n\t\tLapsed_Time_EST_ = {Copy of Lapsed Time(EST)},\n\t\tAgreement_Requirement = {Copy of Agreement Requirement},\n\t\tIssued_Time_EST_ = {Copy of Issued Time(EST)},\n\t\tDistribution_Medium = {Copy of Distribution Medium},\n\t\tInterface_Status = {Copy of Interface Status},\n\t\tAction_Movement = {Copy of Action Movement},\n\t\tRegion = {Copy of Region},\n\t\tEvent_Date = {Copy of Event Date},\n\t\tCall_Status = {Copy of Call Status}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nFlatFileSource0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> FlatFileSource01"
     }
   }
 }

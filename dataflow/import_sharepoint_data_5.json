@@ -1,0 +1,29 @@
+{
+  "name" : "import_sharepoint_data_5",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{1 Day} as string,\n\t\t{Grand Total} as string,\n\t\t{Reporting Date} as string,\n\t\t{> 25 Days} as string,\n\t\t{16 - 19 Days} as string,\n\t\t{Title (Title)} as string,\n\t\t{10 - 15 Days} as string,\n\t\t{Name of Reconciliation} as string,\n\t\t{20 - 24 Days} as string,\n\t\tDate as string,\n\t\t{2 - 5 Days} as string,\n\t\t{6 - 9 Days} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\t{1_Day} as string,\n\t\tGrand_Total as string,\n\t\tReporting_Date as string,\n\t\t__25_Days as double,\n\t\t{16_-_19_Days} as double,\n\t\tTitle__Title_ as string,\n\t\t{10_-_15_Days} as double,\n\t\tName_of_Reconciliation as string,\n\t\t{20_-_24_Days} as double,\n\t\tDate as string,\n\t\t{2_-_5_Days} as double,\n\t\t{6_-_9_Days} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{1_Day} = {1 Day},\n\t\tGrand_Total = {Grand Total},\n\t\tReporting_Date = {Reporting Date},\n\t\t__25_Days = {> 25 Days},\n\t\t{16_-_19_Days} = {16 - 19 Days},\n\t\tTitle__Title_ = {Title (Title)},\n\t\t{10_-_15_Days} = {10 - 15 Days},\n\t\tName_of_Reconciliation = {Name of Reconciliation},\n\t\t{20_-_24_Days} = {20 - 24 Days},\n\t\tDate,\n\t\t{2_-_5_Days} = {2 - 5 Days},\n\t\t{6_-_9_Days} = {6 - 9 Days}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

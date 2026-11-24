@@ -1,0 +1,29 @@
+{
+  "name" : "load_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDEPOSIT_DATE as timestamp,\n\t\tSETTLEMENT_DATE as timestamp,\n\t\tBOOK_NAME as string,\n\t\tMATURITY_DATE as timestamp,\n\t\tPRODUCT_ID as integer,\n\t\tTRADE_STATUS as string,\n\t\tCURRENCY_CODE as string,\n\t\tVALUATION_DATE as timestamp,\n\t\tTRADE_COMMENT as string,\n\t\tPRODUCT_TYPE as string,\n\t\tEXPIRY_DATE as timestamp,\n\t\tDESCRIPTION as string,\n\t\tFINALMATDATE as string,\n\t\tBOOK_ID as integer,\n\t\tWITHD_DATE as timestamp,\n\t\tTRADE_ID as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tDeposti_Dte as string,\n\t\tSETTLEMENT_DATE as string,\n\t\tBOOK_NAME as string,\n\t\tMATURITY_DATE as string,\n\t\tPRODUCT_ID as string,\n\t\tTRADE_STATUS as string,\n\t\tCURRENCY_CODE as string,\n\t\tVALUATION_DATE as string,\n\t\tTRADE_COMMENT as string,\n\t\tPRODUCT_TYPE as string,\n\t\tEXPIRATION_DATE as string,\n\t\tDESCRIPTION as string,\n\t\tFINALMATDATE as string,\n\t\tBOOK_ID as string,\n\t\tWithdraw_Dte as string,\n\t\tTRADE_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDeposti_Dte = DEPOSIT_DATE,\n\t\tSETTLEMENT_DATE,\n\t\tBOOK_NAME,\n\t\tMATURITY_DATE,\n\t\tPRODUCT_ID,\n\t\tTRADE_STATUS,\n\t\tCURRENCY_CODE,\n\t\tVALUATION_DATE,\n\t\tTRADE_COMMENT,\n\t\tPRODUCT_TYPE,\n\t\tEXPIRATION_DATE = EXPIRY_DATE,\n\t\tDESCRIPTION,\n\t\tFINALMATDATE,\n\t\tBOOK_ID,\n\t\tWithdraw_Dte = WITHD_DATE,\n\t\tTRADE_ID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

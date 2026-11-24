@@ -1,0 +1,29 @@
+{
+  "name" : "load_cds_users",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "CDSUATSourceUsersCatalyst",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "LoadintotblCatalystUsers"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tLoadintotblCatalystUsers_outputfilename as string ()\n}\n\nsource(output(\n\t\tlastName as string,\n\t\tloginId as string,\n\t\tcomments as string,\n\t\tendDate as timestamp,\n\t\tvalidLoginInd as string,\n\t\tfullName as string,\n\t\townerId as string,\n\t\tuserId as integer,\n\t\tfirstName as string,\n\t\tpassword as string,\n\t\teffDate as timestamp,\n\t\tcacheKey as integer,\n\t\texpirationDate as timestamp,\n\t\tempKeyId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> CDSUATSourceUsersCatalyst\nCDSUATSourceUsersCatalyst sink(input(\n\t\tlastName as string,\n\t\tloginId as string,\n\t\tcomments as string,\n\t\tendDate as timestamp 'dd-MM-yyyy',\n\t\tvalidLoginInd as string,\n\t\tfullName as string,\n\t\townerId as string,\n\t\tuserId as integer,\n\t\tfirstName as string,\n\t\tpassword as string,\n\t\teffDate as timestamp 'dd-MM-yyyy',\n\t\tcacheKey as integer,\n\t\texpirationDate as timestamp 'dd-MM-yyyy',\n\t\tempKeyId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlastName,\n\t\tloginId,\n\t\tcomments,\n\t\tendDate,\n\t\tvalidLoginInd,\n\t\tfullName,\n\t\townerId,\n\t\tuserId,\n\t\tfirstName,\n\t\tpassword,\n\t\teffDate,\n\t\tcacheKey,\n\t\texpirationDate,\n\t\tempKeyId),\n\tpartitionFileNames:[($LoadintotblCatalystUsers_outputfilename)],\n\tpartitionBy('hash', 1)) ~> LoadintotblCatalystUsers"
+    }
+  }
+}

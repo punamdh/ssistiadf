@@ -1,0 +1,43 @@
+{
+  "name" : "file_load_process",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination2"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tsFileName as string (),\n\tOLEDBDestination2_outputfilename as string ()\n}\n\nsource(output(\n\t\tbusinessDate as string,\n\t\tsciId as string,\n\t\tcustomerLongName as string,\n\t\tportfolioGroup as string,\n\t\tproductClass as string,\n\t\tproductGroup as string,\n\t\tproduct as string,\n\t\tmeasure as string,\n\t\twleId as string,\n\t\twleShortName as string,\n\t\ttradingCounterpartyId as string,\n\t\ttradingCounterpartyName as string,\n\t\tlimitDescription as string,\n\t\tlimitStatus as string,\n\t\tsubLimit as string,\n\t\tdealCount as string,\n\t\tbdg as string,\n\t\tlimitActive as string,\n\t\tlimitStep1 as string,\n\t\tlimitValue1 as string,\n\t\texpMaxValue as string,\n\t\tnetMTM as string,\n\t\tnonLimitValue as string,\n\t\ttenorWarning as string,\n\t\texpirationDate as string,\n\t\tlimitStep2 as string,\n\t\tlimitValue2 as string,\n\t\texpMax2 as string,\n\t\tlimitStep3 as string,\n\t\texpMax3limitStep4 as string,\n\t\tlimitValue4 as string,\n\t\texpMax4 as string,\n\t\tlimitStep5 as string,\n\t\tlimitValue5 as string,\n\t\tultParentId as string,\n\t\tultParentName as string,\n\t\tcountryRiskName as string,\n\t\tcountryDomName as string,\n\t\trmLastName as string,\n\t\trmFirstName as string,\n\t\tWBContact as string,\n\t\twbContact2 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tFile_Nm as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nFlatFileSource derive(Create_dt = currentTimestamp(),\n\t\tFile_Nm = toString($sFileName),\n\t\tNewBusinessDte = toString(replace(businessDate, toString('\\\"'), toString(''))),\n\t\tWBContact_New = toString(trim(replace(replace(WBContact, toString(','), toString('')), toString('\\r'), toString(''))))) ~> DerivedColumn\nDerivedColumn,LookupLKPTABLE lookup(DerivedColumn@File_Nm == LookupLKPTABLE@File_Nm,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tCreate_dt = Create_dt,\n\t\tFile_Nm = DerivedColumn@File_Nm,\n\t\tNewBusinessDte = NewBusinessDte,\n\t\tWBContact_New = WBContact_New,\n\t\tbusinessDate = businessDate,\n\t\tsciId = sciId,\n\t\tcustomerLongName = customerLongName,\n\t\tportfolioGroup = portfolioGroup,\n\t\tproductClass = productClass,\n\t\tproductGroup = productGroup,\n\t\tproduct = product,\n\t\tmeasure = measure,\n\t\twleId = wleId,\n\t\twleShortName = wleShortName,\n\t\ttradingCounterpartyId = tradingCounterpartyId,\n\t\ttradingCounterpartyName = tradingCounterpartyName,\n\t\tlimitDescription = limitDescription,\n\t\tlimitStatus = limitStatus,\n\t\tsubLimit = subLimit,\n\t\tdealCount = dealCount,\n\t\tbdg = bdg,\n\t\tlimitActive = limitActive,\n\t\tlimitStep1 = limitStep1,\n\t\tlimitValue1 = limitValue1,\n\t\texpMaxValue = expMaxValue,\n\t\tnetMTM = netMTM,\n\t\tnonLimitValue = nonLimitValue,\n\t\ttenorWarning = tenorWarning,\n\t\texpirationDate = expirationDate,\n\t\tlimitStep2 = limitStep2,\n\t\tlimitValue2 = limitValue2,\n\t\texpMax2 = expMax2,\n\t\tlimitStep3 = limitStep3,\n\t\texpMax3limitStep4 = expMax3limitStep4,\n\t\tlimitValue4 = limitValue4,\n\t\texpMax4 = expMax4,\n\t\tlimitStep5 = limitStep5,\n\t\tlimitValue5 = limitValue5,\n\t\tultParentId = ultParentId,\n\t\tultParentName = ultParentName,\n\t\tcountryRiskName = countryRiskName,\n\t\tcountryDomName = countryDomName,\n\t\trmLastName = rmLastName,\n\t\trmFirstName = rmFirstName,\n\t\tWBContact = WBContact,\n\t\twbContact2 = wbContact2\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\twleShortName as string,\n\t\tnonLimitValue as string,\n\t\ttenorWarning as string,\n\t\tlimitValue4 as string,\n\t\tlimitValue5 as string,\n\t\tlimitValue2 as string,\n\t\tlimitValue1 as string,\n\t\ttradingCounterpartyId as string,\n\t\tcountryRiskName as string,\n\t\tCreate_dt as timestamp 'dd-MM-yyyy',\n\t\texpMax3limitStep4 as string,\n\t\tbusinessDate as string,\n\t\tlimitStatus as string,\n\t\tlimitDescription as string,\n\t\twleId as string,\n\t\texpMaxValue as string,\n\t\tsciId as string,\n\t\tcustomerLongName as string,\n\t\tcountryDomName as string,\n\t\trmFirstName as string,\n\t\ttradingCounterpartyName as string,\n\t\tultParentName as string,\n\t\tNewBusinessDte as string,\n\t\texpirationDate as string,\n\t\tsubLimit as string,\n\t\twbContact2 as string,\n\t\tFile_Nm as string,\n\t\tlimitActive as string,\n\t\tproduct as string,\n\t\texpMax2 as string,\n\t\tproductClass as string,\n\t\tbdg as string,\n\t\texpMax4 as string,\n\t\tWBContact as string,\n\t\tultParentId as string,\n\t\tportfolioGroup as string,\n\t\trmLastName as string,\n\t\tmeasure as string,\n\t\tnetMTM as string,\n\t\tproductGroup as string,\n\t\tlimitStep3 as string,\n\t\tlimitStep5 as string,\n\t\tdealCount as string,\n\t\tlimitStep2 as string,\n\t\tlimitStep1 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\twleShortName,\n\t\tnonLimitValue,\n\t\ttenorWarning,\n\t\tlimitValue4,\n\t\tlimitValue5,\n\t\tlimitValue2,\n\t\tlimitValue1,\n\t\ttradingCounterpartyId,\n\t\tcountryRiskName,\n\t\tCreate_dt,\n\t\texpMax3limitStep4,\n\t\tbusinessDate,\n\t\tlimitStatus,\n\t\tlimitDescription,\n\t\twleId,\n\t\texpMaxValue,\n\t\tsciId,\n\t\tcustomerLongName,\n\t\tcountryDomName,\n\t\trmFirstName,\n\t\ttradingCounterpartyName,\n\t\tultParentName,\n\t\tNewBusinessDte,\n\t\texpirationDate,\n\t\tsubLimit,\n\t\twbContact2,\n\t\tFile_Nm,\n\t\tlimitActive,\n\t\tproduct,\n\t\texpMax2,\n\t\tproductClass,\n\t\tbdg,\n\t\texpMax4,\n\t\tWBContact = WBContact_New,\n\t\tultParentId,\n\t\tportfolioGroup,\n\t\trmLastName,\n\t\tmeasure,\n\t\tnetMTM,\n\t\tproductGroup,\n\t\tlimitStep3,\n\t\tlimitStep5,\n\t\tdealCount,\n\t\tlimitStep2,\n\t\tlimitStep1),\n\tpartitionFileNames:[($OLEDBDestination2_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination2"
+    }
+  }
+}

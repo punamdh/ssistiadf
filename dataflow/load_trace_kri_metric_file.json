@@ -1,0 +1,43 @@
+{
+  "name" : "load_trace_kri_metric_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "TraceKRIMetric",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tWeekEnding as string,\n\t\tEntity as string,\n\t\tTraceGroup as string,\n\t\tProduct_Volume as string,\n\t\tProduct_Volume_Late as string,\n\t\tAmber_Threshold as string,\n\t\tRed_Threshold as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TraceKRIMetric\tsource(output(\n\t\tweekEnding as string,\n\t\tentity as string,\n\t\ttraceGroup as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nTraceKRIMetric derive(TraceGroup_Drv = 'TRACE_' + TraceGroup) ~> DerivedColumn\nDerivedColumn derive({Copy of TraceGroup_Drv} = TraceGroup_Drv) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup(TraceKRIMetric@Entity == LookupLKPTABLE@entity && TraceKRIMetric@WeekEnding == LookupLKPTABLE@weekEnding && TraceKRIMetric@TraceGroup == LookupLKPTABLE@traceGroup,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tredThreshold as double,\n\t\ttraceGroup as string,\n\t\tproductVolumeLate as integer,\n\t\tweekEnding as date 'dd-MM-yyyy',\n\t\tproductVolume as integer,\n\t\tentity as string,\n\t\tamberThreshold as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tredThreshold = Red_Threshold,\n\t\ttraceGroup = {Copy of TraceGroup_Drv},\n\t\tproductVolumeLate = Product_Volume_Late,\n\t\tweekEnding = WeekEnding,\n\t\tproductVolume = Product_Volume,\n\t\tentity = Entity,\n\t\tamberThreshold = Amber_Threshold),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

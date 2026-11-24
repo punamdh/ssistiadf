@@ -1,0 +1,31 @@
+{
+  "name" : "load_file1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromFile1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "Changethistable"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tChangethistable_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\tAuth as string,\n\t\tAck as string,\n\t\t{ACK (S)} as string,\n\t\t{ACK (D)} as string,\n\t\t{From Account} as string,\n\t\t{To Account} as string,\n\t\tCurrency as string,\n\t\t{Sweep Date} as string,\n\t\t{Sweep Amount} as string,\n\t\t{Payment Ledger} as string,\n\t\tNote as string,\n\t\t{Legal Entity} as string,\n\t\t{From Beneficiary ID} as string,\n\t\t{From Beneficiary} as string,\n\t\t{To Beneficiary ID} as string,\n\t\t{To Beneficiary} as string,\n\t\t{Created by} as string,\n\t\t{Created on} as string,\n\t\t{Last Actioned By} as string,\n\t\t{Last Actioned On} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromFile1\nfromFile1 derive(Load_Date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tLast_Actioned_By as string,\n\t\tFrom_Beneficiary as string,\n\t\tCreated_on as timestamp 'dd-MM-yyyy',\n\t\tSweep_Date as timestamp 'dd-MM-yyyy',\n\t\tAck as string,\n\t\tTo_Account as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tLegal_Entity as string,\n\t\tTo_Beneficiary_ID as integer,\n\t\tFrom_Beneficiary_ID as integer,\n\t\tACK_S as string,\n\t\tPayment_Ledger as string,\n\t\tAuth as string,\n\t\tCurrency as string,\n\t\tNote as string,\n\t\tSweep_Amount as double,\n\t\tFrom_Account as string,\n\t\tLast_Actioned_On as timestamp 'dd-MM-yyyy',\n\t\tCreated_by as string,\n\t\tTo_Beneficiary as string,\n\t\tACK_D as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tLast_Actioned_By = {Last Actioned By},\n\t\tFrom_Beneficiary = {From Beneficiary},\n\t\tCreated_on = {Created on},\n\t\tSweep_Date = {Sweep Date},\n\t\tAck,\n\t\tTo_Account = {To Account},\n\t\tLoad_Date,\n\t\tLegal_Entity = {Legal Entity},\n\t\tTo_Beneficiary_ID = {To Beneficiary ID},\n\t\tFrom_Beneficiary_ID = {From Beneficiary ID},\n\t\tACK_S = {ACK (S)},\n\t\tPayment_Ledger = {Payment Ledger},\n\t\tAuth,\n\t\tCurrency,\n\t\tNote,\n\t\tSweep_Amount = {Sweep Amount},\n\t\tFrom_Account = {From Account},\n\t\tLast_Actioned_On = {Last Actioned On},\n\t\tCreated_by = {Created by},\n\t\tTo_Beneficiary = {To Beneficiary},\n\t\tACK_D = {ACK (D)}),\n\tpartitionFileNames:[($Changethistable_outputfilename)],\n\tpartitionBy('hash', 1)) ~> Changethistable"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "dft-_load_calypso_wfm_transition_comments",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBCalypso",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBOTCTradeAuditing"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBOTCTradeAuditing_outputfilename as string ()\n}\n\nsource(output(\n\t\tWORKFLOW_ID as decimal(38,0),\n\t\tSTATUS as string,\n\t\tPOSSIBLE_ACTION as string,\n\t\tRESULTING_STATUS as string,\n\t\tCOMMENTS as string,\n\t\tCREATE_DTE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCalypso\nOLEDBCalypso derive(oSTATUS = STATUS,\n\t\toWORKFLOW_ID = toString(WORKFLOW_ID),\n\t\toCOMMENTS = COMMENTS,\n\t\toCREATE_DTE = CREATE_DTE,\n\t\toPOSSIBLE_ACTION = POSSIBLE_ACTION,\n\t\toRESULTING_STATUS = RESULTING_STATUS) ~> DataConversion\nDataConversion sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tComments as string,\n\t\tWorkflow_ID as string,\n\t\tOriginal_Status as string,\n\t\tPossible_Action as string,\n\t\tResulting_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tComments = oCOMMENTS,\n\t\tWorkflow_ID = oWORKFLOW_ID,\n\t\tOriginal_Status = oSTATUS,\n\t\tPossible_Action = oPOSSIBLE_ACTION,\n\t\tResulting_Status = oRESULTING_STATUS),\n\tpartitionFileNames:[($OLEDBOTCTradeAuditing_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBOTCTradeAuditing"
+    }
+  }
+}

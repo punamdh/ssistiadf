@@ -1,0 +1,43 @@
+{
+  "name" : "get_data_from_colline_collateral_load_into_tbl_col",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "GetFileFromCollineCollateralHeld",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "InsertrecordsfornewfilesonlyLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "InsertrecordsintotblcollineCollateralHeld"
+      } ],
+      "transformations" : [ {
+        "name" : "FilenameandLoadDate"
+      }, {
+        "name" : "Insertrecordsfornewfilesonly"
+      }, {
+        "name" : "Insertrecordsfornewfilesonly01"
+      }, {
+        "name" : "Insertrecordsfornewfilesonly0"
+      } ],
+      "script" : "parameters{\n\tsFolderPath as string ('\\\\\\\\aloxnhf503.wellsfargo.net\\\\DRSProd\\\\WFSOpsKRIReporting\\\\DropZone\\\\Colline\\\\CollateralHeld\\\\CollateralHeld_Tax_20171010.csv'),\n\tInsertrecordsintotblcollineCollateralHeld_outputfilename as string ()\n}\n\nsource(output(\n\t\tAgreement as string,\n\t\t{External ID} as string,\n\t\tPrincipal as string,\n\t\tCounterparty as string,\n\t\t{Counterparty LEI} as string,\n\t\t{Cpty_CID ID} as string,\n\t\t{Asset Type} as string,\n\t\t{Instrument ID} as string,\n\t\t{Par Amount} as string,\n\t\t{Booking Currency} as string,\n\t\t{Booking Market Value} as string,\n\t\t{Reported Collateral Value} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GetFileFromCollineCollateralHeld\tsource(output(\n\t\tAgreement as string,\n\t\tExternalID as string,\n\t\tPrincipal as string,\n\t\tCounterparty as string,\n\t\tCounterpartyLEI as string,\n\t\tCptyCIDID as string,\n\t\tAssetType as string,\n\t\tInstrumentID as string,\n\t\tParAmount as double,\n\t\tBookingCurrency as string,\n\t\tBookingMarketValue as double,\n\t\tReportedCollateralValue as double,\n\t\tLastLoadDate as timestamp,\n\t\tFileName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InsertrecordsfornewfilesonlyLKPTABLE\nGetFileFromCollineCollateralHeld derive(LastLoadDate = currentTimestamp(),\n\t\tFileName = substring(toString($sFolderPath), toInteger(88), toInteger(length($sFolderPath))),\n\t\t{Derived Column 1} = rtrim(toString(ltrim(toString(replace({Cpty_CID ID}, toString(' '), toString('0'))),' ')),' '),\n\t\tPositionsTest = 1) ~> FilenameandLoadDate\nFilenameandLoadDate,InsertrecordsfornewfilesonlyLKPTABLE lookup(FilenameandLoadDate@FileName == InsertrecordsfornewfilesonlyLKPTABLE@FileName,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Insertrecordsfornewfilesonly\nInsertrecordsfornewfilesonly select(mapColumn(\n\t\tLastLoadDate = FilenameandLoadDate@LastLoadDate,\n\t\tFileName = FilenameandLoadDate@FileName,\n\t\t{Derived Column 1} = {Derived Column 1},\n\t\tPositionsTest = PositionsTest,\n\t\tAgreement = GetFileFromCollineCollateralHeld@Agreement,\n\t\t{External ID} = {External ID},\n\t\tPrincipal = GetFileFromCollineCollateralHeld@Principal,\n\t\tCounterparty = GetFileFromCollineCollateralHeld@Counterparty,\n\t\t{Counterparty LEI} = {Counterparty LEI},\n\t\t{Cpty_CID ID} = {Cpty_CID ID},\n\t\t{Asset Type} = {Asset Type},\n\t\t{Instrument ID} = {Instrument ID},\n\t\t{Par Amount} = {Par Amount},\n\t\t{Booking Currency} = {Booking Currency},\n\t\t{Booking Market Value} = {Booking Market Value},\n\t\t{Reported Collateral Value} = {Reported Collateral Value},\n\t\tExternalID = ExternalID,\n\t\tCounterpartyLEI = CounterpartyLEI,\n\t\tCptyCIDID = CptyCIDID,\n\t\tAssetType = AssetType,\n\t\tInstrumentID = InstrumentID,\n\t\tParAmount = ParAmount,\n\t\tBookingCurrency = BookingCurrency,\n\t\tBookingMarketValue = BookingMarketValue,\n\t\tReportedCollateralValue = ReportedCollateralValue\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Insertrecordsfornewfilesonly01\nInsertrecordsfornewfilesonly01 filter(!isMatch()) ~> Insertrecordsfornewfilesonly0\nInsertrecordsfornewfilesonly0 sink(input(\n\t\tBookingMarketValue as string,\n\t\tLastLoaddate as timestamp 'dd-MM-yyyy',\n\t\tCounterpartyLEI as string,\n\t\tParAmount as string,\n\t\tinstrumentID as string,\n\t\tFileName as string,\n\t\tExternalID as string,\n\t\tReportedCollateralValue as string,\n\t\tCptyCIDID as string,\n\t\tPositionsTest as integer,\n\t\tAgreement as string,\n\t\tAssetType as string,\n\t\tCounterparty as string,\n\t\tBookingCurrency as string,\n\t\tPrincipal as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBookingMarketValue = {Booking Market Value},\n\t\tLastLoaddate = LastLoadDate,\n\t\tCounterpartyLEI = {Counterparty LEI},\n\t\tParAmount = {Par Amount},\n\t\tinstrumentID = {Instrument ID},\n\t\tFileName,\n\t\tExternalID = {External ID},\n\t\tReportedCollateralValue = {Reported Collateral Value},\n\t\tCptyCIDID = {Cpty_CID ID},\n\t\tPositionsTest,\n\t\tAgreement,\n\t\tAssetType = {Asset Type},\n\t\tCounterparty,\n\t\tBookingCurrency = {Booking Currency},\n\t\tPrincipal),\n\tpartitionFileNames:[($InsertrecordsintotblcollineCollateralHeld_outputfilename)],\n\tpartitionBy('hash', 1)) ~> InsertrecordsintotblcollineCollateralHeld"
+    }
+  }
+}

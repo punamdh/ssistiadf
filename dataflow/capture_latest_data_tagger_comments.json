@@ -1,0 +1,31 @@
+{
+  "name" : "capture_latest_data_tagger_comments",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblDataTaggerTags",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsoMarkitWireExceptionsDataTaggerComments"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblCalypsoMarkitWireExceptionsDataTaggerComments_outputfilename as string ()\n}\n\nsource(output(\n\t\tSourceCompositeKey as string,\n\t\tMaxModifiedDate as timestamp,\n\t\tTextTag as string,\n\t\tModifiedUserName as string,\n\t\tListTag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblDataTaggerTags\nfromtblDataTaggerTags derive({Copy of ListTag} = ListTag,\n\t\t{Copy of ModifiedUserName} = ModifiedUserName,\n\t\t{Copy of TextTag} = TextTag,\n\t\t{Copy of SourceCompositeKey} = SourceCompositeKey,\n\t\t{Copy of MaxModifiedDate} = MaxModifiedDate) ~> DataConversion\nDataConversion sink(input(\n\t\tCommentTimeStamp as string,\n\t\tTradeID as string,\n\t\tComments as string,\n\t\tUnresolvable as string,\n\t\tModifiedUserName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCommentTimeStamp = MaxModifiedDate,\n\t\tTradeID = {Copy of SourceCompositeKey},\n\t\tComments = {Copy of TextTag},\n\t\tUnresolvable = ListTag,\n\t\tModifiedUserName),\n\tpartitionFileNames:[($totblCalypsoMarkitWireExceptionsDataTaggerComments_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsoMarkitWireExceptionsDataTaggerComments"
+    }
+  }
+}

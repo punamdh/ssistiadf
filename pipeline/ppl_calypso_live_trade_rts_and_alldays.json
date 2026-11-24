@@ -1,0 +1,411 @@
+{
+  "name" : "ppl_calypso_live_trade_rts_and_alldays",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_trade_keyword_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_fromtradekeyword_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_trade_keyword_FileName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_fromtradekeyword_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_trade_keyword_FilePath' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_fromtradekeyword_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_CIRC_LiveTrade_KeywordUpdate_ContainerName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_CIRC_LiveTrade_KeywordUpdate_FileName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_CIRC_LiveTrade_KeywordUpdate_FilePath' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays' AND DATAFLOW_NAME = 'get_calypso_missing_keyword_1') AS Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Missing_Keyword_10_sink_SchemaName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays') AS Get_Calypso_Missing_Keyword_10_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Calypso_Missing_Keyword_10_sink_TableName' AND PIPELINE_NAME = 'ppl_calypso_live_trade_rts_and_alldays') AS Get_Calypso_Missing_Keyword_10_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_Delete_tbl_CIRC_LiveTrade_KW_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "-- delete from [dbo].[tbl_CIRC_LiveTrade_KeywordUpdate]\n\nexec [spTruncateTable] 'tbl_CIRC_LiveTrade_KeywordUpdate'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Get_Calypso_Missing_Keyword_1",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Delete_tbl_CIRC_LiveTrade_KW_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Get_Calypso_Missing_Keyword_1",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Get_Calypso_Missing_Keyword_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Get_Calypso_Missing_Keyword_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "get_calypso_missing_keyword_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "totblCIRCLiveTradeKeywordUpdate_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            },
+            "GetClypsoLoadDate" : {
+              "type" : "Expression",
+              "value" : "concat(string(formatDateTime(variables('GetModifiedDate'), 'yyyy')),'-',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'MM'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'MM')))), 2), 2),'-',substring(concat('0',string(dayOfMonth(variables('GetModifiedDate')))), sub(length(concat('0',string(dayOfMonth(variables('GetModifiedDate'))))), 2), 2),' ',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'HH'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'HH')))), 2), 2),':',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'mm'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'mm')))), 2), 2),':',substring(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'ss'))), sub(length(concat('0',string(formatDateTime(variables('GetModifiedDate'), 'ss')))), 2), 2))"
+            }
+          },
+          "datasetParameters" : {
+            "totblCIRCLiveTradeKeywordUpdate" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "fromtradekeyword" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_fromtradekeyword_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_fromtradekeyword_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_fromtradekeyword_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Get_Calypso_Missing_Keyword_1_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Get_Calypso_Missing_Keyword_10",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Get_Calypso_Missing_Keyword_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_1_totblCIRCLiveTradeKeywordUpdate_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_10_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Get_Calypso_Missing_Keyword_10_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Update_KW_tbl_Circ_LiveTrade_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Get_Calypso_Missing_Keyword_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "    UPDATE [ReconControl].[dbo].[tbl_CIRC_LiveTrade] \n    SET [ReconControl].[dbo].[tbl_CIRC_LiveTrade].[Product Description] = [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[Product Description]\n      ,[ReconControl].[dbo].[tbl_CIRC_LiveTrade].[RP] = [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[RP]\n      ,[ReconControl].[dbo].[tbl_CIRC_LiveTrade].[Orig_CPTY] = [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[Orig_CPTY]\n      ,[ReconControl].[dbo].[tbl_CIRC_LiveTrade].[PM_Response] = [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[PM_Response]\n      ,[ReconControl].[dbo].[tbl_CIRC_LiveTrade].[product_Family] = [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[product_Family]\n    FROM [ReconControl].[dbo].[tbl_CIRC_LiveTrade] join [ReconControl].[dbo].[tbl_CIRC_LiveTrade_KeywordUpdate]\n    on  [ReconControl].[dbo].[tbl_CIRC_LiveTrade].[Trade ID] = [dbo].[tbl_CIRC_LiveTrade_KeywordUpdate].[Trade ID]\n\n-- Exec [dbo].[sp_CIRC_LiveTrade_Updte_Keyword]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Create_RTS_Live_Trade_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_KW_tbl_Circ_LiveTrade_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "--Delte all records from previous business date\n\tdelete from [ReconControl].[dbo].[tbl_CIRC_RTS_LiveTrade];\n\t\n--Insert new records from previous business date\n\tINSERT INTO [ReconControl].[dbo].[tbl_CIRC_RTS_LiveTrade]\n           ([Trade Id]\n           ,[Product Id]\n           ,[Product Type]\n           ,[Product Subtype]\n           ,[Product Description]\n           ,[External Reference]\n           ,[TradeStatus]\n           ,[Book]\n           ,[CounterParty]\n           ,[Nominal]\n           ,[Trade Date]\n           ,[Trade Settle Date]\n           ,[Entered Date]\n           ,[Trader]\n           ,[Updated Date]\n           ,[Sales Person]\n           ,[Buy/Sell]\n           ,[Modified User]\n           ,[Entered User]\n           ,[Processing Org]\n           ,[ComplianceCategory]\n           ,[LEI]\n           ,[SwapDealer]\n           ,[SwapDealerEntity]\n           ,[EndUserAffilExemptionAttribute]\n           ,[SwireParticipant]\n           ,[EMIRDelegated]\n           ,[LinkedParentID]\n           ,[LinkedChildID]\n           ,[LinkedType]\n           ,[LEI_US]\n           ,[LEI_CP]\n           ,[RP]\n           ,[SDRBACKLOAD]\n           ,[SDR_REPORTABLE]\n           ,[SDR_ELIGIBLE]\n           ,[SDR_MKTTYPE]\n           ,[USI_CURR]\n           ,[USI_PREV]\n           ,[CPTY_USI]\n           ,[UTI_CURR]\n           ,[UTI_PREV]\n           ,[PriorUSIPre]\n           ,[USIPre]\n           ,[PriorUSI]\n           ,[USI]\n           ,[FCMCPTY]\n           ,[XferTo]\n           ,[XferFrom]\n           ,[TermTradeDate]\n           ,[TermDate]\n           ,[PortCompression]\n           ,[EUExceptionKwd]\n           ,[ClearingNotRequired]\n           ,[EligibleForClearing]\n           ,[ObligationToClear]\n           ,[KRAKENID]\n           ,[FinalMatDate]\n           ,[CH_ID]\n           ,[CCP]\n           ,[CCPStatus]\n           ,[CCPTradeID]\n           ,[Orig_BIC]\n           ,[Orig_CPTY]\n           ,[Orig_LEID]\n           ,[ExVenue]\n           ,[SEFTradeSource]\n           ,[ExDateTime]\n           ,[ExDateTime2]\n           ,[SendforClearingTime]\n           ,[CCPClearedDate]\n           ,[CCPClearedDatetime]\n           ,[SendForClearingDateTime]\n           ,[AutoSend]\n           ,[MW_VersionTime]\n           ,[CCPMsgTime]\n           ,[SendForClearing]\n           ,[ClearDuringExercise]\n           ,[SwireID]\n           ,[PrivateVer]\n           ,[ECNSOURCE]\n           ,[ProcessState]\n           ,[ContractVer]\n           ,[ContractState]\n           ,[BookState]\n           ,[ExCompression]\n           ,[LastMessage]\n           ,[ECNBKRLE]\n           ,[ECNBKRBIC]\n           ,[ECNBKRTRADEID]\n           ,[ECNTrader]\n           ,[PM_ClearingStatus]\n           ,[PM_ISDASubtype]\n           ,[PM_ISDAProductType]\n           ,[PM_MAT]\n           ,[PM_DateTime]\n           ,[PM_Response]\n           ,[PM_ID]\n           ,[CptyID]\n           ,[Book Id]\n           ,[Modified_Date]\n\t\t   ,[FileName])\n    Select [Trade Id]\n           ,[Product Id]\n           ,[Product Type]\n           ,[Product Subtype]\n           ,[Product Description]\n           ,[External Reference]\n           ,[TradeStatus]\n           ,[Book]\n           ,[CounterParty]\n           ,[Nominal]\n           ,[Trade Date]\n           ,[Trade Settle Date]\n           ,[Entered Date]\n           ,[Trader]\n           ,[Updated Date]\n           ,[Sales Person]\n           ,[Buy/Sell]\n           ,[Modified User]\n           ,[Entered User]\n           ,[Processing Org]\n           ,[ComplianceCategory]\n           ,[LEI]\n           ,[SwapDealer]\n           ,[SwapDealerEntity]\n           ,[EndUserAffilExemptionAttribute]\n           ,[SwireParticipant]\n           ,[EMIRDelegated]\n           ,[LinkedParentID]\n           ,[LinkedChildID]\n           ,[LinkedType]\n           ,[LEI_US]\n           ,[LEI_CP]\n           ,[RP]\n           ,[SDRBACKLOAD]\n           ,[SDR_REPORTABLE]\n           ,[SDR_ELIGIBLE]\n           ,[SDR_MKTTYPE]\n           ,[USI_CURR]\n           ,[USI_PREV]\n           ,[CPTY_USI]\n           ,[UTI_CURR]\n           ,[UTI_PREV]\n           ,[PriorUSIPre]\n           ,[USIPre]\n           ,[PriorUSI]\n           ,[USI]\n           ,[FCMCPTY]\n           ,[XferTo]\n           ,[XferFrom]\n           ,[TermTradeDate]\n           ,[TermDate]\n           ,[PortCompression]\n           ,[EUExceptionKwd]\n           ,[ClearingNotRequired]\n           ,[EligibleForClearing]\n           ,[ObligationToClear]\n           ,[KRAKENID]\n           ,[FinalMatDate]\n           ,[CH_ID]\n           ,[CCP]\n           ,[CCPStatus]\n           ,[CCPTradeID]\n           ,[Orig_BIC]\n           ,[Orig_CPTY]\n           ,[Orig_LEID]\n           ,[ExVenue]\n           ,[SEFTradeSource]\n           ,[ExDateTime]\n           ,[ExDateTime2]\n           ,[SendforClearingTime]\n           ,[CCPClearedDate]\n           ,[CCPClearedDatetime]\n           ,[SendForClearingDateTime]\n           ,[AutoSend]\n           ,[MW_VersionTime]\n           ,[CCPMsgTime]\n           ,[SendForClearing]\n           ,[ClearDuringExercise]\n           ,[SwireID]\n           ,[PrivateVer]\n           ,[ECNSOURCE]\n           ,[ProcessState]\n           ,[ContractVer]\n           ,[ContractState]\n           ,[BookState]\n           ,[ExCompression]\n           ,[LastMessage]\n           ,[ECNBKRLE]\n           ,[ECNBKRBIC]\n           ,[ECNBKRTRADEID]\n           ,[ECNTrader]\n           ,[PM_ClearingStatus]\n           ,[PM_ISDASubtype]\n           ,[PM_ISDAProductType]\n           ,[PM_MAT]\n           ,[PM_DateTime]\n           ,[PM_Response]\n           ,[PM_ID]\n           ,[CptyID]\n           ,[Book Id]\n           ,[Modified_Date]\n\t\t   ,[FileName]\n    FROM [ReconControl].[dbo].[tbl_CIRC_LiveTrade] join \n   (SELECT [ReconControl].[dbo].[tbl_CIRC_Prod_Type].[Product_Type]\n   FROM [ReconControl].[dbo].[tbl_CIRC_Prod_Type]\n   where [Rates_ProdType_Flag] = 'Y'\n   group by Product_Type) prod\n   on [ReconControl].[dbo].[tbl_CIRC_LiveTrade].[Product type]= prod.[Product_Type];\n\n-- execute [dbo].[sp_CIRC_LiveTrade_Rates_Load];",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Append_to_All_Days_tbl_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Create_RTS_Live_Trade_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [ReconControl].[dbo].[tbl_CIRC_LiveTrades_AllDays]\n         (  [Trade Id]\n           ,[Product Id]\n           ,[Product Type]\n           ,[Product Subtype]\n           ,[Product Description]\n           ,[External Reference]\n           ,[TradeStatus]\n           ,[Book]\n           ,[CounterParty]\n           ,[Nominal]\n           ,[Trade Date]\n           ,[Trade Settle Date]\n           ,[Entered Date]\n           ,[Trader]\n           ,[Updated Date]\n           ,[Sales Person]\n           ,[Buy/Sell]\n           ,[Modified User]\n           ,[Entered User]\n           ,[Processing Org]\n           ,[ComplianceCategory]\n           ,[LEI]\n           ,[SwapDealer]\n           ,[SwapDealerEntity]\n           ,[EndUserAffilExemptionAttribute]\n           ,[SwireParticipant]\n           ,[EMIRDelegated]\n           ,[LinkedParentID]\n           ,[LinkedChildID]\n           ,[LinkedType]\n           ,[LEI_US]\n           ,[LEI_CP]\n           ,[RP]\n           ,[SDRBACKLOAD]\n           ,[SDR_REPORTABLE]\n           ,[SDR_ELIGIBLE]\n           ,[SDR_MKTTYPE]\n           ,[USI_CURR]\n           ,[USI_PREV]\n           ,[CPTY_USI]\n           ,[UTI_CURR]\n           ,[UTI_PREV]\n           ,[PriorUSIPre]\n           ,[USIPre]\n           ,[PriorUSI]\n           ,[USI]\n           ,[FCMCPTY]\n           ,[XferTo]\n           ,[XferFrom]\n           ,[TermTradeDate]\n           ,[TermDate]\n           ,[PortCompression]\n           ,[EUExceptionKwd]\n           ,[ClearingNotRequired]\n           ,[EligibleForClearing]\n           ,[ObligationToClear]\n           ,[KRAKENID]\n           ,[FinalMatDate]\n           ,[CH_ID]\n           ,[CCP]\n           ,[CCPStatus]\n           ,[CCPTradeID]\n           ,[Orig_BIC]\n           ,[Orig_CPTY]\n           ,[Orig_LEID]\n           ,[ExVenue]\n           ,[SEFTradeSource]\n           ,[ExDateTime]\n           ,[ExDateTime2]\n           ,[SendforClearingTime]\n           ,[CCPClearedDate]\n           ,[CCPClearedDatetime]\n           ,[SendForClearingDateTime]\n           ,[AutoSend]\n           ,[MW_VersionTime]\n           ,[CCPMsgTime]\n           ,[SendForClearing]\n           ,[ClearDuringExercise]\n           ,[SwireID]\n           ,[PrivateVer]\n           ,[ECNSOURCE]\n           ,[ProcessState]\n           ,[ContractVer]\n           ,[ContractState]\n           ,[BookState]\n           ,[ExCompression]\n           ,[LastMessage]\n           ,[ECNBKRLE]\n           ,[ECNBKRBIC]\n           ,[ECNBKRTRADEID]\n           ,[ECNTrader]\n           ,[PM_ClearingStatus]\n           ,[PM_ISDASubtype]\n           ,[PM_ISDAProductType]\n           ,[PM_MAT]\n           ,[PM_DateTime]\n           ,[PM_Response]\n           ,[PM_ID]\n           ,[CptyID]\n           ,[Book Id]\n           ,[Modified_Date]\n           ,[product_Family]\n\t\t   ,[FileName])\n    SELECT  [Trade Id]\n      ,[Product Id]\n      ,[Product Type]\n      ,[Product Subtype]\n      ,[Product Description]\n      ,[External Reference]\n      ,[TradeStatus]\n      ,[Book]\n      ,[CounterParty]\n      ,[Nominal]\n      ,[Trade Date]\n      ,[Trade Settle Date]\n      ,[Entered Date]\n      ,[Trader]\n      ,[Updated Date]\n      ,[Sales Person]\n      ,[Buy/Sell]\n      ,[Modified User]\n      ,[Entered User]\n      ,[Processing Org]\n      ,[ComplianceCategory]\n      ,[LEI]\n      ,[SwapDealer]\n      ,[SwapDealerEntity]\n      ,[EndUserAffilExemptionAttribute]\n      ,[SwireParticipant]\n      ,[EMIRDelegated]\n      ,[LinkedParentID]\n      ,[LinkedChildID]\n      ,[LinkedType]\n      ,[LEI_US]\n      ,[LEI_CP]\n      ,[RP]\n      ,[SDRBACKLOAD]\n      ,[SDR_REPORTABLE]\n      ,[SDR_ELIGIBLE]\n      ,[SDR_MKTTYPE]\n      ,[USI_CURR]\n      ,[USI_PREV]\n      ,[CPTY_USI]\n      ,[UTI_CURR]\n      ,[UTI_PREV]\n      ,[PriorUSIPre]\n      ,[USIPre]\n      ,[PriorUSI]\n      ,[USI]\n      ,[FCMCPTY]\n      ,[XferTo]\n      ,[XferFrom]\n      ,[TermTradeDate]\n      ,[TermDate]\n      ,[PortCompression]\n      ,[EUExceptionKwd]\n      ,[ClearingNotRequired]\n      ,[EligibleForClearing]\n      ,[ObligationToClear]\n      ,[KRAKENID]\n      ,[FinalMatDate]\n      ,[CH_ID]\n      ,[CCP]\n      ,[CCPStatus]\n      ,[CCPTradeID]\n      ,[Orig_BIC]\n      ,[Orig_CPTY]\n      ,[Orig_LEID]\n      ,[ExVenue]\n      ,[SEFTradeSource]\n      ,[ExDateTime]\n      ,[ExDateTime2]\n      ,[SendforClearingTime]\n      ,[CCPClearedDate]\n      ,[CCPClearedDatetime]\n      ,[SendForClearingDateTime]\n      ,[AutoSend]\n      ,[MW_VersionTime]\n      ,[CCPMsgTime]\n      ,[SendForClearing]\n      ,[ClearDuringExercise]\n      ,[SwireID]\n      ,[PrivateVer]\n      ,[ECNSOURCE]\n      ,[ProcessState]\n      ,[ContractVer]\n      ,[ContractState]\n      ,[BookState]\n      ,[ExCompression]\n      ,[LastMessage]\n      ,[ECNBKRLE]\n      ,[ECNBKRBIC]\n      ,[ECNBKRTRADEID]\n      ,[ECNTrader]\n      ,[PM_ClearingStatus]\n      ,[PM_ISDASubtype]\n      ,[PM_ISDAProductType]\n      ,[PM_MAT]\n      ,[PM_DateTime]\n      ,[PM_Response]\n      ,[PM_ID]\n      ,[CptyID]\n      ,[Book Id]\n      ,case when (case when CAST(modified_date as date) = CAST(getdate() as date) then 'T+1' else 'T' end) = 'T+1' then DATEADD(DAY, -1, Modified_Date) else Modified_Date end \n      ,[product_Family]\n\t  ,[FileName]\n  FROM [ReconControl].[dbo].[tbl_CIRC_LiveTrade];\n\n-- execute dbo.sp_CIRC_LiveTrade_ALL_Days_Append_New\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Record_Loaded_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Append_to_All_Days_tbl_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : " select COUNT(*) as TradeCnt\n   FROM [ReconControl].[dbo].[tbl_CIRC_LiveTrades_AllDays]\n  where cast([Modified_Date] as DATE) = CAST(GETDATE() as DATE)",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_iLoadAllDays",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Record_Loaded_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "iLoadAllDays",
+        "value" : "@int(activity('ST_Get_Record_Loaded_0').output.resultSets[0].rows[0].0)"
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Get_Calypso_Missing_Keyword_1_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "ProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CLYPSO_LiveTrade"
+      },
+      "filedate" : {
+        "type" : "String"
+      },
+      "FileName" : {
+        "type" : "String",
+        "defaultValue" : "CIRC_LiveTrades12-02-2020.csv"
+      },
+      "GetClypsoLoadDate" : {
+        "type" : "String",
+        "defaultValue" : "2020-12-02 00:00:00"
+      },
+      "FileRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "FileFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Calypso\\LiveTradeStatus\\"
+      },
+      "vFileName" : {
+        "type" : "String"
+      },
+      "GetModifiedDate" : {
+        "type" : "String",
+        "defaultValue" : "'12/2/2020'"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "iLoadAllDays" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSUAT"
+      },
+      "IsLoadAndFileEqual" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessageFailure" : {
+        "type" : "String",
+        "defaultValue" : "Process Failed. Please review"
+      },
+      "vSourceFileSubFolderPath" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Calypso\\LiveTradeStatus\\"
+      }
+    }
+  }
+}

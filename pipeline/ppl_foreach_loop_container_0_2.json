@@ -1,0 +1,268 @@
+{
+  "name" : "ppl_foreach_loop_container_0_2",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "set_sBus_grp_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@formatDateTime(variables('sFileSearchDte'), 'yyyy') >= 2022",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "ST_set_sBus_grp_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "select case\nwhen \nReplace(SUBSTRING(@{variables('sFullPathA')} ,116, 7),  '_', '-') like 'CRD_Asi'\nthen 'CRD-ASC'\nwhen \nReplace(SUBSTRING(@{variables('sFullPathA')},116, 7),  '_', '-') like 'CRD_Lon'\nthen 'CRD-LOC'\nwhen \nReplace(SUBSTRING(@{variables('sFullPathA')},116, 7),  '_', '-') like 'ABS_%'\nthen 'CRD-ABS'\nelse 'CRD-CRD' end as busGrp",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sBusGrp",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_set_sBus_grp_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sBusGrp",
+            "value" : "@string(activity('ST_set_sBus_grp_0').output.resultSets[0].rows[0].0)"
+          }
+        }, {
+          "name" : "ST_Check_if_Day_exists_in_table_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sBusGrp",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "   select COUNT([Business_Date_Short])\n  from [OtcTradeAuditing].[dbo].[tbl_Trade_CreditAudit]\n  where   [Business_Date_Short] = substring(right(@{variables('sFullPathA')}, 12), 1, 8)\nand business_Grp =  @{variables('sBusGrp')} ",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_iCountDayExistA",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Check_if_Day_exists_in_table_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "iCountDayExistA",
+            "value" : "@int(activity('ST_Check_if_Day_exists_in_table_0').output.resultSets[0].rows[0].0)"
+          }
+        }, {
+          "name" : "EP_DFt_Load_File_2_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_iCountDayExistA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_set_sbus_grp_0_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        }, {
+          "name" : "EP_Log_Day_Exist_in_table_1_0_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_iCountDayExistA",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_set_sbus_grp_0_0_2",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sMsgFailureStep1" : {
+        "type" : "String",
+        "defaultValue" : "Credit Trade Audit Mapping Test Failed Step 1 - Review"
+      },
+      "dBusinessDateRpt" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025'"
+      },
+      "dFileCreatedDateA" : {
+        "type" : "String",
+        "defaultValue" : "'8/30/2017 8:47:40 PM'"
+      },
+      "sMsgFailureStep3" : {
+        "type" : "String",
+        "defaultValue" : "Credit Trade Audit Mapping Test - Failed Step 3"
+      },
+      "sMsgFailureStep2" : {
+        "type" : "String",
+        "defaultValue" : "Credit Trade Audit Mapping Test Failed Step 2 - Loading Files - Review"
+      },
+      "sFileSearchDte" : {
+        "type" : "String",
+        "defaultValue" : "'7/21/2022 5:01:36 PM'"
+      },
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "iCountDayExistA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "iRowAuditCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFolderName" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit\\"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoCreditTradeCancelCorrect:   Number of Records in File = 0                   Number of Records loaded in stagging = 0                   Number of Records loaded in tbl_Trade_CreditAudit= 0"
+      },
+      "iRowLoadedA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sArchiveFolder" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit\\Archive\\"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoCreditTradeCancelCorrect"
+      },
+      "sCommentA" : {
+        "type" : "String",
+        "defaultValue" : "Start loading daily file to staging - Step 1A of 4"
+      },
+      "sFullPathA" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\PnLByTradeDetails\\Credit"
+      },
+      "sCommentB" : {
+        "type" : "String",
+        "defaultValue" : "Start Credit Audit File Load - Step 1 of 4"
+      },
+      "iRowFromAuditA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sBusGrp" : {
+        "type" : "String"
+      },
+      "oClyFileNames" : {
+        "type" : "String"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_Process_Alert_DEV_CalypsoCreditTradeCancelCorrect_"
+      },
+      "sFileSearchDate" : {
+        "type" : "String",
+        "defaultValue" : "07132022"
+      },
+      "iRowSourceA" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sClyFileName" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "dAuditDte" : {
+        "type" : "String",
+        "defaultValue" : "'5/8/2025 12:07:00 PM'"
+      },
+      "sClyFullName" : {
+        "type" : "String",
+        "defaultValue" : "07132022.csv"
+      },
+      "sFileRootDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd"
+      }
+    }
+  }
+}

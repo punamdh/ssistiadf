@@ -1,0 +1,45 @@
+{
+  "name" : "configure_im01",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "IM03",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "IM031",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "IM01ReconControlSCIPSCOPReporting"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn11"
+      }, {
+        "name" : "DerivedColumn111"
+      }, {
+        "name" : "Merge1"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tIM01ReconControlSCIPSCOPReporting_outputfilename as string ()\n}\n\nsource(output(\n\t\tAge_Days as string,\n\t\tPegaCaseId as string,\n\t\tBalancePool as string,\n\t\tCCY as string,\n\t\tAmount as string,\n\t\tEqAmount as string,\n\t\tSide as string,\n\t\tDebit_Credit as string,\n\t\tRisk_Date as string,\n\t\tNos_Desc_4 as string,\n\t\tTranRef as string,\n\t\tDesc2 as string,\n\t\tCustomer_Name as string,\n\t\tDeal_Number as string,\n\t\tDeal_Source as string,\n\t\tSource as string,\n\t\tUnique_ID_MP as string,\n\t\tCustomerSettSys as string,\n\t\tRate as string,\n\t\tDesc1 as string,\n\t\tBank_Ref as string,\n\t\tBeneficiary as string,\n\t\tLine_86_Stmt_Text as string,\n\t\tItem_ID as string,\n\t\tDepartment as string,\n\t\tOpsControlDesc as string,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IM03\tsource(output(\n\t\tAge_Days as string,\n\t\tPegaCaseId as string,\n\t\tBalancePool as string,\n\t\tCCY as string,\n\t\tAmount as string,\n\t\tEqAmount as string,\n\t\tSide as string,\n\t\tDebit_Credit as string,\n\t\tRisk_Date as string,\n\t\tNos_Desc_4 as string,\n\t\tTranRef as string,\n\t\tDesc2 as string,\n\t\tCustomer_Name as string,\n\t\tDeal_Number as string,\n\t\tDeal_Source as string,\n\t\tSource as string,\n\t\tUnique_ID_MP as string,\n\t\tCustomerSettSys as string,\n\t\tRate as string,\n\t\tDesc1 as string,\n\t\tBank_Ref as string,\n\t\tBeneficiary as string,\n\t\tLine_86_Stmt_Text as string,\n\t\tItem_ID as string,\n\t\tDepartment as string,\n\t\tOpsControlDesc as string,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> IM031\nIM03 derive({Derived Column 1} = toInteger(EqAmount),\n\t\t{Derived Column 2} = toInteger(Amount),\n\t\tFileSource = 'IM01_CM') ~> DerivedColumn11\nIM031 derive({Derived Column 1} = toInteger(EqAmount),\n\t\t{Derived Column 2} = toInteger(Amount),\n\t\tFileSource = 'IM01_CM_AMERGLWEST') ~> DerivedColumn111\nDerivedColumn111,DerivedColumn11 union(byName: true) ~> Merge1\nMerge1 aggregate(groupBy(Age_Days,Amount,BalancePool,Bank_Ref,Beneficiary,CCY,Customer_Name,CustomerSettSys,Deal_Number,Deal_Source,Debit_Credit,Department,Derived_Column_1,Derived_Column_2,Desc1,Desc2,EqAmount,Item_ID,Line_86_Stmt_Text,Nos_Desc_4,Notes,OpsControlDesc,PegaCaseId,Rate,Risk_Date,Side,Source,TranRef,Unique_ID_MP),\n\t{Derived Column 1} = last(Derived_Column_1),\n\t\t{Derived Column 2} = last(Derived_Column_2)) ~> Aggregate\nAggregate split(left(BalancePool, 2) == 'zz', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@ConditionalSplitDefaultOutput sink(input(\n\t\tCustomer_Name as string,\n\t\tDeal_Source as string,\n\t\tDesc2 as string,\n\t\tCustomerSettSys as string,\n\t\tDesc1 as string,\n\t\tSource as string,\n\t\tPegaCaseId as string,\n\t\tSide as string,\n\t\tDepartment as string,\n\t\tAge_Days as string,\n\t\tTranRef as string,\n\t\tLine_86_Stmt_Text as string,\n\t\tNotes as string,\n\t\tBank_Ref as string,\n\t\tNos_Desc_4 as string,\n\t\tRate as string,\n\t\tAmount as string,\n\t\tOpsControlDesc as string,\n\t\tUnique_ID_MP as string,\n\t\tDeal_Number as string,\n\t\tDebit_Credit as string,\n\t\tEqAmount as string,\n\t\tBalancePool as string,\n\t\tCCY as string,\n\t\tRisk_Date as string,\n\t\tItem_ID as string,\n\t\tBeneficiary as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCustomer_Name,\n\t\tDeal_Source,\n\t\tDesc2,\n\t\tCustomerSettSys,\n\t\tDesc1,\n\t\tSource,\n\t\tPegaCaseId,\n\t\tSide,\n\t\tDepartment,\n\t\tAge_Days,\n\t\tTranRef,\n\t\tLine_86_Stmt_Text,\n\t\tNotes,\n\t\tBank_Ref,\n\t\tNos_Desc_4,\n\t\tRate,\n\t\tAmount,\n\t\tOpsControlDesc,\n\t\tUnique_ID_MP,\n\t\tDeal_Number,\n\t\tDebit_Credit,\n\t\tEqAmount,\n\t\tBalancePool,\n\t\tCCY,\n\t\tRisk_Date,\n\t\tItem_ID,\n\t\tBeneficiary),\n\tpartitionFileNames:[($IM01ReconControlSCIPSCOPReporting_outputfilename)],\n\tpartitionBy('hash', 1)) ~> IM01ReconControlSCIPSCOPReporting"
+    }
+  }
+}

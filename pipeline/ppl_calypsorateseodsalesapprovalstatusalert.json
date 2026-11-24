@@ -1,0 +1,196 @@
+{
+  "name" : "ppl_calypsorateseodsalesapprovalstatusalert",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Get_alert_data_0",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "ASTFieldExpression{expression=null, name='sSQLSelectAlertData'}",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "ReconControl",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "''",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "''",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : false
+      }
+    }, {
+      "name" : "FRE_Foreach_Loop_Container_0",
+      "type" : "ForEach",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Get_alert_data_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "items" : {
+          "value" : "@activity('LKP_Get_alert_data_0').output.value",
+          "type" : "Expression"
+        },
+        "activities" : [ {
+          "name" : "SETVAR_sSQLRegisterAlert",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sSQLRegisterAlert",
+            "value" : {
+              "value" : "@concat('exec sp_ins_ssis_utility_alert ''IRDerivMO@wellsfargo.com;FX.Middleoffice@wellsfargo.com;RatesCOO@wellsfargo.com;RatesTC@wellsfargo.com;WFSRS@wellsfargo.com'',''', variables('sAlertSubject'), ''',''', variables('sHTMLTable'), '<br/><br/>JIRA Component: Calypso_Rates_EOD_Sales_Approved_Reporting. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com'', 2')",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "SETVAR_SET_sHTMLTable",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sHTMLTable",
+            "value" : {
+              "value" : "",
+              "type" : "Expression"
+            }
+          }
+        }, {
+          "name" : "ST_RegisterAlert_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sSQLRegisterAlert",
+            "dependencyConditions" : [ "Succeeded" ]
+          }, {
+            "activity" : "SETVAR_SET_sHTMLTable",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1_2",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "@variables('sSQLRegisterAlert')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ],
+        "isSequential" : true
+      }
+    }, {
+      "name" : "EP_Send_Failure_EMail_Task",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Get_alert_data_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "FRE_Foreach_Loop_Container_0",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : "Inactive",
+      "description" : null,
+      "onInactiveMarkAs" : "Succeeded",
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : { },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CalypsoRatesEODSalesApprovalStatusAlert"
+      },
+      "sAlertSubject" : {
+        "type" : "String",
+        "defaultValue" : "Calypso Rates EOD - Sales Approved Status"
+      },
+      "sSQLSelectAlertData" : {
+        "type" : "String",
+        "defaultValue" : "EXEC sp_sel_Utility_SelectToHTMLTable 'select Trade_ID, Book,Counterparty, Sales_Person, Trade_status, Product_Type, Updated_date, Modified_User, Book_ID, Desk_Name  from  tbl_Rates_EOD_Approved'    WITH RESULT SETS ( ( HTML NVARCHAR(MAX) ) )"
+      },
+      "sSQLRegisterAlert" : {
+        "type" : "String",
+        "defaultValue" : "exec sp_ins_ssis_utility_alert 'IRDerivMO@wellsfargo.com;FX.Middleoffice@wellsfargo.com;RatesCOO@wellsfargo.com;RatesTC@wellsfargo.com;WFSRS@wellsfargo.com','Calypso Rates EOD - Sales Approved Status','<br/><br/>JIRA Component: Calypso_Rates_EOD_Sales_Approved_Reporting. If you have any questions please contact WFSOpsReportingAndSolutions@wellsfargo.com', 2"
+      },
+      "oQueryResult" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sHTMLTable" : {
+        "type" : "String"
+      }
+    }
+  }
+}

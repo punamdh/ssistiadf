@@ -1,0 +1,29 @@
+{
+  "name" : "import_sharepoint_data_11",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCommentary as string,\n\t\t{Call (USDE)} as string,\n\t\t{Remaining Call} as string,\n\t\t{Reporting Date} as string,\n\t\t{Title (Title)} as string,\n\t\tClient as string,\n\t\t{REG Type} as string,\n\t\t{Partial Settlement} as string,\n\t\tAge as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tCommentary as string,\n\t\tCall__USDE_ as string,\n\t\tRemaining_Call as string,\n\t\tReporting_Date as string,\n\t\tTitle__Title_ as string,\n\t\tClient as string,\n\t\tREG_Type as string,\n\t\tPartial_Settlement as string,\n\t\tAge as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 5000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCommentary,\n\t\tCall__USDE_ = {Call (USDE)},\n\t\tRemaining_Call = {Remaining Call},\n\t\tReporting_Date = {Reporting Date},\n\t\tTitle__Title_ = {Title (Title)},\n\t\tClient,\n\t\tREG_Type = {REG Type},\n\t\tPartial_Settlement = {Partial Settlement},\n\t\tAge),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

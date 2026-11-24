@@ -1,0 +1,716 @@
+{
+  "name" : "ppl_file_test_output_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Catalyst_Trade_File_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_GetCatalystTradeFile_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Catalyst_Trade_File_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_GetCatalystTradeFile_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Get_Catalyst_Trade_File_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_GetCatalystTradeFile_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LookupLKPTABLE_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LookupLKPTABLE_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Lookup_LKP_TABLE_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LookupLKPTABLE_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_to_tbl_Catalyst_Trade_ContainerName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_to_tbl_Catalyst_Trade_FileName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_to_tbl_Catalyst_Trade_FilePath' AND PIPELINE_NAME = 'ppl_catalysttrade_etl' AND DATAFLOW_NAME = 'load_catalyst_trade_files') AS Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files0_sink_TableName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files0_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files01_sink_SchemaName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files01_sink_TableName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files012_sink_SchemaName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files012_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Load_Catalyst_Trade_Files012_sink_TableName' AND PIPELINE_NAME = 'ppl_catalysttrade_etl') AS Load_Catalyst_Trade_Files012_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "Load_Catalyst_Trade_Files_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@not(equals(variables('FileSize'),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_REPL_Load_Catalyst_Trade_Files",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Load_Catalyst_Trade_Files",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Load_Catalyst_Trade_Files0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Load_Catalyst_Trade_Files",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Load_Catalyst_Trade_Files",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Load_Catalyst_Trade_Files01",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Load_Catalyst_Trade_Files0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Load_Catalyst_Trade_Files",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Load_Catalyst_Trade_Files",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Load_Catalyst_Trade_Files01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "load_catalyst_trade_files",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "LoadtotblCatalystTrade_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                },
+                "FileName" : {
+                  "type" : "Expression",
+                  "value" : "@variables('FileName')"
+                }
+              },
+              "datasetParameters" : {
+                "LookupLKPTABLE" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LookupLKPTABLE_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LookupLKPTABLE_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LookupLKPTABLE_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                },
+                "GetCatalystTradeFile" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_GetCatalystTradeFile_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_GetCatalystTradeFile_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_GetCatalystTradeFile_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : "|"
+                },
+                "LoadtotblCatalystTrade" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Load_Catalyst_Trade_Files_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Load_Catalyst_Trade_Files012",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Load_Catalyst_Trade_Files",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files012_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files012_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_sRowCount012",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Load_Catalyst_Trade_Files012",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(coalesce(activity('DF_Load_Catalyst_Trade_Files').output.runStatus.metrics?.RowCount1CACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "CPD_Load_Catalyst_Trade_Files01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sRowCount012",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_sRowCount01",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Load_Catalyst_Trade_Files01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(coalesce(activity('DF_Load_Catalyst_Trade_Files').output.runStatus.metrics?.RowCount1CACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "CPD_Load_Catalyst_Trade_Files0",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sRowCount01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files_LoadtotblCatalystTrade_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files0_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Load_Catalyst_Trade_Files0_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "SETVAR_sRowCount0",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "CPD_Load_Catalyst_Trade_Files0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(coalesce(activity('DF_Load_Catalyst_Trade_Files').output.runStatus.metrics?.RowCount1CACHESINK?.rowsWritten, 0))"
+          }
+        }, {
+          "name" : "ST_Load_tbl_Catalyst_ExistingFilesLoaded_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sRowCount0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "IF NOT EXISTS (SELECT 1 FROM ReconControl.dbo.tbl_Catalyst_ExistingFilesLoaded WHERE [FileName] = @item.name)\n\tINSERT INTO tbl_Catalyst_ExistingFilesLoaded\nVALUES (@item.name, @item.name, @item.name)",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Get_rowcount_with_empty_fields_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_Load_tbl_Catalyst_ExistingFilesLoaded_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "SELECT COUNT(*) AS 'RecordCount'\nFROM [ReconControl].[dbo].[tbl_Catalyst_Trade]\nWHERE [FileName] = @item.name\n\tAND (entry_time IS NULL \n\tOR entry_time = '' \n\tOR trade_status IS NULL\n\tOR trade_status = ''\n\tOR trade_type IS NULL\n\tOR trade_type = '' \n\tOR trade_subtype IS NULL\n\tOR trade_subtype = '')",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_sRowCount",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_rowcount_with_empty_fields_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "sRowCount",
+            "value" : "@int(activity('ST_Get_rowcount_with_empty_fields_0').output.resultSets[0].rows[0].RecordCount)"
+          }
+        }, {
+          "name" : "EP_Add_to_the_FileCount_and_FileInfo_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_sRowCount",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_load_catalyst_trade_files_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Load_Catalyst_Trade_Files_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "CompletenessCheckToTEST" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sMoveDestinationPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\Archive\\"
+      },
+      "sFileNameAddDate" : {
+        "type" : "String",
+        "defaultValue" : "04-03-2026"
+      },
+      "FileName" : {
+        "type" : "String",
+        "defaultValue" : "catalyst.trade_17_01_2023_19_35.dat"
+      },
+      "sMoveDestinationPath2" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\Archive\\"
+      },
+      "CompletenessCheckTo" : {
+        "type" : "String",
+        "defaultValue" : "CatalystQlikviewExceptions@wellsfargo.com"
+      },
+      "sRowCount" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sProcess" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_fromProd_20250306"
+      },
+      "FileDate" : {
+        "type" : "String",
+        "defaultValue" : "'1/17/2023'"
+      },
+      "FileDestination" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Catalyst\\archive\\"
+      },
+      "sCC" : {
+        "type" : "String"
+      },
+      "sFileFullExportPathSuccess" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\CatalystTrade_ETL_CompleteCatalystDataLoad_SUCCESS_04-03-2026.txt"
+      },
+      "sFileNameExportedSuccess" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_CompleteCatalystDataLoad_SUCCESS_"
+      },
+      "ErrorDesc" : {
+        "type" : "String"
+      },
+      "sActualRecords" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sFileNameExportedFailure" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL_CompleteCatalystDataLoad_FAILURE_"
+      },
+      "sStatus" : {
+        "type" : "String"
+      },
+      "FileCountWithEmptyColumns" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Catalyst Trade process failed. This needs immediate attention."
+      },
+      "DataChecksMessageSuccess" : {
+        "type" : "String",
+        "defaultValue" : "All key data fields in the catalyst files loaded in this cycle are complete.  Component: Catalyst Daily Trades ETL"
+      },
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "CatalystTrade_ETL"
+      },
+      "sFileRootDirectory_1EQS" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV"
+      },
+      "DataChecksMessage" : {
+        "type" : "String",
+        "defaultValue" : "The following files and records were loaded with missing fields: \\n\\n\\nThe affected files need to be regenerated by Catalyst Support with complete data and reloaded."
+      },
+      "FileSource" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Loading main Catalyst file data to tbl_Catalyst_Trade"
+      },
+      "sFilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\Catalyst\\catalyst.trade_17_01_2023_19_35.dat"
+      },
+      "DataChecksFilesAndRowCount" : {
+        "type" : "String"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String",
+        "defaultValue" : "WFSR&S_ProcessAlert_DEV_CatalystTrade_ETL"
+      },
+      "sFileFullExportPathFailure" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncsl831nvs1.wellsfargo.com\\1EQSUAT\\1EQSDEV\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\CatalystTrade_ETL_CompleteCatalystDataLoad_FAILURE_04-03-2026.txt"
+      },
+      "FilesLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFileSubDirectory2" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\Catalyst\\"
+      },
+      "sFileName2" : {
+        "type" : "String"
+      },
+      "sFileExportSubDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\"
+      },
+      "sFileName3" : {
+        "type" : "String"
+      },
+      "sFileSubDirectory" : {
+        "type" : "String",
+        "defaultValue" : "\\WFSOpsKRIReporting\\DropZone\\WFSRS_EXPORTS\\catalyst_trade_field_control\\"
+      },
+      "FileSize" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      }
+    }
+  }
+}

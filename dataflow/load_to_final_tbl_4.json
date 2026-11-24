@@ -1,0 +1,29 @@
+{
+  "name" : "load_to_final_tbl_4",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblEndurCommoditiesTradeEventsMaturedStaging",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblEndurCommoditiesTradeEventsMaturedArchive"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblEndurCommoditiesTradeEventsMaturedArchive_outputfilename as string ()\n}\n\nsource(output(\n\t\ttoolset as string,\n\t\tEventDate as string,\n\t\tAction_Interval_Days as integer,\n\t\t{Internal/External} as string,\n\t\tReference as string,\n\t\tFileName as string,\n\t\tFile_LoadDate as string,\n\t\tExecuted_by as string,\n\t\tMarketer_Name as string,\n\t\tName as string,\n\t\tDESK_NAME as string,\n\t\tDeal_Tracking_Num as string,\n\t\tinsType as string,\n\t\tType_of_Event as string,\n\t\tShort_Name as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tTrade_Event_Category as string,\n\t\tTrader_Name as string,\n\t\ttran_num as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblEndurCommoditiesTradeEventsMaturedStaging\ntblEndurCommoditiesTradeEventsMaturedStaging sink(input(\n\t\ttoolset as string,\n\t\tEventDate as string,\n\t\tAction_Interval_Days as integer,\n\t\tInternal_External as string,\n\t\tReference as string,\n\t\tFileName as string,\n\t\tFile_LoadDate as string,\n\t\tExecuted_by as string,\n\t\tMarketer_Name as string,\n\t\tName as string,\n\t\tDESK_NAME as string,\n\t\tDeal_Tracking_Num as string,\n\t\tinsType as string,\n\t\tType_of_Event as string,\n\t\tShort_Name as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tTrade_Event_Category as string,\n\t\tTrader_Name as string,\n\t\ttran_num as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttoolset,\n\t\tEventDate,\n\t\tAction_Interval_Days,\n\t\tInternal_External = {Internal/External},\n\t\tReference,\n\t\tFileName,\n\t\tFile_LoadDate,\n\t\tExecuted_by,\n\t\tMarketer_Name,\n\t\tName,\n\t\tDESK_NAME,\n\t\tDeal_Tracking_Num,\n\t\tinsType,\n\t\tType_of_Event,\n\t\tShort_Name,\n\t\tTRADING_UNIT_NAME,\n\t\tTrade_Event_Category,\n\t\tTrader_Name,\n\t\ttran_num),\n\tpartitionFileNames:[($tblEndurCommoditiesTradeEventsMaturedArchive_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblEndurCommoditiesTradeEventsMaturedArchive"
+    }
+  }
+}

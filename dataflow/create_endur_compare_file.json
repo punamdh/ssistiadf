@@ -1,0 +1,109 @@
+{
+  "name" : "create_endur_compare_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "GMIFCLookuponExchangeforGMIFutCodeLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "MonthCodeLookuponCusipLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "MonthCodeLookuponDescriptionLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OverridePromptLookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumns"
+      }, {
+        "name" : "DerivedColumnExchangeSymbol"
+      }, {
+        "name" : "MonthCodeLookuponCusip"
+      }, {
+        "name" : "MonthCodeLookuponCusipIsMatch"
+      }, {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "MonthCodeLookuponCusip0"
+      }, {
+        "name" : "UnionAll"
+      }, {
+        "name" : "MonthCodeLookuponDescription"
+      }, {
+        "name" : "MonthCodeLookuponDescriptionIsMatch"
+      }, {
+        "name" : "DerivedColumn1"
+      }, {
+        "name" : "MonthCodeLookuponDescription0"
+      }, {
+        "name" : "UnionAll1"
+      }, {
+        "name" : "DerivedColumnContractYRMTH"
+      }, {
+        "name" : "GMIFCLookuponExchangeforGMIFutCode"
+      }, {
+        "name" : "GMIFCLookuponExchangeforGMIFutCodeIsMatch"
+      }, {
+        "name" : "DerivedColumn2"
+      }, {
+        "name" : "GMIFCLookuponExchangeforGMIFutCode0"
+      }, {
+        "name" : "UnionAll2"
+      }, {
+        "name" : "DerivedColumnCusipCusipcontainsdecimalNumericQuantity"
+      }, {
+        "name" : "DerivedColumnRightofDecimalinCusipifdecimalexists"
+      }, {
+        "name" : "DerivedColumnPrompt"
+      }, {
+        "name" : "OverridePromptLookup"
+      }, {
+        "name" : "OverridePromptLookupIsMatch"
+      }, {
+        "name" : "OverridePrompt"
+      }, {
+        "name" : "UnionAll3"
+      }, {
+        "name" : "Aggregate"
+      }, {
+        "name" : "Reformattradeprice"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tAccount as string,\n\t\tStrikePrice as string,\n\t\tPutCallIndicator as string,\n\t\tQuantity as string,\n\t\tCusip as string,\n\t\tDescription as string,\n\t\tExchange as string,\n\t\t{Trade Date} as string,\n\t\t{Trade Price} as string,\n\t\tSymbol as string,\n\t\t{PnL Indicator} as string,\n\t\t{Last Trade Date} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> GMIFCLookuponExchangeforGMIFutCodeLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MonthCodeLookuponCusipLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> MonthCodeLookuponDescriptionLKPTABLE\tsource(output(\n\t\tKey as string,\n\t\tValue as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OverridePromptLookupLKPTABLE\nFlatFileSource split(PnL Indicator == 'T' && notConvertedectfunctiondatedatediff('dd', toString(Trade Date), currentTimestamp()) == 0, disjoint: true) ~> ConditionalSplit@(PnLequalsTandTradeDateisToday,ConditionalSplitDefaultOutput)\nConditionalSplit@PnLequalsTandTradeDateisToday derive(BuySell = iif(toString(Quantity) > 0, 'Buy', 'Sell'),\n\t\tCusipContainsSlash = iif(locate('/', Cusip, 1) != 0, true(), false()),\n\t\tCusip4thAnd5thChars = substring(toString(Cusip), toInteger(4), toInteger(2)),\n\t\tCusip3rdCharacter = substring(toString(Cusip), toInteger(3), toInteger(1)),\n\t\tDescription5thAnd6thChars = substring(toString(Description), toInteger(5), toInteger(2)),\n\t\tDescription1stThrough3rdChars = substring(toString(Description), toInteger(1), toInteger(3)),\n\t\tPutCall = substring(toString(PutCallIndicator), toInteger(1), toInteger(1)),\n\t\tEndurFutCode = Symbol,\n\t\tExchange = iif(locate('-', Exchange, 1) == 0, Exchange, substring(toString(Exchange), toInteger(1), toInteger(locate('-', Exchange, 1) - 1))),\n\t\t{Trade Date} = toString(year(toTimestamp(toString({Trade Date}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))) + right('0' + toString(month(toTimestamp(toString({Trade Date}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))), 2) + right('0' + toString(notConvertedectfunctiondateday(toTimestamp(toString({Trade Date}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))), 2)) ~> DerivedColumns\nDerivedColumns derive(ExchangePlusSymbol = Exchange + Symbol) ~> DerivedColumnExchangeSymbol\nDerivedColumnExchangeSymbol,MonthCodeLookuponCusipLKPTABLE lookup(Cusip3rdCharacter == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> MonthCodeLookuponCusip\nMonthCodeLookuponCusip split(isMatch(), disjoint: true) ~> MonthCodeLookuponCusipIsMatch@(Match,NotMatch)\nMonthCodeLookuponCusipIsMatch@NotMatch derive(ContractYRMTHCusipMonthCodeNumeric = 'XX') ~> DerivedColumn\nMonthCodeLookuponCusipIsMatch@NotMatch select(mapColumn(\n\t\tContractYRMTHCusipMonthCodeNumeric = Value,\n\t\tExchangePlusSymbol = ExchangePlusSymbol,\n\t\tBuySell = BuySell,\n\t\tCusipContainsSlash = CusipContainsSlash,\n\t\tCusip4thAnd5thChars = Cusip4thAnd5thChars,\n\t\tCusip3rdCharacter = Cusip3rdCharacter,\n\t\tDescription5thAnd6thChars = Description5thAnd6thChars,\n\t\tDescription1stThrough3rdChars = Description1stThrough3rdChars,\n\t\tPutCall = PutCall,\n\t\tEndurFutCode = EndurFutCode,\n\t\t{PnL Indicator} = {PnL Indicator},\n\t\t{Trade Date} = {Trade Date},\n\t\tAccount = Account,\n\t\tStrikePrice = StrikePrice,\n\t\tPutCallIndicator = PutCallIndicator,\n\t\tQuantity = Quantity,\n\t\tCusip = Cusip,\n\t\tDescription = Description,\n\t\tExchange = Exchange,\n\t\t{Trade Price} = {Trade Price},\n\t\tSymbol = Symbol,\n\t\t{Last Trade Date} = {Last Trade Date}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MonthCodeLookuponCusip0\nDerivedColumn,MonthCodeLookuponCusip0 union(byName: true) ~> UnionAll\nUnionAll,MonthCodeLookuponDescriptionLKPTABLE lookup(Description1stThrough3rdChars == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> MonthCodeLookuponDescription\nMonthCodeLookuponDescription split(isMatch(), disjoint: true) ~> MonthCodeLookuponDescriptionIsMatch@(Match,NotMatch)\nMonthCodeLookuponDescriptionIsMatch@NotMatch derive(ContractYRMTHCusipMonthCodeNumericFromDesc = 'XXX') ~> DerivedColumn1\nMonthCodeLookuponDescriptionIsMatch@NotMatch select(mapColumn(\n\t\tContractYRMTHCusipMonthCodeNumericFromDesc = Value,\n\t\tAccount = Account,\n\t\tStrikePrice = StrikePrice,\n\t\tPutCallIndicator = PutCallIndicator,\n\t\tQuantity = Quantity,\n\t\tCusip = Cusip,\n\t\tDescription = Description,\n\t\tExchange = Exchange,\n\t\t{Trade Date} = {Trade Date},\n\t\t{Trade Price} = {Trade Price},\n\t\tSymbol = Symbol,\n\t\t{PnL Indicator} = {PnL Indicator},\n\t\tBuySell = BuySell,\n\t\tCusipContainsSlash = CusipContainsSlash,\n\t\tCusip4thAnd5thChars = Cusip4thAnd5thChars,\n\t\tCusip3rdCharacter = Cusip3rdCharacter,\n\t\tDescription5thAnd6thChars = Description5thAnd6thChars,\n\t\tDescription1stThrough3rdChars = Description1stThrough3rdChars,\n\t\tPutCall = PutCall,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchangePlusSymbol = ExchangePlusSymbol,\n\t\tContractYRMTHCusipMonthCodeNumeric = ContractYRMTHCusipMonthCodeNumeric,\n\t\t{Last Trade Date} = {Last Trade Date}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MonthCodeLookuponDescription0\nDerivedColumn1,MonthCodeLookuponDescription0 union(byName: true) ~> UnionAll1\nUnionAll1 derive(ContractYRMTH = iif(CusipContainsSlash == true(), '20' + Description5thAnd6thChars + ContractYRMTHCusipMonthCodeNumericFromDesc, '20' + Cusip4thAnd5thChars + ContractYRMTHCusipMonthCodeNumeric)) ~> DerivedColumnContractYRMTH\nDerivedColumnContractYRMTH,GMIFCLookuponExchangeforGMIFutCodeLKPTABLE lookup(ExchangePlusSymbol == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> GMIFCLookuponExchangeforGMIFutCode\nGMIFCLookuponExchangeforGMIFutCode split(isMatch(), disjoint: true) ~> GMIFCLookuponExchangeforGMIFutCodeIsMatch@(Match,NotMatch)\nGMIFCLookuponExchangeforGMIFutCodeIsMatch@NotMatch derive(GMIFutCode = 'Unmapped') ~> DerivedColumn2\nGMIFCLookuponExchangeforGMIFutCodeIsMatch@NotMatch select(mapColumn(\n\t\tGMIFutCode = Value,\n\t\tContractYRMTH = ContractYRMTH,\n\t\tAccount = Account,\n\t\tStrikePrice = StrikePrice,\n\t\tPutCallIndicator = PutCallIndicator,\n\t\tQuantity = Quantity,\n\t\tCusip = Cusip,\n\t\tDescription = Description,\n\t\tExchange = Exchange,\n\t\t{Trade Date} = {Trade Date},\n\t\t{Trade Price} = {Trade Price},\n\t\tSymbol = Symbol,\n\t\t{PnL Indicator} = {PnL Indicator},\n\t\tBuySell = BuySell,\n\t\tCusipContainsSlash = CusipContainsSlash,\n\t\tCusip4thAnd5thChars = Cusip4thAnd5thChars,\n\t\tCusip3rdCharacter = Cusip3rdCharacter,\n\t\tDescription5thAnd6thChars = Description5thAnd6thChars,\n\t\tDescription1stThrough3rdChars = Description1stThrough3rdChars,\n\t\tPutCall = PutCall,\n\t\tEndurFutCode = EndurFutCode,\n\t\tExchangePlusSymbol = ExchangePlusSymbol,\n\t\tContractYRMTHCusipMonthCodeNumeric = ContractYRMTHCusipMonthCodeNumeric,\n\t\tContractYRMTHCusipMonthCodeNumericFromDesc = ContractYRMTHCusipMonthCodeNumericFromDesc,\n\t\t{Last Trade Date} = {Last Trade Date}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> GMIFCLookuponExchangeforGMIFutCode0\nDerivedColumn2,GMIFCLookuponExchangeforGMIFutCode0 union(byName: true) ~> UnionAll2\nUnionAll2 derive(CusipContainsPeriod = iif(locate('.', Cusip, 1) > 0, true(), false()),\n\t\tQuantityNumeric = abs(toString(Quantity))) ~> DerivedColumnCusipCusipcontainsdecimalNumericQuantity\nDerivedColumnCusipCusipcontainsdecimalNumericQuantity derive(CusipRightOfDecimalIfExists = iif(locate('.', Cusip, 1) > 0, substring(toString(Cusip), toInteger(locate('.', Cusip, 1) + 1), toInteger(length(Cusip) - locate('.', Cusip, 1))), Cusip)) ~> DerivedColumnRightofDecimalinCusipifdecimalexists\nDerivedColumnRightofDecimalinCusipifdecimalexists derive(Prompt = iif(CusipContainsSlash == false() && (length(CusipRightOfDecimalIfExists) != length(Cusip)), CusipRightOfDecimalIfExists, '')) ~> DerivedColumnPrompt\nDerivedColumnPrompt,OverridePromptLookupLKPTABLE lookup(EndurFutCode == Key,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> OverridePromptLookup\nOverridePromptLookup split(isMatch(), disjoint: true) ~> OverridePromptLookupIsMatch@(Match,NotMatch)\nOverridePromptLookupIsMatch@Match derive(Prompt = '') ~> OverridePrompt\nOverridePrompt,OverridePromptLookupIsMatch@NotMatch union(byName: true) ~> UnionAll3\nUnionAll3 aggregate(groupBy(Account,BuySell,ContractYRMTH,Description,EndurFutCode,Exchange,GMIFutCode,Prompt,PutCall,StrikePrice,Trade_Date,Trade_Price,Last_Trade_Date),\n\t{Trade Date} = last(Trade_Date),\n\t\t{Trade Price} = last(Trade_Price),\n\t\tQuantityNumeric = sum(QuantityNumeric),\n\t\t{Last Trade Date} = last(Last_Trade_Date)) ~> Aggregate\nAggregate derive({Trade Price} = toString({Trade Price})) ~> Reformattradeprice\nReformattradeprice sink(input(\n\t\tAccount as string,\n\t\tDescription as string,\n\t\tStrikePrice as string,\n\t\tContractYRMTH as string,\n\t\tGMIFutCode as string,\n\t\tQuantity as string,\n\t\tBuySell as string,\n\t\tTradePrice as string,\n\t\tExchange as string,\n\t\tPutCall as string,\n\t\tLastTradeDate as string,\n\t\tTradeDate as string,\n\t\tPrompt as string,\n\t\tEndurFutCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tAccount,\n\t\tDescription,\n\t\tStrikePrice,\n\t\tContractYRMTH,\n\t\tGMIFutCode,\n\t\tQuantity = QuantityNumeric,\n\t\tBuySell,\n\t\tTradePrice = {Trade Price},\n\t\tExchange,\n\t\tPutCall,\n\t\tLastTradeDate = {Last Trade Date},\n\t\tTradeDate = {Trade Date},\n\t\tPrompt,\n\t\tEndurFutCode)) ~> FlatFileDestination"
+    }
+  }
+}

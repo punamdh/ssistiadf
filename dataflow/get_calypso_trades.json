@@ -1,0 +1,29 @@
+{
+  "name" : "get_calypso_trades",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCIRCLiveTrade",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblcalypsotradeservcalytrades1a"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblcalypsotradeservcalytrades1a_outputfilename as string ()\n}\n\nsource(output(\n\t\tLEI_CP as string,\n\t\t{Trade Id} as string,\n\t\tFileName as string,\n\t\t{Product Type} as string,\n\t\t{Buy/Sell} as string,\n\t\t{Product Id} as string,\n\t\t{Processing Org} as string,\n\t\tCounterParty as string,\n\t\tLEI_US as string,\n\t\tBook as string,\n\t\tSDR_MKTTYPE as string,\n\t\t{Product Subtype} as string,\n\t\t{Trade Date} as string,\n\t\tTradeStatus as string,\n\t\tNominal as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCIRCLiveTrade\nfromtblCIRCLiveTrade sink(input(\n\t\tLEI_CP as string,\n\t\tTradeId as string,\n\t\tFileName as string,\n\t\tProductType as string,\n\t\tBuySell as string,\n\t\tProductId as string,\n\t\tProcessingOrg as string,\n\t\tCounterParty as string,\n\t\tLEI_US as string,\n\t\tBook as string,\n\t\tSDR_MKTTYPE as string,\n\t\tProductSubtype as string,\n\t\tTradeDate as string,\n\t\tTradeStatus as string,\n\t\tNominal as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLEI_CP,\n\t\tTradeId = {Trade Id},\n\t\tFileName,\n\t\tProductType = {Product Type},\n\t\tBuySell = {Buy/Sell},\n\t\tProductId = {Product Id},\n\t\tProcessingOrg = {Processing Org},\n\t\tCounterParty,\n\t\tLEI_US,\n\t\tBook,\n\t\tSDR_MKTTYPE,\n\t\tProductSubtype = {Product Subtype},\n\t\tTradeDate = {Trade Date},\n\t\tTradeStatus,\n\t\tNominal),\n\tpartitionFileNames:[($totblcalypsotradeservcalytrades1a_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblcalypsotradeservcalytrades1a"
+    }
+  }
+}

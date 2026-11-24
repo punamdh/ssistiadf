@@ -1,0 +1,35 @@
+{
+  "name" : "load_madatory_clearing_comp_staging",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "DerivedColumn1"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Id} as string,\n\t\t{Product Type} as string,\n\t\t{TRADE_KEYWORD OP_ISDA_ProductType} as string,\n\t\t{CounterParty Full Name} as string,\n\t\t{TRADE_KEYWORD LEI_CP} as string,\n\t\tTrader as string,\n\t\t{Sales Person} as string,\n\t\tBook as string,\n\t\t{TRADE_KEYWORD OP_ClearingEligibility} as string,\n\t\t{TRADE_KEYWORD EndUser_Clearing_Exception_Election} as string,\n\t\t{TRADE_KEYWORD OP_CLRELG_CME DESC} as string,\n\t\t{TRADE_KEYWORD OP_CLRELG_LCHUK DESC} as string,\n\t\tTradeStatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 derive(FileName = toString(($FileName)),\n\t\tFileDate = toString((substring(toString($FileName), toInteger(42), toInteger(10))))) ~> DerivedColumn\nDerivedColumn derive({Copy of FileName} = FileName,\n\t\t{Copy of FileDate} = toDate(FileDate, \"MM/dd/yyyy\")) ~> DataConversion1\nDataConversion1 derive(LoadDate = currentTimestamp()) ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tLoadDate as date 'dd-MM-yyyy',\n\t\tTRADE_KEYWORD_LEI_CP as string,\n\t\tTrader as string,\n\t\tTRADE_KEYWORD_OP_ClearingEligibility as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC as string,\n\t\tFileName as string,\n\t\tTRADE_KEYWORD_OP_ISDA_ProductType as string,\n\t\tTrade_Id as string,\n\t\tTRADE_KEYWORD_EndUser_Clearing_Exception_Election as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC as string,\n\t\tCounterParty_Full_Name as string,\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tSales_Person as string,\n\t\tBook as string,\n\t\tProduct_Type as string,\n\t\tTradeStatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tTRADE_KEYWORD_LEI_CP = {TRADE_KEYWORD LEI_CP},\n\t\tTrader,\n\t\tTRADE_KEYWORD_OP_ClearingEligibility = {TRADE_KEYWORD OP_ClearingEligibility},\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC = {TRADE_KEYWORD OP_CLRELG_LCHUK DESC},\n\t\tFileName = {Copy of FileName},\n\t\tTRADE_KEYWORD_OP_ISDA_ProductType = {TRADE_KEYWORD OP_ISDA_ProductType},\n\t\tTrade_Id = {Trade Id},\n\t\tTRADE_KEYWORD_EndUser_Clearing_Exception_Election = {TRADE_KEYWORD EndUser_Clearing_Exception_Election},\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC = {TRADE_KEYWORD OP_CLRELG_CME DESC},\n\t\tCounterParty_Full_Name = {CounterParty Full Name},\n\t\tFileDate = {Copy of FileDate},\n\t\tSales_Person = {Sales Person},\n\t\tBook,\n\t\tProduct_Type = {Product Type},\n\t\tTradeStatus),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

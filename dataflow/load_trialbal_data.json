@@ -1,0 +1,33 @@
+{
+  "name" : "load_trialbal_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tsPrevBusDay as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCLIENT_NBR as string,\n\t\tEFFECTIVEDATE as decimal(38,0),\n\t\tPRODUCTION_DT as timestamp,\n\t\tBR_BRANCH_CD as string,\n\t\tBR_ACCOUNT_CD as string,\n\t\tBR_ACCOUNT_NM as string,\n\t\tTRADER_CD as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tGL_COMPANY_CD as string,\n\t\tGL_ACCOUNT_CD as string,\n\t\tGL_AU_CD as string,\n\t\tGL_PRODUCT_CD as string,\n\t\tGL_INVENTORY_CD as string,\n\t\tBAL_IN as string,\n\t\tDAILY_BAL_AMT as decimal(18,2),\n\t\tCLOSING_BAL_AMT as decimal(18,2),\n\t\tUNITCOST_BAL_AMT as string,\n\t\tMTM_BAL_AMT as string,\n\t\tUPDT_LAST_TMSTP as timestamp,\n\t\tYEAR_END_IND as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(EFFECTIVEDATE = toDate(toString($sPrevBusDay, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DerivedColumn\nDerivedColumn derive({Copy of GL_AU_CD} = GL_AU_CD,\n\t\t{Copy of client_nbr} = CLIENT_NBR,\n\t\t{Copy of GL_ACCOUNT_CD} = GL_ACCOUNT_CD,\n\t\t{Copy of BR_ACCOUNT_CD} = BR_ACCOUNT_CD,\n\t\t{Copy of BR_ACCOUNT_NM} = BR_ACCOUNT_NM,\n\t\t{Copy of GL_PRODUCT_CD} = GL_PRODUCT_CD,\n\t\t{Copy of GL_INVENTORY_CD} = GL_INVENTORY_CD,\n\t\t{Copy of ISO_CURRENCY_CD} = ISO_CURRENCY_CD,\n\t\t{Copy of BR_BRANCH_CD} = BR_BRANCH_CD,\n\t\t{Copy of BAL_IN} = BAL_IN,\n\t\t{Copy of trader_cd} = TRADER_CD,\n\t\t{Copy of YEAR_END_IND} = YEAR_END_IND,\n\t\t{Copy of GL_COMPANY_CD} = GL_COMPANY_CD) ~> DataConversion\nDataConversion sink(input(\n\t\tbr_account_nm as string,\n\t\tbr_account_cd as string,\n\t\tiso_currency_cd as string,\n\t\tdaily_bal_amt as integer,\n\t\tbr_branch_cd as string,\n\t\tgl_account_cd as string,\n\t\tgl_inventory_cd as string,\n\t\tgl_product_cd as string,\n\t\tclosing_bal_amt as integer,\n\t\tclient_nbr as string,\n\t\tgl_au_cd as string,\n\t\tbal_in as string,\n\t\tunitcost_bal_amt as integer,\n\t\tUPDT_LAST_TMSTP as date 'dd-MM-yyyy',\n\t\tmtm_bal_amt as integer,\n\t\tgl_company_cd as string,\n\t\tyear_end_ind as string,\n\t\teffectiveDate as timestamp 'dd-MM-yyyy',\n\t\ttrader_cd as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tbr_account_nm = {Copy of BR_ACCOUNT_NM},\n\t\tbr_account_cd = {Copy of BR_ACCOUNT_CD},\n\t\tiso_currency_cd = {Copy of ISO_CURRENCY_CD},\n\t\tdaily_bal_amt = DAILY_BAL_AMT,\n\t\tbr_branch_cd = {Copy of BR_BRANCH_CD},\n\t\tgl_account_cd = {Copy of GL_ACCOUNT_CD},\n\t\tgl_inventory_cd = {Copy of GL_INVENTORY_CD},\n\t\tgl_product_cd = {Copy of GL_PRODUCT_CD},\n\t\tclosing_bal_amt = CLOSING_BAL_AMT,\n\t\tclient_nbr = {Copy of client_nbr},\n\t\tgl_au_cd = {Copy of GL_AU_CD},\n\t\tbal_in = {Copy of BAL_IN},\n\t\tunitcost_bal_amt = UNITCOST_BAL_AMT,\n\t\tUPDT_LAST_TMSTP,\n\t\tmtm_bal_amt = MTM_BAL_AMT,\n\t\tgl_company_cd = {Copy of GL_COMPANY_CD},\n\t\tyear_end_ind = {Copy of YEAR_END_IND},\n\t\teffectiveDate = PRODUCTION_DT,\n\t\ttrader_cd = {Copy of trader_cd}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

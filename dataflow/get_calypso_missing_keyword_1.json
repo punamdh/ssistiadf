@@ -1,0 +1,33 @@
+{
+  "name" : "get_calypso_missing_keyword_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtradekeyword",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCIRCLiveTradeKeywordUpdate"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DerivedColumnModifiedDate"
+      } ],
+      "script" : "parameters{\n\tGetClypsoLoadDate as string ('2020-12-02 00:00:00'),\n\ttotblCIRCLiveTradeKeywordUpdate_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tDESCRIPTION as string,\n\t\tSWORIGINALCOUNTERPARTY as string,\n\t\tOP_RESPONSE as string,\n\t\tREPORTING_PARTY as string,\n\t\tINTERNAL as string,\n\t\tCLEARING_CPTY as string,\n\t\tBILATERAL as string,\n\t\tTRADE_COUNTERPARTYTYPE as string,\n\t\tTRADE_CLEARED_DATE as timestamp,\n\t\tEXEC_TIME as string,\n\t\tEXECUTIONDATETIME as string,\n\t\tCCPCLEAREDDATE as string,\n\t\tPRODUCT_FAMILY as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtradekeyword\nfromtradekeyword derive(oPROD_DESC = DESCRIPTION,\n\t\toTRADE_CLEARED_DATE = toString(TRADE_CLEARED_DATE),\n\t\toTRADE_COUNTERPARTYTYPE = TRADE_COUNTERPARTYTYPE,\n\t\toCCPCLEAREDDATE = CCPCLEAREDDATE,\n\t\toEXEC_TIME = EXEC_TIME,\n\t\toOP_RESPONSE = OP_RESPONSE,\n\t\toTRADE_ID = toString(TRADE_ID),\n\t\toINTERNAL = INTERNAL,\n\t\toCLEARING_CPTY = CLEARING_CPTY,\n\t\toREPORTING_PARTY = REPORTING_PARTY,\n\t\toPRODUCT_FAMILY = PRODUCT_FAMILY,\n\t\toBILATERAL = BILATERAL,\n\t\toEXECUTIONDATETIME = EXECUTIONDATETIME,\n\t\toSWORIGINALCPTY = SWORIGINALCOUNTERPARTY) ~> DataConversion\nDataConversion derive(Modified_Date = toDate(toString($GetClypsoLoadDate, 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> DerivedColumnModifiedDate\nDerivedColumnModifiedDate sink(input(\n\t\tOrig_CPTY as string,\n\t\tProduct_Description as string,\n\t\texecutionTime_Cly as string,\n\t\tPM_Response as string,\n\t\tCLEARING_CPTY as string,\n\t\tExecution_Time as string,\n\t\tTrade_Id as string,\n\t\tproduct_Family as string,\n\t\tBILATERAL as string,\n\t\tTRADE_COUNTERPARTYTYPE as string,\n\t\tINTERNAL as string,\n\t\tcleared_date_CLY as string,\n\t\tModified_Date as timestamp 'dd-MM-yyyy',\n\t\tCleared_Date as string,\n\t\tRP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 10000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOrig_CPTY = oSWORIGINALCPTY,\n\t\tProduct_Description = oPROD_DESC,\n\t\texecutionTime_Cly = oEXECUTIONDATETIME,\n\t\tPM_Response = oOP_RESPONSE,\n\t\tCLEARING_CPTY = oCLEARING_CPTY,\n\t\tExecution_Time = oEXEC_TIME,\n\t\tTrade_Id = oTRADE_ID,\n\t\tproduct_Family = oPRODUCT_FAMILY,\n\t\tBILATERAL = oBILATERAL,\n\t\tTRADE_COUNTERPARTYTYPE = oTRADE_COUNTERPARTYTYPE,\n\t\tINTERNAL = oINTERNAL,\n\t\tcleared_date_CLY = oCCPCLEAREDDATE,\n\t\tModified_Date,\n\t\tCleared_Date = oTRADE_CLEARED_DATE,\n\t\tRP = oREPORTING_PARTY),\n\tpartitionFileNames:[($totblCIRCLiveTradeKeywordUpdate_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCIRCLiveTradeKeywordUpdate"
+    }
+  }
+}

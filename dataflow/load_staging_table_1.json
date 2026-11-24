@@ -1,0 +1,31 @@
+{
+  "name" : "load_staging_table_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromFileSourceConMgr1",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblGSFOpenTradesBorrowimport"
+      } ],
+      "transformations" : [ {
+        "name" : "createFileMetaDataFields"
+      } ],
+      "script" : "parameters{\n\tvFileName as string (),\n\ttotblGSFOpenTradesBorrowimport_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Biz Date} as string,\n\t\tContractID as string,\n\t\tEntity as string,\n\t\tGroup as string,\n\t\t{Contract Type} as string,\n\t\t{Cpty Code} as string,\n\t\t{Cpty Name} as string,\n\t\tClass as string,\n\t\tTicker as string,\n\t\tIsin as string,\n\t\tCusip as string,\n\t\tSedol as string,\n\t\tDescription as string,\n\t\t{Security Settlement Date} as string,\n\t\t{Price (USD)} as string,\n\t\tSettledQty as string,\n\t\tQuantity as string,\n\t\t{Amount Settled} as string,\n\t\tMargin as string,\n\t\t{Coll CCY} as string,\n\t\tRate as string,\n\t\tSkewedRate as string,\n\t\tFee as string,\n\t\t{Rate Code} as string,\n\t\t{Cash Settlement Date} as string,\n\t\tDepot as string,\n\t\t{Term Date} as string,\n\t\t{Return Date} as string,\n\t\t{Profit Center} as string,\n\t\t{Div Rate} as string,\n\t\t{Income Tracked} as string,\n\t\tComment as string,\n\t\t{Source System} as string,\n\t\t{Target System} as string,\n\t\t{Creation Time} as string,\n\t\t{Created By} as string,\n\t\t{Last Update Time} as string,\n\t\t{Last Updated By} as string,\n\t\t{Contract Key} as string,\n\t\t{Restricted Category} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromFileSourceConMgr1\nfromFileSourceConMgr1 derive(rowCreateDate = currentTimestamp(),\n\t\tFileName = toString(right(toString($vFileName), 26))) ~> createFileMetaDataFields\ncreateFileMetaDataFields sink(input(\n\t\tContract_Type as string,\n\t\tEntity as string,\n\t\tGroup as string,\n\t\tIncome_Tracked as string,\n\t\tDescription as string,\n\t\tPrice__USD_ as string,\n\t\tContract_Key as string,\n\t\tContractID as string,\n\t\tAmount_Settled as string,\n\t\tIsin as string,\n\t\tTerm_Date as string,\n\t\tCpty_Code as string,\n\t\tSedol as string,\n\t\tSkewedRate as string,\n\t\tCreation_Time as string,\n\t\trowCreateDate as string,\n\t\tCash_Settlement_Date as string,\n\t\tBiz_Date as string,\n\t\tLast_Updated_By as string,\n\t\tReturn_Date as string,\n\t\tComment as string,\n\t\tCpty_Name as string,\n\t\tRate as string,\n\t\tFee as string,\n\t\tTicker as string,\n\t\tRate_Code as string,\n\t\tFilename as string,\n\t\tQuantity as string,\n\t\tSettledQty as string,\n\t\tSource_System as string,\n\t\tProfit_Center as string,\n\t\tColl_CCY as string,\n\t\tCusip as string,\n\t\tRestricted_Category as string,\n\t\tLast_Update_Time as string,\n\t\tSecurity_Settlement_Date as string,\n\t\tDiv_Rate as string,\n\t\tTarget_System as string,\n\t\tDepot as string,\n\t\tClass as string,\n\t\tCreated_By as string,\n\t\tMargin as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tContract_Type = {Contract Type},\n\t\tEntity,\n\t\tGroup,\n\t\tIncome_Tracked = {Income Tracked},\n\t\tDescription,\n\t\tPrice__USD_ = {Price (USD)},\n\t\tContract_Key = {Contract Key},\n\t\tContractID,\n\t\tAmount_Settled = {Amount Settled},\n\t\tIsin,\n\t\tTerm_Date = {Term Date},\n\t\tCpty_Code = {Cpty Code},\n\t\tSedol,\n\t\tSkewedRate,\n\t\tCreation_Time = {Creation Time},\n\t\trowCreateDate,\n\t\tCash_Settlement_Date = {Cash Settlement Date},\n\t\tBiz_Date = {Biz Date},\n\t\tLast_Updated_By = {Last Updated By},\n\t\tReturn_Date = {Return Date},\n\t\tComment,\n\t\tCpty_Name = {Cpty Name},\n\t\tRate,\n\t\tFee,\n\t\tTicker,\n\t\tRate_Code = {Rate Code},\n\t\tFilename = FileName,\n\t\tQuantity,\n\t\tSettledQty,\n\t\tSource_System = {Source System},\n\t\tProfit_Center = {Profit Center},\n\t\tColl_CCY = {Coll CCY},\n\t\tCusip,\n\t\tRestricted_Category = {Restricted Category},\n\t\tLast_Update_Time = {Last Update Time},\n\t\tSecurity_Settlement_Date = {Security Settlement Date},\n\t\tDiv_Rate = {Div Rate},\n\t\tTarget_System = {Target System},\n\t\tDepot,\n\t\tClass,\n\t\tCreated_By = {Created By},\n\t\tMargin),\n\tpartitionFileNames:[($totblGSFOpenTradesBorrowimport_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblGSFOpenTradesBorrowimport"
+    }
+  }
+}

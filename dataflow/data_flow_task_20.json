@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Data Center Name} as string,\n\t\t{PDU Number} as string,\n\t\t{PDU Name} as string,\n\t\t{Consumed kW} as double,\n\t\tkW as double,\n\t\t{Date of Readings} as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tPDU_Number as string,\n\t\tPDU_Name as string,\n\t\tkW as double,\n\t\tDataCenterName as string,\n\t\tConsumedkW as double,\n\t\tDateofReading as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tETLUser,\n\t\tPDU_Number = {PDU Number},\n\t\tPDU_Name = {PDU Name},\n\t\tkW,\n\t\tDataCenterName = {Data Center Name},\n\t\tConsumedkW = {Consumed kW},\n\t\tDateofReading = {Date of Readings}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Value Date} as string,\n\t\tFrom as string,\n\t\tTo as string,\n\t\tAmount as string,\n\t\tCCY as string,\n\t\tConfirmation as string,\n\t\tStatus as string,\n\t\tType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Load_Date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tType as string,\n\t\tAmount as double,\n\t\tCCY as string,\n\t\tValue_Date as date 'dd-MM-yyyy',\n\t\tFrom as string,\n\t\tTo as string,\n\t\tConfirmation as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tType,\n\t\tAmount,\n\t\tCCY,\n\t\tValue_Date = {Value Date},\n\t\tFrom,\n\t\tTo,\n\t\tConfirmation,\n\t\tloadDate = Load_Date),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

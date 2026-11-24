@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_safekeeping_price",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\teffdate as timestamp,\n\t\tsymbol as string,\n\t\tPrice as decimal(24,12),\n\t\tSource as string,\n\t\tCurrency as string,\n\t\tAcntTreatment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tsymbol as string,\n\t\tPrice as integer,\n\t\tCurrency as string,\n\t\teffdate as timestamp 'dd-MM-yyyy',\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tSource as string,\n\t\tAcntTreatment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tsymbol,\n\t\tPrice,\n\t\tCurrency,\n\t\teffdate,\n\t\tloadDate,\n\t\tSource,\n\t\tAcntTreatment),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

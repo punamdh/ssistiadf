@@ -1,0 +1,29 @@
+{
+  "name" : "load_cid_data_-_loanet",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "tblCIDData",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPCIDData"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPCIDData_outputfilename as string ()\n}\n\nsource(output(\n\t\tlegalFullName as string,\n\t\tlegalParent as string,\n\t\tbusAExtlStatC as string,\n\t\tbusAExtlKeyCLegal as string,\n\t\tbusAN as string,\n\t\tbusAExtlSystemC as string,\n\t\tlegalSysARelC as string,\n\t\tbusAExtlN as string,\n\t\tbusAIdC as string,\n\t\tloadDate as timestamp,\n\t\tlegalIdC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> tblCIDData\ntblCIDData sink(input(\n\t\tlegalFullName as string,\n\t\tlegalParent as string,\n\t\tbusAExtlStatC as string,\n\t\tbusAExtlKeyCLegal as string,\n\t\tbusAN as string,\n\t\tbusAExtlSystemC as string,\n\t\tlegalSysARelC as string,\n\t\tbusAExtlN as string,\n\t\tbusAIdC as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tlegalIdC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegalFullName,\n\t\tlegalParent,\n\t\tbusAExtlStatC,\n\t\tbusAExtlKeyCLegal,\n\t\tbusAN,\n\t\tbusAExtlSystemC,\n\t\tlegalSysARelC,\n\t\tbusAExtlN,\n\t\tbusAIdC,\n\t\tloadDate,\n\t\tlegalIdC),\n\tpartitionFileNames:[($tblSLACPCIDData_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPCIDData"
+    }
+  }
+}

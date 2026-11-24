@@ -1,0 +1,29 @@
+{
+  "name" : "load_tbl_catalyst_ecntradeblotter3b",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromtblCatalystEcnTradeBlotter2a",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCatalystEcnTradeBlotter3b"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttotblCatalystEcnTradeBlotter3b_outputfilename as string ()\n}\n\nsource(output(\n\t\torigin as string,\n\t\tRangeGroup as string,\n\t\tInventory as string,\n\t\tRangeValue as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromtblCatalystEcnTradeBlotter2a\nfromtblCatalystEcnTradeBlotter2a sink(input(\n\t\torigin as string,\n\t\tRangeGroup as string,\n\t\tInventory as string,\n\t\tRangeValue as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\torigin,\n\t\tRangeGroup,\n\t\tInventory,\n\t\tRangeValue),\n\tpartitionFileNames:[($totblCatalystEcnTradeBlotter3b_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCatalystEcnTradeBlotter3b"
+    }
+  }
+}

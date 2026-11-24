@@ -1,0 +1,29 @@
+{
+  "name" : "intellimatch_nfa_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FFCIntlNFArd",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "FCMGMIFeeReconIntellimatchNFAcopy"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tFCMGMIFeeReconIntellimatchNFAcopy_outputfilename as string ()\n}\n\nsource(output(\n\t\titemId as string,\n\t\tType as string,\n\t\triskMonth_Adj_Dte as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FFCIntlNFArd\nFFCIntlNFArd sink(input(\n\t\titemId as string,\n\t\tType as string,\n\t\triskMonth_Adj_Dte as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\titemId,\n\t\tType,\n\t\triskMonth_Adj_Dte),\n\tpartitionFileNames:[($FCMGMIFeeReconIntellimatchNFAcopy_outputfilename)],\n\tpartitionBy('hash', 1)) ~> FCMGMIFeeReconIntellimatchNFAcopy"
+    }
+  }
+}

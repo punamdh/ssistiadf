@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task_-_load_erroracctbalances_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion"
+      }, {
+        "name" : "DerivedColumn2"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tMOFFIC as string,\n\t\tMACCT as string,\n\t\tMTE as double,\n\t\tMCLASS as string,\n\t\tYNA1 as string,\n\t\tMSUBCL as string,\n\t\tMATYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive({Copy of MACCT} = MACCT,\n\t\t{Copy of YNA1} = YNA1,\n\t\t{Copy of MCLASS} = MCLASS,\n\t\t{Copy of MATYPE} = MATYPE,\n\t\t{Copy of MOFFIC} = MOFFIC,\n\t\t{Copy of EFFDATE} = EFFDATE,\n\t\t{Copy of MTE} = MTE,\n\t\t{Copy of MSUBCL} = MSUBCL) ~> DataConversion\nDataConversion derive(loadDate = currentTimestamp()) ~> DerivedColumn2\nDerivedColumn2 sink(input(\n\t\tMSUBCL as string,\n\t\tMOFFIC as string,\n\t\tMCLASS as string,\n\t\tEFFDATE as timestamp 'dd-MM-yyyy',\n\t\tMACCT as string,\n\t\tYNA1 as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tMATYPE as string,\n\t\tMTE as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 5000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMSUBCL = {Copy of MSUBCL},\n\t\tMOFFIC = {Copy of MOFFIC},\n\t\tMCLASS = {Copy of MCLASS},\n\t\tEFFDATE = {Copy of EFFDATE},\n\t\tMACCT = {Copy of MACCT},\n\t\tYNA1 = {Copy of YNA1},\n\t\tloadDate,\n\t\tMATYPE = {Copy of MATYPE},\n\t\tMTE = {Copy of MTE}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

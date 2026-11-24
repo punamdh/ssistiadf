@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_1_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tAPPLICATION_SERVICE_WF_GUID as string,\n\t\tDISTRIBUTED_APP_ID as string,\n\t\tENVIRONMENT_ID as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tSERVICE_ID_NUMBER as string,\n\t\tMANAGED_BY_GROUP_NAME as string,\n\t\tSUPPORT_GROUP_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tDISTRIBUTED_APP_ID as string,\n\t\tMANAGED_BY_GROUP_NAME as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tSUPPORT_GROUP_NAME as string,\n\t\tSERVICE_ID_NUMBER as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tAPPLICATION_SERVICE_WF_GUID as string,\n\t\tENVIRONMENT_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tImportDate,\n\t\tDISTRIBUTED_APP_ID,\n\t\tMANAGED_BY_GROUP_NAME,\n\t\tENVIRONMENT_DESCRIPTION,\n\t\tSUPPORT_GROUP_NAME,\n\t\tSERVICE_ID_NUMBER,\n\t\tBUSINESS_APPLICATION_WF_GUID,\n\t\tAPPLICATION_SERVICE_WF_GUID,\n\t\tENVIRONMENT_ID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

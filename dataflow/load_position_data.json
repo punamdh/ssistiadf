@@ -1,0 +1,29 @@
+{
+  "name" : "load_position_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCUSIP as string,\n\t\tProductType3 as string,\n\t\tProductType1 as string,\n\t\tADPNumber as string,\n\t\tSourceSystemName as string,\n\t\tClientNum as string,\n\t\tActualDate as timestamp,\n\t\tSourcePositionId as string,\n\t\tProductAccountingCode as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCUSIP as string,\n\t\tProductType3 as string,\n\t\tProductType1 as string,\n\t\tADPNumber as string,\n\t\tSourceSystemName as string,\n\t\tClientNum as long,\n\t\tActualDate as timestamp 'dd-MM-yyyy',\n\t\tSourcePositionId as string,\n\t\tProductAccountingCode as long\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCUSIP,\n\t\tProductType3,\n\t\tProductType1,\n\t\tADPNumber,\n\t\tSourceSystemName,\n\t\tClientNum,\n\t\tActualDate,\n\t\tSourcePositionId,\n\t\tProductAccountingCode),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

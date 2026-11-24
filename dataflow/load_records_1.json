@@ -1,0 +1,31 @@
+{
+  "name" : "load_records_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblOpicsFXVolumeDailyStaging"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\ttblOpicsFXVolumeDailyStaging_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT as string,\n\t\tSPOTFWDIND as string,\n\t\tPORT as string,\n\t\tTRADEVOLUME as string,\n\t\tCURRENCYBASEAMOUNT as string,\n\t\tMONTH1 as string,\n\t\tYEAR as string,\n\t\tDEALDATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Loaddate = toString(currentTimestamp())) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTRADEVOLUME as integer,\n\t\tMONTH1 as string,\n\t\tPORT as string,\n\t\tYEAR as string,\n\t\tPRODUCT as string,\n\t\tLoaddate as string,\n\t\tAsofDate as string,\n\t\tSPOTFWDIND as string,\n\t\tCURRENCYBASEAMOUNT as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTRADEVOLUME,\n\t\tMONTH1,\n\t\tPORT,\n\t\tYEAR,\n\t\tPRODUCT,\n\t\tLoaddate,\n\t\tAsofDate = DEALDATE,\n\t\tSPOTFWDIND,\n\t\tCURRENCYBASEAMOUNT),\n\tpartitionFileNames:[($tblOpicsFXVolumeDailyStaging_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblOpicsFXVolumeDailyStaging"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name" : "tbl_otc_alltrades_final",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\ttrade_id as decimal(38,0),\n\t\ttransfer_id as decimal(38,0),\n\t\tevent_type as string,\n\t\ttransfer_status as string,\n\t\ttransfer_type as string,\n\t\tTransfer_Amount as double,\n\t\tSettleCurrency as string,\n\t\tvalue_date as timestamp,\n\t\tPayerCode as string,\n\t\tReceiverCode as string,\n\t\tPO_SETTLE_METHOD as string,\n\t\tSettle_Amount as double,\n\t\tOriginal_Cpty as string,\n\t\tPayerRole as string,\n\t\tPayerInst as string,\n\t\tPayerInst_Status as string,\n\t\tReceiverRole as string,\n\t\tReceiverInst as string,\n\t\tReceiverInst_Status as string,\n\t\tnetted_transfer as decimal(38,0),\n\t\tsettle_date as timestamp,\n\t\tTRADE_KEYWORD_source as string,\n\t\tBook_Attr_MO_Email as string,\n\t\tProcessing_Org as string,\n\t\tbook_name as string,\n\t\tpayreceive_type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tProcessing_Org as string,\n\t\tPayerCode as string,\n\t\tPayerRole as string,\n\t\tsettle_date as timestamp 'dd-MM-yyyy',\n\t\tpayreceive_type as string,\n\t\tSettleCurrency as string,\n\t\tReceiverInst_Status as string,\n\t\tbook_name as string,\n\t\tPayerInst as string,\n\t\ttrade_id as integer,\n\t\tevent_type as string,\n\t\tReceiverCode as string,\n\t\ttransfer_id as integer,\n\t\ttransfer_status as string,\n\t\tReceiverRole as string,\n\t\tTRADE_KEYWORD_source as string,\n\t\tReceiverInst as string,\n\t\tPO_SETTLE_METHOD as string,\n\t\tBook_Attr_MO_Email as string,\n\t\tSettle_Amount as double,\n\t\tOriginal_Cpty as string,\n\t\tnetted_transfer as integer,\n\t\ttransfer_type as string,\n\t\tTransfer_Amount as double,\n\t\tPayerInst_Status as string,\n\t\tvalue_date as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tProcessing_Org,\n\t\tPayerCode,\n\t\tPayerRole,\n\t\tsettle_date,\n\t\tpayreceive_type,\n\t\tSettleCurrency,\n\t\tReceiverInst_Status,\n\t\tbook_name,\n\t\tPayerInst,\n\t\ttrade_id,\n\t\tevent_type,\n\t\tReceiverCode,\n\t\ttransfer_id,\n\t\ttransfer_status,\n\t\tReceiverRole,\n\t\tTRADE_KEYWORD_source,\n\t\tReceiverInst,\n\t\tPO_SETTLE_METHOD,\n\t\tBook_Attr_MO_Email,\n\t\tSettle_Amount,\n\t\tOriginal_Cpty,\n\t\tnetted_transfer,\n\t\ttransfer_type,\n\t\tTransfer_Amount,\n\t\tPayerInst_Status,\n\t\tvalue_date),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

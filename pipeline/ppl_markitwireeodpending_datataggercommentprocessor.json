@@ -1,0 +1,343 @@
+{
+  "name" : "ppl_markitwireeodpending_datataggercommentprocessor",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_DataTagger_Tags_ContainerName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_DataTagger_Tags_FileName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'from_tbl_DataTagger_Tags_FilePath' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_REODR_DataTagger_Comments_ContainerName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_REODR_DataTagger_Comments_FileName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'to_tbl_REODR_DataTagger_Comments_FilePath' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor' AND DATAFLOW_NAME = 'capture_latest_data_tagger_comments_1') AS Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Capture_latest_data_tagger_comments_10_sink_SchemaName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor') AS Capture_latest_data_tagger_comments_10_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Capture_latest_data_tagger_comments_10_sink_TableName' AND PIPELINE_NAME = 'ppl_markitwireeodpending_datataggercommentprocessor') AS Capture_latest_data_tagger_comments_10_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_delete_from_tbl_REODR_DataTagger_Comments_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "DELETE \nFROM tbl_REODR_DataTagger_Comments",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Capture_latest_data_tagger_comments_1",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_delete_from_tbl_REODR_DataTagger_Comments_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Capture_latest_data_tagger_comments_1",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Capture_latest_data_tagger_comments_1",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Capture_latest_data_tagger_comments_1",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "capture_latest_data_tagger_comments_1",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "totblREODRDataTaggerComments_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "fromtblDataTaggerTags" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_fromtblDataTaggerTags_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "totblREODRDataTaggerComments" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Capture_latest_data_tagger_comments_1_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Capture_latest_data_tagger_comments_10",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Capture_latest_data_tagger_comments_1",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_1_totblREODRDataTaggerComments_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_10_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Capture_latest_data_tagger_comments_10_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Update_exceptions_with_latest_comments_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Capture_latest_data_tagger_comments_10",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "update [ReconControl].[dbo].[tbl_REODR_DoneOrPendingNotInternal] \nset \nComments = B.Comments,\nCommentTimeStamp = cast(B.CommentTimeStamp as date),\nCommentUserName = B.ModifiedUserName,\nUnresolvable = B.Unresolvable\nFROM [ReconControl].[dbo].[tbl_REODR_DoneOrPendingNotInternal] A\nleft join (SELECT [TradeID],[CommentTimeStamp],[Comments],[Unresolvable],[ModifiedUserName]  FROM [ReconControl].[dbo].[tbl_REODR_DataTagger_Comments]) B on A.TradeID = B.TradeID",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Send_email_details_to_alert_service_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Update_exceptions_with_latest_comments_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLNCLI11_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dbo].[sp_ins_ssis_utility_alert]\n@TO = 'RatesMOIndia@wellsfargo.com;wfsrs@wellsfargo.com'\n,@SUBJECT = 'WFSR&S_ProcessAlert_UAT_MarkitwireEodPending_DataTaggerCommentProcessor_SUCCESS'\n,@BODY = 'Comment process completed: <br> <br>\n   1) Go to the Power BI report for review - Outstanding - <a href=\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports_UAT/MarkItWire/MarkItWireEodPendingTrades_Rates_Outstanding\">Click here</a> <br>\n   2) Go to the Power BI report for review - By LoadDate - <a href=\"https://pbirs.wellsfargo.net/reports/report/WSD/Reports_UAT/MarkItWire/MarkItWireEodPendingTrades_Rates_ByLoadDate\">Click here</a> <br>\n   Component name is MarkitwireEodPending_DataTaggerCommentProcessor: <br> <br>\n   '\n,@BodyFormat = '2'",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_Send_Failure_EMail_Task",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_delete_from_tbl_REODR_DataTagger_Comments_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Send_email_details_to_alert_service_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "ST_Update_exceptions_with_latest_comments_0",
+        "dependencyConditions" : [ "Failed" ]
+      }, {
+        "activity" : "CPD_Capture_latest_data_tagger_comments_10",
+        "dependencyConditions" : [ "Failed" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_email",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "parameters" : {
+      "Capture_latest_data_tagger_comments_1_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "sProcessName" : {
+        "type" : "String",
+        "defaultValue" : "MarkitwireEodPending_DataTaggerCommentProcessor"
+      },
+      "sCC" : {
+        "type" : "String",
+        "defaultValue" : "IRDerivMO@wellsfargo.com"
+      },
+      "sSubject" : {
+        "type" : "String"
+      },
+      "sEnvironment" : {
+        "type" : "String",
+        "defaultValue" : "DEV"
+      },
+      "sFROM" : {
+        "type" : "String",
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "The Rates End of Day Recon table update process completed"
+      },
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      }
+    }
+  }
+}

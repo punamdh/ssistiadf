@@ -1,0 +1,31 @@
+{
+  "name" : "p2p",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "ExcelSource",
+        "dataset" : {
+          "referenceName" : "Excel1",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDisposition as string,\n\t\t{Move Group} as string,\n\t\t{Move Date} as date 'dd-MM-yyyy',\n\t\t{Server Reboot Change Request} as string,\n\t\t{Cold Reboot Date} as date 'dd-MM-yyyy',\n\t\t{Change Request} as string,\n\t\tStatus as string,\n\t\t{Device CIO} as string,\n\t\t{Device AppID} as string,\n\t\t{Device Application Name} as string,\n\t\t{CI Name} as string,\n\t\t{Serial Number} as string,\n\t\tEnvironment as string,\n\t\tRack as string,\n\t\t{Rack Unit Location} as string,\n\t\tDCMFlavor as string,\n\t\t{IP Address} as string,\n\t\t{CI Type} as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\t{Discovered Product Name} as string,\n\t\t{TSC Name} as string,\n\t\t{Operational Status} as string,\n\t\t{Install Status} as string,\n\t\t{Hardware Status} as string,\n\t\t{Hardware Substatus} as string,\n\t\t{Operating System} as string,\n\t\t{Managed By Group} as string,\n\t\t{Supported By Group} as string,\n\t\tCategory as string,\n\t\tSubcategory as string,\n\t\t{Patch Day} as string,\n\t\t{Patch Start  Time (PT)} as date 'dd-MM-yyyy',\n\t\tMiddleware as string,\n\t\t{Middelware Support} as string,\n\t\t{Backed Up?} as string,\n\t\t{Backup Required} as string,\n\t\t{Avg Duration of Backup} as string,\n\t\t{Max Duration of Backup} as string,\n\t\t{Backup Comments} as string,\n\t\t{SAN Attached?} as string,\n\t\t{SAN (in GB)} as string,\n\t\t{WEC SAN Array} as string,\n\t\t{Behind F5?} as string,\n\t\tNotes as string,\n\t\tTDM as string,\n\t\t{BEAMS Device Target Platform} as string,\n\t\t{BEAMS Device Target Date} as date 'dd-MM-yyyy',\n\t\t{Decom LPD_Follow Up Required Y/N} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSupported_By_Group as string,\n\t\tBackup_Required as string,\n\t\tDCMFlavor as string,\n\t\tDevice_CIO as string,\n\t\tDevice_Application_Name as string,\n\t\tBEAMS_Device_Target_Date as timestamp 'dd-MM-yyyy',\n\t\tMove_Group as string,\n\t\tIP_Address as string,\n\t\tManaged_By_Group as string,\n\t\tManufacturer as string,\n\t\tOperational_Status as string,\n\t\tInstall_Status as string,\n\t\tWEC_SAN_Array as string,\n\t\tPatch_Start__Time__PT_ as timestamp 'dd-MM-yyyy',\n\t\tStatus as string,\n\t\tCI_Type as string,\n\t\tAvg_Duration_of_Backup as string,\n\t\tSAN__in_GB_ as string,\n\t\tBEAMS_Device_Target_Platform as string,\n\t\tMiddleware as string,\n\t\tBehind_F5_ as string,\n\t\tRack_Unit_Location as string,\n\t\tDisposition as string,\n\t\tPatch_Day as string,\n\t\tBacked_Up_ as string,\n\t\tEnvironment as string,\n\t\tHardware_Status as string,\n\t\tServer_Reboot_Change_Request as string,\n\t\tCategory as string,\n\t\tRack as string,\n\t\tBackup_Comments as string,\n\t\tDecom_LPD_Follow_Up_Required_Y_N as string,\n\t\tCI_Name as string,\n\t\tSAN_Attached_ as string,\n\t\tMove_Date as timestamp 'dd-MM-yyyy',\n\t\tSerial_Number as string,\n\t\tMax_Duration_of_Backup as string,\n\t\tTSC_Name as string,\n\t\tTDM as string,\n\t\tNotes as string,\n\t\tCold_Reboot_Date as timestamp 'dd-MM-yyyy',\n\t\tDiscovered_Product_Name as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tOperating_System as string,\n\t\tHardware_Substatus as string,\n\t\tSubcategory as string,\n\t\tDevice_AppID as string,\n\t\tModel as string,\n\t\tChange_Request as string,\n\t\tMiddelware_Support as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSupported_By_Group = {Supported By Group},\n\t\tBackup_Required = {Backup Required},\n\t\tDCMFlavor,\n\t\tDevice_CIO = {Device CIO},\n\t\tDevice_Application_Name = {Device Application Name},\n\t\tBEAMS_Device_Target_Date = {BEAMS Device Target Date},\n\t\tMove_Group = {Move Group},\n\t\tIP_Address = {IP Address},\n\t\tManaged_By_Group = {Managed By Group},\n\t\tManufacturer,\n\t\tOperational_Status = {Operational Status},\n\t\tInstall_Status = {Install Status},\n\t\tWEC_SAN_Array = {WEC SAN Array},\n\t\tPatch_Start__Time__PT_ = {Patch Start  Time (PT)},\n\t\tStatus,\n\t\tCI_Type = {CI Type},\n\t\tAvg_Duration_of_Backup = {Avg Duration of Backup},\n\t\tSAN__in_GB_ = {SAN (in GB)},\n\t\tBEAMS_Device_Target_Platform = {BEAMS Device Target Platform},\n\t\tMiddleware,\n\t\tBehind_F5_ = {Behind F5?},\n\t\tRack_Unit_Location = {Rack Unit Location},\n\t\tDisposition,\n\t\tPatch_Day = {Patch Day},\n\t\tBacked_Up_ = {Backed Up?},\n\t\tEnvironment,\n\t\tHardware_Status = {Hardware Status},\n\t\tServer_Reboot_Change_Request = {Server Reboot Change Request},\n\t\tCategory,\n\t\tRack,\n\t\tBackup_Comments = {Backup Comments},\n\t\tDecom_LPD_Follow_Up_Required_Y_N = {Decom LPD_Follow Up Required Y/N},\n\t\tCI_Name = {CI Name},\n\t\tSAN_Attached_ = {SAN Attached?},\n\t\tMove_Date = {Move Date},\n\t\tSerial_Number = {Serial Number},\n\t\tMax_Duration_of_Backup = {Max Duration of Backup},\n\t\tTSC_Name = {TSC Name},\n\t\tTDM,\n\t\tNotes,\n\t\tCold_Reboot_Date = {Cold Reboot Date},\n\t\tDiscovered_Product_Name = {Discovered Product Name},\n\t\tImportDate,\n\t\tOperating_System = {Operating System},\n\t\tHardware_Substatus = {Hardware Substatus},\n\t\tSubcategory,\n\t\tDevice_AppID = {Device AppID},\n\t\tModel,\n\t\tChange_Request = {Change Request},\n\t\tMiddelware_Support = {Middelware Support}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

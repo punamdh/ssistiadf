@@ -1,0 +1,29 @@
+{
+  "name" : "load_table_tbl_slacp_facs_instrument",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FACSOLAPDWInstrument",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPFACSInstrument"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPFACSInstrument_outputfilename as string ()\n}\n\nsource(output(\n\t\tCUSIP as string,\n\t\tSourceInstrumentID as string,\n\t\tInstrumentDescription1 as string,\n\t\tSourceSystemName as string,\n\t\tSourceInstrumentId2 as string,\n\t\tSourceSystemKeyId as integer,\n\t\tSourceInstrumentId1 as string,\n\t\tInstrumentId as integer,\n\t\tISIN as string,\n\t\tSourceInstrumentIdType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FACSOLAPDWInstrument\nFACSOLAPDWInstrument sink(input(\n\t\tCUSIP as string,\n\t\tSourceInstrumentID as string,\n\t\tInstrumentDescription1 as string,\n\t\tSourceSystemName as string,\n\t\tSourceInstrumentId2 as string,\n\t\tSourceSystemKeyId as string,\n\t\tSourceInstrumentId1 as string,\n\t\tInstrumentId as string,\n\t\tISIN as string,\n\t\tSourceInstrumentIdType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCUSIP,\n\t\tSourceInstrumentID,\n\t\tInstrumentDescription1,\n\t\tSourceSystemName,\n\t\tSourceInstrumentId2,\n\t\tSourceSystemKeyId,\n\t\tSourceInstrumentId1,\n\t\tInstrumentId,\n\t\tISIN,\n\t\tSourceInstrumentIdType),\n\tpartitionFileNames:[($tblSLACPFACSInstrument_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPFACSInstrument"
+    }
+  }
+}

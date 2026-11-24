@@ -1,0 +1,29 @@
+{
+  "name" : "load_facs_product_detail",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FACSEDSTIER2ProductDetail",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "tblSLACPproductdetail"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\ttblSLACPproductdetail_outputfilename as string ()\n}\n\nsource(output(\n\t\tcusip as string,\n\t\tEffDate as timestamp,\n\t\tlongDesc as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FACSEDSTIER2ProductDetail\nFACSEDSTIER2ProductDetail sink(input(\n\t\tcusip as string,\n\t\tEffDate as string,\n\t\tlongDesc as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcusip,\n\t\tEffDate,\n\t\tlongDesc),\n\tpartitionFileNames:[($tblSLACPproductdetail_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblSLACPproductdetail"
+    }
+  }
+}

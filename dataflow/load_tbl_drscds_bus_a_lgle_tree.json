@@ -1,0 +1,29 @@
+{
+  "name" : "load_tbl_drscds_bus_a_lgle_tree",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "selectrelgroupcownerrecords",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "saverelgroupcownerrecords"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tsaverelgroupcownerrecords_outputfilename as string ()\n}\n\nsource(output(\n\t\trel_group_c as string,\n\t\tsys_a_id_c as integer,\n\t\tbus_a_id_c as integer,\n\t\tbus_unit_id_c as integer,\n\t\tlgle_id_c as integer,\n\t\tlgle_sys_a_rel_c as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> selectrelgroupcownerrecords\nselectrelgroupcownerrecords sink(input(\n\t\trel_group_c as string,\n\t\tsys_a_id_c as string,\n\t\tbus_a_id_c as string,\n\t\tbus_unit_id_c as string,\n\t\tlgle_id_c as string,\n\t\tlgle_sys_a_rel_c as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\trel_group_c,\n\t\tsys_a_id_c,\n\t\tbus_a_id_c,\n\t\tbus_unit_id_c,\n\t\tlgle_id_c,\n\t\tlgle_sys_a_rel_c),\n\tpartitionFileNames:[($saverelgroupcownerrecords_outputfilename)],\n\tpartitionBy('hash', 1)) ~> saverelgroupcownerrecords"
+    }
+  }
+}

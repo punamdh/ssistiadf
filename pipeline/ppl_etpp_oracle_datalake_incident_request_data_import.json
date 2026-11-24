@@ -1,0 +1,286 @@
+{
+  "name" : "ppl_etpp_oracle_datalake_incident_request_data_import",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import' AND DATAFLOW_NAME = 'data_flow_task_1_9') AS Data_Flow_Task_1_9_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_90_sink_SchemaName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import') AS Data_Flow_Task_1_90_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Data_Flow_Task_1_90_sink_TableName' AND PIPELINE_NAME = 'ppl_etpp_oracle_datalake_incident_request_data_import') AS Data_Flow_Task_1_90_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "ST_get_select_script_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [import].[datalake_incident_request_data_import_sp]\t@{variables('selectquery')} OUTPUT\n",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_get_select_script_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "TRUNCATE TABLE import.datalake_incident_request_import_datatbl",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "EP_REPL_Data_Flow_Task_1_9",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Execute_SQL_Task_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "Data_Flow_Task_1_9",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "DF_Data_Flow_Task_1_9",
+      "type" : "ExecuteDataFlow",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "EP_REPL_Data_Flow_Task_1_9",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "dataflow" : {
+          "referenceName" : "data_flow_task_1_9",
+          "type" : "DataFlowReference",
+          "parameters" : {
+            "OLEDBDestination_outputfilename" : {
+              "type" : "Expression",
+              "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+            }
+          },
+          "datasetParameters" : {
+            "OLEDBSource" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBSource_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          }
+        },
+        "compute" : null,
+        "staging" : {
+          "linkedService" : {
+            "referenceName" : "AzureBlobStorage1",
+            "type" : "LinkedServiceReference"
+          },
+          "folderPath" : {
+            "value" : "@pipeline().parameters.Data_Flow_Task_1_9_StagingFolderPath",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
+      "name" : "CPD_Data_Flow_Task_1_90",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_Data_Flow_Task_1_9",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_9_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "ETPP",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_90_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.Data_Flow_Task_1_90_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
+    }, {
+      "name" : "ST_Execute_SQL_Task_1_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "CPD_Data_Flow_Task_1_90",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [source].[snow_incident_request_master_sp]",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+    },
+    "parameters" : {
+      "Data_Flow_Task_1_9_StagingFolderPath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "selectquery" : {
+        "type" : "String",
+        "defaultValue" : "select    cr.incident_number AS request_number  ,cia.ci_item_name AS AFFECTED_CI  ,crt.incident_task_number AS task_number  ,cr.opened_by_name  ,gh.parent AS parent_group  ,gh.name AS child_group_name  ,cr.SHORT_DESCRIPTION  ,cr.IMPACT_DESCRIPTION  ,cr.SYS_ID  ,cr.BUSINESS_SERVICE_GUID  ,cr.BUSINESS_SERVICE_NAME  ,cr.CMDB_CI_GUID  ,cr.CMDB_CI_NAME  ,cr.ACTIVE  ,cr.ACTIVITY_DUE  ,cr.ADDITIONAL_ASSIGNEE_LIST  ,cr.APPROVAL  ,cr.APPROVAL_HISTORY  ,cr.APPROVAL_SET  ,cr.ASSIGNED_TO_GUID  ,cr.ASSIGNED_TO_NAME  ,cr.BUSINESS_DURATION  ,cr.BUSINESS_IMPACT  ,cr.BUSINESS_STC  ,cr.CALENDAR_DURATION  ,cr.CALENDAR_STC  ,cr.CALLER_ID_GUID  ,cr.CALLER_ID_NAME  ,cr.CALLER_ID_U_ELID  ,cr.CALLER_ID_USER_NAME  ,cr.CATEGORY  ,cr.CAUSE  ,cr.CAUSED_BY_GUID  ,cr.CAUSED_BY_NUMBER  ,cr.CHILD_INCIDENTS  ,cr.CLOSE_CODE  ,cr.CLOSE_NOTES  ,cr.CLOSED_AT  ,cr.CLOSED_BY_GUID  ,cr.CLOSED_BY_NAME  ,cr.CLOSED_BY_U_ELID  ,cr.DESCRIPTION  ,cr.DUE_DATE  ,cr.ESCALATION_ID  ,cr.ESCALATION_DESCRIPTION  ,cr.EXPECTED_START  ,cr.FOLLOW_UP  ,cr.GROUP_LIST  ,cr.HOLD_REASON_ID  ,cr.HOLD_REASON_DESCRIPTION  ,cr.IMPACT_ID  ,cr.INCIDENT_REOPENED_BY_MEDALLIA  ,cr.INCIDENT_STATE_ID  ,cr.INCIDENT_STATE_DESCRIPTION  ,cr.KNOWLEDGE  ,cr.LOCATION_GUID  ,cr.LOCATION_NAME  ,cr.MADE_SLA  ,cr.MAJOR_INCIDENT_STATE  ,cr.NOTIFY_ID  ,cr.NOTIFY_DESCRIPTION  ,cr.OPENED_AT  ,cr.PARENT_GUID  ,cr.PARENT_INCIDENT_GUID  ,cr.PARENT_INCIDENT_NUMBER  ,cr.PARENT_NUMBER  ,cr.PRIORITY_ID  ,cr.PRIORITY_DESCRIPTION  ,cr.PROBLEM_ID_GUID  ,cr.PROBLEM_ID_NUMBER  ,cr.PROMOTED_BY_GUID  ,cr.PROMOTED_BY_NAME  ,cr.PROMOTED_BY_U_ELID  ,cr.PROMOTED_ON  ,cr.PROPOSED_BY_GUID  ,cr.PROPOSED_BY_NAME  ,cr.PROPOSED_BY_U_ELID  ,cr.PROPOSED_ON  ,cr.REASSIGNMENT_COUNT  ,cr.REOPEN_COUNT  ,cr.REOPENED_BY_GUID  ,cr.REOPENED_BY_NAME  ,cr.REOPENED_BY_U_ELID  ,cr.REOPENED_TIME  ,cr.RESOLVED_AT  ,cr.RESOLVED_BY_GUID  ,cr.RESOLVED_BY_NAME  ,cr.ROUTE_REASON_ID  ,cr.ROUTE_REASON_DESCRIPTION  ,cr.SERVICE_OFFERING_GUID  ,cr.SERVICE_OFFERING_NAME  ,cr.SEVERITY_ID  ,cr.SEVERITY_DESCRIPTION  ,cr.SKILLS  ,cr.SLA_DUE  ,cr.STATE_ID  ,cr.STATE_DESCRIPTION  ,cr.TASK_EFFECTIVE_NUMBER  ,cr.URGENCY_ID  ,cr.URGENCY_DESCRIPTION  ,cr.WATCH_LIST  ,cr.WORK_END  ,cr.WORK_NOTES_LIST  ,cr.WORK_START  ,cr.U_CAUSE_CODE  ,cr.U_CAUSE_DESCRIPTION  ,cr.U_SUB_CAUSE_CODE  ,cr.U_SUB_CAUSE_DESCRIPTION  ,cr.MGMT_CUSTOMER_FINANCIAL_IMPACT  ,cr.MGMT_CLIENT_FINANCIAL_IMPACT  ,cr.MGMT_CLIENT_CALLS  ,cr.MGMT_CUSTOMERS_IMPACTED  ,cr.MGMT_CLIENT_TRANSACTIONS  ,cr.MGMT_CLIENTS_IMPACTED  ,cr.EXTERNAL_CUST_CLIENT_IMPACTING  ,cr.MGMT_CUSTOMER_TRANSACTIONS  ,cr.MGMT_CUSTOMER_CALLS  ,cr.TODSH_BUSINESS_EFFECTIVE_DATE  ,cr.ASSIGNED_TO_EMP_NUM  ,cr.CALLER_ID_EMP_NUM  ,cr.CLOSED_BY_EMP_NUM  ,cr.OPENED_BY_EMP_NUM  ,cr.REOPENED_BY_EMP_NUM  ,cr.RESOLVED_BY_EMP_NUM  from itm_curated.incident cr    join itm_curated.itmp_group_hierarchy gh  on cr.assignment_group_name=gh.name  left join itm_curated.incident_task crt  on crt.incident_number=cr.incident_number  left join itm_curated.task_related_ci_affected cia  on cr.sys_id=cia.task_guid  where  UPPER(cr.short_description) LIKE UPPER('%VM deletion ISO V2V Migration Effort%')"
+      }
+    }
+  }
+}

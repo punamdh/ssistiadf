@@ -1,0 +1,59 @@
+{
+  "name" : "get_cptyprocessingorg_and_book_data",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "fromcalypsodbaBook",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "fromCALYPSODBALEGALENTITY",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "fromcalypsodbalegalentityrole",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsotradeservBook"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsotradeservCptyProcessingOrg"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "totblCalypsotradeservLegalEntity"
+      } ],
+      "transformations" : [ {
+        "name" : "DataConversion1"
+      }, {
+        "name" : "DataConversion2"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\ttotblCalypsotradeservBook_outputfilename as string (),\n\ttotblCalypsotradeservCptyProcessingOrg_outputfilename as string (),\n\ttotblCalypsotradeservLegalEntity_outputfilename as string ()\n}\n\nsource(output(\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tBOOK_ID as decimal(38,0),\n\t\tBOOK_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsodbaBook\tsource(output(\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tSHORT_NAME as string,\n\t\tLONG_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromCALYPSODBALEGALENTITY\tsource(output(\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tROLE_NAME as string,\n\t\tSHORT_NAME as string,\n\t\tLONG_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsodbalegalentityrole\nfromcalypsodbaBook derive({Copy of LEGAL_ENTITY_ID} = LEGAL_ENTITY_ID,\n\t\t{Copy of BOOK_ID} = BOOK_ID,\n\t\t{Copy of BOOK_NAME} = BOOK_NAME) ~> DataConversion1\nfromCALYPSODBALEGALENTITY derive({Copy of LEGAL_ENTITY_ID} = LEGAL_ENTITY_ID,\n\t\t{Copy of SHORT_NAME} = SHORT_NAME,\n\t\t{Copy of LONG_NAME} = LONG_NAME) ~> DataConversion2\nfromcalypsodbalegalentityrole derive({Copy of SHORT_NAME} = SHORT_NAME,\n\t\t{Copy of ROLE_NAME} = ROLE_NAME,\n\t\t{Copy of LONG_NAME} = LONG_NAME,\n\t\t{Copy of LEGAL_ENTITY_ID} = LEGAL_ENTITY_ID) ~> DataConversion\nDataConversion1 sink(input(\n\t\tlegal_entity_id as string,\n\t\tBook_id as string,\n\t\tBOOK_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegal_entity_id = LEGAL_ENTITY_ID,\n\t\tBook_id = BOOK_ID,\n\t\tBOOK_NAME = {Copy of BOOK_NAME}),\n\tpartitionFileNames:[($totblCalypsotradeservBook_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsotradeservBook\nDataConversion2 sink(input(\n\t\tlegal_entity_id as string,\n\t\tLONG_NAME as string,\n\t\tSHORT_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tlegal_entity_id = LEGAL_ENTITY_ID,\n\t\tLONG_NAME = {Copy of LONG_NAME},\n\t\tSHORT_NAME = {Copy of SHORT_NAME}),\n\tpartitionFileNames:[($totblCalypsotradeservLegalEntity_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsotradeservLegalEntity\nDataConversion sink(input(\n\t\trole_name as string,\n\t\tlegal_entity_id as string,\n\t\tLONG_NAME as string,\n\t\tSHORT_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\trole_name = {Copy of ROLE_NAME},\n\t\tlegal_entity_id = LEGAL_ENTITY_ID,\n\t\tLONG_NAME = {Copy of LONG_NAME},\n\t\tSHORT_NAME = {Copy of SHORT_NAME}),\n\tpartitionFileNames:[($totblCalypsotradeservCptyProcessingOrg_outputfilename)],\n\tpartitionBy('hash', 1)) ~> totblCalypsotradeservCptyProcessingOrg"
+    }
+  }
+}
