@@ -1,2 +1,2 @@
-window.ectPackages = [{"name":"DWH_AssetsRefresh","href":"../DWH_AssetsRefresh/DWH_AssetsRefresh_report.html"},{"name":"DWH_DCsHallsRacksRefresh","href":"../DWH_DCsHallsRacksRefresh/DWH_DCsHallsRacksRefresh_report.html"},{"name":"DWH_PowerRefresh","href":"DWH_PowerRefresh_report.html"}];
+window.ectPackages = [{"name":"DWH_PowerRefresh","href":"DWH_PowerRefresh_report.html"},{"name":"DWH_DCsHallsRacksRefresh","href":"../DWH_DCsHallsRacksRefresh/DWH_DCsHallsRacksRefresh_report.html"},{"name":"DWH_AssetsRefresh","href":"../DWH_AssetsRefresh/DWH_AssetsRefresh_report.html"}];
 window.ectConsolidatedHref = "../../Consolidated_Conversion_Report.html";

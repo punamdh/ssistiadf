@@ -21,7 +21,7 @@
         "source" : {
           "type" : "AzureSqlSource",
           "sqlReaderStoredProcedureName" : null,
-          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_FilePath;",
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_ContainerName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FileName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Source_FilePath' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory' AND DATAFLOW_NAME = 'spmhistory-data_flow_task') AS SPMHistory-Data_Flow_Task_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPMHistory-Data_Flow_Task0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory') AS SPMHistory-Data_Flow_Task0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPMHistory-Data_Flow_Task0_sink_TableName' AND PIPELINE_NAME = 'ppl_dare_bi_spmhistory') AS SPMHistory-Data_Flow_Task0_sink_TableName;",
           "storedProcedureParameters" : null,
           "queryTimeout" : "02:00:00",
           "partitionOption" : "None"
@@ -93,11 +93,45 @@
         "scriptBlockExecutionTimeout" : null
       }
     }, {
+      "name" : "EP_REPL_SPMHistory-Data_Flow_Task",
+      "type" : "ExecutePipeline",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Truncate_SPMHistory_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "userProperties" : null,
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "pipeline" : {
+          "referenceName" : "Generic_db_replication_ppl",
+          "type" : "PipelineReference"
+        },
+        "waitOnCompletion" : true,
+        "parameters" : {
+          "SysDatetime" : {
+            "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+            "type" : "Expression"
+          },
+          "Dataflow_Name" : "SPMHistory-Data_Flow_Task",
+          "FilePath_Date" : {
+            "value" : "@pipeline().TriggerTime",
+            "type" : "Expression"
+          },
+          "Pipeline_Name" : {
+            "value" : "@pipeline().Pipeline",
+            "type" : "Expression"
+          }
+        }
+      }
+    }, {
       "name" : "DF_SPMHistory-Data_Flow_Task",
       "type" : "ExecuteDataFlow",
       "policy" : null,
       "dependsOn" : [ {
-        "activity" : "ST_Truncate_SPMHistory_0",
+        "activity" : "EP_REPL_SPMHistory-Data_Flow_Task",
         "dependencyConditions" : [ "Succeeded" ]
       } ],
       "state" : null,
@@ -114,20 +148,6 @@
             }
           },
           "datasetParameters" : {
-            "OLEDBDestination" : {
-              "Container" : {
-                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_ContainerName",
-                "type" : "Expression"
-              },
-              "FileName" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
-                "type" : "Expression"
-              },
-              "Directory" : {
-                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
-                "type" : "Expression"
-              }
-            },
             "OLEDBSource" : {
               "Container" : {
                 "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBSource_ContainerName",
@@ -139,6 +159,20 @@
               },
               "Directory" : {
                 "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            },
+            "OLEDBDestination" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
                 "type" : "Expression"
               }
             }
@@ -156,6 +190,57 @@
           }
         }
       }
+    }, {
+      "name" : "CPD_SPMHistory-Data_Flow_Task0",
+      "type" : "Copy",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "DF_SPMHistory-Data_Flow_Task",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "ParquetSource"
+        },
+        "sink" : {
+          "type" : "SqlServerSink"
+        }
+      },
+      "inputs" : [ {
+        "referenceName" : "genric_parquet",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "Container" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_ContainerName",
+            "type" : "Expression"
+          },
+          "FileName" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+            "type" : "Expression"
+          },
+          "Directory" : {
+            "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+            "type" : "Expression"
+          }
+        }
+      } ],
+      "outputs" : [ {
+        "referenceName" : "DARE_SIT",
+        "type" : "DatasetReference",
+        "parameters" : {
+          "TableName" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task0_sink_TableName",
+            "type" : "Expression"
+          },
+          "Schema" : {
+            "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPMHistory-Data_Flow_Task0_sink_SchemaName",
+            "type" : "Expression"
+          }
+        }
+      } ]
     } ],
     "folder" : {
       "name" : "wellsfargo_13_Nov/"
