@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -24,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tAssetNumber as integer,\n\t\tAssetName as string,\n\t\tRealtimePower_KW as decimal(18,3),\n\t\tRealtimePowerAverage_KW as decimal(18,3),\n\t\tRealtimePowerMax_KW as decimal(18,3),\n\t\tRealtimePowerMin_KW as decimal(18,3),\n\t\tRealtimeLastUpdated as timestamp,\n\t\tDeviceType as string,\n\t\tPDU_Zone as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteName) || trim(SiteName) == ''), 1, 0),\n\t\tUploadDate = currentTimestamp(),\n\t\tETLUSer = $userName) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tRealtimeLastUpdated as timestamp 'dd-MM-yyyy',\n\t\tDeviceType as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRealtimePower_kW as double,\n\t\tRealtimePowerAverage_kW as double,\n\t\tDataHall as string,\n\t\tSiteName as string,\n\t\tETLUser as string,\n\t\tRealtimePowerMin_kW as double,\n\t\tAssetNumber as integer,\n\t\tRealtimePowerMax_KW as double,\n\t\tAssetName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRealtimeLastUpdated,\n\t\tDeviceType,\n\t\tUploadDate,\n\t\tRealtimePower_kW = RealtimePower_KW,\n\t\tRealtimePowerAverage_kW = RealtimePowerAverage_KW,\n\t\tDataHall,\n\t\tSiteName,\n\t\tETLUser = ETLUSer,\n\t\tRealtimePowerMin_kW = RealtimePowerMin_KW,\n\t\tAssetNumber,\n\t\tRealtimePowerMax_KW,\n\t\tAssetName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tUNIT as string,\n\t\t{ON OFF} as string,\n\t\tSUPPLY_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tHz as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tHz as double,\n\t\tUNIT as string,\n\t\tRETURN_TEMP as double,\n\t\tETLUser as string,\n\t\tSUPPLY_SETPOINT as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tON_OFF as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tHz,\n\t\tUNIT,\n\t\tRETURN_TEMP,\n\t\tETLUser,\n\t\tSUPPLY_SETPOINT,\n\t\tDate,\n\t\tON_OFF = {ON OFF}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

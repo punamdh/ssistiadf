@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task-cfatotal_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{ï»¿Created By ID} as string,\n\t\t{Created Date} as date,\n\t\tDeleted as boolean,\n\t\t{Incident Approval Status} as string,\n\t\t{Incident Closeout Status} as string,\n\t\t{Incident End Date} as date,\n\t\t{Incident Event Type} as string,\n\t\t{Incident Medium of Discovery} as string,\n\t\t{Incident Name} as string,\n\t\t{Incident Preventability} as string,\n\t\t{Incident Root Cause} as string,\n\t\t{Incident Start Date} as date,\n\t\t{Incident Unique ID} as string,\n\t\t{Last Modified By ID} as string,\n\t\t{Last Modified Date} as date,\n\t\t{Outcome Classification} as string,\n\t\t{Owner ID} as string,\n\t\t{Received Connection ID} as string,\n\t\t{Record ID} as string,\n\t\t{Reporting Date} as date,\n\t\t{Sent Connection ID} as string,\n\t\t{Site Alias} as string,\n\t\t{Site DCM Governance Portfolio} as string,\n\t\t{Site Managing Account} as string,\n\t\t{Site Name} as string,\n\t\t{Site Property Type} as string,\n\t\t{Site Region} as string,\n\t\t{Site SLA Name} as string,\n\t\t{Site  BE} as double,\n\t\t{System Modstamp} as date,\n\t\t{IT Infra  Downtime (Minutes)} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSiteSLAName as string,\n\t\tLastModifiedDate as timestamp 'dd-MM-yyyy',\n\t\tSiteName as string,\n\t\tSiteDCMGovernancePortfolio as string,\n\t\tSitePropertyType as string,\n\t\tSiteBE as double,\n\t\tIncidentApprovalStatus as string,\n\t\tSiteRegion as string,\n\t\tETLUser as string,\n\t\tReceivedConnectionID as string,\n\t\tIncidentPreventability as string,\n\t\tOutcomeClassification as string,\n\t\tSiteAlias as string,\n\t\tDeleted as boolean,\n\t\tIncidentEndDate as timestamp 'dd-MM-yyyy',\n\t\tLastModifiedByID as string,\n\t\tIncidentStartDate as timestamp 'dd-MM-yyyy',\n\t\tITInfraDowntimeMinutes as double,\n\t\tIncidentUniqueID as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tIncidentCloseoutStatus as string,\n\t\tSentConnectionID as string,\n\t\tIncidentRootCause as string,\n\t\tSiteManagingAccount as string,\n\t\tIncidentMediumofDiscovery as string,\n\t\tSystemModstamp as timestamp 'dd-MM-yyyy',\n\t\tIncidentEventType as string,\n\t\tIncidentName as string,\n\t\tCreatedByID as string,\n\t\tOwnerID as string,\n\t\tCreatedDate as timestamp 'dd-MM-yyyy',\n\t\tReportingDate as date 'dd-MM-yyyy',\n\t\tRecordID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSiteSLAName = {Site SLA Name},\n\t\tLastModifiedDate = {Last Modified Date},\n\t\tSiteName = {Site Name},\n\t\tSiteDCMGovernancePortfolio = {Site DCM Governance Portfolio},\n\t\tSitePropertyType = {Site Property Type},\n\t\tSiteBE = {Site  BE},\n\t\tIncidentApprovalStatus = {Incident Approval Status},\n\t\tSiteRegion = {Site Region},\n\t\tETLUser,\n\t\tReceivedConnectionID = {Received Connection ID},\n\t\tIncidentPreventability = {Incident Preventability},\n\t\tOutcomeClassification = {Outcome Classification},\n\t\tSiteAlias = {Site Alias},\n\t\tDeleted,\n\t\tIncidentEndDate = {Incident End Date},\n\t\tLastModifiedByID = {Last Modified By ID},\n\t\tIncidentStartDate = {Incident Start Date},\n\t\tITInfraDowntimeMinutes = {IT Infra  Downtime (Minutes)},\n\t\tIncidentUniqueID = {Incident Unique ID},\n\t\tUploadDate = uploaddate,\n\t\tIncidentCloseoutStatus = {Incident Closeout Status},\n\t\tSentConnectionID = {Sent Connection ID},\n\t\tIncidentRootCause = {Incident Root Cause},\n\t\tSiteManagingAccount = {Site Managing Account},\n\t\tIncidentMediumofDiscovery = {Incident Medium of Discovery},\n\t\tSystemModstamp = {System Modstamp},\n\t\tIncidentEventType = {Incident Event Type},\n\t\tIncidentName = {Incident Name},\n\t\tCreatedByID = {ï»¿Created By ID},\n\t\tOwnerID = {Owner ID},\n\t\tCreatedDate = {Created Date},\n\t\tReportingDate = {Reporting Date},\n\t\tRecordID = {Record ID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

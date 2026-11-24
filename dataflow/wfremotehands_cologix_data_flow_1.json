@@ -1,0 +1,36 @@
+{
+  "name" : "wfremotehands_cologix_data_flow_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tType as string,\n\t\tLocation as string,\n\t\tCaseNumber as string,\n\t\tDescription as string,\n\t\tNumberofCrossConnect as string,\n\t\tOpened as string,\n\t\tClosed as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Fname = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tOpened as string,\n\t\tType as string,\n\t\tDescription as string,\n\t\tClosed as string,\n\t\tCaseNumber as string,\n\t\tNumberofCrossConnect as string,\n\t\tFilename as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOpened,\n\t\tType,\n\t\tDescription,\n\t\tClosed,\n\t\tCaseNumber,\n\t\tNumberofCrossConnect,\n\t\tFilename = Fname,\n\t\tLocation),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

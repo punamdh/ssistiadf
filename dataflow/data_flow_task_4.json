@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,8 +22,10 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tRealtimeValueNumAverage as integer,\n\t\tMetricType as string,\n\t\tRecordModified as timestamp,\n\t\tRealtimeValueNumMax as integer,\n\t\tAssetNumber as integer,\n\t\tSiteGroup as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tRealtimeLastUpdated as timestamp,\n\t\tMetricName as string,\n\t\tDataHall as string,\n\t\tMetricUnits as string,\n\t\tRealtimeValueNum as integer,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tRealtimeValueNumMin as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tSiteName as string,\n\t\tRealtimeValueNumAverage as integer,\n\t\tMetricType as string,\n\t\tRecordModified as timestamp 'dd-MM-yyyy',\n\t\tRealtimeValueNumMax as integer,\n\t\tAssetNumber as integer,\n\t\tSiteGroup as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tRealtimeLastUpdated as timestamp 'dd-MM-yyyy',\n\t\tMetricName as string,\n\t\tDataHall as string,\n\t\tMetricUnits as string,\n\t\tRealtimeValueNum as integer,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tRealtimeValueNumMin as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSiteName,\n\t\tRealtimeValueNumAverage,\n\t\tMetricType,\n\t\tRecordModified,\n\t\tRealtimeValueNumMax,\n\t\tAssetNumber,\n\t\tSiteGroup,\n\t\tAssetOperationalStatus,\n\t\tRecordModifiedBy,\n\t\tAssetName,\n\t\tRealtimeLastUpdated,\n\t\tMetricName,\n\t\tDataHall,\n\t\tMetricUnits,\n\t\tRealtimeValueNum,\n\t\tMaterialName,\n\t\tAssetID,\n\t\tRealtimeValueNumMin),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tMEPGallery as string,\n\t\tSUPPLYSETPOINT as double,\n\t\tVFD_Fan_perc as double,\n\t\tAVERAGE_RACK_TEMP as string,\n\t\tMAX_RACK_TEMP as string,\n\t\t{ON OFF} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tETLUser as string,\n\t\tMEPGallery as string,\n\t\tMAX_RACK_TEMP as string,\n\t\tSUPPLYSETPOINT as double,\n\t\tVFD_Fan_perc as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tON_OFF as string,\n\t\tAVERAGE_RACK_TEMP as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tETLUser,\n\t\tMEPGallery,\n\t\tMAX_RACK_TEMP,\n\t\tSUPPLYSETPOINT,\n\t\tVFD_Fan_perc,\n\t\tDate,\n\t\tON_OFF = {ON OFF},\n\t\tAVERAGE_RACK_TEMP),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

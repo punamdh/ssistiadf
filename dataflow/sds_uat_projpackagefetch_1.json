@@ -1,0 +1,31 @@
+{
+  "name" : "sds_uat_projpackagefetch_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NonProd"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tPROJECT_ID as long,\n\t\tPACKAGE_ID as long,\n\t\tPROJECT_NAME as string,\n\t\tPACKAGE_NAME as string,\n\t\tuploaddate as timestamp,\n\t\tETLuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ENV = 'U') ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tuploaddate as timestamp 'dd-MM-yyyy',\n\t\tProject_Id as long,\n\t\tpackage_name as string,\n\t\tetluser as string,\n\t\tpackage_id as long,\n\t\tENV as string,\n\t\tproject_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tuploaddate,\n\t\tProject_Id = PROJECT_ID,\n\t\tpackage_name = PACKAGE_NAME,\n\t\tetluser = ETLuser,\n\t\tpackage_id = PACKAGE_ID,\n\t\tENV,\n\t\tproject_name = PROJECT_NAME),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

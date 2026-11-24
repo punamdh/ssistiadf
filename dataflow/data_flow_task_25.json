@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,14 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Start Time} as timestamp,\n\t\t{Stop Time} as timestamp,\n\t\tName as string,\n\t\tTemperature as decimal(18,2),\n\t\tHumidity as decimal(18,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tTemperature as integer,\n\t\tHumidity as integer,\n\t\tStartTime as timestamp 'dd-MM-yyyy',\n\t\tFName as string,\n\t\tStopTime as timestamp 'dd-MM-yyyy',\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tTemperature,\n\t\tHumidity,\n\t\tStartTime = {Start Time},\n\t\tFName,\n\t\tStopTime = {Stop Time},\n\t\tName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVarianceNotes as string,\n\t\tInsertTs as date,\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tVarianceNotes as string,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVarianceNotes,\n\t\tInsertTs,\n\t\tDC),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

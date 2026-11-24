@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task_114",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tname as string,\n\t\t{activate date} as date,\n\t\t{last activity} as string,\n\t\t{card number} as string,\n\t\t{access list} as string,\n\t\tactive as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(DerivedCol1 = $FileName,\n\t\tIsBlankRow = iif((isNull(name) || trim(name) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,DontProcess,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tCardNumber as string,\n\t\tActive as string,\n\t\tActivateDate as string,\n\t\tFname as string,\n\t\tLastActivity as string,\n\t\tAccessList as string,\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {card number},\n\t\tActive = active,\n\t\tActivateDate = {activate date},\n\t\tFname = DerivedCol1,\n\t\tLastActivity = {last activity},\n\t\tAccessList = {access list},\n\t\tName = name),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_146",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Site Location} as string,\n\t\tSNO as decimal(18,0),\n\t\t{Incident No } as string,\n\t\t{Date of Incident} as timestamp,\n\t\t{Closed Date} as timestamp,\n\t\t{Service Affected Non Service Affected} as string,\n\t\t{Incident Title} as string,\n\t\t{Equipment TAG} as string,\n\t\t{Equipment TAG Location  Description} as string,\n\t\t{Incident Description} as string,\n\t\tImpact as string,\n\t\t{Effected Equipment Details} as string,\n\t\t{Actions Taken} as string,\n\t\t{ RCA Status in Yes No} as string,\n\t\tOwnership as string,\n\t\t{Real Reason of Incident} as string,\n\t\t{Impact Type Partial Full} as string,\n\t\t{RCA NO } as string,\n\t\t{Action taken against the RCA } as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tFname = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tImpact as string,\n\t\tIncidentDescription as string,\n\t\tRCAStatus as string,\n\t\tOwnership as string,\n\t\tUploadDate as string,\n\t\tIncidentTitle as string,\n\t\tEquipmentTAGLocationDesc as string,\n\t\tRealReasonofIncident as string,\n\t\tSiteLocation as string,\n\t\tServiceAffectedNonServiceAffected as string,\n\t\tImpactType as string,\n\t\tIncidentNo as string,\n\t\tEtlUser as string,\n\t\tEquipmentTAG as string,\n\t\tRCANO as string,\n\t\tSNO as integer,\n\t\tActionsTaken as string,\n\t\tEffectedEquipmentDetails as string,\n\t\tDateofIncident as timestamp 'dd-MM-yyyy',\n\t\tClosedDate as timestamp 'dd-MM-yyyy',\n\t\tActiontakenagainstRCA as string,\n\t\tFname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tImpact,\n\t\tIncidentDescription = {Incident Description},\n\t\tRCAStatus = { RCA Status in Yes No},\n\t\tOwnership,\n\t\tUploadDate,\n\t\tIncidentTitle = {Incident Title},\n\t\tEquipmentTAGLocationDesc = {Equipment TAG Location  Description},\n\t\tRealReasonofIncident = {Real Reason of Incident},\n\t\tSiteLocation = {Site Location},\n\t\tServiceAffectedNonServiceAffected = {Service Affected Non Service Affected},\n\t\tImpactType = {Impact Type Partial Full},\n\t\tIncidentNo = {Incident No },\n\t\tEtlUser,\n\t\tEquipmentTAG = {Equipment TAG},\n\t\tRCANO = {RCA NO },\n\t\tSNO,\n\t\tActionsTaken = {Actions Taken},\n\t\tEffectedEquipmentDetails = {Effected Equipment Details},\n\t\tDateofIncident = {Date of Incident},\n\t\tClosedDate = {Closed Date},\n\t\tActiontakenagainstRCA = {Action taken against the RCA },\n\t\tFname),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

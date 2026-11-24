@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -24,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tAssetID as integer,\n\t\tAssetName as string,\n\t\tAssetNumber as integer,\n\t\tRFIDTag as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModified as timestamp,\n\t\tRecordModifiedBy as string,\n\t\tMaterialName as string,\n\t\tCSOnlineStatus as string,\n\t\tCSDetectedLoc as string,\n\t\tPollType as string,\n\t\tFormattedIP as string,\n\t\tRealtimeTemp as decimal(18,3),\n\t\tRealtimeTempAverage as decimal(18,3),\n\t\tRealtimeTempMax as decimal(18,3),\n\t\tRealtimeTempMin as decimal(18,3),\n\t\tRealtimeLastUpdated as timestamp,\n\t\tCSDetectedLowBatt as string,\n\t\tTempType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tCSOnlineStatus as string,\n\t\tSiteName as string,\n\t\tTempType as string,\n\t\tWFGrid as string,\n\t\tSiteGroup as string,\n\t\tAssetNumber as integer,\n\t\tRealtimeTempAverage as integer,\n\t\tDataHall as string,\n\t\tRealtimeTempMax as integer,\n\t\tCSDetectedLowBatt as string,\n\t\tRFIDTag as string,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tCSDetectedLoc as string,\n\t\tRealtimeTempMin as integer,\n\t\tRecordModified as timestamp 'dd-MM-yyyy',\n\t\tRackNlyteID as integer,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tPollType as string,\n\t\tRealtimeLastUpdated as date 'dd-MM-yyyy',\n\t\tRackName as string,\n\t\tFormattedIP as string,\n\t\tRealtimeTemp as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCSOnlineStatus,\n\t\tSiteName,\n\t\tTempType,\n\t\tWFGrid,\n\t\tSiteGroup,\n\t\tAssetNumber,\n\t\tRealtimeTempAverage,\n\t\tDataHall,\n\t\tRealtimeTempMax,\n\t\tCSDetectedLowBatt,\n\t\tRFIDTag,\n\t\tMaterialName,\n\t\tAssetID,\n\t\tCSDetectedLoc,\n\t\tRealtimeTempMin,\n\t\tRecordModified,\n\t\tRackNlyteID,\n\t\tAssetOperationalStatus,\n\t\tRecordModifiedBy,\n\t\tAssetName,\n\t\tPollType,\n\t\tRealtimeLastUpdated,\n\t\tRackName,\n\t\tFormattedIP,\n\t\tRealtimeTemp),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tRoom as string,\n\t\tLocation as string,\n\t\tRETURN_SETPOINT as double,\n\t\t{Auto Restart} as string,\n\t\tCRAH_Manuf_Size as string,\n\t\tFanSpeedifApplicable as double,\n\t\tUNIT_ON as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tETLUser as string,\n\t\tFanSpeedifApplicable as double,\n\t\tAuto_Restart as string,\n\t\tRoom as string,\n\t\tUNIT_ON as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double,\n\t\tCRAH_Manuf_Size as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tETLUser,\n\t\tFanSpeedifApplicable,\n\t\tAuto_Restart = {Auto Restart},\n\t\tRoom,\n\t\tUNIT_ON,\n\t\tDate,\n\t\tRETURN_SETPOINT,\n\t\tCRAH_Manuf_Size,\n\t\tLocation),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

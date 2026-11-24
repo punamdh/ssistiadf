@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tWhat as string,\n\t\tWho as string,\n\t\tWhen as date,\n\t\tWhere as string,\n\t\tCompany as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tIBX = 'NY2') ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCompany as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tWhen as timestamp 'dd-MM-yyyy',\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tFName as string,\n\t\tIBX as string,\n\t\tWho as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCompany,\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tWhen,\n\t\tWhat,\n\t\tWhere,\n\t\tFName,\n\t\tIBX,\n\t\tWho),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEID as string,\n\t\tELID as string,\n\t\t{ZONE NAME} as string,\n\t\t{ZONE VALID FROM} as string,\n\t\t{ZONE VALID TO} as string,\n\t\t{FIRST NAME} as string,\n\t\t{LAST NAME} as string,\n\t\tEMAIL as string,\n\t\t{JOB TITLE} as string,\n\t\t{AVAILABLE TO WORK} as string,\n\t\t{HIRE DATE} as string,\n\t\t{EXPECTED END DATE} as string,\n\t\t{VENDOR COMPANY} as string,\n\t\t{MANAGER FIRST NAME} as string,\n\t\t{MANAGER LAST NAME} as string,\n\t\t{MANAGER EMAIL} as string,\n\t\t{MANAGER NAME} as string,\n\t\t{ACCESS KEEPER ID} as string,\n\t\t{ZONE OWNER EMAIL} as string,\n\t\t{ZONE GROUP} as string,\n\t\t{CAMPUS SET} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tZONEVALIDFROM = iif(isNull({ZONE VALID FROM}) || trim({ZONE VALID FROM}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID FROM}, 'MM/dd/yyyy'), 'MM/dd/yyyy')),\n\t\tZONEVALIDTO = iif(isNull({ZONE VALID TO}) || trim({ZONE VALID TO}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID TO}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tEID as string,\n\t\tEXPECTEDENDDATE as string,\n\t\tZONE_VALID_TO as timestamp 'dd-MM-yyyy',\n\t\tELID as string,\n\t\tUploadDate as string,\n\t\tMANAGER_LASTNAME as string,\n\t\tAVAILABLE_TO_WORK as string,\n\t\tMANAGER_EMAIL as string,\n\t\tFIRSTNAME as string,\n\t\tZONEOWNEREMAIL as string,\n\t\tEMAIL as string,\n\t\tVENDOR_COMPANY as string,\n\t\tZONE_NAME as string,\n\t\tZONE_VALID_FROM as timestamp 'dd-MM-yyyy',\n\t\tMANAGER_NAME as string,\n\t\tETLUser as string,\n\t\tHIRE_DATE as string,\n\t\tLASTNAME as string,\n\t\tACCESS_KEEPER_ID as string,\n\t\tMANAGER_FIRST_NAME as string,\n\t\tJOBTITLE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEID,\n\t\tEXPECTEDENDDATE = {EXPECTED END DATE},\n\t\tZONE_VALID_TO = ZONEVALIDTO,\n\t\tELID,\n\t\tUploadDate,\n\t\tMANAGER_LASTNAME = {MANAGER LAST NAME},\n\t\tAVAILABLE_TO_WORK = {AVAILABLE TO WORK},\n\t\tMANAGER_EMAIL = {MANAGER EMAIL},\n\t\tFIRSTNAME = {FIRST NAME},\n\t\tZONEOWNEREMAIL = {ZONE OWNER EMAIL},\n\t\tEMAIL,\n\t\tVENDOR_COMPANY = {VENDOR COMPANY},\n\t\tZONE_NAME = {ZONE NAME},\n\t\tZONE_VALID_FROM = ZONEVALIDFROM,\n\t\tMANAGER_NAME = {MANAGER NAME},\n\t\tETLUser,\n\t\tHIRE_DATE = {HIRE DATE},\n\t\tLASTNAME = {LAST NAME},\n\t\tACCESS_KEEPER_ID = {ACCESS KEEPER ID},\n\t\tMANAGER_FIRST_NAME = {MANAGER FIRST NAME},\n\t\tJOBTITLE = {JOB TITLE}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

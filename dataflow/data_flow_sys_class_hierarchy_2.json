@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_sys_class_hierarchy_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NonProd"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBASE_TABLE_NAME as string,\n\t\tCHILD_LEVEL as integer,\n\t\tNUMBER_OF_CHILD_TA as integer,\n\t\tPRINCIPAL_CLASS as string,\n\t\tBASE_LEVEL as integer,\n\t\tCHILD_TABLE_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tBASE_TABLE_NAME as string,\n\t\tCHILD_LEVEL as integer,\n\t\tNUMBER_OF_CHILD_TA as integer,\n\t\tPRINCIPAL_CLASS as string,\n\t\tBASE_LEVEL as integer,\n\t\tCHILD_TABLE_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBASE_TABLE_NAME,\n\t\tCHILD_LEVEL,\n\t\tNUMBER_OF_CHILD_TA,\n\t\tPRINCIPAL_CLASS,\n\t\tBASE_LEVEL,\n\t\tCHILD_TABLE_NAME),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

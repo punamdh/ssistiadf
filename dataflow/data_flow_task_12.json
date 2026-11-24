@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tWho as string,\n\t\tWhen as date,\n\t\tOrganization as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tIBX = 'SV1') ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tWhen as timestamp 'dd-MM-yyyy',\n\t\tOrganization as string,\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tFName as string,\n\t\tWho as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tWhen,\n\t\tOrganization,\n\t\tWhat,\n\t\tWhere,\n\t\tFName,\n\t\tWho),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Asset Alias} as string,\n\t\t{Date and Time of Answer} as date,\n\t\t{Site Alias} as string,\n\t\tAnswer as double,\n\t\t{Record ID} as string,\n\t\tAsset_ID__c as string,\n\t\t{Asset Classification Short Name} as string,\n\t\t{Metric Type} as string,\n\t\t{Property Type} as string,\n\t\tCapacity as integer,\n\t\t{Question Label} as string,\n\t\t{Supports IT Load} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tAssetClassificationShortName as string,\n\t\tMetricType as string,\n\t\tPropertyType as string,\n\t\tQuestionLabel as string,\n\t\tAnswer as double,\n\t\tETLUser as string,\n\t\tCapacity as integer,\n\t\tSiteAlias as string,\n\t\tAssetAlias as string,\n\t\tSupportsITLoad as string,\n\t\tRecordID as string,\n\t\tAssetID as string,\n\t\tDateandTimeofAnswer as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tAssetClassificationShortName = {Asset Classification Short Name},\n\t\tMetricType = {Metric Type},\n\t\tPropertyType = {Property Type},\n\t\tQuestionLabel = {Question Label},\n\t\tAnswer,\n\t\tETLUser,\n\t\tCapacity,\n\t\tSiteAlias = {Site Alias},\n\t\tAssetAlias = {Asset Alias},\n\t\tSupportsITLoad = {Supports IT Load},\n\t\tRecordID = {Record ID},\n\t\tAssetID = Asset_ID__c,\n\t\tDateandTimeofAnswer = {Date and Time of Answer}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

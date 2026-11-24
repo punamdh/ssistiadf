@@ -1,0 +1,31 @@
+{
+  "name" : "data flow task",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tCDU as string,\n\t\tRETURN_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tETLUser as string,\n\t\tCDU as string,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tHUMIDITY,\n\t\tETLUser,\n\t\tCDU,\n\t\tRunning,\n\t\tFanSpeed_perc,\n\t\tDate,\n\t\tRETURN_SETPOINT),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

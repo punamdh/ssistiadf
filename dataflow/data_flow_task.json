@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -21,21 +21,11 @@
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
-      }, {
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        },
-        "name" : "OLEDBDestination1"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "ConditionalSplit1"
-      }, {
-        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tLowerCabinetU as integer,\n\t\tNlyteID as integer,\n\t\tRecordStatus as string,\n\t\tOperationalStatus as string,\n\t\tAssetName as string,\n\t\tSerialNumber as string,\n\t\tMaterialID as integer,\n\t\tMaterialType as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tRUSize as double,\n\t\tLabPowerWatts as decimal(13,0),\n\t\tCreationDate as timestamp,\n\t\tLastUpdateDate as timestamp,\n\t\tRFCodeTag as string,\n\t\tTag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit1@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit1@Process split(Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax',!((Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax')), disjoint: true) ~> ConditionalSplit@(Case2,Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nConditionalSplit@Case1 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEID as string,\n\t\tELID as string,\n\t\t{ZONE NAME} as string,\n\t\t{ZONE VALID FROM} as string,\n\t\t{ZONE VALID TO} as string,\n\t\t{FIRST NAME} as string,\n\t\t{LAST NAME} as string,\n\t\tEMAIL as string,\n\t\t{JOB TITLE} as string,\n\t\t{AVAILABLE TO WORK} as string,\n\t\t{HIRE DATE} as string,\n\t\t{EXPECTED END DATE} as string,\n\t\t{VENDOR COMPANY} as string,\n\t\t{MANAGER FIRST NAME} as string,\n\t\t{MANAGER LAST NAME} as string,\n\t\t{MANAGER EMAIL} as string,\n\t\t{MANAGER NAME} as string,\n\t\t{ACCESS KEEPER ID} as string,\n\t\t{ZONE OWNER EMAIL} as string,\n\t\t{ZONE GROUP} as string,\n\t\t{CAMPUS SET} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tZONEVALIDFROM = iif(isNull({ZONE VALID FROM}) || trim({ZONE VALID FROM}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID FROM}, 'MM/dd/yyyy'), 'MM/dd/yyyy')),\n\t\tZONEVALIDTO = iif(isNull({ZONE VALID TO}) || trim({ZONE VALID TO}) == '', toTimestamp(null()), toTimestamp(toString({ZONE VALID TO}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tEID as string,\n\t\tEXPECTEDENDDATE as string,\n\t\tZONE_VALID_TO as timestamp 'dd-MM-yyyy',\n\t\tELID as string,\n\t\tUploadDate as string,\n\t\tMANAGER_LASTNAME as string,\n\t\tAVAILABLE_TO_WORK as string,\n\t\tMANAGER_EMAIL as string,\n\t\tFIRSTNAME as string,\n\t\tZONEOWNEREMAIL as string,\n\t\tEMAIL as string,\n\t\tVENDOR_COMPANY as string,\n\t\tZONE_NAME as string,\n\t\tZONE_VALID_FROM as timestamp 'dd-MM-yyyy',\n\t\tMANAGER_NAME as string,\n\t\tETLUser as string,\n\t\tHIRE_DATE as string,\n\t\tLASTNAME as string,\n\t\tACCESS_KEEPER_ID as string,\n\t\tMANAGER_FIRST_NAME as string,\n\t\tJOBTITLE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEID,\n\t\tEXPECTEDENDDATE = {EXPECTED END DATE},\n\t\tZONE_VALID_TO = ZONEVALIDTO,\n\t\tELID,\n\t\tUploadDate,\n\t\tMANAGER_LASTNAME = {MANAGER LAST NAME},\n\t\tAVAILABLE_TO_WORK = {AVAILABLE TO WORK},\n\t\tMANAGER_EMAIL = {MANAGER EMAIL},\n\t\tFIRSTNAME = {FIRST NAME},\n\t\tZONEOWNEREMAIL = {ZONE OWNER EMAIL},\n\t\tEMAIL,\n\t\tVENDOR_COMPANY = {VENDOR COMPANY},\n\t\tZONE_NAME = {ZONE NAME},\n\t\tZONE_VALID_FROM = ZONEVALIDFROM,\n\t\tMANAGER_NAME = {MANAGER NAME},\n\t\tETLUser,\n\t\tHIRE_DATE = {HIRE DATE},\n\t\tLASTNAME = {LAST NAME},\n\t\tACCESS_KEEPER_ID = {ACCESS KEEPER ID},\n\t\tMANAGER_FIRST_NAME = {MANAGER FIRST NAME},\n\t\tJOBTITLE = {JOB TITLE}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

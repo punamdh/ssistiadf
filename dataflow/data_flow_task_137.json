@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_137",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tPower as string,\n\t\t{Downtime Minutes} as decimal(18,0),\n\t\tTemperature as string,\n\t\tHumidity as string,\n\t\t{Remote Hands} as string,\n\t\t{Cross Connects} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tPower1 = toInteger(replace(Power, toString('%'), toString(''))) / 100,\n\t\tTemperature1 = toInteger(replace(Temperature, toString('%'), toString(''))) / 100,\n\t\tHumidity1 = toInteger(replace(Humidity, toString('%'), toString(''))) / 100,\n\t\tRemoteHands1 = toInteger(replace({Remote Hands}, toString('%'), toString(''))) / 100,\n\t\tCrossConnects1 = toInteger(replace({Cross Connects}, toString('%'), toString(''))) / 100) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tTemperature as double,\n\t\tHumidity as double,\n\t\tCrossConnects as double,\n\t\tDowntimeMinutes as integer,\n\t\tDate as string,\n\t\tFName as string,\n\t\tPower as double,\n\t\tRemoteHands as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tTemperature = Temperature1,\n\t\tHumidity = Humidity1,\n\t\tCrossConnects = CrossConnects1,\n\t\tDowntimeMinutes = {Downtime Minutes},\n\t\tDate,\n\t\tFName,\n\t\tPower = Power1,\n\t\tRemoteHands = RemoteHands1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

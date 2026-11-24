@@ -1,0 +1,33 @@
+{
+  "name" : "load_non-guardian_sites_into_accessmetrics_nongu_1",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "ConditionalSplit"
+      }, {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSiteAlias as string,\n\t\tPermanentAccess as decimal(18,0),\n\t\tTempBadges as decimal(18,0),\n\t\tCreated as string,\n\t\t{Created By} as string,\n\t\t{Item Type} as string,\n\t\tPath as string,\n\t\tAccessMetricsInsertDate as date,\n\t\tID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource split(notConvertedectfunctiondatedatediff('month', AccessMetricsInsertDate, currentTimestamp()) == 0, disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1 derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tYearMM = toString(year(AccessMetricsInsertDate)) + toString((month(AccessMetricsInsertDate) - 1)),\n\t\tACZDate2 = addMonths(AccessMetricsInsertDate, 0)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tPath as string,\n\t\tYearMM as string,\n\t\tUploadDate as string,\n\t\tItem_Type as string,\n\t\tAccessMetricsInsertDate as timestamp 'dd-MM-yyyy',\n\t\tACZDate2 as timestamp 'dd-MM-yyyy',\n\t\tCreated as string,\n\t\tETLUser as string,\n\t\tPermanentAccess as integer,\n\t\tSiteAlias as string,\n\t\tCreated_By as string,\n\t\tID as string,\n\t\tTempBadges as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPath,\n\t\tYearMM,\n\t\tUploadDate,\n\t\tItem_Type = {Item Type},\n\t\tAccessMetricsInsertDate,\n\t\tACZDate2,\n\t\tCreated,\n\t\tETLUser,\n\t\tPermanentAccess,\n\t\tSiteAlias,\n\t\tCreated_By = {Created By},\n\t\tID,\n\t\tTempBadges),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

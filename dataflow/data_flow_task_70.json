@@ -1,0 +1,30 @@
+{
+  "name" : "data_flow_task_70",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "\n\nsource(output(\n\t\tTimestamp as string,\n\t\t{DEN3 Sensors_1_12 RackTemp} as string,\n\t\t{DEN3 Sensors_1_11 RackTemp} as string,\n\t\t{DEN3 Sensors_1_11 RackHum} as string,\n\t\t{DEN3 Sensors_1_12 RackHum} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource select(mapColumn(\n\t\tTimestamp = Timestamp,\n\t\t{DEN3 Sensors_1_12 RackTemp} = {DEN3 Sensors_1_12 RackTemp},\n\t\t{DEN3 Sensors_1_11 RackTemp} = {DEN3 Sensors_1_11 RackTemp},\n\t\t{DEN3 Sensors_1_11 RackHum} = {DEN3 Sensors_1_11 RackHum},\n\t\t{DEN3 Sensors_1_12 RackHum} = {DEN3 Sensors_1_12 RackHum}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

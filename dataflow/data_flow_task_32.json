@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,14 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEnclosure as string,\n\t\t{Period Start} as date,\n\t\t{Temperature - MAX (F)} as double,\n\t\t{Temperature - MIN (F)} as double,\n\t\t{Temperature - AVG (F)} as double,\n\t\t{Temperature - MAX ROC (F)} as double,\n\t\t{Humidity - MAX (%)} as double,\n\t\t{Humidity - MIN (%)} as double,\n\t\t{Humidity - AVG (%)} as double,\n\t\t{Humidity - MAX ROC (%)} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tTemperatureMIN as double,\n\t\tTemperatureAVG as double,\n\t\tHumidityMAXROC as double,\n\t\tPeriodStart as string,\n\t\tHumidityMIN as double,\n\t\tHumidityAVG as double,\n\t\tTemperatureMAXROC as double,\n\t\tHumidityMAX as double,\n\t\tEnclosure as string,\n\t\tTemperatureMAX as double,\n\t\tFName as string,\n\t\tEtlUser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tTemperatureMIN = {Temperature - MIN (F)},\n\t\tTemperatureAVG = {Temperature - AVG (F)},\n\t\tHumidityMAXROC = {Humidity - MAX ROC (%)},\n\t\tPeriodStart = {Period Start},\n\t\tHumidityMIN = {Humidity - MIN (%)},\n\t\tHumidityAVG = {Humidity - AVG (%)},\n\t\tTemperatureMAXROC = {Temperature - MAX ROC (F)},\n\t\tHumidityMAX = {Humidity - MAX (%)},\n\t\tEnclosure,\n\t\tTemperatureMAX = {Temperature - MAX (F)},\n\t\tFName,\n\t\tEtlUser),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tnumber as string,\n\t\tcity as string,\n\t\tboma_type_overriden as string,\n\t\tcampus as string,\n\t\tname as string,\n\t\tactive as string,\n\t\tboma_type as string,\n\t\tcapacity_ratio as string,\n\t\tcmn_location_source as string,\n\t\tcapacity as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tnumber as string,\n\t\tcity as string,\n\t\tboma_type_overriden as string,\n\t\tcampus as string,\n\t\tname as string,\n\t\tactive as string,\n\t\tboma_type as string,\n\t\tcapacity_ratio as boolean,\n\t\tcmn_location_source as string,\n\t\tcapacity as boolean\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tnumber,\n\t\tcity,\n\t\tboma_type_overriden,\n\t\tcampus,\n\t\tname,\n\t\tactive,\n\t\tboma_type,\n\t\tcapacity_ratio,\n\t\tcmn_location_source,\n\t\tcapacity),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

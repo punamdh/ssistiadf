@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Card type} as string,\n\t\tName as string,\n\t\t{Card number} as string,\n\t\tState as string,\n\t\t{Regional Location (i e  CLT1; RAL2; etc )} as string,\n\t\t{Company Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCardNumber as string,\n\t\tCompanyName as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tCardType as string,\n\t\tState as string,\n\t\tFName as string,\n\t\tName as string,\n\t\tRegionalLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {Card number},\n\t\tCompanyName = {Company Name},\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tCardType = {Card type},\n\t\tState,\n\t\tFName,\n\t\tName,\n\t\tRegionalLocation = {Regional Location (i e  CLT1; RAL2; etc )}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Data Center Name} as string,\n\t\t{PDU Number} as string,\n\t\t{PDU Name} as string,\n\t\t{Consumed kW} as double,\n\t\tkW as double,\n\t\t{Date of Readings} as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tPDU_Number as string,\n\t\tPDU_Name as string,\n\t\tkW as double,\n\t\tDataCenterName as string,\n\t\tConsumedkW as double,\n\t\tDateofReading as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tETLUser,\n\t\tPDU_Number = {PDU Number},\n\t\tPDU_Name = {PDU Name},\n\t\tkW,\n\t\tDataCenterName = {Data Center Name},\n\t\tConsumedkW = {Consumed kW},\n\t\tDateofReading = {Date of Readings}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

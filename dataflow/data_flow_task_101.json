@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_101",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Serial num} as decimal(18,0),\n\t\t{Site Location} as string,\n\t\tDay as date,\n\t\t{Max Record Temp } as float,\n\t\t{Incidents beyond Max allowed Temp} as float,\n\t\t{Min Record Temp } as float,\n\t\t{Incidents beyond Min allowedTemp} as float,\n\t\t{Total Incidents beyond Threshold Temp} as float,\n\t\t{Max Record RH } as float,\n\t\tIncidentsbeyondMaxallowedRH as float,\n\t\t{Minimum Record RH } as float,\n\t\tIncidentsbeyondMinallowedRH as float,\n\t\t{Total Incidents beyond Threshold RH} as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tIncbeyondMinallowedRH as double,\n\t\tUploadDate as string,\n\t\tMaxRecordTemp as double,\n\t\tMaxRecordRH as double,\n\t\tSiteLocation as string,\n\t\tFName as string,\n\t\tSerialNum as integer,\n\t\tEtlUser as string,\n\t\tTotalIncbeyondThresholdTemp as double,\n\t\tIncbeyondMinallowedTemp as double,\n\t\tIncbeyondMaxallowedRH as double,\n\t\tTotalIncbeyondThresholdRH as double,\n\t\tIncbeyondMaxallowedTemp as double,\n\t\tDay as string,\n\t\tMinRecordTemp as double,\n\t\tMinimumRecordRH as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tIncbeyondMinallowedRH = IncidentsbeyondMinallowedRH,\n\t\tUploadDate,\n\t\tMaxRecordTemp = {Max Record Temp },\n\t\tMaxRecordRH = {Max Record RH },\n\t\tSiteLocation = {Site Location},\n\t\tFName,\n\t\tSerialNum = {Serial num},\n\t\tEtlUser,\n\t\tTotalIncbeyondThresholdTemp = {Total Incidents beyond Threshold Temp},\n\t\tIncbeyondMinallowedTemp = {Incidents beyond Min allowedTemp},\n\t\tIncbeyondMaxallowedRH = IncidentsbeyondMaxallowedRH,\n\t\tTotalIncbeyondThresholdRH = {Total Incidents beyond Threshold RH},\n\t\tIncbeyondMaxallowedTemp = {Incidents beyond Max allowed Temp},\n\t\tDay,\n\t\tMinRecordTemp = {Min Record Temp },\n\t\tMinimumRecordRH = {Minimum Record RH }),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

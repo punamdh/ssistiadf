@@ -1,0 +1,29 @@
+{
+  "name" : "power_summary-data_flow_task_2",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NonProd/DARE_NonProd"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tUploadDate as date,\n\t\tDataCenter as string,\n\t\tDataAsOfDate as date,\n\t\tYearMonth as string,\n\t\tETLUser as string,\n\t\tkW as double,\n\t\tInsertTs as timestamp,\n\t\tDataSource as string,\n\t\tProvider as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tDataCenter as string,\n\t\tDataAsOfDate as date 'dd-MM-yyyy',\n\t\tYearMonth as string,\n\t\tETLUser as string,\n\t\tkW as double,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDataSource as string,\n\t\tProvider as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tDataCenter,\n\t\tDataAsOfDate,\n\t\tYearMonth,\n\t\tETLUser,\n\t\tkW,\n\t\tInsertTs,\n\t\tDataSource,\n\t\tProvider),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

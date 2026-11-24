@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_task_174",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_SQLRW/DARE_SQLRW"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tRealtimeValueNumAverage as integer,\n\t\tMetricType as string,\n\t\tRecordModified as timestamp,\n\t\tRealtimeValueNumMax as integer,\n\t\tAssetNumber as integer,\n\t\tSiteGroup as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tRealtimeLastUpdated as timestamp,\n\t\tMetricName as string,\n\t\tDataHall as string,\n\t\tMetricUnits as string,\n\t\tRealtimeValueNum as integer,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tRealtimeValueNumMin as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tSiteName as string,\n\t\tRealtimeValueNumAverage as integer,\n\t\tMetricType as string,\n\t\tRecordModified as timestamp 'dd-MM-yyyy',\n\t\tRealtimeValueNumMax as integer,\n\t\tAssetNumber as integer,\n\t\tSiteGroup as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tRealtimeLastUpdated as timestamp 'dd-MM-yyyy',\n\t\tMetricName as string,\n\t\tDataHall as string,\n\t\tMetricUnits as string,\n\t\tRealtimeValueNum as integer,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tRealtimeValueNumMin as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSiteName,\n\t\tRealtimeValueNumAverage,\n\t\tMetricType,\n\t\tRecordModified,\n\t\tRealtimeValueNumMax,\n\t\tAssetNumber,\n\t\tSiteGroup,\n\t\tAssetOperationalStatus,\n\t\tRecordModifiedBy,\n\t\tAssetName,\n\t\tRealtimeLastUpdated,\n\t\tMetricName,\n\t\tDataHall,\n\t\tMetricUnits,\n\t\tRealtimeValueNum,\n\t\tMaterialName,\n\t\tAssetID,\n\t\tRealtimeValueNumMin),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

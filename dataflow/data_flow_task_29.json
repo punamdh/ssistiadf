@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEnclosure as string,\n\t\t{Client Enclosure Name} as string,\n\t\t{Main Feed Circuits - Count} as double,\n\t\t{Main Feed Circuits - Billable (kW)} as double,\n\t\t{Branch Circuits - Count} as double,\n\t\t{Branch Circuits - Billable (kW)} as double,\n\t\t{All Circuits - Billing Method} as string,\n\t\t{All Circuits - Billable (kW)} as double,\n\t\t{All Circuits - Current Commit (kW)} as double,\n\t\t{Active Alarms - Low Alarm} as double,\n\t\t{Active Alarms - High Warning} as double,\n\t\t{Active Alarms - High Alarm} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tActiveAlarmsHighWarning as double,\n\t\tAllCircuitsCurrentCommitkW as double,\n\t\tUploadDate as string,\n\t\tMainFeedCircuitsBillablekW as double,\n\t\tAllCircuitsBillablekW as double,\n\t\tEnclosure as string,\n\t\tClientEnclosureName as string,\n\t\tFName as string,\n\t\tEtlUser as string,\n\t\tBranchCircuitsBillablekW as double,\n\t\tActiveAlarmsHighAlarm as double,\n\t\tMainFeedCircuitsCount as double,\n\t\tBranchCircuitsCount as double,\n\t\tAllCircuitsBillingMethod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tActiveAlarmsHighWarning = {Active Alarms - High Warning},\n\t\tAllCircuitsCurrentCommitkW = {All Circuits - Current Commit (kW)},\n\t\tUploadDate,\n\t\tMainFeedCircuitsBillablekW = {Main Feed Circuits - Billable (kW)},\n\t\tAllCircuitsBillablekW = {All Circuits - Billable (kW)},\n\t\tEnclosure,\n\t\tClientEnclosureName = {Client Enclosure Name},\n\t\tFName,\n\t\tEtlUser,\n\t\tBranchCircuitsBillablekW = {Branch Circuits - Billable (kW)},\n\t\tActiveAlarmsHighAlarm = {Active Alarms - High Alarm},\n\t\tMainFeedCircuitsCount = {Main Feed Circuits - Count},\n\t\tBranchCircuitsCount = {Branch Circuits - Count},\n\t\tAllCircuitsBillingMethod = {All Circuits - Billing Method}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tproject as string,\n\t\tworkbook as string,\n\t\tview as string,\n\t\taction as string,\n\t\tuser as string,\n\t\tuser_name as string,\n\t\tuser_email as string,\n\t\tlastview as date,\n\t\tlastlogin as date,\n\t\tviewcount as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tworkbook as string,\n\t\tview as string,\n\t\tuser_email as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tuser_name as string,\n\t\tlastlogin as timestamp 'dd-MM-yyyy',\n\t\tproject as string,\n\t\taction as string,\n\t\tlastview as timestamp 'dd-MM-yyyy',\n\t\tviewcount as integer,\n\t\tuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tworkbook,\n\t\tview,\n\t\tuser_email,\n\t\tUploadDate,\n\t\tETLUser,\n\t\tuser_name,\n\t\tlastlogin,\n\t\tproject,\n\t\taction,\n\t\tlastview,\n\t\tviewcount,\n\t\tuser),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

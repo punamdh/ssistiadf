@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{First Name } as string,\n\t\t{Last Name } as string,\n\t\t{Company Name } as string,\n\t\t{Credential Company Name} as string,\n\t\t{Card number} as decimal(18,0),\n\t\tDisabled as string,\n\t\t{Clearance name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCardNumber as integer,\n\t\tClearanceName as string,\n\t\tCompanyName as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tCredentialCompanyName as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tDisabled as string,\n\t\tFName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {Card number},\n\t\tClearanceName = {Clearance name},\n\t\tCompanyName = {Company Name },\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tCredentialCompanyName = {Credential Company Name},\n\t\tFirstName = {First Name },\n\t\tLastName = {Last Name },\n\t\tDisabled,\n\t\tFName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tproject as string,\n\t\tworkbook as string,\n\t\tview as string,\n\t\taction as string,\n\t\tuser as string,\n\t\tuser_name as string,\n\t\tuser_email as string,\n\t\tlastview as date,\n\t\tlastlogin as date,\n\t\tviewcount as decimal(18,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tworkbook as string,\n\t\tview as string,\n\t\tuser_email as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tuser_name as string,\n\t\tlastlogin as timestamp 'dd-MM-yyyy',\n\t\tproject as string,\n\t\taction as string,\n\t\tlastview as timestamp 'dd-MM-yyyy',\n\t\tviewcount as integer,\n\t\tuser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tworkbook,\n\t\tview,\n\t\tuser_email,\n\t\tUploadDate,\n\t\tETLUser,\n\t\tuser_name,\n\t\tlastlogin,\n\t\tproject,\n\t\taction,\n\t\tlastview,\n\t\tviewcount,\n\t\tuser),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

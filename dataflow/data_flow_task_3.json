@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -24,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tNlyteID as integer,\n\t\tAssetName as string,\n\t\tTag as string,\n\t\tCabinetUsage as string,\n\t\tTotalRU as double,\n\t\tInstalledRU as decimal(38,0),\n\t\tStrandedRU as decimal(38,0),\n\t\tTotalConsumed as double,\n\t\tAbandonedRU as integer,\n\t\tAvailableRU as integer,\n\t\tPowerThreshold as double,\n\t\tPowerUsed as decimal(38,0),\n\t\tPowerFree as double,\n\t\tReadyUnAssignedRU as integer,\n\t\tSpaceNoKW as integer,\n\t\tReady2RUHoles as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tTotalRU as double,\n\t\tAbandonedRU as integer,\n\t\tSiteName as string,\n\t\tSpaceNoKW as integer,\n\t\tCabinetUsage as string,\n\t\tInstalledRU as integer,\n\t\tReadyUnAssignedRU as integer,\n\t\tSiteGroup as string,\n\t\tAssetName as string,\n\t\tReady2RUHoles as double,\n\t\tPowerUsed as integer,\n\t\tStrandedRU as integer,\n\t\tPowerThreshold as double,\n\t\tDataHall as string,\n\t\tNlyteID as integer,\n\t\tTotalConsumed as double,\n\t\tTag as string,\n\t\tPowerFree as double,\n\t\tAvailableRU as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTotalRU,\n\t\tAbandonedRU,\n\t\tSiteName,\n\t\tSpaceNoKW,\n\t\tCabinetUsage,\n\t\tInstalledRU,\n\t\tReadyUnAssignedRU,\n\t\tSiteGroup,\n\t\tAssetName,\n\t\tReady2RUHoles,\n\t\tPowerUsed,\n\t\tStrandedRU,\n\t\tPowerThreshold,\n\t\tDataHall,\n\t\tNlyteID,\n\t\tTotalConsumed,\n\t\tTag,\n\t\tPowerFree,\n\t\tAvailableRU),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tCDU as string,\n\t\tRETURN_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tETLUser as string,\n\t\tCDU as string,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tHUMIDITY,\n\t\tETLUser,\n\t\tCDU,\n\t\tRunning,\n\t\tFanSpeed_perc,\n\t\tDate,\n\t\tRETURN_SETPOINT),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

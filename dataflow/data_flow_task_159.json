@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_159",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tTime as timestamp,\n\t\tAverage as double,\n\t\t{Pane1-SF_SH3_R44 TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R112 TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R180 TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R188 TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R119 TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R52 TEMPERATURE} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\t{Pane1-SF_SH3_R52_TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R44_TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R180_TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R188_TEMPERATURE} as double,\n\t\t{Pane1-SF_SH3_R112_TEMPERATURE} as double,\n\t\tAverage as double,\n\t\tTime as timestamp 'dd-MM-yyyy',\n\t\t{Pane1-SF_SH3_R119_TEMPERATURE} as double,\n\t\tFName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\t{Pane1-SF_SH3_R52_TEMPERATURE} = {Pane1-SF_SH3_R52 TEMPERATURE},\n\t\t{Pane1-SF_SH3_R44_TEMPERATURE} = {Pane1-SF_SH3_R44 TEMPERATURE},\n\t\t{Pane1-SF_SH3_R180_TEMPERATURE} = {Pane1-SF_SH3_R180 TEMPERATURE},\n\t\t{Pane1-SF_SH3_R188_TEMPERATURE} = {Pane1-SF_SH3_R188 TEMPERATURE},\n\t\t{Pane1-SF_SH3_R112_TEMPERATURE} = {Pane1-SF_SH3_R112 TEMPERATURE},\n\t\tAverage,\n\t\tTime,\n\t\t{Pane1-SF_SH3_R119_TEMPERATURE} = {Pane1-SF_SH3_R119 TEMPERATURE},\n\t\tFName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

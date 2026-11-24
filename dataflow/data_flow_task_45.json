@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SpFiles"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,14 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as string,\n\t\t{PDU NO } as string,\n\t\t{CIRCUIT NO } as string,\n\t\t{POWER SOURCE A B} as string,\n\t\t{PREVIOUS READINGS (KWH)} as string,\n\t\t{CURRENT READING (KWH)} as string,\n\t\t{UNIT CONSUMED PER SOURCE} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCIRCUIT_NO as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tPOWER_SOURCE_A_B as string,\n\t\tPDU_NO as string,\n\t\tUNIT_CONSUMED_PER_SOURCE as double,\n\t\tPREVIOUS_READINGS_Kwh as string,\n\t\tDate as string,\n\t\tFName as string,\n\t\tCURRENT_READING as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCIRCUIT_NO = {CIRCUIT NO },\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tPOWER_SOURCE_A_B = {POWER SOURCE A B},\n\t\tPDU_NO = {PDU NO },\n\t\tUNIT_CONSUMED_PER_SOURCE = {UNIT CONSUMED PER SOURCE},\n\t\tPREVIOUS_READINGS_Kwh = {PREVIOUS READINGS (KWH)},\n\t\tDate,\n\t\tFName,\n\t\tCURRENT_READING = {CURRENT READING (KWH)}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Published Location} as string,\n\t\t{Publish Date} as string,\n\t\tModified as date,\n\t\t{Metric SME} as string,\n\t\t{Escalation Path} as string,\n\t\t{Data Points} as double,\n\t\t{Current Automation Status} as string,\n\t\t{Metric Name} as string,\n\t\t{Metric Definition} as string,\n\t\t{Report Name} as string,\n\t\t{Metric Classification} as string,\n\t\t{Link to Published Location} as string,\n\t\t{Metric Owner} as string,\n\t\t{Control ID} as string,\n\t\t{Published Frequency} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tStatus as string,\n\t\tPublishedLocation as string,\n\t\tPublishDate as string,\n\t\tModified as timestamp 'dd-MM-yyyy',\n\t\tMetricSME as string,\n\t\tEscalationPath as string,\n\t\tDataPoints as double,\n\t\tCurrentAutomationStatus as string,\n\t\tMetricName as string,\n\t\tMetricDefinition as string,\n\t\tReportName as string,\n\t\tMetricClassification as string,\n\t\tLinkToPublishedLocation as string,\n\t\tMetricOwner as string,\n\t\tControlID as string,\n\t\tPublishedFrequency as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tPublishedLocation = {Published Location},\n\t\tPublishDate = {Publish Date},\n\t\tModified,\n\t\tMetricSME = {Metric SME},\n\t\tEscalationPath = {Escalation Path},\n\t\tDataPoints = {Data Points},\n\t\tCurrentAutomationStatus = {Current Automation Status},\n\t\tMetricName = {Metric Name},\n\t\tMetricDefinition = {Metric Definition},\n\t\tReportName = {Report Name},\n\t\tMetricClassification = {Metric Classification},\n\t\tLinkToPublishedLocation = {Link to Published Location},\n\t\tMetricOwner = {Metric Owner},\n\t\tControlID = {Control ID},\n\t\tPublishedFrequency = {Published Frequency}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

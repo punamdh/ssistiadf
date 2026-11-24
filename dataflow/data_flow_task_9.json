@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tWhat as string,\n\t\tWho as string,\n\t\tWhen as date,\n\t\tWhere as string,\n\t\tCompany as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tIBX = 'DC21') ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCompany as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tWhen as timestamp 'dd-MM-yyyy',\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tFName as string,\n\t\tIBX as string,\n\t\tWho as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCompany,\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tWhen,\n\t\tWhat,\n\t\tWhere,\n\t\tFName,\n\t\tIBX,\n\t\tWho),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tZones_1to14 as string,\n\t\tSetpoint as double,\n\t\tSupply_Temp as double,\n\t\tReturn_Temp as double,\n\t\tHertz as double,\n\t\tpercent as double,\n\t\tKW as double,\n\t\tCHWV_perc as double,\n\t\tCFM as double,\n\t\tCFM_100_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tReturn_Temp as double,\n\t\tSetpoint as double,\n\t\tCHWV_perc as double,\n\t\tCFM as double,\n\t\tSupply_Temp as double,\n\t\tKW as double,\n\t\tpercent as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tCFM_100_perc as double,\n\t\tZones_1to14 as string,\n\t\tHertz as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate = uploaddate,\n\t\tReturn_Temp,\n\t\tSetpoint,\n\t\tCHWV_perc,\n\t\tCFM,\n\t\tSupply_Temp,\n\t\tKW,\n\t\tpercent,\n\t\tDate,\n\t\tETLUser,\n\t\tCFM_100_perc,\n\t\tZones_1to14,\n\t\tHertz),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

@@ -1,0 +1,41 @@
+{
+  "name" : "data_flow_task_178",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_SQLRW"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit1"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tLowerCabinetU as integer,\n\t\tNlyteID as integer,\n\t\tRecordStatus as string,\n\t\tOperationalStatus as string,\n\t\tAssetName as string,\n\t\tSerialNumber as string,\n\t\tMaterialID as integer,\n\t\tMaterialType as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tRUSize as double,\n\t\tLabPowerWatts as decimal(13,0),\n\t\tCreationDate as timestamp,\n\t\tLastUpdateDate as timestamp,\n\t\tRFCodeTag as string,\n\t\tTag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit1@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit1@Process split(Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax',!((Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax')), disjoint: true) ~> ConditionalSplit@(Case2,Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nConditionalSplit@Case1 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

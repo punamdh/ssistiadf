@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SpFiles/DARE_NAS_SpFiles"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,14 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tCalling_customer as string,\n\t\tAssigned_Individual as string,\n\t\tTicket_Number as string,\n\t\tTicket_Type as string,\n\t\tTeam as string,\n\t\tState as string,\n\t\tSeverity as string,\n\t\tCreated as date,\n\t\tResolved_At as date,\n\t\tTotal_Worked_Time as string,\n\t\tTitle as string,\n\t\t{Resolution Remarks} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tTicket_Type as string,\n\t\tCalling_customer as string,\n\t\tTicket_Number as string,\n\t\tTotal_Worked_Time as string,\n\t\tTitle as string,\n\t\tSeverity as string,\n\t\tAssigned_Individual as string,\n\t\tResolved_At as timestamp 'dd-MM-yyyy',\n\t\tFName as string,\n\t\tCreated as timestamp 'dd-MM-yyyy',\n\t\tEtlUser as string,\n\t\tState as string,\n\t\tTeam as string,\n\t\tResolutionRemarks as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tTicket_Type,\n\t\tCalling_customer,\n\t\tTicket_Number,\n\t\tTotal_Worked_Time,\n\t\tTitle,\n\t\tSeverity,\n\t\tAssigned_Individual,\n\t\tResolved_At,\n\t\tFName,\n\t\tCreated,\n\t\tEtlUser,\n\t\tState,\n\t\tTeam,\n\t\tResolutionRemarks = {Resolution Remarks}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Control Status} as string,\n\t\t{Risk Instance Name 2} as string,\n\t\t{Design Target State} as string,\n\t\tIssue as integer,\n\t\tModified as string,\n\t\t{Risk Instance Name 1} as string,\n\t\t{Year Issue Identified} as string,\n\t\t{SHRP Rating} as string,\n\t\t{Current Automation Status} as string,\n\t\t{Proposed Control Owner} as string,\n\t\tControl as string,\n\t\t{Proposed Process Owner} as string,\n\t\t{Issue Identifier} as string,\n\t\t{Automation Target Implementation Date} as string,\n\t\t{Control Owner} as string,\n\t\t{Automation Notes} as string,\n\t\tProcedure as string,\n\t\t{SHRP Control Description} as string,\n\t\t{SHRP Inactive Date} as string,\n\t\t{SHRP Control Name} as string,\n\t\tCA as string,\n\t\tNotes as string,\n\t\tPriority as string,\n\t\tTOD as string,\n\t\t{QA QC Indicator} as string,\n\t\t{Risk 1 Residual Rating} as string,\n\t\tTOP as string,\n\t\tBAU as string,\n\t\t{Metric Notes} as string,\n\t\t{Risk 1 Inherent Rating} as string,\n\t\t{Control ID} as string,\n\t\t{Target Implementation Date} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tControlStatus as string,\n\t\tRiskInstanceName2 as string,\n\t\tDesignTargetState as string,\n\t\tIssue as integer,\n\t\tModified as timestamp 'dd-MM-yyyy',\n\t\tRiskInstanceName1 as string,\n\t\tYearIssueIdentified as string,\n\t\tSHRPRating as string,\n\t\tCurrentAutomationStatus as string,\n\t\tProposedControlOwner as string,\n\t\tControl as string,\n\t\tProposedProcessOwner as string,\n\t\tIssueIdentifier as string,\n\t\tAutomationTargetImplementationDate as string,\n\t\tControlOwner as string,\n\t\tAutomationNotes as string,\n\t\tProcedure as string,\n\t\tSHRPControlDescription as string,\n\t\tSHRPInactiveDate as string,\n\t\tSHRPControlName as string,\n\t\tCA as string,\n\t\tNotes as string,\n\t\tPriority as string,\n\t\tTOD as string,\n\t\tQAQCIndicator as string,\n\t\tRisk1ResidualRating as string,\n\t\tTOP as string,\n\t\tBAU as string,\n\t\tMetricNotes as string,\n\t\tRisk1InherentRating as string,\n\t\tControlID as string,\n\t\tTargetImplementationDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tControlStatus = {Control Status},\n\t\tRiskInstanceName2 = {Risk Instance Name 2},\n\t\tDesignTargetState = {Design Target State},\n\t\tIssue,\n\t\tModified,\n\t\tRiskInstanceName1 = {Risk Instance Name 1},\n\t\tYearIssueIdentified = {Year Issue Identified},\n\t\tSHRPRating = {SHRP Rating},\n\t\tCurrentAutomationStatus = {Current Automation Status},\n\t\tProposedControlOwner = {Proposed Control Owner},\n\t\tControl,\n\t\tProposedProcessOwner = {Proposed Process Owner},\n\t\tIssueIdentifier = {Issue Identifier},\n\t\tAutomationTargetImplementationDate = {Automation Target Implementation Date},\n\t\tControlOwner = {Control Owner},\n\t\tAutomationNotes = {Automation Notes},\n\t\tProcedure,\n\t\tSHRPControlDescription = {SHRP Control Description},\n\t\tSHRPInactiveDate = {SHRP Inactive Date},\n\t\tSHRPControlName = {SHRP Control Name},\n\t\tCA,\n\t\tNotes,\n\t\tPriority,\n\t\tTOD,\n\t\tQAQCIndicator = {QA QC Indicator},\n\t\tRisk1ResidualRating = {Risk 1 Residual Rating},\n\t\tTOP,\n\t\tBAU,\n\t\tMetricNotes = {Metric Notes},\n\t\tRisk1InherentRating = {Risk 1 Inherent Rating},\n\t\tControlID = {Control ID},\n\t\tTargetImplementationDate = {Target Implementation Date}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

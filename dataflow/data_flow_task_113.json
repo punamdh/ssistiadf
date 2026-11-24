@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_113",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\t{Reporting Month} as string,\n\t\tkWh as float,\n\t\t{Average kW} as float,\n\t\t{SLA Sev 1} as float,\n\t\t{SLA Sev 2} as float,\n\t\t{SLA Sev 3} as float,\n\t\t{Incident detail} as string,\n\t\t{Client Service Request } as float,\n\t\t{Cross connects } as float,\n\t\t{Client Service Request detail} as float,\n\t\t{On Site Support } as float,\n\t\t{Average Temperature Celsius} as float,\n\t\t{Average Relative Humidity} as float,\n\t\t{Power Availability} as string,\n\t\t{Billing Sterling} as string,\n\t\t{Maintenance completed in month } as float,\n\t\t{Deferred maintenance} as float,\n\t\t{Down time minutes} as float,\n\t\t{Permenant Access } as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tPowerAvailability2 = toInteger(replace({Power Availability}, toString('%'), toString(''))) / 100) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tdate as string,\n\t\tClientServiceRequest as double,\n\t\tfname as string,\n\t\tUploadDate as string,\n\t\tReportingMonth as string,\n\t\tOnSiteSupport as double,\n\t\tSLASev1 as double,\n\t\tAveragekW as double,\n\t\tSLASev2 as double,\n\t\tSLASev3 as double,\n\t\tDeferredMaintenance as double,\n\t\tPowerAvailability as double,\n\t\tAverageTemperatureCelsius as double,\n\t\tCrossConnects as double,\n\t\tMaintenanceCompletedInMonth as double,\n\t\tAverageRelativeHumidity as double,\n\t\tClientServiceRequestDetail as double,\n\t\tEtlUser as string,\n\t\tBillingSterling as string,\n\t\tPermenantAccess as double,\n\t\tDownTimeMinutes as double,\n\t\tIncidentDetail as string,\n\t\tkwh as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tdate = Date,\n\t\tClientServiceRequest = {Client Service Request },\n\t\tfname = FName,\n\t\tUploadDate,\n\t\tReportingMonth = {Reporting Month},\n\t\tOnSiteSupport = {On Site Support },\n\t\tSLASev1 = {SLA Sev 1},\n\t\tAveragekW = {Average kW},\n\t\tSLASev2 = {SLA Sev 2},\n\t\tSLASev3 = {SLA Sev 3},\n\t\tDeferredMaintenance = {Deferred maintenance},\n\t\tPowerAvailability = PowerAvailability2,\n\t\tAverageTemperatureCelsius = {Average Temperature Celsius},\n\t\tCrossConnects = {Cross connects },\n\t\tMaintenanceCompletedInMonth = {Maintenance completed in month },\n\t\tAverageRelativeHumidity = {Average Relative Humidity},\n\t\tClientServiceRequestDetail = {Client Service Request detail},\n\t\tEtlUser,\n\t\tBillingSterling = {Billing Sterling},\n\t\tPermenantAccess = {Permenant Access },\n\t\tDownTimeMinutes = {Down time minutes},\n\t\tIncidentDetail = {Incident detail},\n\t\tkwh = kWh),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

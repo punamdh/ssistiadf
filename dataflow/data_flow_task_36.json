@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/"
+      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,14 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSNO as decimal(18,0),\n\t\t{Site Location} as string,\n\t\tDate as date,\n\t\t{Ticket No} as decimal(18,0),\n\t\t{Customer Name} as string,\n\t\tseverity as string,\n\t\t{Call Description} as string,\n\t\tResolution as string,\n\t\tStatus as string,\n\t\t{Call logged time } as string,\n\t\t{Call closure time} as string,\n\t\t{RHS Resolution Time in Min} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tFname = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tseverity as string,\n\t\tStatus as string,\n\t\tUploadDate as string,\n\t\tSiteLocation as string,\n\t\tFName as string,\n\t\tDate as string,\n\t\tEtlUser as string,\n\t\tCallDescription as string,\n\t\tSNO as integer,\n\t\tCallLoggedTime as string,\n\t\tRHSResolutionTimeinMin as string,\n\t\tTicketNo as integer,\n\t\tCustomerName as string,\n\t\tCallClosureTime as string,\n\t\tResolution as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tseverity,\n\t\tStatus,\n\t\tUploadDate,\n\t\tSiteLocation = {Site Location},\n\t\tFName = Fname,\n\t\tDate,\n\t\tEtlUser,\n\t\tCallDescription = {Call Description},\n\t\tSNO,\n\t\tCallLoggedTime = {Call logged time },\n\t\tRHSResolutionTimeinMin = {RHS Resolution Time in Min},\n\t\tTicketNo = {Ticket No},\n\t\tCustomerName = {Customer Name},\n\t\tCallClosureTime = {Call closure time},\n\t\tResolution),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVarianceNotes as string,\n\t\tInsertTs as date,\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tVarianceNotes as string,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVarianceNotes,\n\t\tInsertTs,\n\t\tDC),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }
