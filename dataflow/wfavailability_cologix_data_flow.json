@@ -1,0 +1,36 @@
+{
+  "name" : "wfavailability_cologix_data_flow",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tLocation as string,\n\t\tDate as string,\n\t\tTicket as string,\n\t\tDescription as string,\n\t\tRootCause as string,\n\t\tResolution as string,\n\t\tIncidentOpened as string,\n\t\tIncidentClosed as string,\n\t\tDowntimeminutes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Fname = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tTicket as string,\n\t\tDescription as string,\n\t\tIncidentOpened as string,\n\t\tDowntimeminutes as string,\n\t\tIncidentClosed as string,\n\t\tRootCause as string,\n\t\tFilename as string,\n\t\tDate as string,\n\t\tLocation as string,\n\t\tResolution as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTicket,\n\t\tDescription,\n\t\tIncidentOpened,\n\t\tDowntimeminutes,\n\t\tIncidentClosed,\n\t\tRootCause,\n\t\tFilename = Fname,\n\t\tDate,\n\t\tLocation,\n\t\tResolution),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

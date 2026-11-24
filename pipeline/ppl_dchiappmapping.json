@@ -1,0 +1,77 @@
+{
+  "name" : "ppl_dchiappmapping",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [dbo].[sysssislog]\n           ([event]\n           ,[computer]\n           ,[operator]\n           ,[source]\n           ,[sourceid]\n           ,[executionid]\n           ,[starttime]\n           ,[endtime]\n           ,[datacode]\n           ,[databytes]\n           ,[message])\n     VALUES\n           ( 'version', 'CPC-Nagen-2GSRQ', 'AD-ENT\\K050019', 'DCHIAppmapping', '00510ED9-EB09-4F1C-903E-AFB610A62C61', '00510ED9-EB09-4F1C-903E-AFB610A62C61', '2/13/2026 5:59:59 PM', '2/13/2026 5:59:59 PM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_Stored_Procedure_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "exec [dcm_dataloads].[Proc_sna2d];\nexec [dcm_dataloads].[Proc_sna2d_apps];\nexec [dcm_dataloads].[proc_AppMapping 1.0];\nexec [dcm_dataloads].[proc_CPCScript_v2];\nexec [dcm_dataloads].[proc_CPCScript 1.0];\nexec [dcm_dataloads].[Proc_DCHIsntable];",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DARE_U_InitialCatalog" : {
+        "type" : "String",
+        "defaultValue" : "DCM_DATALOADS"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "DARE_U_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "dds13001v016572,11001"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

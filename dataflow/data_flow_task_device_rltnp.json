@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_task_device_rltnp",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCHILD_NAME as string,\n\t\tPARENT_SYS_CLASS_NAME as string,\n\t\tCHILD_SYS_CLASS_NAME as string,\n\t\tCHILD_WF_GUID as string,\n\t\tSYS_UPDATED_ON as timestamp,\n\t\tSYS_CREATED_ON as timestamp,\n\t\tWF_GUID as string,\n\t\tPARENT_WF_GUID as string,\n\t\tPARENT_NAME as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tRELATIONSHIP_TYPE as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCHILD_NAME as string,\n\t\tPARENT_SYS_CLASS_NAME as string,\n\t\tCHILD_SYS_CLASS_NAME as string,\n\t\tCHILD_WF_GUID as string,\n\t\tSYS_UPDATED_ON as timestamp 'dd-MM-yyyy',\n\t\tSYS_CREATED_ON as timestamp 'dd-MM-yyyy',\n\t\tWF_GUID as string,\n\t\tPARENT_WF_GUID as string,\n\t\tPARENT_NAME as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tRELATIONSHIP_TYPE as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCHILD_NAME,\n\t\tPARENT_SYS_CLASS_NAME,\n\t\tCHILD_SYS_CLASS_NAME,\n\t\tCHILD_WF_GUID,\n\t\tSYS_UPDATED_ON,\n\t\tSYS_CREATED_ON,\n\t\tWF_GUID,\n\t\tPARENT_WF_GUID,\n\t\tPARENT_NAME,\n\t\tSYS_UPDATED_BY,\n\t\tRELATIONSHIP_TYPE,\n\t\tSYS_CREATED_BY,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

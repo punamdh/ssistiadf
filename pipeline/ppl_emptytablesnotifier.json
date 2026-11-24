@@ -1,0 +1,282 @@
+{
+  "name" : "ppl_emptytablesnotifier",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [dbo].[sysssislog]\n           ([event]\n           ,[computer]\n           ,[operator]\n           ,[source]\n           ,[sourceid]\n           ,[executionid]\n           ,[starttime]\n           ,[endtime]\n           ,[datacode]\n           ,[databytes]\n           ,[message])\n     VALUES\n           ( 'version', 'CPC-Samee-BE6XC', 'AD-ENT\\U837962', 'EmptyTablesNotifier', 'D2DE687F-2878-4359-8EF4-A0CB0D1DABB8', 'D2DE687F-2878-4359-8EF4-A0CB0D1DABB8', '2/23/2026 12:02:24 PM', '2/23/2026 12:02:24 PM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Exec_SP_usp_GetEmptyTablesToNotify_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "Exec [dcm_dataloads].[usp_GetEmptyTablesToNotify];",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Get_Critical_Empty_Tables_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Exec_SP_usp_GetEmptyTablesToNotify_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "Query",
+          "text" : {
+            "value" : "SELECT \n    CASE \n        WHEN COUNT(*) = 0 THEN NULL\n        ELSE \n            'The following critical tables are empty in:' + CHAR(13) + CHAR(10) +\n            CAST(SERVERPROPERTY('ServerName') AS NVARCHAR) + CHAR(13) + CHAR(10) +\n            '---------------------------------------------------------------------' + CHAR(13) + CHAR(10) +\n            STRING_AGG(TableName, CHAR(13) + CHAR(10))\n    END AS EmailBody\nFROM [dcm_dataloads].[EmptyTableStatus]\nWHERE Criticality = 'CRITICAL'\n  AND (LastNotifiedDate IS NULL OR LastNotifiedDate <= DATEADD(hour, -24, GETDATE()))\n  AND IsNotified = 0;",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "SETVAR_EmailBody",
+      "type" : "SetVariable",
+      "policy" : {
+        "timeout" : "00:30:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 0,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ {
+        "activity" : "ST_Get_Critical_Empty_Tables_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "variableName" : "EmailBody",
+        "value" : "@string(activity('ST_Get_Critical_Empty_Tables_0').output.resultSets[0].rows[0].0)"
+      }
+    }, {
+      "name" : "Send_Mail_Task-_send_email_with_empty_tables_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "SETVAR_EmailBody",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@and(not(notConvertedectfunctionotherisNull(variables('EmailBody'))), greater(length(trim(variables('EmailBody'))),0))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Send_Mail_Task-_send_email_with_empty_tables",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "ST_update_after_notify_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_Send_Mail_Task-_send_email_with_empty_tables",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "-- After sending an email, update IsNotified and LastNotifiedDate for those tables\nUPDATE [dcm_dataloads].[EmptyTableStatus]\nSET IsNotified = 1,\n    LastNotifiedDate = GETDATE()\nWHERE Criticality = 'CRITICAL'\n  AND IsNotified = 0;\n\n-- Insert sent tables into the EmailNotificationLog after sending the email\nINSERT INTO [dcm_dataloads].[EmailNotificationLog](TableName, Criticality, SentDateTime)\nSELECT TableName, Criticality, GETDATE()\nFROM [dcm_dataloads].[EmptyTableStatus]\nWHERE Criticality = 'CRITICAL' AND IsNotified = 1 AND LastNotifiedDate = CAST(GETDATE() AS DATE);\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "ST_Get_Low-critical_Empty_Tables_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_update_after_notify_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "Query",
+              "text" : {
+                "value" : "IF DATEPART(WEEKDAY, GETDATE()) = 2\nBEGIN\n    SELECT \n        CASE \n            WHEN COUNT(*) = 0 THEN NULL\n            ELSE \n                'The following Low-Critical tables are empty in:' + CHAR(13) + CHAR(10) +\n                CAST(SERVERPROPERTY('ServerName') AS NVARCHAR) + CHAR(13) + CHAR(10) +\n                '---------------------------------------------------------------------' + CHAR(13) + CHAR(10) +\n                STRING_AGG(TableName, CHAR(13) + CHAR(10))\n        END AS EmailBodyWeekly\n    FROM [dcm_dataloads].[EmptyTableStatus]\n    WHERE Criticality = 'Low_Critical' AND IsNotified = 0;\nEND\nELSE\nBEGIN\n    SELECT NULL AS EmailBodyWeekly;\nEND",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "SETVAR_EmailBodyWeekly",
+          "type" : "SetVariable",
+          "policy" : {
+            "timeout" : "00:30:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 0,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "ST_Get_Low-critical_Empty_Tables_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "variableName" : "EmailBodyWeekly",
+            "value" : "@string(activity('ST_Get_Low-critical_Empty_Tables_0').output.resultSets[0].rows[0].0)"
+          }
+        }, {
+          "name" : "EP_Send_email_with_Low-Critical_Tables_0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "SETVAR_EmailBodyWeekly",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "ppl_send_mail_task-_send_email_with_empty_tables_0",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : {
+      "SMTP_MailServer" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "ToEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "FromEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      }
+    },
+    "variables" : {
+      "EmailBodyWeekly" : {
+        "type" : "String"
+      },
+      "EmailBody" : {
+        "type" : "String"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_12_Nov/Vulnerability_ETL_v2022"
+      "name" : "wellsfargo_13_Nov/"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -20,12 +20,14 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "ServerRelationshipStatic"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "ImportDate"
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tServerRelationshipStatic_outputfilename as string ()\n}\n\nsource(output(\n\t\tCombID as string,\n\t\tWAMSourceID as string,\n\t\tServer_WFGUID as string,\n\t\tLevel3_Name as string,\n\t\tLevel4_Name as string,\n\t\tHost_Name as string,\n\t\tEDL_Flag as string,\n\t\tEDL_SeniorLead as string,\n\t\tEDL_TechManager as string,\n\t\tDEVICE_WF_GUID as string,\n\t\tLEVEL_1_REPORT_NAME as string,\n\t\tLEVEL_2_REPORT_NAME as string,\n\t\tLEVEL_3_REPORT_NAME as string,\n\t\tLEVEL_4_REPORT_NAME as string,\n\t\tMANAGER as string,\n\t\tMANAGED_BY_GROUP_GUID as string,\n\t\tMANAGER_EMAIL as string,\n\t\t{Cluster Type} as string,\n\t\tOPERATION_STATUS_DESCRIPTION as string,\n\t\t{APP CIO} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(Import_Date = currentTimestamp(),\n\t\t{Derived Column 1} = toString({APP CIO})) ~> ImportDate\nImportDate sink(input(\n\t\tApp_CIO as string,\n\t\tHost_Name as string,\n\t\tMANAGER_EMAIL as string,\n\t\tLevel4_Name as string,\n\t\tImport_Date as date 'dd-MM-yyyy',\n\t\tLEVEL_3_REPORT_NAME as string,\n\t\tCluster_Type as string,\n\t\tLEVEL_2_REPORT_NAME as string,\n\t\tLevel3_Name as string,\n\t\tEDL_TechManager as string,\n\t\tLEVEL_4_REPORT_NAME as string,\n\t\tDEVICE_WF_GUID as string,\n\t\tLEVEL_1_REPORT_NAME as string,\n\t\tMANAGER as string,\n\t\tDeviceManagedByGroup as string,\n\t\tOperational_Status_Desc as string,\n\t\tEDL_SeniorLead as string,\n\t\tEDL_Flag as string,\n\t\tWAMSourceID as string,\n\t\tServer_WFGUID as string,\n\t\tCombID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tApp_CIO = {Derived Column 1},\n\t\tHost_Name,\n\t\tMANAGER_EMAIL,\n\t\tLevel4_Name,\n\t\tImport_Date,\n\t\tLEVEL_3_REPORT_NAME,\n\t\tCluster_Type = {Cluster Type},\n\t\tLEVEL_2_REPORT_NAME,\n\t\tLevel3_Name,\n\t\tEDL_TechManager,\n\t\tLEVEL_4_REPORT_NAME,\n\t\tDEVICE_WF_GUID,\n\t\tLEVEL_1_REPORT_NAME,\n\t\tMANAGER,\n\t\tDeviceManagedByGroup = MANAGED_BY_GROUP_GUID,\n\t\tOperational_Status_Desc = OPERATION_STATUS_DESCRIPTION,\n\t\tEDL_SeniorLead,\n\t\tEDL_Flag,\n\t\tWAMSourceID,\n\t\tServer_WFGUID,\n\t\tCombID),\n\tpartitionFileNames:[($ServerRelationshipStatic_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ServerRelationshipStatic"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tAssetNumber as integer,\n\t\tAssetName as string,\n\t\tRealtimePower_KW as decimal(18,3),\n\t\tRealtimePowerAverage_KW as decimal(18,3),\n\t\tRealtimePowerMax_KW as decimal(18,3),\n\t\tRealtimePowerMin_KW as decimal(18,3),\n\t\tRealtimeLastUpdated as timestamp,\n\t\tDeviceType as string,\n\t\tPDU_Zone as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteName) || trim(SiteName) == ''), 1, 0),\n\t\tUploadDate = currentTimestamp(),\n\t\tETLUSer = $userName) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tRealtimeLastUpdated as timestamp 'dd-MM-yyyy',\n\t\tDeviceType as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRealtimePower_kW as double,\n\t\tRealtimePowerAverage_kW as double,\n\t\tDataHall as string,\n\t\tSiteName as string,\n\t\tETLUser as string,\n\t\tRealtimePowerMin_kW as double,\n\t\tAssetNumber as integer,\n\t\tRealtimePowerMax_KW as double,\n\t\tAssetName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRealtimeLastUpdated,\n\t\tDeviceType,\n\t\tUploadDate,\n\t\tRealtimePower_kW = RealtimePower_KW,\n\t\tRealtimePowerAverage_kW = RealtimePowerAverage_KW,\n\t\tDataHall,\n\t\tSiteName,\n\t\tETLUser = ETLUSer,\n\t\tRealtimePowerMin_kW = RealtimePowerMin_KW,\n\t\tAssetNumber,\n\t\tRealtimePowerMax_KW,\n\t\tAssetName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

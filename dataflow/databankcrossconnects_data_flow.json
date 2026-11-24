@@ -1,0 +1,36 @@
+{
+  "name" : "databankcrossconnects_data_flow",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBAN as string,\n\t\t{Service Order} as string,\n\t\t{Asset #} as string,\n\t\tDatacenter as string,\n\t\tCID as string,\n\t\tCarrier as string,\n\t\t{Carrier Circuit ID} as string,\n\t\tBandwidth as string,\n\t\tType as string,\n\t\t{Location A} as string,\n\t\t{Location Z} as string,\n\t\t{Connector A} as string,\n\t\t{Connector Z} as string,\n\t\t{Media Type} as string,\n\t\t{PO Number} as string,\n\t\t{Term in Months} as string,\n\t\tMRR as string,\n\t\t{Billing Start Date} as date,\n\t\tLOA as string,\n\t\t{Your Reference Internal Tracking Code} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Fname = $FileName,\n\t\tMRR_New = replace(MRR, toString('$'), toString(''))) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tPONumber as string,\n\t\tConnectorA as string,\n\t\tServiceOrder as string,\n\t\tMRR as integer,\n\t\tBAN as string,\n\t\tType as string,\n\t\tLocationZ as string,\n\t\tBillingStartDate as string,\n\t\tBandwidth as string,\n\t\tYourReferenceInternalTrackingCode as string,\n\t\tDatacenter as string,\n\t\tAsset as string,\n\t\tCarrierCircuitID as string,\n\t\tMediaType as string,\n\t\tLocationA as string,\n\t\tCarrier as string,\n\t\tConnectorZ as string,\n\t\tFname as string,\n\t\tTerminMonths as short,\n\t\tCID as string,\n\t\tLOA as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPONumber = {PO Number},\n\t\tConnectorA = {Connector A},\n\t\tServiceOrder = {Service Order},\n\t\tMRR = MRR_New,\n\t\tBAN,\n\t\tType,\n\t\tLocationZ = {Location Z},\n\t\tBillingStartDate = {Billing Start Date},\n\t\tBandwidth,\n\t\tYourReferenceInternalTrackingCode = {Your Reference Internal Tracking Code},\n\t\tDatacenter,\n\t\tAsset = {Asset #},\n\t\tCarrierCircuitID = {Carrier Circuit ID},\n\t\tMediaType = {Media Type},\n\t\tLocationA = {Location A},\n\t\tCarrier,\n\t\tConnectorZ = {Connector Z},\n\t\tFname,\n\t\tTerminMonths = {Term in Months},\n\t\tCID,\n\t\tLOA),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

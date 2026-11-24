@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/DUMPS dtsx files"
+      "name" : "wellsfargo_13_Nov/"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -21,9 +21,21 @@
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tRM_SUPPORT as string,\n\t\tJIRA_TICKET_NUMBER as string,\n\t\tIS_OWNER_CHG as string,\n\t\tCOMMENTS as string,\n\t\tCHG_REQ_SOURCE as string,\n\t\tIS_DROPPED_CHG as string,\n\t\tIS_DROPPED as string,\n\t\tENVRN_TXT as string,\n\t\tPLTFM_TXT as string,\n\t\tPLTFM_CNTCT_EMAIL_ADDR as string,\n\t\tPLTFM_CNTCT_FULL_NAME as string,\n\t\tINACTIVE_DATE as string,\n\t\tIS_MANUAL_ADD as string,\n\t\tSANDBOX_ID as string,\n\t\tREQUESTOR as string,\n\t\tDATE_PROCESSED as string,\n\t\tIS_MODEL as string,\n\t\tULTIMATE_OWNER_EMAIL_ADDR as string,\n\t\tIS_REACTIVATED as string,\n\t\tSNAP_EFF_DT as string,\n\t\tIS_EUCT as string,\n\t\tULTIMATE_OWNER as string,\n\t\tDATE_CHANGE_RECEIVED as string,\n\t\tIS_OFF_CYCLE_CHG as string,\n\t\tUPDATED_BY as string,\n\t\tSANDBOX_NAME as string,\n\t\tIS_ATTESTED_NOT_SANDBOX as string,\n\t\tRM as string,\n\t\tIS_SANDBOX as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tRM_SUPPORT as string,\n\t\tJIRA_TICKET_NUMBER as string,\n\t\tIS_OWNER_CHG as string,\n\t\tCOMMENTS as string,\n\t\tCHG_REQ_SOURCE as string,\n\t\tIS_DROPPED_CHG as string,\n\t\tIS_DROPPED as string,\n\t\tENVRN_TXT as string,\n\t\tPLTFM_TXT as string,\n\t\tPLTFM_CNTCT_EMAIL_ADDR as string,\n\t\tPLTFM_CNTCT_FULL_NAME as string,\n\t\tINACTIVE_DATE as string,\n\t\tIS_MANUAL_ADD as string,\n\t\tSANDBOX_ID as string,\n\t\tREQUESTOR as string,\n\t\tDATE_PROCESSED as string,\n\t\tIS_MODEL as string,\n\t\tULTIMATE_OWNER_EMAIL_ADDR as string,\n\t\tIS_REACTIVATED as string,\n\t\tSNAP_EFF_DT as string,\n\t\tIS_EUCT as string,\n\t\tULTIMATE_OWNER as string,\n\t\tDATE_CHANGE_RECEIVED as string,\n\t\tIS_OFF_CYCLE_CHG as string,\n\t\tUPDATED_BY as string,\n\t\tSANDBOX_NAME as string,\n\t\tIS_ATTESTED_NOT_SANDBOX as string,\n\t\tRM as string,\n\t\tIS_SANDBOX as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRM_SUPPORT,\n\t\tJIRA_TICKET_NUMBER,\n\t\tIS_OWNER_CHG,\n\t\tCOMMENTS,\n\t\tCHG_REQ_SOURCE,\n\t\tIS_DROPPED_CHG,\n\t\tIS_DROPPED,\n\t\tENVRN_TXT,\n\t\tPLTFM_TXT,\n\t\tPLTFM_CNTCT_EMAIL_ADDR,\n\t\tPLTFM_CNTCT_FULL_NAME,\n\t\tINACTIVE_DATE,\n\t\tIS_MANUAL_ADD,\n\t\tSANDBOX_ID,\n\t\tREQUESTOR,\n\t\tDATE_PROCESSED,\n\t\tIS_MODEL,\n\t\tULTIMATE_OWNER_EMAIL_ADDR,\n\t\tIS_REACTIVATED,\n\t\tSNAP_EFF_DT,\n\t\tIS_EUCT,\n\t\tULTIMATE_OWNER,\n\t\tDATE_CHANGE_RECEIVED,\n\t\tIS_OFF_CYCLE_CHG,\n\t\tUPDATED_BY,\n\t\tSANDBOX_NAME,\n\t\tIS_ATTESTED_NOT_SANDBOX,\n\t\tRM,\n\t\tIS_SANDBOX),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit1"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tLowerCabinetU as integer,\n\t\tNlyteID as integer,\n\t\tRecordStatus as string,\n\t\tOperationalStatus as string,\n\t\tAssetName as string,\n\t\tSerialNumber as string,\n\t\tMaterialID as integer,\n\t\tMaterialType as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tRUSize as double,\n\t\tLabPowerWatts as decimal(13,0),\n\t\tCreationDate as timestamp,\n\t\tLastUpdateDate as timestamp,\n\t\tRFCodeTag as string,\n\t\tTag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit1@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit1@Process split(Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax',!((Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax')), disjoint: true) ~> ConditionalSplit@(Case2,Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nConditionalSplit@Case1 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

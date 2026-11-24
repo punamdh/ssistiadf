@@ -1,0 +1,77 @@
+{
+  "name" : "ppl_etlstatuslog",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLOLEDB_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [dbo].[sysssislog]\n           ([event]\n           ,[computer]\n           ,[operator]\n           ,[source]\n           ,[sourceid]\n           ,[executionid]\n           ,[starttime]\n           ,[endtime]\n           ,[datacode]\n           ,[databytes]\n           ,[message])\n     VALUES\n           ( 'version', 'CPC-Nagen-2GSRQ', 'AD-ENT\\K050019', 'EtlStatusLog', '295A290C-24D4-454D-9AA9-674C20683916', '295A290C-24D4-454D-9AA9-674C20683916', '2/13/2026 6:10:14 PM', '2/13/2026 6:10:14 PM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_EtlStatusLog_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Completed" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_SQLOLEDB_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC [dcm_dataloads].[ETLstatuslog];",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "DARE_U_InitalCatalog" : {
+        "type" : "String",
+        "defaultValue" : "dcm_dataloads"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "Nagendra.K.Devarakonda@wellsfargo.com"
+      },
+      "DARE_U_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "dds13001v016572,11001"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

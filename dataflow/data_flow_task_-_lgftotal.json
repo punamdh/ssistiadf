@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_lgftotal",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Data Center} as string,\n\t\tPlatform as string,\n\t\t{IFD #} as string,\n\t\tQuantity as string,\n\t\t{Item Activity} as string,\n\t\tAction as string,\n\t\t{KW to add or remove} as string,\n\t\tDate as string,\n\t\t{KW to add or remove 1} as string,\n\t\t{Date to Begin} as string,\n\t\t{Date to end} as string,\n\t\t{Quantity CU} as string,\n\t\t{Quantity RU} as string,\n\t\tStatus as string,\n\t\t{Grid Location} as string,\n\t\tNotes as string,\n\t\tPROJECT as string,\n\t\tCreated as string,\n\t\tModified as string,\n\t\t{NEW ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tAction as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tQtyCU as string,\n\t\tPlatform as string,\n\t\tCommitedKW as string,\n\t\tActivity as string,\n\t\tQtyFrame as string,\n\t\tRADatetoEnd as string,\n\t\tProject as string,\n\t\tQtyRU as string,\n\t\tDataCenter as string,\n\t\tETLUser as string,\n\t\tGridLocation as string,\n\t\tRADatetoBegin as string,\n\t\tCommitedDate as string,\n\t\tRAKW as string,\n\t\tIFD_ as string,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tAction,\n\t\tUploadDate = uploaddate,\n\t\tQtyCU = {Quantity CU},\n\t\tPlatform,\n\t\tCommitedKW = {KW to add or remove},\n\t\tActivity = {Item Activity},\n\t\tQtyFrame = Quantity,\n\t\tRADatetoEnd = {Date to end},\n\t\tProject = PROJECT,\n\t\tQtyRU = {Quantity RU},\n\t\tDataCenter = {Data Center},\n\t\tETLUser,\n\t\tGridLocation = {Grid Location},\n\t\tRADatetoBegin = {Date to Begin},\n\t\tCommitedDate = Date,\n\t\tRAKW = {KW to add or remove 1},\n\t\tIFD_ = {IFD #},\n\t\tNotes),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

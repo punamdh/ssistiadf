@@ -1,0 +1,98 @@
+{
+  "name" : "ppl_dataqualitymanagement",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO dbo.sysssislog (event, computer, operator, source, sourceid, executionid, starttime, endtime, datacode, databytes, message)\nVALUES\n('version', 'DTC57C785DF291D', 'AD-ENT\\K075008', 'AutoSys_DataQualityManagement', 'C5BD7F50-BECE-4461-B5F3-4AA688F85F24', 'C5BD7F50-BECE-4461-B5F3-4AA688F85F24', '2/24/2026 9:11:43 AM', '2/24/2026 9:11:43 AM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC dcm_dataloads.usp_DQM01;",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : {
+      "SMTP_MailServer" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "ToEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "FromEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      }
+    },
+    "variables" : {
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

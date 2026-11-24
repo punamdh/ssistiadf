@@ -1,0 +1,91 @@
+{
+  "name" : "ppl_send_mail_task-_send_email_with_empty_tables_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "Send_email_with_Low-Critical_Tables_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@and(and(not(notConvertedectfunctionotherisNull(variables('EmailBodyWeekly'))), greater(length(trim(variables('EmailBodyWeekly'))),0)), not(equals(variables('EmailBodyWeekly'),'0')))",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Send_email_with_Low-Critical_Tables",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "ST_Update_IsNotify_flag_after_notified_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_Send_email_with_Low-Critical_Tables",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_MSOLEDBSQL_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "UPDATE [dcm_dataloads].[EmptyTableStatus]\nSET IsNotified = 1,\n    LastNotifiedDate = GETDATE()\nWHERE Criticality = 'Low_Critical'\n  AND IsNotified = 0;",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "EmailBodyWeekly" : {
+        "type" : "String"
+      },
+      "EmailBody" : {
+        "type" : "String"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

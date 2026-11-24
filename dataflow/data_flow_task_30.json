@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_30",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\tRequestor as string,\n\t\tIncident as decimal(18,0),\n\t\tSummary as string,\n\t\tLocation as string,\n\t\t{Submit Date} as timestamp,\n\t\t{Close Date} as string,\n\t\tDepartment as string,\n\t\tService as string,\n\t\tCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tCloseDate2 = iif(isNull({Close Date}) || length(trim(toString({Close Date}))) == 0, toTimestamp(null()), toTimestamp(toString({Close Date}, 'MM/dd/yyyy'), 'MM/dd/yyyy'))) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tUploadDate as string,\n\t\tCategory as string,\n\t\tSubmitDate as timestamp 'dd-MM-yyyy',\n\t\tService as string,\n\t\tFName as string,\n\t\tCloseDate as timestamp 'dd-MM-yyyy',\n\t\tEtlUser as string,\n\t\tDepartment as string,\n\t\tSummary as string,\n\t\tIncident as integer,\n\t\tRequestor as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tUploadDate,\n\t\tCategory,\n\t\tSubmitDate = {Submit Date},\n\t\tService,\n\t\tFName,\n\t\tCloseDate = CloseDate2,\n\t\tEtlUser,\n\t\tDepartment,\n\t\tSummary,\n\t\tIncident,\n\t\tRequestor,\n\t\tLocation),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

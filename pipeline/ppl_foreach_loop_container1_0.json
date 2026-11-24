@@ -1,0 +1,323 @@
+{
+  "name" : "ppl_foreach_loop_container1_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_source_ContainerName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_source_FileName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_source_FilePath' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_sink_ContainerName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_sink_FileName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_sink_FilePath' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_1_ContainerName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_1_FileName' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'SPM_Move_File1_0_1_FilePath' AND PIPELINE_NAME = 'ppl_spm_filescheck') AS SPM_Move_File1_0_1_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "Send_Mail_Task1_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('AlreadyLoaded'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "EP_Send_Mail_Task1",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_email",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_SPM_Move_File1_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "EP_Send_Mail_Task1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_source_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_source_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_sink_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_sink_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "DEL_SPM_Move_File1_0_1",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_SPM_Move_File1_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_1_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_1_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.SPM_Move_File1_0_1_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "Cologix_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Cologix\\Archive\\AlreadyProcessed\\"
+      },
+      "ARKSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\ARK\\"
+      },
+      "FileName" : {
+        "type" : "String"
+      },
+      "NTT_CPSM_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\NTT\\Archive\\AlreadyProcessed"
+      },
+      "ArkFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\ARK\\"
+      },
+      "DatabankFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Databank\\"
+      },
+      "NTTFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\NTT\\"
+      },
+      "FlexentialFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Flexential\\"
+      },
+      "Yotta_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Yotta\\Archive\\AlreadyProcessed\\"
+      },
+      "EmailSub" : {
+        "type" : "String",
+        "defaultValue" : "SPM Duplicate file  sent by Provider"
+      },
+      "ARK_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\ARK\\Archive\\AlreadyProcessed\\"
+      },
+      "EquinixFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Equinix\\"
+      },
+      "FlexentialSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Flexential\\"
+      },
+      "YottaSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Yotta\\"
+      },
+      "DARE_InitialCatalog" : {
+        "type" : "String",
+        "defaultValue" : "dcm_dataloads"
+      },
+      "EquinixSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Equinix\\"
+      },
+      "Equinix_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Equinix\\Archive\\AlreadyProcessed\\"
+      },
+      "Switch_CPSM_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Switch\\Archive\\AlreadyProcessed\\"
+      },
+      "SwitchFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Switch\\"
+      },
+      "AlreadyLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "Databank_CPSM_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Databank\\Archive\\AlreadyProcessed"
+      },
+      "YottaFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Yotta\\"
+      },
+      "CPSM_NAS_NTT" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\NTT\\"
+      },
+      "CologixSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Cologix\\"
+      },
+      "NxtraFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Nxtra\\"
+      },
+      "CPSM_NAS_Databank" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Databank\\"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "DARE_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "dds13001v016572,11001"
+      },
+      "NxtraSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Nxtra\\"
+      },
+      "CologixFile" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Cologix\\"
+      },
+      "CPSM_NAS_Switch" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\CPSM\\Metrics and Reporting\\ServiceProvider\\Switch\\"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "Nxtra_Archive_Processed" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\Nxtra\\Archive\\AlreadyProcessed\\"
+      }
+    }
+  }
+}

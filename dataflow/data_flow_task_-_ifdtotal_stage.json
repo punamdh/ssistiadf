@@ -1,0 +1,31 @@
+{
+  "name" : "data_flow_task_-_ifdtotal_stage",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Target DC} as string,\n\t\t{Data Hall} as string,\n\t\tID as string,\n\t\t{Project Name} as string,\n\t\t{Ad Hoc Devices (QTY)} as string,\n\t\t{Ad Hoc RU (per device)} as string,\n\t\t{Device  Device Power} as string,\n\t\tNeighborhood as string,\n\t\t{DC Capacity Status} as string,\n\t\t{Integrated Racks CU} as string,\n\t\tDevice as string,\n\t\tTaxonomy as string,\n\t\t{Year-Month} as string,\n\t\t{DCM Jira} as string,\n\t\tStatus as string,\n\t\t{Taxonomy PTO Lab Power Value (Watts)} as string,\n\t\t{Sum of Power (kW)} as string,\n\t\t{Taxonomy Category} as string,\n\t\t{Manual Power Value} as string,\n\t\tAction as string,\n\t\t{Item Type} as string,\n\t\tPath as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tPath as string,\n\t\tAction as string,\n\t\tItem_Type as string,\n\t\tDC_Capacity_Status as string,\n\t\tTaxonomy as string,\n\t\tuploaddate as timestamp 'dd-MM-yyyy',\n\t\tDevice as string,\n\t\tSum_of_Power__kW_ as string,\n\t\tTaxonomy_PTO_Lab_Power_Value__Watts_ as string,\n\t\tProject_Name as string,\n\t\t{Year-Month} as string,\n\t\tDCM_Jira as string,\n\t\tDevice__Device_Power as string,\n\t\tManual_Power_Value as string,\n\t\tAd_Hoc_Devices__QTY_ as string,\n\t\tNeighborhood as string,\n\t\tIntegrated_Racks_CU as string,\n\t\tETLUser as string,\n\t\tTarget_DC as string,\n\t\tData_Hall as string,\n\t\tID as string,\n\t\tAd_Hoc_RU__per_device_ as string,\n\t\tTaxonomy_Category as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tPath,\n\t\tAction,\n\t\tItem_Type = {Item Type},\n\t\tDC_Capacity_Status = {DC Capacity Status},\n\t\tTaxonomy,\n\t\tuploaddate,\n\t\tDevice,\n\t\tSum_of_Power__kW_ = {Sum of Power (kW)},\n\t\tTaxonomy_PTO_Lab_Power_Value__Watts_ = {Taxonomy PTO Lab Power Value (Watts)},\n\t\tProject_Name = {Project Name},\n\t\t{Year-Month},\n\t\tDCM_Jira = {DCM Jira},\n\t\tDevice__Device_Power = {Device  Device Power},\n\t\tManual_Power_Value = {Manual Power Value},\n\t\tAd_Hoc_Devices__QTY_ = {Ad Hoc Devices (QTY)},\n\t\tNeighborhood,\n\t\tIntegrated_Racks_CU = {Integrated Racks CU},\n\t\tETLUser,\n\t\tTarget_DC = {Target DC},\n\t\tData_Hall = {Data Hall},\n\t\tID,\n\t\tAd_Hoc_RU__per_device_ = {Ad Hoc RU (per device)},\n\t\tTaxonomy_Category = {Taxonomy Category}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name" : "data_flow_task_process_log",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSource",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\trecord_id as integer,\n\t\ttarget_object_name as string,\n\t\tdata_classification as string,\n\t\tbusiness_effective_date as timestamp,\n\t\ttarget_application as string,\n\t\tcount_type as string,\n\t\tcount as integer,\n\t\tData_source as string,\n\t\tprocessing_date as timestamp,\n\t\trunning_count as integer,\n\t\ttodsh_run_id as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\trecord_id as integer,\n\t\ttarget_object_name as string,\n\t\tdata_classification as string,\n\t\tbusiness_effective_date as timestamp 'dd-MM-yyyy',\n\t\ttarget_application as string,\n\t\tcount_type as string,\n\t\tcount as integer,\n\t\tData_source as string,\n\t\tprocessing_date as timestamp 'dd-MM-yyyy',\n\t\trunning_count as integer,\n\t\ttodsh_run_id as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\trecord_id,\n\t\ttarget_object_name,\n\t\tdata_classification,\n\t\tbusiness_effective_date,\n\t\ttarget_application,\n\t\tcount_type,\n\t\tcount,\n\t\tData_source,\n\t\tprocessing_date,\n\t\trunning_count,\n\t\ttodsh_run_id),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

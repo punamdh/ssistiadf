@@ -1,0 +1,29 @@
+{
+  "name" : "import_csv_to_temp_staging_table",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "SourceDatabankSensorsCSV",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\trackNumber as string,\n\t\ttemperature as string,\n\t\trackName as string,\n\t\thumidity as string,\n\t\tTimestamp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> SourceDatabankSensorsCSV\nSourceDatabankSensorsCSV sink(input(\n\t\tRackNumber as string,\n\t\tTemperature as string,\n\t\tRackName as string,\n\t\tHumidity as string,\n\t\tSensorTimestamp as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tRackNumber = rackNumber,\n\t\tTemperature = temperature,\n\t\tRackName = rackName,\n\t\tHumidity = humidity,\n\t\tSensorTimestamp = Timestamp),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

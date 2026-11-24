@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task_-_ksltotal",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "ConditionalSplit"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Site Class} as string,\n\t\t{Site Status} as string,\n\t\tProduct as string,\n\t\t{Product Owner} as string,\n\t\t{FHE Alias} as string,\n\t\t{Building Name} as string,\n\t\t{Business Entity} as string,\n\t\t{Building Number} as string,\n\t\t{MAC ID} as string,\n\t\tAddress as string,\n\t\t{Room Count} as string,\n\t\t{City } as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tRegion as string,\n\t\t{Zip Code} as string,\n\t\t{Site Manager} as string,\n\t\t{BCP Pairing} as string,\n\t\t{Security Supervisor} as string,\n\t\t{Site Lifecycle} as string,\n\t\t{On Board Year} as string,\n\t\t{On Board Date} as date,\n\t\t{Off Board Year} as string,\n\t\t{Off Board Date} as date,\n\t\t{Media Sweeps} as string,\n\t\t{Capacity Management Frequency} as string,\n\t\t{DC Power Capacity} as float,\n\t\t{Third Party Primary Contact Name} as string,\n\t\t{Third Party Primary Contact Email} as string,\n\t\t{Third Party Primary Contact Phone} as string,\n\t\t{Third Party Secondary Contact Name} as string,\n\t\t{Third Party Secondary Contact Phone} as string,\n\t\t{Third Party Secondary Contact Email} as string,\n\t\t{CPG CF Manager} as string,\n\t\t{DC Useable Sq  Footage} as float,\n\t\tProvider as string,\n\t\t{Created By} as string,\n\t\tID as string,\n\t\t{Modified By} as string,\n\t\t{Access Area} as string,\n\t\t{Access System} as string,\n\t\t{UPS Asset Name(s)} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn split(FHE Alias != '', disjoint: true) ~> ConditionalSplit@(Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case1 sink(input(\n\t\tProductOwner as string,\n\t\tCPGCFManager as string,\n\t\tBE as string,\n\t\tOffBoardDate as date 'dd-MM-yyyy',\n\t\tUPSAssetNames as string,\n\t\tAccessArea as string,\n\t\tSitePortfolioMgr as string,\n\t\tDCUseableSqFootage as double,\n\t\tSiteStatus as string,\n\t\tProduct as string,\n\t\tThirdPartyPrimaryPhone as string,\n\t\tModifiedBy as string,\n\t\tMACID as string,\n\t\tETLUser as string,\n\t\tAccessSystem as string,\n\t\tID as string,\n\t\tSiteLifecycle as string,\n\t\tOnBoardYear as string,\n\t\tMediaSweeps as string,\n\t\tOffBoardYear as string,\n\t\tThirdPartySecondaryContactName as string,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tThirdPartySecondaryPhone as string,\n\t\tCreatedBy as string,\n\t\tZipCode as string,\n\t\tPhysicalAddress as string,\n\t\tSecuritySupervisor as string,\n\t\tCity as string,\n\t\tCriticalFacilityClass as string,\n\t\tBCP as string,\n\t\tProvider as string,\n\t\tRoomsLocationsatthisSite as string,\n\t\tThirdPartyPrimaryContactName as string,\n\t\tThirdPartySecondaryEMail as string,\n\t\tState as string,\n\t\tAlias as string,\n\t\tBuildingNumber as string,\n\t\tDataCenterAlias as string,\n\t\tCountry as string,\n\t\tRegion as string,\n\t\tThirdPartyPrimaryEMail as string,\n\t\tOnBoardDate as timestamp 'dd-MM-yyyy',\n\t\tDCPowerCapacity as double,\n\t\tCapacityManagementFrequency as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tProductOwner = {Product Owner},\n\t\tCPGCFManager = {CPG CF Manager},\n\t\tBE = {Business Entity},\n\t\tOffBoardDate = {Off Board Date},\n\t\tUPSAssetNames = {UPS Asset Name(s)},\n\t\tAccessArea = {Access Area},\n\t\tSitePortfolioMgr = {Site Manager},\n\t\tDCUseableSqFootage = {DC Useable Sq  Footage},\n\t\tSiteStatus = {Site Status},\n\t\tProduct,\n\t\tThirdPartyPrimaryPhone = {Third Party Primary Contact Phone},\n\t\tModifiedBy = {Modified By},\n\t\tMACID = {MAC ID},\n\t\tETLUser,\n\t\tAccessSystem = {Access System},\n\t\tID,\n\t\tSiteLifecycle = {Site Lifecycle},\n\t\tOnBoardYear = {On Board Year},\n\t\tMediaSweeps = {Media Sweeps},\n\t\tOffBoardYear = {Off Board Year},\n\t\tThirdPartySecondaryContactName = {Third Party Secondary Contact Name},\n\t\tUploadDate = uploaddate,\n\t\tThirdPartySecondaryPhone = {Third Party Secondary Contact Phone},\n\t\tCreatedBy = {Created By},\n\t\tZipCode = {Zip Code},\n\t\tPhysicalAddress = Address,\n\t\tSecuritySupervisor = {Security Supervisor},\n\t\tCity = {City },\n\t\tCriticalFacilityClass = {Site Class},\n\t\tBCP = {BCP Pairing},\n\t\tProvider,\n\t\tRoomsLocationsatthisSite = {Room Count},\n\t\tThirdPartyPrimaryContactName = {Third Party Primary Contact Name},\n\t\tThirdPartySecondaryEMail = {Third Party Secondary Contact Email},\n\t\tState,\n\t\tAlias = {Building Name},\n\t\tBuildingNumber = {Building Number},\n\t\tDataCenterAlias = {FHE Alias},\n\t\tCountry,\n\t\tRegion,\n\t\tThirdPartyPrimaryEMail = {Third Party Primary Contact Email},\n\t\tOnBoardDate = {On Board Date},\n\t\tDCPowerCapacity = {DC Power Capacity},\n\t\tCapacityManagementFrequency = {Capacity Management Frequency}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

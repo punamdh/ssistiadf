@@ -1,0 +1,81 @@
+{
+  "name" : "ppl_carbonfootprinttargetsites",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO dbo.sysssislog (event, computer, operator, source, sourceid, executionid, starttime, endtime, datacode, databytes, message)\nVALUES\n('version', 'CPC-Nagen-2GSRQ', 'AD-ENT\\K050019', 'CarbonFootPrintTargetSites', 'C33BAA39-271E-4217-911C-30A051A5A111', 'C33BAA39-271E-4217-911C-30A051A5A111', '3/9/2026 5:20:35 PM', '3/9/2026 5:20:35 PM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Execute_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "EXEC DCM_DATALOADS.usp_CarbonFootprint;",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SMTP" : {
+        "type" : "String",
+        "defaultValue" : "mxtest.wellsfargo.com"
+      },
+      "DARE_U_InitialCatalog" : {
+        "type" : "String",
+        "defaultValue" : "DCM_DATALOADS"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "DARE_U_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "dds13001v016572,11001"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      }
+    }
+  }
+}

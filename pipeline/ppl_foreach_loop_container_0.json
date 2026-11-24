@@ -1,0 +1,274 @@
+{
+  "name" : "ppl_foreach_loop_container_0",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_source_ContainerName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_source_FileName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_source_FilePath' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_sink_ContainerName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_sink_FileName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_sink_FilePath' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_1_ContainerName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_1_FileName' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'File_System_Task_0_1_FilePath' AND PIPELINE_NAME = 'ppl_sweep_nas_files') AS File_System_Task_0_1_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "File_System_Task_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
+        "expression" : {
+          "value" : "@greater(variables('IsFileAlreadyLoaded'),0)",
+          "type" : "Expression"
+        },
+        "ifFalseActivities" : [ ],
+        "ifTrueActivities" : [ {
+          "name" : "CPD_File_System_Task_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "DelimitedTextSource"
+            },
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_source_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_source_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_sink_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_sink_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "DEL_File_System_Task_0_1",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_File_System_Task_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_1_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_1_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.File_System_Task_0_1_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "Capture_Sweeped_files",
+          "type" : "AzureFunctionActivity",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
+          "dependsOn" : [ {
+            "activity" : "DEL_File_System_Task_0_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : "Script Task",
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "AzureFunction1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "functionName" : {
+              "value" : "Capture_Sweeped_files",
+              "type" : "Expression"
+            },
+            "method" : "POST",
+            "headers" : { }
+          }
+        } ]
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : { },
+    "variables" : {
+      "SPM_DestPath" : {
+        "type" : "String",
+        "defaultValue" : "TempVal\\"
+      },
+      "CFIMS_SrcPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\wfsaloxnnf01\\c_ehs_groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\CFIMS\\Source\\"
+      },
+      "SweepedFiles" : {
+        "type" : "String"
+      },
+      "FileName" : {
+        "type" : "String",
+        "defaultValue" : "TempVal"
+      },
+      "DataLoadsSourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\wfsaloxnnf01\\c_ehs_groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\202610\\"
+      },
+      "CFIMS_DestPath" : {
+        "type" : "String",
+        "defaultValue" : "TempVal10052026.csv"
+      },
+      "DataloadDestPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\wfsaloxnnf01\\c_ehs_groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\202610\\Completed\\10052026.csv"
+      },
+      "DARE_U_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "dds13001v016572,11001"
+      },
+      "Date" : {
+        "type" : "String",
+        "defaultValue" : "10052026"
+      },
+      "GuardianDestPath" : {
+        "type" : "String",
+        "defaultValue" : "TempVal10052026.csv"
+      },
+      "SourcePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\wfsaloxnnf01\\c_ehs_groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\"
+      },
+      "DARE_U_InitalCatalog" : {
+        "type" : "String",
+        "defaultValue" : "dcm_dataloads"
+      },
+      "SPM_NAS_Path" : {
+        "type" : "String",
+        "defaultValue" : "\\\\Wfsaloxnnf01\\C_EHS_Groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\ServiceProvider\\Source\\"
+      },
+      "YearMonth" : {
+        "type" : "String",
+        "defaultValue" : "202610"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "xmldoc" : {
+        "type" : "String"
+      },
+      "IsFileAlreadyLoaded" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "GuardianSrcPath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\wfsaloxnnf01\\c_ehs_groups\\DCM\\Raised Floor Engineering & Design\\DCIM COE\\DARE\\DATA\\Data Loads\\Guardian\\Source\\"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "SPM_Subfolder" : {
+        "type" : "String",
+        "defaultValue" : "TempVal"
+      }
+    }
+  }
+}

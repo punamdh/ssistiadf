@@ -1,0 +1,36 @@
+{
+  "name" : "data_flow_task_42",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      }, {
+        "name" : "RowCount0"
+      } ],
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tnumber as string,\n\t\tstate as string,\n\t\tu_classification as string,\n\t\tu_ldc_type as string,\n\t\tu_billable as string,\n\t\twatch_list as string,\n\t\tshort_description as string,\n\t\tdescription as string,\n\t\tsys_updated_on as string,\n\t\t{contact email} as string,\n\t\topened_at as string,\n\t\tclosed_at as string,\n\t\t{service_offering name} as string,\n\t\t{business_service name} as string,\n\t\tsys_created_by as string,\n\t\tu_time_charged as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tClosedAt as timestamp 'dd-MM-yyyy',\n\t\tUldctype as string,\n\t\tDescription as string,\n\t\tBusinessServiceName as string,\n\t\tFName as string,\n\t\tWatchlist as string,\n\t\tShortDescription as string,\n\t\tOpenedAt as timestamp 'dd-MM-yyyy',\n\t\tEtlUser as string,\n\t\tUtimeCharged as double,\n\t\tUbillable as string,\n\t\tNumber as string,\n\t\tState as string,\n\t\tServiceOfferingName as string,\n\t\tContactEmail as string,\n\t\tSysCreatedBy as string,\n\t\tUclassification as string,\n\t\tSysUpdatedOn as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tClosedAt = closed_at,\n\t\tUldctype = u_ldc_type,\n\t\tDescription = description,\n\t\tBusinessServiceName = {business_service name},\n\t\tFName,\n\t\tWatchlist = watch_list,\n\t\tShortDescription = short_description,\n\t\tOpenedAt = opened_at,\n\t\tEtlUser,\n\t\tUtimeCharged = u_time_charged,\n\t\tUbillable = u_billable,\n\t\tNumber = number,\n\t\tState = state,\n\t\tServiceOfferingName = {service_offering name},\n\t\tContactEmail = {contact email},\n\t\tSysCreatedBy = sys_created_by,\n\t\tUclassification = u_classification,\n\t\tSysUpdatedOn = sys_updated_on),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+    }
+  }
+}

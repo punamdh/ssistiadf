@@ -1,0 +1,124 @@
+{
+  "name" : "ppl_backup",
+  "type" : "Microsoft.DataFactory/factories/pipelines",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "activities" : [ {
+      "name" : "ST_Version_Capture_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "INSERT INTO [dbo].[sysssislog]\n           ([event]\n           ,[computer]\n           ,[operator]\n           ,[source]\n           ,[sourceid]\n           ,[executionid]\n           ,[starttime]\n           ,[endtime]\n           ,[datacode]\n           ,[databytes]\n           ,[message])\n     VALUES\n           ( 'version', 'CPC-Samee-BE6XC', 'AD-ENT\\U837962', 'Backup', 'E6CBECFF-0D96-4D92-B64C-0AC1A28B3F3A', 'E6CBECFF-0D96-4D92-B64C-0AC1A28B3F3A', '2/10/2026 11:31:33 AM', '2/10/2026 11:31:33 AM', '0', '0', '1.0')",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    }, {
+      "name" : "ST_Backup_SP_-_SQL_Task_0",
+      "type" : "Script",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "ST_Version_Capture_0",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "linkedServiceName" : {
+        "referenceName" : "OLEDB_MSOLEDBSQL_1_2",
+        "type" : "LinkedServiceReference"
+      },
+      "typeProperties" : {
+        "scripts" : [ {
+          "type" : "NonQuery",
+          "text" : {
+            "value" : "exec [dcm_dataloads].[Backup];",
+            "type" : "Expression"
+          }
+        } ],
+        "scriptBlockExecutionTimeout" : null
+      }
+    } ],
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/"
+    },
+    "parameters" : {
+      "SMTP_MailServer" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "ToEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "DARE_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_InitialCatalog" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "Logging_ServerName" : {
+        "type" : "string",
+        "defaultValue" : " "
+      },
+      "FromEmail" : {
+        "type" : "string",
+        "defaultValue" : " "
+      }
+    },
+    "variables" : {
+      "TableName" : {
+        "type" : "String"
+      },
+      "SDS_U_InitialCatalog" : {
+        "type" : "String",
+        "defaultValue" : "SSISDB"
+      },
+      "ToEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "IsFileRefreshedToday" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "Resultset" : {
+        "type" : "String"
+      },
+      "SDS_U_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "DWUL0188V1\\UL018811"
+      },
+      "SDS_P_ServerName" : {
+        "type" : "String",
+        "defaultValue" : "DWPV0188VA\\PV0188A1"
+      },
+      "FromEmail" : {
+        "type" : "String",
+        "defaultValue" : "dcimcoe@wellsfargo.com"
+      },
+      "SDS_P_InitialCatalog" : {
+        "type" : "String",
+        "defaultValue" : "SSISDB"
+      }
+    }
+  }
+}
