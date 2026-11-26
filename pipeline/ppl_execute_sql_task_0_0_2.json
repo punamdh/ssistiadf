@@ -4,21 +4,63 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "End_-_File_alreday_Exist_0_0",
-      "type" : "IfCondition",
-      "policy" : null,
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_FlatFileSource_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FileName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_FlatFileSource_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Flat_File_Source_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_FlatFileSource_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FileName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_OLEDBDestination_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'OLE_DB_Destination_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl' AND DATAFLOW_NAME = 'street_side_buy_and_sell') AS Street_Side_Buy_and_Sell_OLEDBDestination_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell0_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell0_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell0_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell0_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell01_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell01_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell01_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell01_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell012_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell012_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell012_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell012_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell0123_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell0123_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell0123_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell0123_sink_TableName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell01234_sink_SchemaName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell01234_sink_SchemaName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Street_Side_Buy_and_Sell01234_sink_TableName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Street_Side_Buy_and_Sell01234_sink_TableName;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "START_-_Call_Log_table_entry_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
         "expression" : {
-          "value" : "@not(equals(variables('iFileExists'),0))",
+          "value" : "@equals(variables('iFileExists'),0)",
           "type" : "Expression"
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "ST_End_-_File_alreday_Exist_0",
+          "name" : "ST_START_-_Call_Log_table_entry_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
@@ -33,7 +75,526 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @item.name,\n @comment = 'File Already loaded in table',\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@FileName=@item.name\n\n",
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'START',\n @proc_pack_nm  =  concat(pipeline().parameters.BasePath, '/', @item().name),\n @comment = concat(pipeline().parameters.BasePath, '/', @item().name),\n@FileName='Copy of EQUITY BUY and SELL BREAKS.csv'\n\n",
+                "type" : "Expression"
+              }
+            } ],
+            "scriptBlockExecutionTimeout" : null
+          }
+        }, {
+          "name" : "EP_REPL_Street_Side_Buy_and_Sell",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "ST_START_-_Call_Log_table_entry_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Street_Side_Buy_and_Sell",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Street_Side_Buy_and_Sell0",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Street_Side_Buy_and_Sell",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Street_Side_Buy_and_Sell",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Street_Side_Buy_and_Sell01",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Street_Side_Buy_and_Sell0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Street_Side_Buy_and_Sell",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Street_Side_Buy_and_Sell012",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Street_Side_Buy_and_Sell01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Street_Side_Buy_and_Sell",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "EP_REPL_Street_Side_Buy_and_Sell0123",
+          "type" : "ExecutePipeline",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Street_Side_Buy_and_Sell012",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : null,
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "pipeline" : {
+              "referenceName" : "Generic_db_replication_ppl",
+              "type" : "PipelineReference"
+            },
+            "waitOnCompletion" : true,
+            "parameters" : {
+              "SysDatetime" : {
+                "value" : "@formatDateTime(pipeline().TriggerTime,'yyyyMMddHHmmss')",
+                "type" : "Expression"
+              },
+              "Dataflow_Name" : "Street_Side_Buy_and_Sell",
+              "FilePath_Date" : {
+                "value" : "@pipeline().TriggerTime",
+                "type" : "Expression"
+              },
+              "Pipeline_Name" : {
+                "value" : "@pipeline().Pipeline",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "DF_Street_Side_Buy_and_Sell",
+          "type" : "ExecuteDataFlow",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "EP_REPL_Street_Side_Buy_and_Sell0123",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataflow" : {
+              "referenceName" : "street_side_buy_and_sell",
+              "type" : "DataFlowReference",
+              "parameters" : {
+                "FilePathBuySellBreaks" : {
+                  "type" : "Expression",
+                  "value" : "concat(variables('sFileRootDirectory'),'\\\\WFSOpsKRIReporting\\\\DropZone\\\\Broadridge\\\\StreetsideActivity\\\\BuyAndSellBreaks\\\\Copy of EQUITY BUY and SELL BREAKS ',substring(concat('0',string(formatDateTime(utcNow(), 'MM'))), sub(length(concat('0',string(formatDateTime(utcNow(), 'MM')))), 2), 2),'-',substring(concat('0',string(dayOfMonth(utcNow()))), sub(length(concat('0',string(dayOfMonth(utcNow())))), 2), 2),'-',substring(string(formatDateTime(utcNow(), 'yyyy')), 3, 2),'.csv')"
+                },
+                "OLEDBDestination_outputfilename" : {
+                  "type" : "Expression",
+                  "value" : "'@{concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')}'"
+                }
+              },
+              "datasetParameters" : {
+                "FlatFileSource" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_FlatFileSource_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_FlatFileSource_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_FlatFileSource_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  },
+                  "ColumnDelimiter" : ","
+                },
+                "OLEDBDestination" : {
+                  "Container" : {
+                    "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                    "type" : "Expression"
+                  },
+                  "FileName" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                    "type" : "Expression"
+                  },
+                  "Directory" : {
+                    "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                    "type" : "Expression"
+                  }
+                }
+              }
+            },
+            "compute" : null,
+            "staging" : {
+              "linkedService" : {
+                "referenceName" : "AzureBlobStorage1",
+                "type" : "LinkedServiceReference"
+              },
+              "folderPath" : {
+                "value" : "@pipeline().parameters.Street_Side_Buy_and_Sell_StagingFolderPath",
+                "type" : "Expression"
+              }
+            }
+          }
+        }, {
+          "name" : "CPD_Street_Side_Buy_and_Sell01234",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DF_Street_Side_Buy_and_Sell",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell01234_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell01234_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_Street_Side_Buy_and_Sell0123",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Street_Side_Buy_and_Sell01234",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell0123_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell0123_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_Street_Side_Buy_and_Sell012",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Street_Side_Buy_and_Sell0123",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell012_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell012_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_Street_Side_Buy_and_Sell01",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Street_Side_Buy_and_Sell012",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell01_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell01_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "CPD_Street_Side_Buy_and_Sell0",
+          "type" : "Copy",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Street_Side_Buy_and_Sell01",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "source" : {
+              "type" : "ParquetSource"
+            },
+            "sink" : {
+              "type" : "SqlServerSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "genric_parquet",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell_OLEDBDestination_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              }
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "DRSAUTOSYSUAT_ReconControl",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "TableName" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell0_sink_TableName",
+                "type" : "Expression"
+              },
+              "Schema" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Street_Side_Buy_and_Sell0_sink_SchemaName",
+                "type" : "Expression"
+              }
+            }
+          } ]
+        }, {
+          "name" : "ST_Update_Street_Side_0",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Street_Side_Buy_and_Sell0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : "Delete from ReconControl.[dbo].[tbl_Broadridge_StreetsideActivity_StreetSideBuySell]\nwhere TD is null \nand Load_Date=cast(Getdate() as date);\nUPDATE t1\nSET t1.ReportDate=cast(t2.PrevBussDay as Date) \nFROM ReconControl.[dbo].[tbl_Broadridge_StreetsideActivity_StreetSideBuySell] t1\nINNER JOIN Utility.[dbo].Calendar t2 on  substring( t1.FileName,36,8)=convert( varchar,t2.BusinessDay,10)\nwhere Reportdate is null\nand  Load_Date=cast(Getdate() as date);",
                 "type" : "Expression"
               }
             } ],
@@ -43,56 +604,92 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
-    "parameters" : { },
-    "variables" : {
-      "iFileDateBefore0417" : {
+    "parameters" : {
+      "Street_Side_Buy_and_Sell_StagingFolderPath" : {
         "type" : "String",
-        "defaultValue" : "0"
+        "defaultValue" : ""
+      },
+      "BasePath" : {
+        "type" : "String",
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "FilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\"
       },
       "sProcessName" : {
         "type" : "String",
-        "defaultValue" : "GMI_GUNG_Give_Up_Not_Gone_Trade_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       },
       "sFileName" : {
-        "type" : "String",
-        "defaultValue" : "gungeodf1_20231127.csv"
+        "type" : "String"
       },
-      "sFilePath" : {
+      "sFROM" : {
         "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\GMI\\GUNG"
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "FirstDayOfYear" : {
+        "type" : "String",
+        "defaultValue" : "01-01-25"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
+      },
+      "FileDateCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
+      "FileToSearch" : {
+        "type" : "String",
+        "defaultValue" : "Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "sRowCount" : {
         "type" : "String",
         "defaultValue" : "0"
       },
-      "sFileNameTrn" : {
-        "type" : "String"
+      "sTO" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "FilePathBuySellBreaks" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "iFileExists" : {
         "type" : "String",
         "defaultValue" : "0"
       },
       "sSubject" : {
+        "type" : "String"
+      },
+      "sCheckIfDataAlreadyLoaded" : {
         "type" : "String",
-        "defaultValue" : "WFSR&S_ProcessAlert_DEV_GMI_GUNG_Give_Up_Not_Gone_Trade_ETL"
+        "defaultValue" : "0"
       },
       "sEnvironment" : {
         "type" : "String",
         "defaultValue" : "DEV"
       },
+      "FileExistsFlag" : {
+        "type" : "String",
+        "defaultValue" : "0"
+      },
       "sActualRowsLoaded" : {
         "type" : "String",
         "defaultValue" : "0"
       },
-      "FilePathDev" : {
-        "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSUAT\\WFSOpsKRIReporting\\DropZone\\GMI\\GUNG"
-      },
       "sFileRootDirectory" : {
         "type" : "String",
         "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+      },
+      "sMessage" : {
+        "type" : "String",
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       }
     }
   }

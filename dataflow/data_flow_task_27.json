@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "TblAllReconSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,24 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
-      }, {
-        "dataset" : {
-          "referenceName" : "Generic_File_TGT",
-          "type" : "DatasetReference"
-        },
-        "name" : "FlatFileSource01"
+        "name" : "TblAllReconDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "FlatFileSourceErrorReformat"
-      }, {
-        "name" : "DataConversion"
-      }, {
-        "name" : "FlatFileSource0"
+        "name" : "ToAddLoadDate"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Event Date} as string,\n\t\t{Breach Status} as string,\n\t\t{External ID} as string,\n\t\t{Event ID} as string,\n\t\t{Notification SLA} as string,\n\t\t{Notification Time(EST)} as string,\n\t\t{Issued Time(EST)} as string,\n\t\t{Lapsed Time(EST)} as string,\n\t\t{Action Movement} as string,\n\t\t{Call Status} as string,\n\t\t{Interface Status} as string,\n\t\t{Distribution Medium} as string,\n\t\t{Statement Status} as string,\n\t\tRegion as string,\n\t\t{Issuing User} as string,\n\t\t{Colline Comments} as string,\n\t\t{Custom Tech Comments} as string,\n\t\t{Agreement Requirement} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nFlatFileSource derive() ~> FlatFileSourceErrorReformat\nDerivedColumn derive({Copy of Region} = Region) ~> DataConversion\nFlatFileSourceErrorReformat derive() ~> FlatFileSource0\nDataConversion sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tExternal_ID as string,\n\t\tStatement_Status as string,\n\t\tNotification_SLA as string,\n\t\tBreach_Status as string,\n\t\tNotification_Time_EST_ as string,\n\t\tColline_Comments as string,\n\t\tCustom_Tech_Comments as string,\n\t\tIssuing_User as string,\n\t\tEvent_ID as string,\n\t\tLapsed_Time_EST_ as string,\n\t\tAgreement_Requirement as string,\n\t\tIssued_Time_EST_ as string,\n\t\tDistribution_Medium as string,\n\t\tInterface_Status as string,\n\t\tAction_Movement as string,\n\t\tRegion as string,\n\t\tEvent_Date as string,\n\t\tCall_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tExternal_ID = {Copy of External ID},\n\t\tStatement_Status = {Copy of Statement Status},\n\t\tNotification_SLA = {Copy of Notification SLA},\n\t\tBreach_Status = {Copy of Breach Status},\n\t\tNotification_Time_EST_ = {Copy of Notification Time(EST)},\n\t\tColline_Comments = {Copy of Colline Comments},\n\t\tCustom_Tech_Comments = {Copy of Custom Tech Comments},\n\t\tIssuing_User = {Copy of Issuing User},\n\t\tEvent_ID = {Copy of Event ID},\n\t\tLapsed_Time_EST_ = {Copy of Lapsed Time(EST)},\n\t\tAgreement_Requirement = {Copy of Agreement Requirement},\n\t\tIssued_Time_EST_ = {Copy of Issued Time(EST)},\n\t\tDistribution_Medium = {Copy of Distribution Medium},\n\t\tInterface_Status = {Copy of Interface Status},\n\t\tAction_Movement = {Copy of Action Movement},\n\t\tRegion = {Copy of Region},\n\t\tEvent_Date = {Copy of Event Date},\n\t\tCall_Status = {Copy of Call Status}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nFlatFileSource0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> FlatFileSource01"
+      "script" : "parameters{\n\tTblAllReconDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tSYSTEMRECORD as string,\n\t\tCUSIP as string,\n\t\tTYPE as string,\n\t\tPC as string,\n\t\tSTRIKE as decimal(24,8),\n\t\tEXPIRATION as integer,\n\t\tSTRATEGY as string,\n\t\tGROUPNAME as string,\n\t\tBOOKNAME as string,\n\t\tLEGALENTITY as string,\n\t\tRC as string,\n\t\tCUSTOMERTYPE as string,\n\t\tIMAGINELONGNAME as string,\n\t\tHOLDID as integer,\n\t\tCURRMARK as decimal(24,8),\n\t\tCURRQTY as decimal(24,8),\n\t\tCURRMKTVALUSD as decimal(24,8)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TblAllReconSource\nTblAllReconSource derive(ToAddLoadDate = currentTimestamp()) ~> ToAddLoadDate\nToAddLoadDate sink(input(\n\t\tGroupName as string,\n\t\tCurrQty as integer,\n\t\tLegalEntity as string,\n\t\tCurrMark as integer,\n\t\tBookName as string,\n\t\tStrike as integer,\n\t\tExpiration as integer,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tEffDate as timestamp 'dd-MM-yyyy',\n\t\tCustomerType as string,\n\t\tCusip as string,\n\t\tImagineLongName as string,\n\t\tRC as string,\n\t\tHoldID as integer,\n\t\tType as string,\n\t\tPC as string,\n\t\tStrategy as string,\n\t\tSystemRecord as string,\n\t\tCurrMktValUsd as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGroupName = GROUPNAME,\n\t\tCurrQty = CURRQTY,\n\t\tLegalEntity = LEGALENTITY,\n\t\tCurrMark = CURRMARK,\n\t\tBookName = BOOKNAME,\n\t\tStrike = STRIKE,\n\t\tExpiration = EXPIRATION,\n\t\tLoad_Date = ToAddLoadDate,\n\t\tEffDate = EFFDATE,\n\t\tCustomerType = CUSTOMERTYPE,\n\t\tCusip = CUSIP,\n\t\tImagineLongName = IMAGINELONGNAME,\n\t\tRC,\n\t\tHoldID = HOLDID,\n\t\tType = TYPE,\n\t\tPC,\n\t\tStrategy = STRATEGY,\n\t\tSystemRecord = SYSTEMRECORD,\n\t\tCurrMktValUsd = CURRMKTVALUSD),\n\tpartitionFileNames:[($TblAllReconDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> TblAllReconDestination"
     }
   }
 }

@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SPM"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -30,7 +30,7 @@
       }, {
         "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSitename as string,\n\t\tDeviceName as string,\n\t\tPowerinkW as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tSitename as string,\n\t\tPowerinkW as double,\n\t\tFName as string,\n\t\tDeviceName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSitename,\n\t\tPowerinkW,\n\t\tFName,\n\t\tDeviceName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tWho as string,\n\t\tWhen as date,\n\t\tOrganization as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tIBX = 'SV1') ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tWhen as timestamp 'dd-MM-yyyy',\n\t\tOrganization as string,\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tFName as string,\n\t\tWho as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tWhen,\n\t\tOrganization,\n\t\tWhat,\n\t\tWhere,\n\t\tFName,\n\t\tWho),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

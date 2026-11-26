@@ -5,13 +5,19 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "ExcelSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Excel1",
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +26,18 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "ETPPDEV"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "GetLoadDate"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
       } ],
-      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as date 'dd-MM-yyyy',\n\t\tDataCenter as string,\n\t\t{Number of Hosts} as double,\n\t\t{Number of Virtual Guests} as double,\n\t\t{Number of Powered on Guests} as double,\n\t\t{Total CPU Cores} as double,\n\t\t{Allocated vCPUs} as double,\n\t\t{Powered on vCPUs} as double,\n\t\t{Total RAM} as double,\n\t\t{Total RAM - Overhead} as double,\n\t\t{Allocated RAM} as double,\n\t\t{Powered on RAM} as double,\n\t\t{Total Disk Space} as double,\n\t\t{Allocated Disk Space} as double,\n\t\t{Allocated Disk Space + Overhead} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tNumber_of_Hosts as double,\n\t\tNumber_of_Virtual_Guests as double,\n\t\tPowered_on_vCPUs as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\tAllocated_RAM as double,\n\t\tNumber_of_Powered_on_Guests as double,\n\t\tTotal_RAM as double,\n\t\tAllocated_Disk_Space___Overhead as double,\n\t\tName as string,\n\t\tTotal_CPU_Cores as double,\n\t\tPowered_on_RAM as double,\n\t\tDataCenter as string,\n\t\tTotal_Disk_Space as double,\n\t\tAllocated_vCPUs as double,\n\t\t{Total_RAM_-_Overhead} as double,\n\t\tAllocated_Disk_Space as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNumber_of_Hosts = {Number of Hosts},\n\t\tNumber_of_Virtual_Guests = {Number of Virtual Guests},\n\t\tPowered_on_vCPUs = {Powered on vCPUs},\n\t\timportdate,\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tAllocated_RAM = {Allocated RAM},\n\t\tNumber_of_Powered_on_Guests = {Number of Powered on Guests},\n\t\tTotal_RAM = {Total RAM},\n\t\tAllocated_Disk_Space___Overhead = {Allocated Disk Space + Overhead},\n\t\tName,\n\t\tTotal_CPU_Cores = {Total CPU Cores},\n\t\tPowered_on_RAM = {Powered on RAM},\n\t\tDataCenter,\n\t\tTotal_Disk_Space = {Total Disk Space},\n\t\tAllocated_vCPUs = {Allocated vCPUs},\n\t\t{Total_RAM_-_Overhead} = {Total RAM - Overhead},\n\t\tAllocated_Disk_Space = {Allocated Disk Space}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTYPE as string,\n\t\tBREAKTYPE as string,\n\t\tINVENTORY as string,\n\t\tQUANTITY as decimal(17,5),\n\t\tDTL_PL as string,\n\t\tMTD_PL as string,\n\t\tYTD_PL as string,\n\t\tMARKET_VALUE as decimal(17,2),\n\t\tCUSIP as string,\n\t\tTICKERSYMBOL as string,\n\t\tINSTRUMENTDESCRIPTION as string,\n\t\tPRODUCTTYPE1 as string,\n\t\tPRODUCTTYPE2 as string,\n\t\tEFFECTIVEDATE as decimal(38,0)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tEffDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource derive(loadDate = currentTimestamp(),\n\t\tEffDate_Drv = toDate(toString((substring(toString(toString(EFFECTIVEDATE)), toInteger(1), toInteger(4)) + '-' + substring(toString(toString(EFFECTIVEDATE)), toInteger(5), toInteger(2)) + '-' + substring(toString(toString(EFFECTIVEDATE)), toInteger(7), toInteger(2))), 'MM/dd/yyyy'), \"MM/dd/yyyy\")) ~> GetLoadDate\nGetLoadDate derive({Copy of BREAKTYPE} = BREAKTYPE,\n\t\t{Copy of QUANTITY} = QUANTITY,\n\t\t{Copy of EffDate_Drv} = EffDate_Drv,\n\t\t{Copy of DTL_PL} = DTL_PL,\n\t\t{Copy of MARKET_VALUE} = MARKET_VALUE,\n\t\t{Copy of PRODUCTTYPE1} = PRODUCTTYPE1,\n\t\t{Copy of MTD_PL} = MTD_PL,\n\t\t{Copy of loadDate} = loadDate,\n\t\t{Copy of EFFECTIVEDATE} = EFFECTIVEDATE,\n\t\t{Copy of CUSIP} = CUSIP,\n\t\t{Copy of TYPE} = TYPE,\n\t\t{Copy of PRODUCTTYPE2} = PRODUCTTYPE2,\n\t\t{Copy of INSTRUMENTDESCRIPTION} = INSTRUMENTDESCRIPTION,\n\t\t{Copy of TICKERSYMBOL} = TICKERSYMBOL,\n\t\t{Copy of INVENTORY} = INVENTORY,\n\t\t{Copy of YTD_PL} = YTD_PL) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of EffDate_Drv} == EffDate,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tInstrumentDescription as string,\n\t\tBreakType as string,\n\t\tQuantity as integer,\n\t\tEffDate as date 'dd-MM-yyyy',\n\t\tProductTypeClass as string,\n\t\tYTD_PL as integer,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tCusip as string,\n\t\tMarketValue as integer,\n\t\tType as string,\n\t\tDTL_PL as integer,\n\t\tTickerSymbol as string,\n\t\tMTD_PL as integer,\n\t\tInventory as string,\n\t\tProductTypeSubClass as string,\n\t\tEffectiveDate as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tInstrumentDescription = {Copy of INSTRUMENTDESCRIPTION},\n\t\tBreakType = {Copy of BREAKTYPE},\n\t\tQuantity = {Copy of QUANTITY},\n\t\tEffDate = {Copy of EffDate_Drv},\n\t\tProductTypeClass = {Copy of PRODUCTTYPE1},\n\t\tYTD_PL = {Copy of YTD_PL},\n\t\tloadDate = {Copy of loadDate},\n\t\tCusip = {Copy of CUSIP},\n\t\tMarketValue = {Copy of MARKET_VALUE},\n\t\tType = {Copy of TYPE},\n\t\tDTL_PL = {Copy of DTL_PL},\n\t\tTickerSymbol = {Copy of TICKERSYMBOL},\n\t\tMTD_PL = {Copy of MTD_PL},\n\t\tInventory = {Copy of INVENTORY},\n\t\tProductTypeSubClass = {Copy of PRODUCTTYPE2},\n\t\tEffectiveDate = {Copy of EFFECTIVEDATE}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

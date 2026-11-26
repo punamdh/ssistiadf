@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,8 +22,10 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODTYPE as string,\n\t\tCTRCCY as string,\n\t\tCCYREVALRATE as double,\n\t\tCTRNPVRATE_10 as integer,\n\t\tCTRDISCNPVRATE_10 as integer,\n\t\tCCYSPOTDATE as timestamp,\n\t\tBIDOFFERIND as string,\n\t\tCTRSPOTRATE as double,\n\t\tPRODCODE as string,\n\t\tCTRREVALRATE as double,\n\t\tCCYDISCNPVRATE_10 as integer,\n\t\tBR as string,\n\t\tCTRSPOTDATE as timestamp,\n\t\tCTRDISCNPVFACTOR_10 as integer,\n\t\tCCYNPVFACTOR_10 as integer,\n\t\tCTRNPVFACTOR_10 as integer,\n\t\tCCY as string,\n\t\tCCYSPOTRATE as double,\n\t\tPAIRSPOTDATE as timestamp,\n\t\tCCYNPVRATE_10 as integer,\n\t\tVDATE as timestamp,\n\t\tCCYDISCNPVFACTOR_10 as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPRODTYPE as string,\n\t\tCTRCCY as string,\n\t\tCCYREVALRATE as double,\n\t\tCTRNPVRATE_10 as double,\n\t\tCTRDISCNPVRATE_10 as double,\n\t\tCCYSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tBIDOFFERIND as string,\n\t\tCTRSPOTRATE as double,\n\t\tPRODCODE as string,\n\t\tCTRREVALRATE as double,\n\t\tCCYDISCNPVRATE_10 as double,\n\t\tBR as string,\n\t\tCTRSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tCTRDISCNPVFACTOR_10 as double,\n\t\tCCYNPVFACTOR_10 as double,\n\t\tCTRNPVFACTOR_10 as double,\n\t\tCCY as string,\n\t\tCCYSPOTRATE as double,\n\t\tPAIRSPOTDATE as timestamp 'dd-MM-yyyy',\n\t\tCCYNPVRATE_10 as double,\n\t\tVDATE as timestamp 'dd-MM-yyyy',\n\t\tCCYDISCNPVFACTOR_10 as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPRODTYPE,\n\t\tCTRCCY,\n\t\tCCYREVALRATE,\n\t\tCTRNPVRATE_10,\n\t\tCTRDISCNPVRATE_10,\n\t\tCCYSPOTDATE,\n\t\tBIDOFFERIND,\n\t\tCTRSPOTRATE,\n\t\tPRODCODE,\n\t\tCTRREVALRATE,\n\t\tCCYDISCNPVRATE_10,\n\t\tBR,\n\t\tCTRSPOTDATE,\n\t\tCTRDISCNPVFACTOR_10,\n\t\tCCYNPVFACTOR_10,\n\t\tCTRNPVFACTOR_10,\n\t\tCCY,\n\t\tCCYSPOTRATE,\n\t\tPAIRSPOTDATE,\n\t\tCCYNPVRATE_10,\n\t\tVDATE,\n\t\tCCYDISCNPVFACTOR_10),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCategory as string,\n\t\tAssetType as string,\n\t\tAssetClass as string,\n\t\tProductCategory as string,\n\t\tSubProductCategory as string,\n\t\tContractType as string,\n\t\tProductID as string,\n\t\tParentProductID as string,\n\t\tInstrumentType as string,\n\t\tProductCreatedBy as string,\n\t\tHID as string,\n\t\tQuantity as string,\n\t\tEqSwapNotional as string,\n\t\tTradingAccount as string,\n\t\tDesk as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tHID as string,\n\t\tCategory as string,\n\t\tDescription as string,\n\t\tInstrumentType as string,\n\t\tQuantity as string,\n\t\tProductID as string,\n\t\tAssetType as string,\n\t\tParentProductID as string,\n\t\tSubProductCategory as string,\n\t\tProductCategory as string,\n\t\tContractType as string,\n\t\tProductCreatedBy as string,\n\t\tEqSwapNotional as string,\n\t\tDesk as string,\n\t\tTradingAccount as string,\n\t\tAssetClass as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tHID,\n\t\tCategory,\n\t\tDescription,\n\t\tInstrumentType,\n\t\tQuantity,\n\t\tProductID,\n\t\tAssetType,\n\t\tParentProductID,\n\t\tSubProductCategory,\n\t\tProductCategory,\n\t\tContractType,\n\t\tProductCreatedBy,\n\t\tEqSwapNotional,\n\t\tDesk,\n\t\tTradingAccount,\n\t\tAssetClass),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

@@ -1,0 +1,49 @@
+{
+  "name" : "data_flow_task_-_tprchssaletranhist",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSourceReconControlCage",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "OLEDBSourcep021ispprod",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "Sort"
+      }, {
+        "name" : "Sort1"
+      }, {
+        "name" : "MergeJoin"
+      }, {
+        "name" : "MergeJoin01"
+      }, {
+        "name" : "MergeJoin0"
+      }, {
+        "name" : "GetCurrentdate"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tloadDate as timestamp,\n\t\tEFFDATE as timestamp,\n\t\tEFFECTIVEDATE as integer,\n\t\tCLIENT_NBR as string,\n\t\tBRANCH_CD as string,\n\t\tACCOUNT_CD as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tSETTLEMENT_DT as timestamp,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\tTAG_CAGE_NBR as string,\n\t\tTRADE_DT as date,\n\t\tBRANCH_CSTCY_CD as string,\n\t\tACCOUNT_CSTCY_CD as string,\n\t\tCURRENCY_CD as string,\n\t\tEXTNL_REF_ID as string,\n\t\tTAG_DT as date,\n\t\tBROKER_CONFIRM_NBR as string,\n\t\tTAG_DPLCT_NBR as decimal(7,0),\n\t\tREMAINING_AMT as decimal(15,2),\n\t\tTRANS_CONTROL_ID as string,\n\t\tINSTR_SPCL_CAGE_CD as string,\n\t\tORIGIN_CD as string,\n\t\tTYPE_ACCT_CSTCY_CD as string,\n\t\tRR_CD as string,\n\t\tPRODUCT as string,\n\t\tPRODUCT_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSourceReconControlCage\tsource(output(\n\t\tEFFECTIVEDATE as decimal(38,0),\n\t\tACCOUNT_CD as string,\n\t\tBRANCH_CD as string,\n\t\tCLIENT_NBR as string,\n\t\tSECURITY_ADP_NBR as string,\n\t\tTRANSACTION_DT as timestamp,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\tFRST_MNY_AMT as decimal(17,2),\n\t\tTAG_TRAN_CD as string,\n\t\tCLIENT_USE_TXT as string,\n\t\tEFFDATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSourcep021ispprod\nOLEDBSourceReconControlCage sort(asc(CLIENT_NBR, false),asc(BRANCH_CD, false),asc(ACCOUNT_CD, false),asc(TYPE_ACCOUNT_CD, false),asc(SECURITY_ADP_NBR, false),asc(TAG_CAGE_NBR, false),asc(SETTLEMENT_DT, false)) ~> Sort\nOLEDBSourcep021ispprod sort(asc(CLIENT_NBR, false),asc(BRANCH_CD, false),asc(ACCOUNT_CD, false),asc(TYPE_ACCOUNT_CD, false),asc(SECURITY_ADP_NBR, false),asc(TAG_TRAN_CD, false),asc(TRANSACTION_DT, false)) ~> Sort1\nSort,Sort1 join(OLEDBSourceReconControlCage@CLIENT_NBR == OLEDBSourcep021ispprod@CLIENT_NBR && OLEDBSourceReconControlCage@BRANCH_CD == OLEDBSourcep021ispprod@BRANCH_CD && OLEDBSourceReconControlCage@ACCOUNT_CD == OLEDBSourcep021ispprod@ACCOUNT_CD && OLEDBSourceReconControlCage@TYPE_ACCOUNT_CD == OLEDBSourcep021ispprod@TYPE_ACCOUNT_CD && OLEDBSourceReconControlCage@SECURITY_ADP_NBR == OLEDBSourcep021ispprod@SECURITY_ADP_NBR && TAG_CAGE_NBR == TAG_TRAN_CD && SETTLEMENT_DT == TRANSACTION_DT,\n\tjoinType:'inner',\n\tbroadcast: 'none')~> MergeJoin\nMergeJoin select(mapColumn(\n\t\tTAG_TRAN_CD = TAG_TRAN_CD,\n\t\tTRANSACTION_DT = TRANSACTION_DT,\n\t\tFRST_MNY_AMT = FRST_MNY_AMT,\n\t\tCLIENT_USE_TXT = CLIENT_USE_TXT,\n\t\tEFFDATE = OLEDBSourcep021ispprod@EFFDATE,\n\t\tEFFECTIVEDATE = EFFECTIVEDATE,\n\t\tCLIENT_NBR = OLEDBSourcep021ispprod@CLIENT_NBR,\n\t\tBRANCH_CD = OLEDBSourcep021ispprod@BRANCH_CD,\n\t\tACCOUNT_CD = OLEDBSourcep021ispprod@ACCOUNT_CD,\n\t\tSECURITY_ADP_NBR = OLEDBSourcep021ispprod@SECURITY_ADP_NBR,\n\t\tSETTLEMENT_DT = SETTLEMENT_DT,\n\t\tTYPE_ACCOUNT_CD = OLEDBSourcep021ispprod@TYPE_ACCOUNT_CD\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> MergeJoin01\nMergeJoin01 derive(TAG_TRAN_CD = TAG_TRAN_CD,\n\t\tTRANSACTION_DT = TRANSACTION_DT,\n\t\tFRST_MNY_AMT = FRST_MNY_AMT,\n\t\tCLIENT_USE_TXT = CLIENT_USE_TXT,\n\t\tEFFDATE = EFFDATE,\n\t\tEFFECTIVEDATE = EFFECTIVEDATE,\n\t\tCLIENT_NBR = CLIENT_NBR,\n\t\tBRANCH_CD = BRANCH_CD,\n\t\tACCOUNT_CD = ACCOUNT_CD,\n\t\tSECURITY_ADP_NBR = SECURITY_ADP_NBR,\n\t\tSETTLEMENT_DT = SETTLEMENT_DT,\n\t\tTYPE_ACCOUNT_CD = TYPE_ACCOUNT_CD) ~> MergeJoin0\nMergeJoin0 derive(loadDate = currentTimestamp()) ~> GetCurrentdate\nGetCurrentdate derive({Copy of EFFDATE} = toDate(EFFDATE, \"MM/dd/yyyy\"),\n\t\t{Copy of TRANSACTION_DT} = TRANSACTION_DT,\n\t\t{Copy of CLIENT_USE_TXT} = CLIENT_USE_TXT,\n\t\t{Copy of loadDate} = loadDate,\n\t\t{Copy of FRST_MNY_AMT} = FRST_MNY_AMT,\n\t\t{Copy of SECURITY_ADP_NBR} = SECURITY_ADP_NBR,\n\t\t{Copy of TAG_TRAN_CD} = TAG_TRAN_CD,\n\t\t{Copy of ACCOUNT_CD} = ACCOUNT_CD,\n\t\t{Copy of EFFECTIVEDATE} = EFFECTIVEDATE,\n\t\t{Copy of CLIENT_NBR} = CLIENT_NBR,\n\t\t{Copy of TYPE_ACCOUNT_CD} = TYPE_ACCOUNT_CD,\n\t\t{Copy of BRANCH_CD} = BRANCH_CD) ~> DataConversion\nDataConversion sink(input(\n\t\tTRANSACTION_DT as date 'dd-MM-yyyy',\n\t\tSECURITY_ADP_NBR as string,\n\t\tBRANCH_CD as string,\n\t\tEFFDATE as date 'dd-MM-yyyy',\n\t\tCLIENT_NBR as string,\n\t\tACCOUNT_CD as string,\n\t\tFRST_MNY_AMT as integer,\n\t\tCLIENT_USE_TXT as string,\n\t\tTYPE_ACCOUNT_CD as string,\n\t\tTAG_TRAN_CD as string,\n\t\tEFFECTIVEDATE as integer,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTRANSACTION_DT = {Copy of TRANSACTION_DT},\n\t\tSECURITY_ADP_NBR = {Copy of SECURITY_ADP_NBR},\n\t\tBRANCH_CD = {Copy of BRANCH_CD},\n\t\tEFFDATE = {Copy of EFFDATE},\n\t\tCLIENT_NBR = {Copy of CLIENT_NBR},\n\t\tACCOUNT_CD = {Copy of ACCOUNT_CD},\n\t\tFRST_MNY_AMT = {Copy of FRST_MNY_AMT},\n\t\tCLIENT_USE_TXT = {Copy of CLIENT_USE_TXT},\n\t\tTYPE_ACCOUNT_CD = {Copy of TYPE_ACCOUNT_CD},\n\t\tTAG_TRAN_CD = {Copy of TAG_TRAN_CD},\n\t\tEFFECTIVEDATE = {Copy of EFFECTIVEDATE},\n\t\tloadDate = {Copy of loadDate}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

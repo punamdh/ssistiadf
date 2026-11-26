@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DataConversion"
       } ],
-      "script" : "parameters{\n\tloadtbllvlTwoDetailConfirms_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Asset Class} as string,\n\t\t{Process Method} as string,\n\t\tType as string,\n\t\tPC as string,\n\t\tQty as string,\n\t\tasOfDate as string,\n\t\tmanager as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromconfirmscsv\nfromconfirmscsv derive({Copy of asOfDate} = toTimestamp(toString(asOfDate, 'MM/dd/yyyy'), 'MM/dd/yyyy'),\n\t\t{Copy of Qty} = toInteger(Qty),\n\t\t{Copy of Type} = Type,\n\t\t{Copy of PC} = toInteger(PC),\n\t\t{Copy of manager} = manager) ~> DataConversion\nDataConversion sink(input(\n\t\tpc as integer,\n\t\tmanager as string,\n\t\tqty as integer,\n\t\tassetClass as string,\n\t\ttype as string,\n\t\tasOfDate as timestamp 'dd-MM-yyyy',\n\t\tprocessMethod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tpc = {Copy of PC},\n\t\tmanager = {Copy of manager},\n\t\tqty = {Copy of Qty},\n\t\tassetClass = {Copy of Asset Class},\n\t\ttype = {Copy of Type},\n\t\tasOfDate = {Copy of asOfDate},\n\t\tprocessMethod = {Copy of Process Method}),\n\tpartitionFileNames:[($loadtbllvlTwoDetailConfirms_outputfilename)],\n\tpartitionBy('hash', 1)) ~> loadtbllvlTwoDetailConfirms"
+      "script" : "parameters{\n\tloadtbllvlTwoDetailConfirms_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Asset Class} as string,\n\t\t{Process Method} as string,\n\t\tType as string,\n\t\tPC as string,\n\t\tQty as string,\n\t\tasOfDate as string,\n\t\tmanager as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromconfirmscsv\nfromconfirmscsv derive({Copy of manager} = manager,\n\t\t{Copy of PC} = toInteger(PC),\n\t\t{Copy of Type} = Type,\n\t\t{Copy of asOfDate} = toTimestamp(toString(asOfDate, 'MM/dd/yyyy'), 'MM/dd/yyyy'),\n\t\t{Copy of Qty} = toInteger(Qty)) ~> DataConversion\nDataConversion sink(input(\n\t\tpc as integer,\n\t\tmanager as string,\n\t\tqty as integer,\n\t\tassetClass as string,\n\t\ttype as string,\n\t\tasOfDate as timestamp 'dd-MM-yyyy',\n\t\tprocessMethod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tpc = {Copy of PC},\n\t\tmanager = {Copy of manager},\n\t\tqty = {Copy of Qty},\n\t\tassetClass = {Copy of Asset Class},\n\t\ttype = {Copy of Type},\n\t\tasOfDate = {Copy of asOfDate},\n\t\tprocessMethod = {Copy of Process Method}),\n\tpartitionFileNames:[($loadtbllvlTwoDetailConfirms_outputfilename)],\n\tpartitionBy('hash', 1)) ~> loadtbllvlTwoDetailConfirms"
     }
   }
 }

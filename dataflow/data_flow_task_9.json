@@ -5,11 +5,35 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "qry1a",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupMarketerAULKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupRevenueCenterAULKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "qry2aLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "qry3aLKPTABLE",
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -22,8 +46,48 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tENTITY_ID as integer,\n\t\tmodif_dateNoTime as date,\n\t\tCurrency_Pair as string,\n\t\tTRADER_NAME as string,\n\t\tLoad_Date as timestamp,\n\t\tBOOK_NAME as string,\n\t\tTRADE_DATE_TIME as timestamp,\n\t\tTRADE_STATUS as string,\n\t\tPRODUCT_TYPE as string,\n\t\tMODIF_DATE as timestamp,\n\t\tCurrency as string,\n\t\tSALES_PERSON as string,\n\t\tNotional as integer,\n\t\tCpty_ShortName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tENTITY_ID as integer,\n\t\tmodif_dateNoTime as date 'dd-MM-yyyy',\n\t\tCurrency_Pair as string,\n\t\tTRADER_NAME as string,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tBOOK_NAME as string,\n\t\tTRADE_DATE_TIME as timestamp 'dd-MM-yyyy',\n\t\tTRADE_STATUS as string,\n\t\tPRODUCT_TYPE as string,\n\t\tMODIF_DATE as timestamp 'dd-MM-yyyy',\n\t\tCurrency as string,\n\t\tSALES_PERSON as string,\n\t\tNotional as integer,\n\t\tCpty_ShortName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tENTITY_ID,\n\t\tmodif_dateNoTime,\n\t\tCurrency_Pair,\n\t\tTRADER_NAME,\n\t\tLoad_Date,\n\t\tBOOK_NAME,\n\t\tTRADE_DATE_TIME,\n\t\tTRADE_STATUS,\n\t\tPRODUCT_TYPE,\n\t\tMODIF_DATE,\n\t\tCurrency,\n\t\tSALES_PERSON,\n\t\tNotional,\n\t\tCpty_ShortName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "qry2a"
+      }, {
+        "name" : "qry2a01"
+      }, {
+        "name" : "qry2aIsMatch"
+      }, {
+        "name" : "qry2a0"
+      }, {
+        "name" : "Combine2a"
+      }, {
+        "name" : "qry3a"
+      }, {
+        "name" : "qry3a01"
+      }, {
+        "name" : "qry3aIsMatch"
+      }, {
+        "name" : "qry3a0"
+      }, {
+        "name" : "qry3a0ONETOMANY"
+      }, {
+        "name" : "FeeRole4a"
+      }, {
+        "name" : "LookupMarketerAU"
+      }, {
+        "name" : "LookupRevenueCenterAU"
+      }, {
+        "name" : "LookupMarketerAU01"
+      }, {
+        "name" : "LookupRevenueCenterAUIsMatch"
+      }, {
+        "name" : "LookupMarketerAUIsMatch"
+      }, {
+        "name" : "LookupRevenueCenterAU0"
+      }, {
+        "name" : "LookupMarketerAU0"
+      }, {
+        "name" : "Combine4a"
+      }, {
+        "name" : "AddRunDateZa"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tPRODUCT_ID as decimal(38,0),\n\t\tCPTY_ID as decimal(38,0),\n\t\tFEE_TYPE as string,\n\t\tFEE_DATE as timestamp,\n\t\tAMOUNT as double,\n\t\tLEGAL_ENTITY_ID as decimal(38,0),\n\t\tFEE_ROLE as string,\n\t\tBOOK_LEGAL_ENTITY_ID as decimal(38,0),\n\t\tBOOK as string,\n\t\tPROCESSING_ORG as string,\n\t\tTRADE_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> qry1a\tsource(output(\n\t\tLEGAL_ENTITY_ID as integer,\n\t\tATTRIBUTE_VALUE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupMarketerAULKPTABLE\tsource(output(\n\t\tLEGAL_ENTITY_ID as integer,\n\t\tATTRIBUTE_VALUE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupRevenueCenterAULKPTABLE\tsource(output(\n\t\tFEE_TYPE as string,\n\t\tCOMMENTS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> qry2aLKPTABLE\tsource(output(\n\t\tLEGAL_ENTITY_ID as integer,\n\t\tSHORT_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> qry3aLKPTABLE\nqry1a,qry2aLKPTABLE lookup(qry1a@FEE_TYPE == qry2aLKPTABLE@FEE_TYPE,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> qry2a\nqry2a select(mapColumn(\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = qry2aLKPTABLE@FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LEGAL_ENTITY_ID,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tCOMMENTS = COMMENTS\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> qry2a01\nqry2a01 split(isMatch(), disjoint: true) ~> qry2aIsMatch@(Match,NotMatch)\nqry2aIsMatch@NotMatch select(mapColumn(\n\t\tFEE_DEF_COMMENTS = COMMENTS,\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LEGAL_ENTITY_ID,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> qry2a0\nqry2a0,qry2aIsMatch@NotMatch union(byName: true) ~> Combine2a\nCombine2a,qry3aLKPTABLE lookup(toInteger(Combine2a@LEGAL_ENTITY_ID) == qry3aLKPTABLE@LEGAL_ENTITY_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> qry3a\nqry3a select(mapColumn(\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = Combine2a@LEGAL_ENTITY_ID,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tFEE_DEF_COMMENTS = FEE_DEF_COMMENTS,\n\t\tSHORT_NAME = SHORT_NAME\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> qry3a01\nqry3a01 split(isMatch(), disjoint: true) ~> qry3aIsMatch@(Match,NotMatch)\nqry3aIsMatch@NotMatch select(mapColumn(\n\t\tFEE_LEGAL_ENTITY = SHORT_NAME,\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LEGAL_ENTITY_ID,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tFEE_DEF_COMMENTS = FEE_DEF_COMMENTS\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> qry3a0\nqry3a0 derive(SHORT_NAME = FEE_LEGAL_ENTITY) ~> qry3a0ONETOMANY\nCombine3a split(FEE_ROLE == 'Marketer', disjoint: true) ~> FeeRole4a@(Marketer,RevenueCenter)\nFeeRole4a@Marketer,LookupMarketerAULKPTABLE lookup(FeeRole4a@Marketer@LEGAL_ENTITY_ID == LookupMarketerAULKPTABLE@LEGAL_ENTITY_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupMarketerAU\nFeeRole4a@RevenueCenter,LookupRevenueCenterAULKPTABLE lookup(FeeRole4a@RevenueCenter@LEGAL_ENTITY_ID == LEGAL_ENTITY_ID,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> LookupRevenueCenterAU\nLookupMarketerAU select(mapColumn(\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LookupMarketerAULKPTABLE@LEGAL_ENTITY_ID,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tFEE_DEF_COMMENTS = FEE_DEF_COMMENTS,\n\t\tFEE_LEGAL_ENTITY = FEE_LEGAL_ENTITY,\n\t\tATTRIBUTE_VALUE = ATTRIBUTE_VALUE\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupMarketerAU01\nLookupRevenueCenterAU split(isMatch(), disjoint: true) ~> LookupRevenueCenterAUIsMatch@(Match,NotMatch)\nLookupMarketerAU01 split(isMatch(), disjoint: true) ~> LookupMarketerAUIsMatch@(Match,NotMatch)\nLookupRevenueCenterAUIsMatch@NotMatch select(mapColumn(\n\t\tFEE_LEGAL_ENTITY_AU = ATTRIBUTE_VALUE,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LEGAL_ENTITY_ID,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tFEE_DEF_COMMENTS = FEE_DEF_COMMENTS,\n\t\tFEE_LEGAL_ENTITY = FEE_LEGAL_ENTITY\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupRevenueCenterAU0\nLookupMarketerAUIsMatch@NotMatch select(mapColumn(\n\t\tFEE_LEGAL_ENTITY_AU = ATTRIBUTE_VALUE,\n\t\tFEE_ROLE = FEE_ROLE,\n\t\tTRADE_ID = TRADE_ID,\n\t\tPRODUCT_ID = PRODUCT_ID,\n\t\tCPTY_ID = CPTY_ID,\n\t\tFEE_TYPE = FEE_TYPE,\n\t\tFEE_DATE = FEE_DATE,\n\t\tAMOUNT = AMOUNT,\n\t\tLEGAL_ENTITY_ID = LEGAL_ENTITY_ID,\n\t\tBOOK_LEGAL_ENTITY_ID = BOOK_LEGAL_ENTITY_ID,\n\t\tBOOK = BOOK,\n\t\tPROCESSING_ORG = PROCESSING_ORG,\n\t\tTRADE_STATUS = TRADE_STATUS,\n\t\tFEE_DEF_COMMENTS = FEE_DEF_COMMENTS,\n\t\tFEE_LEGAL_ENTITY = FEE_LEGAL_ENTITY\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> LookupMarketerAU0\nLookupMarketerAU0,LookupRevenueCenterAU0,LookupMarketerAUIsMatch@NotMatch,LookupRevenueCenterAUIsMatch@NotMatch union(byName: true) ~> Combine4a\nCombine4a derive(RUN_TIME = currentTimestamp()) ~> AddRunDateZa\nAddRunDateZa sink(input(\n\t\tFEE_LEGAL_ENTITY as string,\n\t\tCPTY_ID as long,\n\t\tLEGAL_ENTITY_ID as long,\n\t\tPRODUCT_ID as long,\n\t\tTRADE_STATUS as string,\n\t\tRUN_TIME as timestamp 'dd-MM-yyyy',\n\t\tFEE_ROLE as string,\n\t\tFEE_TYPE as string,\n\t\tAMOUNT as integer,\n\t\tBOOK_LEGAL_ENTITY_ID as long,\n\t\tBOOK as string,\n\t\tFEE_LEGAL_ENTITY_AU as string,\n\t\tTRADE_ID as long,\n\t\tFEE_DATE as timestamp 'dd-MM-yyyy',\n\t\tPROCESSING_ORG as string,\n\t\tFEE_DEF_COMMENTS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFEE_LEGAL_ENTITY,\n\t\tCPTY_ID,\n\t\tLEGAL_ENTITY_ID,\n\t\tPRODUCT_ID,\n\t\tTRADE_STATUS,\n\t\tRUN_TIME,\n\t\tFEE_ROLE,\n\t\tFEE_TYPE,\n\t\tAMOUNT,\n\t\tBOOK_LEGAL_ENTITY_ID,\n\t\tBOOK,\n\t\tFEE_LEGAL_ENTITY_AU,\n\t\tTRADE_ID,\n\t\tFEE_DATE,\n\t\tPROCESSING_ORG,\n\t\tFEE_DEF_COMMENTS),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

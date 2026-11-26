@@ -5,32 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "File1ConMgr",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_TGT",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "FlatFileDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DataConversion"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade Reference Identifier} as string,\n\t\t{Trade Reference Identifier Supplement} as string,\n\t\t{Sub-Product} as string,\n\t\t{Product Type} as string,\n\t\t{Buyer Name} as string,\n\t\t{ContraParty Firm account name} as string,\n\t\t{Counterparty Account Number} as string,\n\t\t{Fixed Rate} as string,\n\t\t{Fixed Rate Payer (Buyer) Swaption Buyer} as string,\n\t\t{Float Rate Payer (Seller) Swaption Seller} as string,\n\t\t{Reference Entity ID} as string,\n\t\t{Reference Entity Name} as string,\n\t\t{Scheduled Termination Date Expiration Date} as string,\n\t\t{Seller Name} as string,\n\t\t{Trade Date} as string,\n\t\t{Warehouse Current State Notional Amount} as string,\n\t\t{Warehouse Current State Notional Currency} as string,\n\t\t{Warehouse Insert Date} as string,\n\t\t{Warehouse Status} as string,\n\t\t{Warehouse Status Reason} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> File1ConMgr\nFile1ConMgr derive({Copy of Sub-Product} = {Sub-Product}) ~> DataConversion\nFile1ConMgr aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\tTrade_Date as date 'dd-MM-yyyy',\n\t\tTrade_Reference_Identifier_Supplement as string,\n\t\tFixed_Rate as integer,\n\t\tWarehouse_Insert_Date as string,\n\t\tWarehouse_Status as string,\n\t\tCounterparty_Account_Number as string,\n\t\tFloat_Rate_Payer_Seller_Swaption_Seller as string,\n\t\tWarehouse_Current_State_Notional_Amount as integer,\n\t\tSub_Product as string,\n\t\tReference_Entity_Name as string,\n\t\tSeller_Name as string,\n\t\tScheduled_Termination_Date_Expiration_Date as string,\n\t\tContraParty_Firm_account_name as string,\n\t\tBuyer_Name as string,\n\t\tFixed_Rate_Payer_Buyer_Swaption_Buyer as string,\n\t\tTrade_Reference_Identifier as string,\n\t\tReference_Entity_ID as string,\n\t\tWarehouse_Status_Reason as string,\n\t\tProduct_Type as string,\n\t\tWarehouse_Current_State_Notional_Currency as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTrade_Date = {Trade Date},\n\t\tTrade_Reference_Identifier_Supplement = {Trade Reference Identifier Supplement},\n\t\tFixed_Rate = {Copy of Fixed Rate},\n\t\tWarehouse_Insert_Date = {Warehouse Insert Date},\n\t\tWarehouse_Status = {Warehouse Status},\n\t\tCounterparty_Account_Number = {Counterparty Account Number},\n\t\tFloat_Rate_Payer_Seller_Swaption_Seller = {Float Rate Payer (Seller) Swaption Seller},\n\t\tWarehouse_Current_State_Notional_Amount = {Copy of Warehouse Current State Notional Amount},\n\t\tSub_Product = {Sub-Product},\n\t\tReference_Entity_Name = {Reference Entity Name},\n\t\tSeller_Name = {Seller Name},\n\t\tScheduled_Termination_Date_Expiration_Date = {Scheduled Termination Date Expiration Date},\n\t\tContraParty_Firm_account_name = {ContraParty Firm account name},\n\t\tBuyer_Name = {Buyer Name},\n\t\tFixed_Rate_Payer_Buyer_Swaption_Buyer = {Fixed Rate Payer (Buyer) Swaption Buyer},\n\t\tTrade_Reference_Identifier = {Trade Reference Identifier},\n\t\tReference_Entity_ID = {Reference Entity ID},\n\t\tWarehouse_Status_Reason = {Warehouse Status Reason},\n\t\tProduct_Type = {Product Type},\n\t\tWarehouse_Current_State_Notional_Currency = {Warehouse Current State Notional Currency}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "\n\nsource(output(\n\t\t{TRADE KEYWORD LEI CP} as string,\n\t\tTrader as string,\n\t\t{TRADE KEYWORD OP CLRELG LCHUK DESC} as string,\n\t\tComments as string,\n\t\t{TRADE KEYWORD OP ISDA Product Type} as string,\n\t\t{TRADE KEYWORD End User Clearing Exception Election} as string,\n\t\t{Trade Id} as string,\n\t\t{TRADE KEYWORD OP CLRELG CME DESC} as string,\n\t\t{CounterParty Full Name} as string,\n\t\tFileDate as date,\n\t\t{Sales Person} as string,\n\t\t{TRADE KEYWORD OP Clearing Eligibility} as string,\n\t\tBook as string,\n\t\t{Product Type} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tTRADE_KEYWORD_LEI_CP as string,\n\t\tTrader as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC as string,\n\t\tComments as string,\n\t\tTRADE_KEYWORD_OP_ISDA_Product_Type as string,\n\t\tTRADE_KEYWORD_End_User_Clearing_Exception_Election as string,\n\t\tTrade_Id as string,\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC as string,\n\t\tCounterParty_Full_Name as string,\n\t\tFileDate as date 'dd-MM-yyyy',\n\t\tSales_Person as string,\n\t\tTRADE_KEYWORD_OP_Clearing_Eligibility as string,\n\t\tBook as string,\n\t\tProduct_Type as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTRADE_KEYWORD_LEI_CP = {TRADE KEYWORD LEI CP},\n\t\tTrader,\n\t\tTRADE_KEYWORD_OP_CLRELG_LCHUK_DESC = {TRADE KEYWORD OP CLRELG LCHUK DESC},\n\t\tComments,\n\t\tTRADE_KEYWORD_OP_ISDA_Product_Type = {TRADE KEYWORD OP ISDA Product Type},\n\t\tTRADE_KEYWORD_End_User_Clearing_Exception_Election = {TRADE KEYWORD End User Clearing Exception Election},\n\t\tTrade_Id = {Trade Id},\n\t\tTRADE_KEYWORD_OP_CLRELG_CME_DESC = {TRADE KEYWORD OP CLRELG CME DESC},\n\t\tCounterParty_Full_Name = {CounterParty Full Name},\n\t\tFileDate,\n\t\tSales_Person = {Sales Person},\n\t\tTRADE_KEYWORD_OP_Clearing_Eligibility = {TRADE KEYWORD OP Clearing Eligibility},\n\t\tBook,\n\t\tProduct_Type = {Product Type})) ~> FlatFileDestination"
     }
   }
 }

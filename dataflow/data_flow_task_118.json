@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SPM"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -30,7 +30,7 @@
       }, {
         "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTimestamp as string,\n\t\t{DEN2 Sensor_2_01 Temperature} as string,\n\t\t{DEN2 Sensor_2_01 Humidity} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Fname1 = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tFname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFname = Fname1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{First Name } as string,\n\t\t{Last Name } as string,\n\t\t{Company Name } as string,\n\t\t{Credential Company Name} as string,\n\t\t{Card number} as decimal(18,0),\n\t\tDisabled as string,\n\t\t{Clearance name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCardNumber as integer,\n\t\tClearanceName as string,\n\t\tCompanyName as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tCredentialCompanyName as string,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tDisabled as string,\n\t\tFName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {Card number},\n\t\tClearanceName = {Clearance name},\n\t\tCompanyName = {Company Name },\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tCredentialCompanyName = {Credential Company Name},\n\t\tFirstName = {First Name },\n\t\tLastName = {Last Name },\n\t\tDisabled,\n\t\tFName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

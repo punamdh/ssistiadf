@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DataConversion2TradeId"
       } ],
-      "script" : "parameters{\n\ttocalypsotradeservtkeywordDtccOk_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tKEYWORD_NAME as string,\n\t\tKEYWORD_VALUE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsotradekeywordDtccOk\nfromcalypsotradekeywordDtccOk derive({TRADE_ID$} = toString(TRADE_ID),\n\t\t{DTCC_OK$} = KEYWORD_VALUE) ~> DataConversion2TradeId\nDataConversion2TradeId sink(input(\n\t\ttrade_id as string,\n\t\tkeyword_value as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrade_id = {TRADE_ID$},\n\t\tkeyword_value = {DTCC_OK$}),\n\tpartitionFileNames:[($tocalypsotradeservtkeywordDtccOk_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tocalypsotradeservtkeywordDtccOk"
+      "script" : "parameters{\n\ttocalypsotradeservtkeywordDtccOk_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tKEYWORD_NAME as string,\n\t\tKEYWORD_VALUE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> fromcalypsotradekeywordDtccOk\nfromcalypsotradekeywordDtccOk derive({DTCC_OK$} = KEYWORD_VALUE,\n\t\t{TRADE_ID$} = toString(TRADE_ID)) ~> DataConversion2TradeId\nDataConversion2TradeId sink(input(\n\t\ttrade_id as string,\n\t\tkeyword_value as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrade_id = {TRADE_ID$},\n\t\tkeyword_value = {DTCC_OK$}),\n\tpartitionFileNames:[($tocalypsotradeservtkeywordDtccOk_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tocalypsotradeservtkeywordDtccOk"
     }
   }
 }

@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -21,11 +21,23 @@
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "Generic_File_TGT",
+          "type" : "DatasetReference"
+        },
+        "name" : "FlatFileSource01"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
+      }, {
+        "name" : "FlatFileSourceErrorReformat"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "FlatFileSource0"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEffDate as timestamp,\n\t\tReconRecordMatch as string,\n\t\tReconIdentifiedBreaks as string,\n\t\tPortName as string,\n\t\tsm_id as integer,\n\t\tHoldID as integer,\n\t\tCurrency as string,\n\t\t{MT CurrFxRate} as decimal(18,10),\n\t\t{MT MV} as decimal(24,8),\n\t\t{CDBO MV} as decimal(28,10),\n\t\t{MV Diff} as decimal(29,10),\n\t\t{AbsMV Diff} as decimal(29,10),\n\t\t{MT CompanyAU} as string,\n\t\t{CDBO CompanyAU} as string,\n\t\t{MT AssetClass} as string,\n\t\t{CDBO AssetClass} as string,\n\t\t{MT ProductCategory} as string,\n\t\t{CDBO ProductCategory} as string,\n\t\t{MT SubProductCategory} as string,\n\t\t{CDBO SubProductCategory} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ToAddLoaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMV_Diff as integer,\n\t\tMT_ProductCategory as string,\n\t\tMT_MV as integer,\n\t\tMT_AssetClass as string,\n\t\tsm_id as integer,\n\t\tCDBO_ProductCategory as string,\n\t\tCDBO_SubProductCategory as string,\n\t\tCDBO_MV as integer,\n\t\tEffDate as timestamp 'dd-MM-yyyy',\n\t\tPortName as string,\n\t\tMT_CurrFxRate as integer,\n\t\tReconIdentifiedBreaks as string,\n\t\tMT_CompanyAU as string,\n\t\tHoldID as integer,\n\t\tAbsMV_Diff as integer,\n\t\tMT_SubProductCategory as string,\n\t\tCDBO_CompanyAU as string,\n\t\tCurrency as string,\n\t\tLoaddate as date 'dd-MM-yyyy',\n\t\tCDBO_AssetClass as string,\n\t\tReconRecordMatch as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMV_Diff = {MV Diff},\n\t\tMT_ProductCategory = {MT ProductCategory},\n\t\tMT_MV = {MT MV},\n\t\tMT_AssetClass = {MT AssetClass},\n\t\tsm_id,\n\t\tCDBO_ProductCategory = {CDBO ProductCategory},\n\t\tCDBO_SubProductCategory = {CDBO SubProductCategory},\n\t\tCDBO_MV = {CDBO MV},\n\t\tEffDate,\n\t\tPortName,\n\t\tMT_CurrFxRate = {MT CurrFxRate},\n\t\tReconIdentifiedBreaks,\n\t\tMT_CompanyAU = {MT CompanyAU},\n\t\tHoldID,\n\t\tAbsMV_Diff = {AbsMV Diff},\n\t\tMT_SubProductCategory = {MT SubProductCategory},\n\t\tCDBO_CompanyAU = {CDBO CompanyAU},\n\t\tCurrency,\n\t\tLoaddate = ToAddLoaddate,\n\t\tCDBO_AssetClass = {CDBO AssetClass},\n\t\tReconRecordMatch),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Event Date} as string,\n\t\t{Breach Status} as string,\n\t\t{External ID} as string,\n\t\t{Event ID} as string,\n\t\t{Notification SLA} as string,\n\t\t{Notification Time(EST)} as string,\n\t\t{Issued Time(EST)} as string,\n\t\t{Lapsed Time(EST)} as string,\n\t\t{Action Movement} as string,\n\t\t{Call Status} as string,\n\t\t{Interface Status} as string,\n\t\t{Distribution Medium} as string,\n\t\t{Statement Status} as string,\n\t\tRegion as string,\n\t\t{Issuing User} as string,\n\t\t{Colline Comments} as string,\n\t\t{Custom Tech Comments} as string,\n\t\t{Agreement Requirement} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nFlatFileSource derive() ~> FlatFileSourceErrorReformat\nDerivedColumn derive({Copy of Region} = Region) ~> DataConversion\nFlatFileSourceErrorReformat derive() ~> FlatFileSource0\nDataConversion sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tExternal_ID as string,\n\t\tStatement_Status as string,\n\t\tNotification_SLA as string,\n\t\tBreach_Status as string,\n\t\tNotification_Time_EST_ as string,\n\t\tColline_Comments as string,\n\t\tCustom_Tech_Comments as string,\n\t\tIssuing_User as string,\n\t\tEvent_ID as string,\n\t\tLapsed_Time_EST_ as string,\n\t\tAgreement_Requirement as string,\n\t\tIssued_Time_EST_ as string,\n\t\tDistribution_Medium as string,\n\t\tInterface_Status as string,\n\t\tAction_Movement as string,\n\t\tRegion as string,\n\t\tEvent_Date as string,\n\t\tCall_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tExternal_ID = {Copy of External ID},\n\t\tStatement_Status = {Copy of Statement Status},\n\t\tNotification_SLA = {Copy of Notification SLA},\n\t\tBreach_Status = {Copy of Breach Status},\n\t\tNotification_Time_EST_ = {Copy of Notification Time(EST)},\n\t\tColline_Comments = {Copy of Colline Comments},\n\t\tCustom_Tech_Comments = {Copy of Custom Tech Comments},\n\t\tIssuing_User = {Copy of Issuing User},\n\t\tEvent_ID = {Copy of Event ID},\n\t\tLapsed_Time_EST_ = {Copy of Lapsed Time(EST)},\n\t\tAgreement_Requirement = {Copy of Agreement Requirement},\n\t\tIssued_Time_EST_ = {Copy of Issued Time(EST)},\n\t\tDistribution_Medium = {Copy of Distribution Medium},\n\t\tInterface_Status = {Copy of Interface Status},\n\t\tAction_Movement = {Copy of Action Movement},\n\t\tRegion = {Copy of Region},\n\t\tEvent_Date = {Copy of Event Date},\n\t\tCall_Status = {Copy of Call Status}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nFlatFileSource0 sink(input(\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn()) ~> FlatFileSource01"
     }
   }
 }

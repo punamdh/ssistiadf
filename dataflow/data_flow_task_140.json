@@ -5,32 +5,27 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ExcelSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Excel1",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "ETPPDEV"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEnclosure as string,\n\t\tContact as string,\n\t\tEmployer as string,\n\t\t{Contact Type} as string,\n\t\t{Access Granted} as timestamp,\n\t\t{Last Accessed} as timestamp,\n\t\t{Days of Inactivity} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tContactType as string,\n\t\tAccessGranted as timestamp 'dd-MM-yyyy',\n\t\tEmployer as string,\n\t\tLastAccessed as timestamp 'dd-MM-yyyy',\n\t\tDaysOfInactivity as double,\n\t\tEnclosure as string,\n\t\tFName as string,\n\t\tContact as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tContactType = {Contact Type},\n\t\tAccessGranted = {Access Granted},\n\t\tEmployer,\n\t\tLastAccessed = {Last Accessed},\n\t\tDaysOfInactivity = {Days of Inactivity},\n\t\tEnclosure,\n\t\tFName,\n\t\tContact),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tDataCenter as string,\n\t\t{Parent vCenter} as string,\n\t\t{CPU - Total Physical} as double,\n\t\t{CPU - Allocated Logical} as double,\n\t\t{CPU - P95} as double,\n\t\t{CPU - Max} as double,\n\t\t{CPU - Average} as double,\n\t\t{Memory - Total} as double,\n\t\t{Memory - Allocated} as double,\n\t\t{Memory - P95} as double,\n\t\t{Memory - Max} as double,\n\t\t{Memory - Average} as double,\n\t\t{Memory - Balloon#1} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\t{CPU_-_Max} as double,\n\t\t{Memory_-_Max} as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\t{Memory_-_Balloon_1} as double,\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\t{Memory_-_P95} as double,\n\t\t{Memory_-_Total} as double,\n\t\tName as string,\n\t\t{CPU_-_Allocated_Logical} as double,\n\t\tDataCenter as string,\n\t\tParent_vCenter as string,\n\t\t{Memory_-_Allocated} as double,\n\t\t{CPU_-_P95} as double,\n\t\t{CPU_-_Total_Physical} as double,\n\t\t{Memory_-_Average} as double,\n\t\t{CPU_-_Average} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{CPU_-_Max} = {CPU - Max},\n\t\t{Memory_-_Max} = {Memory - Max},\n\t\timportdate = ImportDate,\n\t\t{Memory_-_Balloon_1} = {Memory - Balloon#1},\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\t{Memory_-_P95} = {Memory - P95},\n\t\t{Memory_-_Total} = {Memory - Total},\n\t\tName,\n\t\t{CPU_-_Allocated_Logical} = {CPU - Allocated Logical},\n\t\tDataCenter,\n\t\tParent_vCenter = {Parent vCenter},\n\t\t{Memory_-_Allocated} = {Memory - Allocated},\n\t\t{CPU_-_P95} = {CPU - P95},\n\t\t{CPU_-_Total_Physical} = {CPU - Total Physical},\n\t\t{Memory_-_Average} = {Memory - Average},\n\t\t{CPU_-_Average} = {CPU - Average}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
     }
   }
 }

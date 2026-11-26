@@ -5,32 +5,27 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ExcelSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "Excel1",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "ETPPDEV"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSitename as string,\n\t\tDeviceName as string,\n\t\tPowerinkW as float\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tSitename as string,\n\t\tPowerinkW as double,\n\t\tFName as string,\n\t\tDeviceName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSitename,\n\t\tPowerinkW,\n\t\tFName,\n\t\tDeviceName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as date 'dd-MM-yyyy',\n\t\tDataCenter as string,\n\t\t{Number of Hosts} as double,\n\t\t{Number of Virtual Guests} as double,\n\t\t{Number of Powered on Guests} as double,\n\t\t{Total CPU Cores} as double,\n\t\t{Allocated vCPUs} as double,\n\t\t{Powered on vCPUs} as double,\n\t\t{Total RAM} as double,\n\t\t{Total RAM - Overhead} as double,\n\t\t{Allocated RAM} as double,\n\t\t{Powered on RAM} as double,\n\t\t{Total Disk Space} as double,\n\t\t{Allocated Disk Space} as double,\n\t\t{Allocated Disk Space + Overhead} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tNumber_of_Hosts as double,\n\t\tNumber_of_Virtual_Guests as double,\n\t\tPowered_on_vCPUs as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\tAllocated_RAM as double,\n\t\tNumber_of_Powered_on_Guests as double,\n\t\tTotal_RAM as double,\n\t\tAllocated_Disk_Space___Overhead as double,\n\t\tName as string,\n\t\tTotal_CPU_Cores as double,\n\t\tPowered_on_RAM as double,\n\t\tDataCenter as string,\n\t\tTotal_Disk_Space as double,\n\t\tAllocated_vCPUs as double,\n\t\t{Total_RAM_-_Overhead} as double,\n\t\tAllocated_Disk_Space as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tNumber_of_Hosts = {Number of Hosts},\n\t\tNumber_of_Virtual_Guests = {Number of Virtual Guests},\n\t\tPowered_on_vCPUs = {Powered on vCPUs},\n\t\timportdate,\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\tAllocated_RAM = {Allocated RAM},\n\t\tNumber_of_Powered_on_Guests = {Number of Powered on Guests},\n\t\tTotal_RAM = {Total RAM},\n\t\tAllocated_Disk_Space___Overhead = {Allocated Disk Space + Overhead},\n\t\tName,\n\t\tTotal_CPU_Cores = {Total CPU Cores},\n\t\tPowered_on_RAM = {Powered on RAM},\n\t\tDataCenter,\n\t\tTotal_Disk_Space = {Total Disk Space},\n\t\tAllocated_vCPUs = {Allocated vCPUs},\n\t\t{Total_RAM_-_Overhead} = {Total RAM - Overhead},\n\t\tAllocated_Disk_Space = {Allocated Disk Space}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
     }
   }
 }

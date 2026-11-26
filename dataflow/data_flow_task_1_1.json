@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "InvalidProductHierarchy",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tDEVICE_GUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tDEVICE_GUID as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tImportDate,\n\t\tDEVICE_GUID,\n\t\tBUSINESS_APPLICATION_WF_GUID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCategory as string,\n\t\tAssetType as string,\n\t\tAssetClass as string,\n\t\tProductCategory as string,\n\t\tSubProductCategory as string,\n\t\tProductID as string,\n\t\tParentProductID as string,\n\t\tInstrumentType as string,\n\t\tProductCreatedBy as string,\n\t\tHID as string,\n\t\tQuantity as string,\n\t\tEqSwapNotional as string,\n\t\tTradingAccount as string,\n\t\tDesk as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> InvalidProductHierarchy\nInvalidProductHierarchy derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tHID as string,\n\t\tCategory as string,\n\t\tInstrumentType as string,\n\t\tQuantity as double,\n\t\tProductID as string,\n\t\tAssetType as string,\n\t\tParentProductID as string,\n\t\tSubProductCategory as string,\n\t\tProductCategory as string,\n\t\tProductCreatedBy as string,\n\t\tEqSwapNotional as string,\n\t\tDesk as string,\n\t\tTradingAccount as string,\n\t\tAssetClass as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tHID,\n\t\tCategory,\n\t\tInstrumentType,\n\t\tQuantity,\n\t\tProductID,\n\t\tAssetType,\n\t\tParentProductID,\n\t\tSubProductCategory,\n\t\tProductCategory,\n\t\tProductCreatedBy,\n\t\tEqSwapNotional,\n\t\tDesk,\n\t\tTradingAccount,\n\t\tAssetClass),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

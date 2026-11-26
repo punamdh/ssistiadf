@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tclient_nbr as string,\n\t\teffdate as timestamp,\n\t\tbr_account_cd as string,\n\t\tiso_currency_cd as string,\n\t\tbr_account_short_nm as string,\n\t\tsecurity_adp_nbr as string,\n\t\tcusip_nbr as string,\n\t\ttype_security_cd as string,\n\t\tsymbol as string,\n\t\ttrid as string,\n\t\tbatch_cd as string,\n\t\tentry_cd as string,\n\t\ttrade_dt as timestamp,\n\t\ttag_tran_cd as string,\n\t\tsettlement_dt as timestamp,\n\t\ttrans_type_in as string,\n\t\tqty as decimal(24,8),\n\t\ttrade_price_amt as decimal(22,8),\n\t\tprincipal as decimal(24,8),\n\t\tnet as decimal(24,8)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ToAddLoaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tEntry_cd as string,\n\t\tCusip_nbr as string,\n\t\tClient_nbr as string,\n\t\tSymbol as string,\n\t\tType_security_cd as string,\n\t\tTag_tran_cd as string,\n\t\tCurrency_cd as string,\n\t\tSettlement_dt as string,\n\t\tTrade_dt as string,\n\t\tTrans_type_in as string,\n\t\tQTY as integer,\n\t\tBatch_cd as string,\n\t\tEffdate as timestamp 'dd-MM-yyyy',\n\t\tAccount_short_nm as string,\n\t\tNet as integer,\n\t\tAccount_cd as string,\n\t\tTrade_Price_amt as integer,\n\t\tSecurity_adp_nbr as string,\n\t\tTrid as string,\n\t\tPrincipal as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = ToAddLoaddate,\n\t\tEntry_cd = entry_cd,\n\t\tCusip_nbr = cusip_nbr,\n\t\tClient_nbr = client_nbr,\n\t\tSymbol = symbol,\n\t\tType_security_cd = type_security_cd,\n\t\tTag_tran_cd = tag_tran_cd,\n\t\tCurrency_cd = iso_currency_cd,\n\t\tSettlement_dt = settlement_dt,\n\t\tTrade_dt = trade_dt,\n\t\tTrans_type_in = trans_type_in,\n\t\tQTY = qty,\n\t\tBatch_cd = batch_cd,\n\t\tEffdate = effdate,\n\t\tAccount_short_nm = br_account_short_nm,\n\t\tNet = net,\n\t\tAccount_cd = br_account_cd,\n\t\tTrade_Price_amt = trade_price_amt,\n\t\tSecurity_adp_nbr = security_adp_nbr,\n\t\tTrid = trid,\n\t\tPrincipal = principal),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tRUN_DATE as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(AddLoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tRun_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus = STATUS,\n\t\tLoad_Date = AddLoadDate,\n\t\tRun_Date = RUN_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

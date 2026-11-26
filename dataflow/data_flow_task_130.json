@@ -5,32 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NonProd"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tAccount as decimal(18,0),\n\t\t{Customer Name} as string,\n\t\t{Product Offering} as string,\n\t\t{Cage Asset} as string,\n\t\tIBX as string,\n\t\tCage as string,\n\t\t{Cage Serial} as string,\n\t\t{Metering Type} as string,\n\t\t{Usable kVA} as double,\n\t\t{Average Draw} as double,\n\t\t{Daily Peak Draw} as double,\n\t\t{Average 30 day Peak Draw kVA-to-Draw} as double,\n\t\t{Redundant Draw} as double,\n\t\t{Draw Cap} as double,\n\t\t{Primary Draw } as double,\n\t\t{Average 30 day Peak Draw} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tDailyPeakDraw as double,\n\t\tAccount as string,\n\t\tAverageDraw as double,\n\t\tAvg30dayPeakDraw as double,\n\t\tUploadDate as string,\n\t\tCage as string,\n\t\tUsablekVA as double,\n\t\tAvg30dayPeakDrawkVAtoDraw as double,\n\t\tPrimaryDraw as double,\n\t\tCageSerial as string,\n\t\tFName as string,\n\t\tDate as string,\n\t\tDrawCap as double,\n\t\tEtlUser as string,\n\t\tCageAsset as string,\n\t\tProductOffering as string,\n\t\tRedundantDraw as double,\n\t\tCustomerName as string,\n\t\tIBX as string,\n\t\tMeteringType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDailyPeakDraw = {Daily Peak Draw},\n\t\tAccount,\n\t\tAverageDraw = {Average Draw},\n\t\tAvg30dayPeakDraw = {Average 30 day Peak Draw},\n\t\tUploadDate,\n\t\tCage,\n\t\tUsablekVA = {Usable kVA},\n\t\tAvg30dayPeakDrawkVAtoDraw = {Average 30 day Peak Draw kVA-to-Draw},\n\t\tPrimaryDraw = {Primary Draw },\n\t\tCageSerial = {Cage Serial},\n\t\tFName,\n\t\tDate,\n\t\tDrawCap = {Draw Cap},\n\t\tEtlUser,\n\t\tCageAsset = {Cage Asset},\n\t\tProductOffering = {Product Offering},\n\t\tRedundantDraw = {Redundant Draw},\n\t\tCustomerName = {Customer Name},\n\t\tIBX,\n\t\tMeteringType = {Metering Type}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCHILD_NAME as string,\n\t\tPARENT_SYS_CLASS_NAME as string,\n\t\tCHILD_SYS_CLASS_NAME as string,\n\t\tCHILD_WF_GUID as string,\n\t\tSYS_UPDATED_ON as timestamp,\n\t\tSYS_CREATED_ON as timestamp,\n\t\tWF_GUID as string,\n\t\tPARENT_WF_GUID as string,\n\t\tPARENT_NAME as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tRELATIONSHIP_TYPE as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCHILD_NAME as string,\n\t\tPARENT_SYS_CLASS_NAME as string,\n\t\tCHILD_SYS_CLASS_NAME as string,\n\t\tCHILD_WF_GUID as string,\n\t\tSYS_UPDATED_ON as timestamp 'dd-MM-yyyy',\n\t\tSYS_CREATED_ON as timestamp 'dd-MM-yyyy',\n\t\tWF_GUID as string,\n\t\tPARENT_WF_GUID as string,\n\t\tPARENT_NAME as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tRELATIONSHIP_TYPE as string,\n\t\tSYS_CREATED_BY as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCHILD_NAME,\n\t\tPARENT_SYS_CLASS_NAME,\n\t\tCHILD_SYS_CLASS_NAME,\n\t\tCHILD_WF_GUID,\n\t\tSYS_UPDATED_ON,\n\t\tSYS_CREATED_ON,\n\t\tWF_GUID,\n\t\tPARENT_WF_GUID,\n\t\tPARENT_NAME,\n\t\tSYS_UPDATED_BY,\n\t\tRELATIONSHIP_TYPE,\n\t\tSYS_CREATED_BY,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

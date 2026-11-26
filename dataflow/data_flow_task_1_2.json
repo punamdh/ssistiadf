@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "OLEDBDestination1"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tAPPLICATION_SERVICE_WF_GUID as string,\n\t\tDISTRIBUTED_APP_ID as string,\n\t\tENVIRONMENT_ID as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tSERVICE_ID_NUMBER as string,\n\t\tMANAGED_BY_GROUP_NAME as string,\n\t\tSUPPORT_GROUP_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tDISTRIBUTED_APP_ID as string,\n\t\tMANAGED_BY_GROUP_NAME as string,\n\t\tENVIRONMENT_DESCRIPTION as string,\n\t\tSUPPORT_GROUP_NAME as string,\n\t\tSERVICE_ID_NUMBER as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tAPPLICATION_SERVICE_WF_GUID as string,\n\t\tENVIRONMENT_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tImportDate,\n\t\tDISTRIBUTED_APP_ID,\n\t\tMANAGED_BY_GROUP_NAME,\n\t\tENVIRONMENT_DESCRIPTION,\n\t\tSUPPORT_GROUP_NAME,\n\t\tSERVICE_ID_NUMBER,\n\t\tBUSINESS_APPLICATION_WF_GUID,\n\t\tAPPLICATION_SERVICE_WF_GUID,\n\t\tENVIRONMENT_ID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tCategory as string,\n\t\tAssetType as string,\n\t\tAssetClass as string,\n\t\tProductCategory as string,\n\t\tSubProductCategory as string,\n\t\tProductID as string,\n\t\tParentProductID as string,\n\t\tInstrumentType as string,\n\t\tProductCreatedBy as string,\n\t\tHID as string,\n\t\tQuantity as string,\n\t\tEqSwapNotional as string,\n\t\tTradingAccount as string,\n\t\tDesk as string,\n\t\tContractType as string,\n\t\tDescription as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate1 = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tHID as string,\n\t\tCategory as string,\n\t\tDescription as string,\n\t\tInstrumentType as string,\n\t\tQuantity as string,\n\t\tProductID as string,\n\t\tAssetType as string,\n\t\tParentProductID as string,\n\t\tSubProductCategory as string,\n\t\tProductCategory as string,\n\t\tProductCreatedBy as string,\n\t\tEqSwapNotional as string,\n\t\tDesk as string,\n\t\tContractType as string,\n\t\tTradingAccount as string,\n\t\tAssetClass as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate = LoadDate1,\n\t\tHID,\n\t\tCategory,\n\t\tDescription,\n\t\tInstrumentType,\n\t\tQuantity,\n\t\tProductID,\n\t\tAssetType,\n\t\tParentProductID,\n\t\tSubProductCategory,\n\t\tProductCategory,\n\t\tProductCreatedBy,\n\t\tEqSwapNotional,\n\t\tDesk,\n\t\tContractType,\n\t\tTradingAccount,\n\t\tAssetClass),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1"
     }
   }
 }

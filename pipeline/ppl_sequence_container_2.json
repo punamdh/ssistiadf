@@ -4,56 +4,196 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "Failure_Mail_0",
-      "type" : "IfCondition",
-      "policy" : null,
+      "name" : "LKP_Fetch_Param",
+      "type" : "Lookup",
+      "policy" : {
+        "timeout" : "0.12:00:00",
+        "retry" : 0,
+        "retryIntervalInSeconds" : 30,
+        "secureOutput" : false,
+        "secureInput" : false
+      },
       "dependsOn" : [ ],
       "state" : null,
       "description" : null,
       "onInactiveMarkAs" : null,
       "typeProperties" : {
+        "source" : {
+          "type" : "AzureSqlSource",
+          "sqlReaderStoredProcedureName" : null,
+          "sqlReaderQuery" : "SELECT (SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_source_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_source_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_source_FileName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_source_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_source_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_source_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_sink_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_sink_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_sink_FileName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_sink_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_sink_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_sink_FilePath,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_1_ContainerName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_1_ContainerName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_1_FileName' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_1_FileName,\n(SELECT PARAMETER_VALUE FROM AZ_PARAMETERS WHERE PARAMETER_NAME = 'Archive_the_Loaded_File_0_1_FilePath' AND PIPELINE_NAME = 'ppl_broadridge_streetsideactivity_buysellbreaks_daily_etl') AS Archive_the_Loaded_File_0_1_FilePath;",
+          "storedProcedureParameters" : null,
+          "queryTimeout" : "02:00:00",
+          "partitionOption" : "None"
+        },
+        "dataset" : {
+          "referenceName" : "DS_Metadata",
+          "type" : "DatasetReference",
+          "parameters" : {
+            "TableName" : {
+              "value" : "AZ_PARAMETERS",
+              "type" : "Expression"
+            },
+            "Schema" : {
+              "value" : "dbo",
+              "type" : "Expression"
+            }
+          }
+        },
+        "firstRowOnly" : true
+      }
+    }, {
+      "name" : "Archive_the_Loaded_File_0_0",
+      "type" : "IfCondition",
+      "policy" : null,
+      "dependsOn" : [ {
+        "activity" : "LKP_Fetch_Param",
+        "dependencyConditions" : [ "Succeeded" ]
+      } ],
+      "state" : null,
+      "description" : null,
+      "onInactiveMarkAs" : null,
+      "typeProperties" : {
         "expression" : {
-          "value" : "@not(equals(variables('sEnvironment'),'LOCAL'))",
+          "value" : "@equals(variables('FileDateCheck'),1)",
           "type" : "Expression"
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "EP_Failure_Mail",
-          "type" : "ExecutePipeline",
-          "policy" : null,
+          "name" : "CPD_Archive_the_Loaded_File_0",
+          "type" : "Copy",
+          "policy" : {
+            "timeout" : "0.12:00:00",
+            "retry" : 0,
+            "retryIntervalInSeconds" : 30,
+            "secureOutput" : false,
+            "secureInput" : false
+          },
           "dependsOn" : [ ],
-          "userProperties" : null,
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "Generic_email",
-              "type" : "PipelineReference"
+            "source" : {
+              "type" : "DelimitedTextSource"
             },
-            "waitOnCompletion" : true,
+            "sink" : {
+              "type" : "DelimitedTextSink"
+            }
+          },
+          "inputs" : [ {
+            "referenceName" : "Generic_File_SRC",
+            "type" : "DatasetReference",
             "parameters" : {
-              "Pipeline_Name" : {
-                "value" : "@pipeline().Pipeline",
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_source_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_source_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_source_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ],
+          "outputs" : [ {
+            "referenceName" : "Generic_File_TGT",
+            "type" : "DatasetReference",
+            "parameters" : {
+              "Container" : {
+                "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_sink_ContainerName",
+                "type" : "Expression"
+              },
+              "FileName" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_sink_FileName, '_', formatDateTime(pipeline().TriggerTime, 'yyyyMMddHHmmss'), '.parquet')",
+                "type" : "Expression"
+              },
+              "Directory" : {
+                "value" : "@concat(activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_sink_FilePath, '/', formatDateTime(pipeline().TriggerTime, 'yyyy/MM/dd'))",
+                "type" : "Expression"
+              },
+              "ColumnDelimiter" : ","
+            }
+          } ]
+        }, {
+          "name" : "DEL_Archive_the_Loaded_File_0_1",
+          "type" : "Delete",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "CPD_Archive_the_Loaded_File_0",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "userProperties" : [ ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "typeProperties" : {
+            "dataset" : {
+              "referenceName" : "Generic_File_SRC",
+              "type" : "DatasetReference",
+              "parameters" : {
+                "Container" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_1_ContainerName",
+                  "type" : "Expression"
+                },
+                "FileName" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_1_FileName",
+                  "type" : "Expression"
+                },
+                "Directory" : {
+                  "value" : "@activity('LKP_Fetch_Param').output.firstRow.Archive_the_Loaded_File_0_1_FilePath",
+                  "type" : "Expression"
+                },
+                "ColumnDelimiter" : ","
+              }
+            },
+            "enableLogging" : false,
+            "storeSettings" : null
+          }
+        }, {
+          "name" : "ST_End_-_Call_again_to_Success_insert_End_Time_and",
+          "type" : "Script",
+          "policy" : null,
+          "dependsOn" : [ {
+            "activity" : "DEL_Archive_the_Loaded_File_0_1",
+            "dependencyConditions" : [ "Succeeded" ]
+          } ],
+          "state" : null,
+          "description" : null,
+          "onInactiveMarkAs" : null,
+          "linkedServiceName" : {
+            "referenceName" : "OLEDB_SQLNCLI11_1",
+            "type" : "LinkedServiceReference"
+          },
+          "typeProperties" : {
+            "scripts" : [ {
+              "type" : "NonQuery",
+              "text" : {
+                "value" : " EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @{variables('sProcessName')},\n @comment = @{variables('sComment')},\n@status = 'Success',\n@num_of_records = @{variables('sRowCount')},\n@actual_records = @{variables('sActualRowsLoaded')},\n@FileName=@{variables('sFileName')}",
                 "type" : "Expression"
               }
-            }
+            } ],
+            "scriptBlockExecutionTimeout" : null
           }
         } ]
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "parameters" : { },
     "variables" : {
       "FilePath" : {
         "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\OptionsBreaks\\"
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\"
       },
       "sProcessName" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       },
       "sFileName" : {
         "type" : "String"
@@ -62,13 +202,21 @@
         "type" : "String",
         "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
       },
+      "FirstDayOfYear" : {
+        "type" : "String",
+        "defaultValue" : "01-01-25"
+      },
       "sComment" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
+      },
+      "FileDateCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
       },
       "FileToSearch" : {
         "type" : "String",
-        "defaultValue" : "Street_Options 04-01-2024.csv"
+        "defaultValue" : "Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "sRowCount" : {
         "type" : "String",
@@ -77,6 +225,10 @@
       "sTO" : {
         "type" : "String",
         "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "FilePathBuySellBreaks" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "iFileExists" : {
         "type" : "String",
@@ -91,7 +243,7 @@
       },
       "sEnvironment" : {
         "type" : "String",
-        "defaultValue" : "UAT"
+        "defaultValue" : "DEV"
       },
       "FileExistsFlag" : {
         "type" : "String",
@@ -107,7 +259,7 @@
       },
       "sMessage" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       }
     }
   }

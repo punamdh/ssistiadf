@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -23,9 +23,9 @@
         "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "DerivedColumn1"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDATABASE_NAME as string,\n\t\tDATABASE_ID as string,\n\t\tDATABASE_ENTERPRISE_ID as string,\n\t\tINSTANCE_ENTERPRISE_ID as string,\n\t\tDATABASE_STATUS as string,\n\t\tDATABASE_ENVIRONMENT as string,\n\t\tDATABASE_BUSINESS_INTEREST as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\tBUSINESS_APP_SYS_CLASS_NAME as string,\n\t\tBUSINESS_APPLICATION_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDATABASE_ID as string,\n\t\tDATABASE_ENTERPRISE_ID as string,\n\t\tDATABASE_NAME as string,\n\t\tINSTANCE_ENTERPRISE_ID as string,\n\t\tDATABASE_ENVIRONMENT as string,\n\t\tBUSINESS_APP_SYS_CLASS_NAME as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tDATABASE_STATUS as string,\n\t\tBUSINESS_APPLICATION_NAME as string,\n\t\tDATABASE_BUSINESS_INTEREST as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDATABASE_ID,\n\t\tDATABASE_ENTERPRISE_ID,\n\t\tDATABASE_NAME,\n\t\tINSTANCE_ENTERPRISE_ID,\n\t\tDATABASE_ENVIRONMENT,\n\t\tBUSINESS_APP_SYS_CLASS_NAME,\n\t\timportdate = ImportDate,\n\t\tDATABASE_STATUS,\n\t\tBUSINESS_APPLICATION_NAME,\n\t\tDATABASE_BUSINESS_INTEREST,\n\t\tBUSINESS_APPLICATION_WF_GUID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Class Name} as string,\n\t\tId as string,\n\t\tName as string,\n\t\t{Field Name} as string,\n\t\tDate as string,\n\t\t{User Name} as string,\n\t\t{Old Value} as string,\n\t\t{New Value} as string,\n\t\tVersion as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tLoadDate as timestamp 'dd-MM-yyyy',\n\t\tUserName as string,\n\t\tVersion as string,\n\t\tOldValue as string,\n\t\tClassName as string,\n\t\tNewValue as string,\n\t\tId as string,\n\t\tFieldName as string,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tUserName = {User Name},\n\t\tVersion,\n\t\tOldValue = {Old Value},\n\t\tClassName = {Class Name},\n\t\tNewValue = {New Value},\n\t\tId,\n\t\tFieldName = {Field Name},\n\t\tDate,\n\t\tName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

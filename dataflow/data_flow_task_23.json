@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "OLEDBSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -22,10 +22,8 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DataConversion"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEventDate as string,\n\t\tDeal_Tracking_Num as string,\n\t\tToolset as string,\n\t\tIns_Type as string,\n\t\tName as string,\n\t\tShort_Name as string,\n\t\t{Internal/External} as string,\n\t\tType_of_Event as string,\n\t\tTrade_Time as string,\n\t\tTrader_Name as string,\n\t\tExecuted_by as string,\n\t\tMarketer_Name as string,\n\t\tTrade_Event_Category as string,\n\t\tAction_Interval_Days as integer,\n\t\tBooked_to_New_By as string,\n\t\tNew_Validated_By as string,\n\t\tFileName as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tDESK_NAME as string,\n\t\ttran_num as string,\n\t\tvalidatedAmended_by as string,\n\t\tvalidateAmend_reason as string,\n\t\tFile_LoadDate as string,\n\t\tReference as string,\n\t\tlast_name as string,\n\t\tTitle as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive({Copy of Trader_Name} = Trader_Name) ~> DataConversion\nDataConversion sink(input(\n\t\tEventDate as string,\n\t\tTrade_Time as string,\n\t\tFileName as string,\n\t\tFile_LoadDate as string,\n\t\tBooked_to_New_By as string,\n\t\tName as string,\n\t\tvalidatedAmended_by as string,\n\t\tDeal_Tracking_Num as string,\n\t\tTRADING_UNIT_NAME as string,\n\t\tInternal_External as string,\n\t\tAction_Interval_Days as integer,\n\t\tReference as string,\n\t\tIns_Type as string,\n\t\tExecuted_by as string,\n\t\tMarketer_Name as string,\n\t\tlast_name as string,\n\t\tTitle as string,\n\t\tToolset as string,\n\t\tDESK_NAME as string,\n\t\tType_of_Event as string,\n\t\tNew_Validated_By as string,\n\t\tShort_Name as string,\n\t\tTrade_Event_Category as string,\n\t\tTrader_Name as string,\n\t\ttran_num as string,\n\t\tvalidateAmend_reason as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEventDate,\n\t\tTrade_Time,\n\t\tFileName,\n\t\tFile_LoadDate,\n\t\tBooked_to_New_By,\n\t\tName,\n\t\tvalidatedAmended_by,\n\t\tDeal_Tracking_Num,\n\t\tTRADING_UNIT_NAME,\n\t\tInternal_External = {Internal/External},\n\t\tAction_Interval_Days,\n\t\tReference,\n\t\tIns_Type,\n\t\tExecuted_by,\n\t\tMarketer_Name,\n\t\tlast_name,\n\t\tTitle,\n\t\tToolset,\n\t\tDESK_NAME,\n\t\tType_of_Event,\n\t\tNew_Validated_By,\n\t\tShort_Name,\n\t\tTrade_Event_Category,\n\t\tTrader_Name = {Copy of Trader_Name},\n\t\ttran_num,\n\t\tvalidateAmend_reason),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{CFTC - Rejected} as string,\n\t\t{Message Type} as string,\n\t\t{SEC - Accepted} as string,\n\t\t{Total # of messages} as string,\n\t\t{Activity Date} as string,\n\t\t{CFTC - Accepted} as string,\n\t\t{CAD - Rejected} as string,\n\t\t{Asset Class} as string,\n\t\t{SEC - Rejected} as string,\n\t\tAccepted as string,\n\t\t{CAD - Accepted} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tCFTC_Rejected as string,\n\t\tMessage_Type as string,\n\t\tSEC_Accepted as string,\n\t\tTotal_no_of_messages as integer,\n\t\tActivity_Date as timestamp 'dd-MM-yyyy',\n\t\tCFTC_Accepted as string,\n\t\tCAD_Rejected as string,\n\t\tAsset_Class as string,\n\t\tSEC_Rejected as string,\n\t\tAccepted as integer,\n\t\tCAD_Accepted as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCFTC_Rejected = {CFTC - Rejected},\n\t\tMessage_Type = {Message Type},\n\t\tSEC_Accepted = {SEC - Accepted},\n\t\tTotal_no_of_messages = {Total # of messages},\n\t\tActivity_Date = {Activity Date},\n\t\tCFTC_Accepted = {CFTC - Accepted},\n\t\tCAD_Rejected = {CAD - Rejected},\n\t\tAsset_Class = {Asset Class},\n\t\tSEC_Rejected = {SEC - Rejected},\n\t\tAccepted,\n\t\tCAD_Accepted = {CAD - Accepted}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

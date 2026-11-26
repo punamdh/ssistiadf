@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SPM"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -18,19 +18,13 @@
       "sinks" : [ {
         "dataset" : null,
         "name" : "RowCountCACHESINK"
-      }, {
-        "dataset" : {
-          "referenceName" : "genric_parquet",
-          "type" : "DatasetReference"
-        },
-        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       }, {
         "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Card type} as string,\n\t\tName as string,\n\t\t{Card number} as string,\n\t\tState as string,\n\t\t{Regional Location (i e  CLT1; RAL2; etc )} as string,\n\t\t{Company Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCardNumber as string,\n\t\tCompanyName as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tCardType as string,\n\t\tState as string,\n\t\tFName as string,\n\t\tName as string,\n\t\tRegionalLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {Card number},\n\t\tCompanyName = {Company Name},\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tCardType = {Card type},\n\t\tState,\n\t\tFName,\n\t\tName,\n\t\tRegionalLocation = {Regional Location (i e  CLT1; RAL2; etc )}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "\n\nsource(output(\n\t\tTimestamp as string,\n\t\t{DEN3 Sensors_1_12 RackTemp} as string,\n\t\t{DEN3 Sensors_1_11 RackTemp} as string,\n\t\t{DEN3 Sensors_1_11 RackHum} as string,\n\t\t{DEN3 Sensors_1_12 RackHum} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource select(mapColumn(\n\t\tTimestamp = Timestamp,\n\t\t{DEN3 Sensors_1_12 RackTemp} = {DEN3 Sensors_1_12 RackTemp},\n\t\t{DEN3 Sensors_1_11 RackTemp} = {DEN3 Sensors_1_11 RackTemp},\n\t\t{DEN3 Sensors_1_11 RackHum} = {DEN3 Sensors_1_11 RackHum},\n\t\t{DEN3 Sensors_1_12 RackHum} = {DEN3 Sensors_1_12 RackHum}\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

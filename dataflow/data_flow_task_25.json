@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,10 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "tblGSFDailyWFSIWFBNReportAnalystsMapping"
+        "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "LoadDateFilename"
-      } ],
-      "script" : "parameters{\n\tsFilename2 as string (),\n\ttblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename as string ()\n}\n\nsource(output(\n\t\tCreatedBy as string,\n\t\t{Full Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = toString((currentTimestamp())),\n\t\tFilename = toString(($sFilename2))) ~> LoadDateFilename\nLoadDateFilename sink(input(\n\t\tLoadDate as string,\n\t\tCreatedBy as string,\n\t\tFullName as string,\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tCreatedBy,\n\t\tFullName = {Full Name},\n\t\tFilename),\n\tpartitionFileNames:[($tblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFDailyWFSIWFBNReportAnalystsMapping"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tCORPORATELEDGERACCOUNT as string,\n\t\tEFFDATE as timestamp,\n\t\tYTD_BALANCE as integer,\n\t\tGL_COMPANY_CD as string,\n\t\tISIN as string,\n\t\tINSTRUMENT as string,\n\t\tCUSIP as string,\n\t\tACCOUNT_NAME as string,\n\t\tTRADING_ACCOUNT as string,\n\t\tBR_ACCOUNT_NM as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tBALANCE_ID as integer,\n\t\tLTD_BALANCE as integer,\n\t\tGL_ACCOUNT_CD as string,\n\t\tGL_AU_CD as string,\n\t\tBPS_INST_REF as string,\n\t\tTRADER as string,\n\t\tCLIENT_NBR as string,\n\t\tBR_BRANCH_CD as string,\n\t\tSEDOL as string,\n\t\tPTD_BALANCE as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tCORPORATELEDGERACCOUNT as string,\n\t\tEFFDATE as timestamp 'dd-MM-yyyy',\n\t\tYTD_BALANCE as integer,\n\t\tGL_COMPANY_CD as string,\n\t\tISIN as string,\n\t\tINSTRUMENT as string,\n\t\tCUSIP as string,\n\t\tACCOUNT_NAME as string,\n\t\tTRADING_ACCOUNT as string,\n\t\tBR_ACCOUNT_NM as string,\n\t\tISO_CURRENCY_CD as string,\n\t\tBALANCE_ID as integer,\n\t\tLTD_BALANCE as integer,\n\t\tGL_ACCOUNT_CD as string,\n\t\tGL_AU_CD as string,\n\t\tBPS_INST_REF as string,\n\t\tTRADER as string,\n\t\tCLIENT_NBR as string,\n\t\tBR_BRANCH_CD as string,\n\t\tSEDOL as string,\n\t\tPTD_BALANCE as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1648,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCORPORATELEDGERACCOUNT,\n\t\tEFFDATE,\n\t\tYTD_BALANCE,\n\t\tGL_COMPANY_CD,\n\t\tISIN,\n\t\tINSTRUMENT,\n\t\tCUSIP,\n\t\tACCOUNT_NAME,\n\t\tTRADING_ACCOUNT,\n\t\tBR_ACCOUNT_NM,\n\t\tISO_CURRENCY_CD,\n\t\tBALANCE_ID,\n\t\tLTD_BALANCE,\n\t\tGL_ACCOUNT_CD,\n\t\tGL_AU_CD,\n\t\tBPS_INST_REF,\n\t\tTRADER,\n\t\tCLIENT_NBR,\n\t\tBR_BRANCH_CD,\n\t\tSEDOL,\n\t\tPTD_BALANCE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

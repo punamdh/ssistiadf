@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SpFiles/DARE_NAS_SpFiles"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -22,8 +22,10 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Published Location} as string,\n\t\t{Publish Date} as string,\n\t\tModified as date,\n\t\t{Metric SME} as string,\n\t\t{Escalation Path} as string,\n\t\t{Data Points} as double,\n\t\t{Current Automation Status} as string,\n\t\t{Metric Name} as string,\n\t\t{Metric Definition} as string,\n\t\t{Report Name} as string,\n\t\t{Metric Classification} as string,\n\t\t{Link to Published Location} as string,\n\t\t{Metric Owner} as string,\n\t\t{Control ID} as string,\n\t\t{Published Frequency} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tStatus as string,\n\t\tPublishedLocation as string,\n\t\tPublishDate as string,\n\t\tModified as timestamp 'dd-MM-yyyy',\n\t\tMetricSME as string,\n\t\tEscalationPath as string,\n\t\tDataPoints as double,\n\t\tCurrentAutomationStatus as string,\n\t\tMetricName as string,\n\t\tMetricDefinition as string,\n\t\tReportName as string,\n\t\tMetricClassification as string,\n\t\tLinkToPublishedLocation as string,\n\t\tMetricOwner as string,\n\t\tControlID as string,\n\t\tPublishedFrequency as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tPublishedLocation = {Published Location},\n\t\tPublishDate = {Publish Date},\n\t\tModified,\n\t\tMetricSME = {Metric SME},\n\t\tEscalationPath = {Escalation Path},\n\t\tDataPoints = {Data Points},\n\t\tCurrentAutomationStatus = {Current Automation Status},\n\t\tMetricName = {Metric Name},\n\t\tMetricDefinition = {Metric Definition},\n\t\tReportName = {Report Name},\n\t\tMetricClassification = {Metric Classification},\n\t\tLinkToPublishedLocation = {Link to Published Location},\n\t\tMetricOwner = {Metric Owner},\n\t\tControlID = {Control ID},\n\t\tPublishedFrequency = {Published Frequency}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tCDU as string,\n\t\tRETURN_SETPOINT as double,\n\t\tSUPPLY_TEMP as double,\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSUPPLY_TEMP as double,\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tRETURN_TEMP as double,\n\t\tHUMIDITY as double,\n\t\tETLUser as string,\n\t\tCDU as string,\n\t\tRunning as string,\n\t\tFanSpeed_perc as double,\n\t\tDate as timestamp 'dd-MM-yyyy',\n\t\tRETURN_SETPOINT as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSUPPLY_TEMP,\n\t\tUploadDate = uploaddate,\n\t\tRETURN_TEMP,\n\t\tHUMIDITY,\n\t\tETLUser,\n\t\tCDU,\n\t\tRunning,\n\t\tFanSpeed_perc,\n\t\tDate,\n\t\tRETURN_SETPOINT),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

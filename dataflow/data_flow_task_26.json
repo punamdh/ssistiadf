@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "TblAllReconSource",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "TblAllReconDestination"
+        "name" : "tblGSFDailyWFSIWFBNReportAnalystsMapping"
       } ],
       "transformations" : [ {
-        "name" : "ToAddLoadDate"
+        "name" : "LoadDateFilename"
       } ],
-      "script" : "parameters{\n\tTblAllReconDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tSYSTEMRECORD as string,\n\t\tCUSIP as string,\n\t\tTYPE as string,\n\t\tPC as string,\n\t\tSTRIKE as decimal(24,8),\n\t\tEXPIRATION as integer,\n\t\tSTRATEGY as string,\n\t\tGROUPNAME as string,\n\t\tBOOKNAME as string,\n\t\tLEGALENTITY as string,\n\t\tRC as string,\n\t\tCUSTOMERTYPE as string,\n\t\tIMAGINELONGNAME as string,\n\t\tHOLDID as integer,\n\t\tCURRMARK as decimal(24,8),\n\t\tCURRQTY as decimal(24,8),\n\t\tCURRMKTVALUSD as decimal(24,8)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> TblAllReconSource\nTblAllReconSource derive(ToAddLoadDate = currentTimestamp()) ~> ToAddLoadDate\nToAddLoadDate sink(input(\n\t\tGroupName as string,\n\t\tCurrQty as integer,\n\t\tLegalEntity as string,\n\t\tCurrMark as integer,\n\t\tBookName as string,\n\t\tStrike as integer,\n\t\tExpiration as integer,\n\t\tLoad_Date as timestamp 'dd-MM-yyyy',\n\t\tEffDate as timestamp 'dd-MM-yyyy',\n\t\tCustomerType as string,\n\t\tCusip as string,\n\t\tImagineLongName as string,\n\t\tRC as string,\n\t\tHoldID as integer,\n\t\tType as string,\n\t\tPC as string,\n\t\tStrategy as string,\n\t\tSystemRecord as string,\n\t\tCurrMktValUsd as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tGroupName = GROUPNAME,\n\t\tCurrQty = CURRQTY,\n\t\tLegalEntity = LEGALENTITY,\n\t\tCurrMark = CURRMARK,\n\t\tBookName = BOOKNAME,\n\t\tStrike = STRIKE,\n\t\tExpiration = EXPIRATION,\n\t\tLoad_Date = ToAddLoadDate,\n\t\tEffDate = EFFDATE,\n\t\tCustomerType = CUSTOMERTYPE,\n\t\tCusip = CUSIP,\n\t\tImagineLongName = IMAGINELONGNAME,\n\t\tRC,\n\t\tHoldID = HOLDID,\n\t\tType = TYPE,\n\t\tPC,\n\t\tStrategy = STRATEGY,\n\t\tSystemRecord = SYSTEMRECORD,\n\t\tCurrMktValUsd = CURRMKTVALUSD),\n\tpartitionFileNames:[($TblAllReconDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> TblAllReconDestination"
+      "script" : "parameters{\n\tsFilename2 as string (),\n\ttblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename as string ()\n}\n\nsource(output(\n\t\tCreatedBy as string,\n\t\t{Full Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = toString((currentTimestamp())),\n\t\tFilename = toString(($sFilename2))) ~> LoadDateFilename\nLoadDateFilename sink(input(\n\t\tLoadDate as string,\n\t\tCreatedBy as string,\n\t\tFullName as string,\n\t\tFilename as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tLoadDate,\n\t\tCreatedBy,\n\t\tFullName = {Full Name},\n\t\tFilename),\n\tpartitionFileNames:[($tblGSFDailyWFSIWFBNReportAnalystsMapping_outputfilename)],\n\tpartitionBy('hash', 1)) ~> tblGSFDailyWFSIWFBNReportAnalystsMapping"
     }
   }
 }

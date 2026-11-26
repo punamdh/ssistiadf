@@ -5,13 +5,19 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -24,8 +30,14 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup01"
+      }, {
+        "name" : "Lookup0"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAppId as string,\n\t\tAppName as string,\n\t\tCloudAppId as string,\n\t\tContainerId as string,\n\t\tFoundation as string,\n\t\tOrg as string,\n\t\tSpace as string,\n\t\tType as string,\n\t\tDepEnv as string,\n\t\tDiegoIp as string,\n\t\tInstance as string,\n\t\tMemoryPercentage as string,\n\t\t{TotalMemory(GB)} as string,\n\t\t{UsedMemory(GB)} as string,\n\t\tDiskPercentage as string,\n\t\t{TotalDisk(GB)} as string,\n\t\t{UsedDisk(GB)} as string,\n\t\tCpuPercentage as string,\n\t\tLob as string,\n\t\t{Technical Manager} as string,\n\t\t{Leadership Level1} as string,\n\t\t{Leadership Level2} as string,\n\t\t{Leadership Level3} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSpace as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tOrg as string,\n\t\tInstance as string,\n\t\tCloudAppId as string,\n\t\tTotalMemory_GB_ as string,\n\t\tCpuPercentage as string,\n\t\tTotalDisk_GB_ as string,\n\t\tAppName as string,\n\t\tType as string,\n\t\tDepEnv as string,\n\t\tLeadership_Level3 as string,\n\t\tLeadership_Level2 as string,\n\t\tAppId as string,\n\t\tContainerId as string,\n\t\tTechnical_Manager as string,\n\t\tMemoryPercentage as string,\n\t\tFoundation as string,\n\t\tDiegoIp as string,\n\t\tDiskPercentage as string,\n\t\tLeadership_Level1 as string,\n\t\tLob as string,\n\t\tUsedMemory_GB_ as string,\n\t\tUsedDisk_GB_ as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSpace,\n\t\tImportDate,\n\t\tOrg,\n\t\tInstance,\n\t\tCloudAppId,\n\t\tTotalMemory_GB_ = {TotalMemory(GB)},\n\t\tCpuPercentage,\n\t\tTotalDisk_GB_ = {TotalDisk(GB)},\n\t\tAppName,\n\t\tType,\n\t\tDepEnv,\n\t\tLeadership_Level3 = {Leadership Level3},\n\t\tLeadership_Level2 = {Leadership Level2},\n\t\tAppId,\n\t\tContainerId,\n\t\tTechnical_Manager = {Technical Manager},\n\t\tMemoryPercentage,\n\t\tFoundation,\n\t\tDiegoIp,\n\t\tDiskPercentage,\n\t\tLeadership_Level1 = {Leadership Level1},\n\t\tLob,\n\t\tUsedMemory_GB_ = {UsedMemory(GB)},\n\t\tUsedDisk_GB_ = {UsedDisk(GB)}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tId as integer,\n\t\tAsOfDate as timestamp,\n\t\tClient as integer,\n\t\tCategory as string,\n\t\tSource as string,\n\t\tItemCount3 as integer,\n\t\tNetValue3 as decimal(18,2),\n\t\tItemCount7 as integer,\n\t\tNetValue7 as decimal(18,2),\n\t\tItemCount15 as integer,\n\t\tNetValue15 as decimal(18,2),\n\t\tItemCount30 as integer,\n\t\tNetValue30 as decimal(18,2),\n\t\tItemCount60 as integer,\n\t\tNetValue60 as decimal(18,2),\n\t\tItemCount90 as integer,\n\t\tNetValue90 as decimal(18,2),\n\t\tItemCount120 as integer,\n\t\tNetValue120 as decimal(18,2),\n\t\tItemCount180 as integer,\n\t\tNetValue180 as decimal(18,2),\n\t\t{ItemCount180+} as integer,\n\t\t{NetValue180+} as decimal(18,2),\n\t\tTotalCount as integer,\n\t\tTotalValue as decimal(18,2),\n\t\tDateAdded as timestamp,\n\t\tDateModified as timestamp,\n\t\tUserId as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\tAsOfDate as timestamp,\n\t\tId as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn,LookupLKPTABLE lookup(OLEDBSource@AsOfDate == LookupLKPTABLE@AsOfDate && OLEDBSource@Id == LookupLKPTABLE@Id,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup select(mapColumn(\n\t\tloadDate = loadDate,\n\t\tId = OLEDBSource@Id,\n\t\tAsOfDate = OLEDBSource@AsOfDate,\n\t\tClient = Client,\n\t\tCategory = Category,\n\t\tSource = Source,\n\t\tItemCount3 = ItemCount3,\n\t\tNetValue3 = NetValue3,\n\t\tItemCount7 = ItemCount7,\n\t\tNetValue7 = NetValue7,\n\t\tItemCount15 = ItemCount15,\n\t\tNetValue15 = NetValue15,\n\t\tItemCount30 = ItemCount30,\n\t\tNetValue30 = NetValue30,\n\t\tItemCount60 = ItemCount60,\n\t\tNetValue60 = NetValue60,\n\t\tItemCount90 = ItemCount90,\n\t\tNetValue90 = NetValue90,\n\t\tItemCount120 = ItemCount120,\n\t\tNetValue120 = NetValue120,\n\t\tItemCount180 = ItemCount180,\n\t\tNetValue180 = NetValue180,\n\t\t{ItemCount180+} = {ItemCount180+},\n\t\t{NetValue180+} = {NetValue180+},\n\t\tTotalCount = TotalCount,\n\t\tTotalValue = TotalValue,\n\t\tDateAdded = DateAdded,\n\t\tDateModified = DateModified,\n\t\tUserId = UserId\n\t),\n\t skipDuplicateMapInputs: true,\n\t skipDuplicateMapOutputs: true) ~> Lookup01\nLookup01 filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tItemCount120 as integer,\n\t\tNetValue60 as integer,\n\t\tCategory as string,\n\t\tNetValue180 as integer,\n\t\tNetValue180_ as integer,\n\t\tNetValue120 as integer,\n\t\tSource as string,\n\t\tNetValue7 as integer,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tTotalValue as integer,\n\t\tItemCount30 as integer,\n\t\tClient as integer,\n\t\tItemCount90 as integer,\n\t\tItemCount180 as integer,\n\t\tItemCount7 as integer,\n\t\tNetValue90 as integer,\n\t\tItemCount3 as integer,\n\t\tItemCount15 as integer,\n\t\tItemCount180_ as integer,\n\t\tAsOfDate as timestamp 'dd-MM-yyyy',\n\t\tNetValue3 as integer,\n\t\tTotalCount as integer,\n\t\tUserId as string,\n\t\tNetValue15 as integer,\n\t\tItemCount60 as integer,\n\t\tId as integer,\n\t\tDateAdded as timestamp 'dd-MM-yyyy',\n\t\tNetValue30 as integer,\n\t\tDateModified as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tItemCount120,\n\t\tNetValue60,\n\t\tCategory,\n\t\tNetValue180,\n\t\tNetValue180_ = {NetValue180+},\n\t\tNetValue120,\n\t\tSource,\n\t\tNetValue7,\n\t\tloadDate,\n\t\tTotalValue,\n\t\tItemCount30,\n\t\tClient,\n\t\tItemCount90,\n\t\tItemCount180,\n\t\tItemCount7,\n\t\tNetValue90,\n\t\tItemCount3,\n\t\tItemCount15,\n\t\tItemCount180_ = {ItemCount180+},\n\t\tAsOfDate,\n\t\tNetValue3,\n\t\tTotalCount,\n\t\tUserId,\n\t\tNetValue15,\n\t\tItemCount60,\n\t\tId,\n\t\tDateAdded,\n\t\tNetValue30,\n\t\tDateModified),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

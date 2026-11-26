@@ -1,0 +1,33 @@
+{
+  "name" : "data_flow_task_-_gpsa_totstd_actvhist",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSourcep021ispprod",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetCurrentdate"
+      }, {
+        "name" : "DataConversion"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFFDATE as timestamp,\n\t\tEFFECTIVEDATE as decimal(38,0),\n\t\tTRANS_DT as string,\n\t\tTRANS_NBR as decimal(7,0),\n\t\tPRFF_CUST_GRP_CD as string,\n\t\tEXTNL_TRD_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSourcep021ispprod\nOLEDBSourcep021ispprod derive(loadDate = currentTimestamp()) ~> GetCurrentdate\nGetCurrentdate derive({Copy of loadDate} = loadDate,\n\t\t{Copy of PRFF_CUST_GRP_CD} = PRFF_CUST_GRP_CD,\n\t\t{Copy of EFFDATE} = toDate(EFFDATE, \"MM/dd/yyyy\"),\n\t\t{Copy of EFFECTIVEDATE} = EFFECTIVEDATE,\n\t\t{Copy of EXTNL_TRD_ID} = EXTNL_TRD_ID,\n\t\t{Copy of TRANS_DT} = TRANS_DT,\n\t\t{Copy of TRANS_NBR} = TRANS_NBR) ~> DataConversion\nDataConversion sink(input(\n\t\tEXTNL_TRD_ID as string,\n\t\tTRANS_NBR as integer,\n\t\tEFFDATE as date 'dd-MM-yyyy',\n\t\tTRANS_DT as string,\n\t\tEFFECTIVEDATE as integer,\n\t\tloadDate as timestamp 'dd-MM-yyyy',\n\t\tPRFF_CUST_GRP_CD as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tEXTNL_TRD_ID = {Copy of EXTNL_TRD_ID},\n\t\tTRANS_NBR = {Copy of TRANS_NBR},\n\t\tEFFDATE = {Copy of EFFDATE},\n\t\tTRANS_DT = {Copy of TRANS_DT},\n\t\tEFFECTIVEDATE = {Copy of EFFECTIVEDATE},\n\t\tloadDate = {Copy of loadDate},\n\t\tPRFF_CUST_GRP_CD = {Copy of PRFF_CUST_GRP_CD}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

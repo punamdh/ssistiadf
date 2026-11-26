@@ -1,0 +1,43 @@
+{
+  "name" : "data_flow_task_-_gptm_trans_daily_hist",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "OLEDBSourcep011isp",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "GetCurrentdate"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEFF_DT as timestamp,\n\t\tCLIENTLINKEDDEALSREFERENCE as string,\n\t\tPE_REF as string,\n\t\tCONSIDERATION as decimal(38,15),\n\t\tINV as string,\n\t\tPIS_ORIGINALAMTVAL as decimal(38,15),\n\t\tCNTRPTY as string,\n\t\tSALESPERSON as string,\n\t\tDFVERSION as decimal(38,15),\n\t\tTXN_STATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSourcep011isp\tsource(output(\n\t\tEffDate as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSourcep011isp derive(loadDate = currentTimestamp()) ~> GetCurrentdate\nGetCurrentdate derive({Copy of TXN_STATUS} = TXN_STATUS,\n\t\t{Copy of SALESPERSON} = SALESPERSON,\n\t\t{Copy of PIS_ORIGINALAMTVAL} = PIS_ORIGINALAMTVAL,\n\t\t{Copy of PE_REF} = PE_REF,\n\t\t{Copy of DFVERSION} = DFVERSION,\n\t\t{Copy of EFF_DT} = toDate(EFF_DT, \"MM/dd/yyyy\"),\n\t\t{Copy of INV} = INV,\n\t\t{Copy of loadDate} = loadDate,\n\t\t{Copy of CLIENTLINKEDDEALSREFERENCE} = CLIENTLINKEDDEALSREFERENCE,\n\t\t{Copy of CONSIDERATION} = CONSIDERATION,\n\t\t{Copy of CNTRPTY} = CNTRPTY) ~> DataConversion\nDataConversion,LookupLKPTABLE lookup({Copy of EFF_DT} == EffDate,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tINV as string,\n\t\tPIS_ORIGINALAMTVAL as integer,\n\t\tPE_REF as string,\n\t\tDFVERSION as integer,\n\t\tSALESPERSON as string,\n\t\tEFFDATE as date 'dd-MM-yyyy',\n\t\tCONSIDERATION as integer,\n\t\tTXN_Status as string,\n\t\tCLIENTLINKEDDEALSREFERENCE as string,\n\t\tCNTRPTY as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tINV = {Copy of INV},\n\t\tPIS_ORIGINALAMTVAL = {Copy of PIS_ORIGINALAMTVAL},\n\t\tPE_REF = {Copy of PE_REF},\n\t\tDFVERSION = {Copy of DFVERSION},\n\t\tSALESPERSON = {Copy of SALESPERSON},\n\t\tEFFDATE = {Copy of EFF_DT},\n\t\tCONSIDERATION = {Copy of CONSIDERATION},\n\t\tTXN_Status = {Copy of TXN_STATUS},\n\t\tCLIENTLINKEDDEALSREFERENCE = {Copy of CLIENTLINKEDDEALSREFERENCE},\n\t\tCNTRPTY = {Copy of CNTRPTY},\n\t\tloadDate = {Copy of loadDate}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

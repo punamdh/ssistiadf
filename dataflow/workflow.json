@@ -1,0 +1,31 @@
+{
+  "name" : "workflow",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1PAAF-CNESR-1BFF"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tRunDate as timestamp (toTimestamp('9/11/2025 1:03:12 PM')),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tWorkflowId as string,\n\t\tWFName as string,\n\t\tWFProposalName as string,\n\t\tWFType as string,\n\t\tWFState as string,\n\t\tWFCreatedBy as string,\n\t\tWFCreatedDate as string,\n\t\tWFActivatedBy as string,\n\t\tWFActivatedDate as string,\n\t\tWFCompletedDate as string,\n\t\tWFCanceledBy as string,\n\t\tWFCanceledDate as string,\n\t\t{Proposal ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Snapshot_Asof_Date = $RunDate,\n\t\tSnapshot_Active_Flag = 'Y') ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tWFCompletedDate as string,\n\t\tSNAPSHOT_AS_OF_DATE as timestamp 'dd-MM-yyyy',\n\t\tWFCanceledDate as string,\n\t\tWFActivatedDate as string,\n\t\tWorkflowId as string,\n\t\tWFCanceledBy as string,\n\t\tWFName as string,\n\t\tWFCreatedDate as string,\n\t\tSNAPSHOT_ACTIVE_FLAG as string,\n\t\tWFProposalName as string,\n\t\tWFType as string,\n\t\tProposalID as string,\n\t\tWFCreatedBy as string,\n\t\tWFState as string,\n\t\tWFActivatedBy as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tWFCompletedDate,\n\t\tSNAPSHOT_AS_OF_DATE = Snapshot_Asof_Date,\n\t\tWFCanceledDate,\n\t\tWFActivatedDate,\n\t\tWorkflowId,\n\t\tWFCanceledBy,\n\t\tWFName,\n\t\tWFCreatedDate,\n\t\tSNAPSHOT_ACTIVE_FLAG = Snapshot_Active_Flag,\n\t\tWFProposalName,\n\t\tWFType,\n\t\tProposalID = {Proposal ID},\n\t\tWFCreatedBy,\n\t\tWFState,\n\t\tWFActivatedBy),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

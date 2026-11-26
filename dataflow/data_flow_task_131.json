@@ -5,32 +5,37 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_SQLRW"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
         "name" : "OLEDBDestination"
+      }, {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination1"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       }, {
-        "name" : "RowCount0"
+        "name" : "ConditionalSplit1"
+      }, {
+        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tAccount as decimal(18,0),\n\t\t{Customer Name} as string,\n\t\t{Product Offering} as string,\n\t\t{Cage Asset} as string,\n\t\tIBX as string,\n\t\tCage as string,\n\t\t{Cage Serial} as string,\n\t\t{Metering Type} as string,\n\t\t{Usable kVA} as double,\n\t\t{Average Draw} as double,\n\t\t{Daily Peak Draw} as double,\n\t\t{Average 30 day Peak Draw kVA-to-Draw} as double,\n\t\t{Redundant Draw} as double,\n\t\t{Draw Cap} as double,\n\t\t{Primary Draw} as double,\n\t\t{Average 30 day Peak Draw } as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tDailyPeakDraw as double,\n\t\tAccount as integer,\n\t\tAverageDraw as double,\n\t\tAvg30dayPeakDraw as double,\n\t\tUploadDate as string,\n\t\tCage as string,\n\t\tUsablekVA as double,\n\t\tAvg30dayPeakDrawkVAtoDraw as double,\n\t\tPrimaryDraw as double,\n\t\tCageSerial as string,\n\t\tFName as string,\n\t\tDate as string,\n\t\tDrawCap as double,\n\t\tEtlUser as string,\n\t\tCageAsset as string,\n\t\tProductOffering as string,\n\t\tRedundantDraw as double,\n\t\tCustomerName as string,\n\t\tIBX as string,\n\t\tMeteringType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDailyPeakDraw = {Daily Peak Draw},\n\t\tAccount,\n\t\tAverageDraw = {Average Draw},\n\t\tAvg30dayPeakDraw = {Average 30 day Peak Draw },\n\t\tUploadDate,\n\t\tCage,\n\t\tUsablekVA = {Usable kVA},\n\t\tAvg30dayPeakDrawkVAtoDraw = {Average 30 day Peak Draw kVA-to-Draw},\n\t\tPrimaryDraw = {Primary Draw},\n\t\tCageSerial = {Cage Serial},\n\t\tFName,\n\t\tDate,\n\t\tDrawCap = {Draw Cap},\n\t\tEtlUser,\n\t\tCageAsset = {Cage Asset},\n\t\tProductOffering = {Product Offering},\n\t\tRedundantDraw = {Redundant Draw},\n\t\tCustomerName = {Customer Name},\n\t\tIBX,\n\t\tMeteringType = {Metering Type}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tLowerCabinetU as integer,\n\t\tNlyteID as integer,\n\t\tRecordStatus as string,\n\t\tOperationalStatus as string,\n\t\tAssetName as string,\n\t\tSerialNumber as string,\n\t\tMaterialID as integer,\n\t\tMaterialType as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tRUSize as double,\n\t\tLabPowerWatts as decimal(13,0),\n\t\tCreationDate as timestamp,\n\t\tLastUpdateDate as timestamp,\n\t\tRFCodeTag as string,\n\t\tTag as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit1@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit1@Process split(Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax',!((Manufacturer == 'Corning' || Manufacturer == 'CommScope' || Manufacturer == 'Systimax')), disjoint: true) ~> ConditionalSplit@(Case2,Case1,ConditionalSplitDefaultOutput)\nConditionalSplit@Case2 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nConditionalSplit@Case1 sink(input(\n\t\tCreationDate as timestamp 'dd-MM-yyyy',\n\t\tMaterialID as integer,\n\t\tSiteName as string,\n\t\tDuplicateLocationGroupName as string,\n\t\tRUSize as double,\n\t\tWFGrid as string,\n\t\tRackNlyteID as integer,\n\t\tOperationalStatus as string,\n\t\tSiteGroup as string,\n\t\tLowerCabinetU as integer,\n\t\tAssetName as string,\n\t\tMaterialType as string,\n\t\tLabPowerWatts as double,\n\t\tDataHall as string,\n\t\tSerialNumber as string,\n\t\tRackName as string,\n\t\tNlyteID as integer,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialName as string,\n\t\tRecordStatus as string,\n\t\tLastUpdateDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreationDate,\n\t\tMaterialID,\n\t\tSiteName,\n\t\tDuplicateLocationGroupName,\n\t\tRUSize,\n\t\tWFGrid,\n\t\tRackNlyteID,\n\t\tOperationalStatus,\n\t\tSiteGroup,\n\t\tLowerCabinetU,\n\t\tAssetName,\n\t\tMaterialType,\n\t\tLabPowerWatts,\n\t\tDataHall,\n\t\tSerialNumber,\n\t\tRackName,\n\t\tNlyteID,\n\t\tManufacturer,\n\t\tModel,\n\t\tMaterialSubtype,\n\t\tMaterialName,\n\t\tRecordStatus,\n\t\tLastUpdateDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

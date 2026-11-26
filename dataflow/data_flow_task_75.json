@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SpFiles"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,9 +16,6 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tWhat as string,\n\t\tWho as string,\n\t\tWhen as date,\n\t\tWhere as string,\n\t\tCompany as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tIBX = 'NY2') ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCompany as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tWhen as timestamp 'dd-MM-yyyy',\n\t\tWhat as string,\n\t\tWhere as string,\n\t\tFName as string,\n\t\tIBX as string,\n\t\tWho as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCompany,\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tWhen,\n\t\tWhat,\n\t\tWhere,\n\t\tFName,\n\t\tIBX,\n\t\tWho),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tID as string,\n\t\tName as string,\n\t\tAssignee as string,\n\t\tDiscovered as string,\n\t\tCreated as string,\n\t\tOccurred as date,\n\t\tDescription as string,\n\t\tReporter as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tQty = iif((isNull(ID) || length(trim(ID)) == 0 || (upper(trim(ID)) == 'NULL')), 0, 1),\n\t\tOccurredMediaIncident = toString(year(Occurred)) + '-' + right('0' + toString(month(Occurred)), 2) + '-' + right('0' + toString(notConvertedectfunctiondateday(Occurred)), 2)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDescription_MediaIncident as string,\n\t\tQtyMediaIncident as integer,\n\t\tSiteName_MediaIncident as string,\n\t\tOccurred_MediaIncident as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDescription_MediaIncident = Description,\n\t\tQtyMediaIncident = Qty,\n\t\tSiteName_MediaIncident = SiteName,\n\t\tOccurred_MediaIncident = OccurredMediaIncident),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "fpinfradeliveryimporttbl"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tfpinfradeliveryimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Provisioned Date} as string,\n\t\tLookup as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\t{App ID} as string,\n\t\tLCL_CI_TYPE_DISPLAY as string,\n\t\tNew_NGDC_Strategy as string,\n\t\tEnvironment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tBAM_App_GUID as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tNew_NGDC_Strategy as string,\n\t\tSPM_Demand_U_CI_TYPE as string,\n\t\tProvisioned_Date as string,\n\t\tDEVICE_Environment_Short as string,\n\t\tDetail_Status_Lookup as string,\n\t\tBAM_DISTRIBUTED_APP_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tBAM_App_GUID = BUSINESS_APPLICATION_WF_GUID,\n\t\timportdate,\n\t\tNew_NGDC_Strategy,\n\t\tSPM_Demand_U_CI_TYPE = LCL_CI_TYPE_DISPLAY,\n\t\tProvisioned_Date = {Provisioned Date},\n\t\tDEVICE_Environment_Short = Environment,\n\t\tDetail_Status_Lookup = Lookup,\n\t\tBAM_DISTRIBUTED_APP_ID = {App ID}),\n\tpartitionFileNames:[($fpinfradeliveryimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> fpinfradeliveryimporttbl"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Trade ID} as string,\n\t\t{Field Amended} as string,\n\t\t{New Field Mapping} as string,\n\t\t{Ignore Reason} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(LoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tField_Amended as string,\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tTradeID as string,\n\t\tIgnore_Reason as string,\n\t\tField_Mapping as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tField_Amended = {Field Amended},\n\t\tCreate_Dte = LoadDate,\n\t\tTradeID = {Trade ID},\n\t\tIgnore_Reason = {Ignore Reason},\n\t\tField_Mapping = {New Field Mapping}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

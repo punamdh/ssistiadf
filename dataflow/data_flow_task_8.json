@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,6 +16,9 @@
         }
       } ],
       "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -23,9 +26,11 @@
         "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTSO_SUPPORT_GROUP_GUID as string,\n\t\tTECHNICAL_SERVICE_OFFFERING as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tTSO_SUPPORT_GROUP_GUID as string,\n\t\tTECHNICAL_SERVICE_OFFFERING as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tTSO_SUPPORT_GROUP_GUID,\n\t\tTECHNICAL_SERVICE_OFFFERING,\n\t\tImportDate),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTRADE_ID as decimal(38,0),\n\t\tKEYWORD_NAME as string,\n\t\tKEYWORD_VALUE as string,\n\t\tTRADE_DATE_TIME as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive({Copy of TRADE_ID} = TRADE_ID,\n\t\t{Copy of KEYWORD_NAME} = KEYWORD_NAME,\n\t\t{Copy of TRADE_DATE_TIME} = TRADE_DATE_TIME,\n\t\t{Copy of KEYWORD_VALUE} = KEYWORD_VALUE) ~> DataConversion\nOLEDBSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion sink(input(\n\t\ttrade_id as string,\n\t\ttrade_date_time as string,\n\t\tkeyword_value as string,\n\t\tkeyword_name as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\ttrade_id = TRADE_ID,\n\t\ttrade_date_time = TRADE_DATE_TIME,\n\t\tkeyword_value = {Copy of KEYWORD_VALUE},\n\t\tkeyword_name = {Copy of KEYWORD_NAME}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

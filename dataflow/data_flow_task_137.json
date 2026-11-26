@@ -5,20 +5,17 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_SQLRW"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -28,9 +25,9 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       }, {
-        "name" : "RowCount0"
+        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tDate as date,\n\t\tPower as string,\n\t\t{Downtime Minutes} as decimal(18,0),\n\t\tTemperature as string,\n\t\tHumidity as string,\n\t\t{Remote Hands} as string,\n\t\t{Cross Connects} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName,\n\t\tPower1 = toInteger(replace(Power, toString('%'), toString(''))) / 100,\n\t\tTemperature1 = toInteger(replace(Temperature, toString('%'), toString(''))) / 100,\n\t\tHumidity1 = toInteger(replace(Humidity, toString('%'), toString(''))) / 100,\n\t\tRemoteHands1 = toInteger(replace({Remote Hands}, toString('%'), toString(''))) / 100,\n\t\tCrossConnects1 = toInteger(replace({Cross Connects}, toString('%'), toString(''))) / 100) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tTemperature as double,\n\t\tHumidity as double,\n\t\tCrossConnects as double,\n\t\tDowntimeMinutes as integer,\n\t\tDate as string,\n\t\tFName as string,\n\t\tPower as double,\n\t\tRemoteHands as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tTemperature = Temperature1,\n\t\tHumidity = Humidity1,\n\t\tCrossConnects = CrossConnects1,\n\t\tDowntimeMinutes = {Downtime Minutes},\n\t\tDate,\n\t\tFName,\n\t\tPower = Power1,\n\t\tRemoteHands = RemoteHands1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSiteGroup as string,\n\t\tSiteName as string,\n\t\tDataHall as string,\n\t\tRackNlyteID as integer,\n\t\tRackName as string,\n\t\tWFGrid as string,\n\t\tAssetID as integer,\n\t\tAssetName as string,\n\t\tAssetNumber as integer,\n\t\tRFIDTag as string,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModified as timestamp,\n\t\tRecordModifiedBy as string,\n\t\tMaterialName as string,\n\t\tCSOnlineStatus as string,\n\t\tCSDetectedLoc as string,\n\t\tPollType as string,\n\t\tFormattedIP as string,\n\t\tRealtimeTemp as decimal(18,3),\n\t\tRealtimeTempAverage as decimal(18,3),\n\t\tRealtimeTempMax as decimal(18,3),\n\t\tRealtimeTempMin as decimal(18,3),\n\t\tRealtimeLastUpdated as timestamp,\n\t\tCSDetectedLowBatt as string,\n\t\tTempType as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(SiteGroup) || trim(SiteGroup) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tCSOnlineStatus as string,\n\t\tSiteName as string,\n\t\tTempType as string,\n\t\tWFGrid as string,\n\t\tSiteGroup as string,\n\t\tAssetNumber as integer,\n\t\tRealtimeTempAverage as integer,\n\t\tDataHall as string,\n\t\tRealtimeTempMax as integer,\n\t\tCSDetectedLowBatt as string,\n\t\tRFIDTag as string,\n\t\tMaterialName as string,\n\t\tAssetID as integer,\n\t\tCSDetectedLoc as string,\n\t\tRealtimeTempMin as integer,\n\t\tRecordModified as timestamp 'dd-MM-yyyy',\n\t\tRackNlyteID as integer,\n\t\tAssetOperationalStatus as string,\n\t\tRecordModifiedBy as string,\n\t\tAssetName as string,\n\t\tPollType as string,\n\t\tRealtimeLastUpdated as date 'dd-MM-yyyy',\n\t\tRackName as string,\n\t\tFormattedIP as string,\n\t\tRealtimeTemp as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCSOnlineStatus,\n\t\tSiteName,\n\t\tTempType,\n\t\tWFGrid,\n\t\tSiteGroup,\n\t\tAssetNumber,\n\t\tRealtimeTempAverage,\n\t\tDataHall,\n\t\tRealtimeTempMax,\n\t\tCSDetectedLowBatt,\n\t\tRFIDTag,\n\t\tMaterialName,\n\t\tAssetID,\n\t\tCSDetectedLoc,\n\t\tRealtimeTempMin,\n\t\tRecordModified,\n\t\tRackNlyteID,\n\t\tAssetOperationalStatus,\n\t\tRecordModifiedBy,\n\t\tAssetName,\n\t\tPollType,\n\t\tRealtimeLastUpdated,\n\t\tRackName,\n\t\tFormattedIP,\n\t\tRealtimeTemp),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

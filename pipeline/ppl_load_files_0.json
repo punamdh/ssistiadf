@@ -4,7 +4,7 @@
   "apiVersion" : "2018-06-01",
   "properties" : {
     "activities" : [ {
-      "name" : "End_-_File_alreday_Exist_1_0_0",
+      "name" : "End_-_old_file_doesnt_have_ccy_pair_0_0",
       "type" : "IfCondition",
       "policy" : null,
       "dependsOn" : [ ],
@@ -13,18 +13,18 @@
       "onInactiveMarkAs" : null,
       "typeProperties" : {
         "expression" : {
-          "value" : "@not(equals(variables('iFileDateBefore0417'),0))",
+          "value" : "@equals(variables('FileDateCheck'),0)",
           "type" : "Expression"
         },
         "ifFalseActivities" : [ ],
         "ifTrueActivities" : [ {
-          "name" : "ST_End_-_File_alreday_Exist_1_0",
+          "name" : "ST_End_-_old_file_doesnt_have_ccy_pair_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ ],
-          "state" : "Inactive",
+          "state" : null,
           "description" : null,
-          "onInactiveMarkAs" : "Succeeded",
+          "onInactiveMarkAs" : null,
           "linkedServiceName" : {
             "referenceName" : "OLEDB_SQLNCLI11_1",
             "type" : "LinkedServiceReference"
@@ -33,7 +33,7 @@
             "scripts" : [ {
               "type" : "NonQuery",
               "text" : {
-                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  @item.name,\n @comment = 'File Already loaded in table',\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@FileName=@item.name\n\n",
+                "value" : "EXEC  sp_ssis_log_insert_update\n @exec_pt  = 'END',\n @proc_pack_nm  =  concat(pipeline().parameters.BasePath, '/', @item().name),\n @comment = 'File doesnt have CCY pair',\n@status = 'Pending',\n@num_of_records = '0',\n@actual_records = '0',\n@FileName=concat(pipeline().parameters.BasePath, '/', @item().name)\n\n",
                 "type" : "Expression"
               }
             } ],
@@ -43,32 +43,45 @@
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
-    "parameters" : { },
-    "variables" : {
-      "iFileDateBefore0417" : {
+    "parameters" : {
+      "BasePath" : {
         "type" : "String",
-        "defaultValue" : "0"
+        "defaultValue" : ""
+      }
+    },
+    "variables" : {
+      "FilePath" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncslnhf501.wellsfargo.com\\DRSProd\\WFSOpsKRIReporting\\DropZone\\Calypso\\LiveTradeStatus"
       },
       "sProcessName" : {
         "type" : "String",
-        "defaultValue" : "GMI_GUNG_Give_Up_Not_Gone_Trade_ETL"
+        "defaultValue" : "Calypso_Live_Trades_EMEA_ETL"
       },
       "sFileName" : {
-        "type" : "String",
-        "defaultValue" : "gungeodf1_20231127.csv"
+        "type" : "String"
       },
-      "sFilePath" : {
+      "sFROM" : {
         "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\GMI\\GUNG"
+        "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
+      },
+      "sComment" : {
+        "type" : "String",
+        "defaultValue" : "Start Loading Calypso_Live_Trades_EMEA_ETL"
+      },
+      "FileDateCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
       },
       "sRowCount" : {
         "type" : "String",
         "defaultValue" : "0"
       },
-      "sFileNameTrn" : {
-        "type" : "String"
+      "sTo" : {
+        "type" : "String",
+        "defaultValue" : "wfsrs@wellsfargo.com"
       },
       "iFileExists" : {
         "type" : "String",
@@ -76,23 +89,19 @@
       },
       "sSubject" : {
         "type" : "String",
-        "defaultValue" : "WFSR&S_ProcessAlert_DEV_GMI_GUNG_Give_Up_Not_Gone_Trade_ETL"
+        "defaultValue" : "WFSR&S_Process_Alert_DEV_Calypso_Live_Trades_EMEA_ETL_"
+      },
+      "sActualRecords" : {
+        "type" : "String",
+        "defaultValue" : "0"
       },
       "sEnvironment" : {
         "type" : "String",
         "defaultValue" : "DEV"
       },
-      "sActualRowsLoaded" : {
+      "sMessage" : {
         "type" : "String",
-        "defaultValue" : "0"
-      },
-      "FilePathDev" : {
-        "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSUAT\\WFSOpsKRIReporting\\DropZone\\GMI\\GUNG"
-      },
-      "sFileRootDirectory" : {
-        "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev"
+        "defaultValue" : "Calypso_Live_Trades_EMEA_ETL:   number of Records Retrieved = 0                                                                                                                     number of Records loaded = 0"
       }
     }
   }

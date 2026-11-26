@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tRUN_DATE as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(AddLoadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tRun_Date as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,errorHandlingOption: 'allErrors',reportSuccessOnError: true,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus = STATUS,\n\t\tLoad_Date = AddLoadDate,\n\t\tRun_Date = RUN_DATE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tEffDate as timestamp,\n\t\tReconRecordMatch as string,\n\t\tReconIdentifiedBreaks as string,\n\t\tPortName as string,\n\t\tsm_id as integer,\n\t\tHoldID as integer,\n\t\tCurrency as string,\n\t\t{MT CurrFxRate} as decimal(18,10),\n\t\t{MT MV} as decimal(24,8),\n\t\t{CDBO MV} as decimal(28,10),\n\t\t{MV Diff} as decimal(29,10),\n\t\t{AbsMV Diff} as decimal(29,10),\n\t\t{MT CompanyAU} as string,\n\t\t{CDBO CompanyAU} as string,\n\t\t{MT AssetClass} as string,\n\t\t{CDBO AssetClass} as string,\n\t\t{MT ProductCategory} as string,\n\t\t{CDBO ProductCategory} as string,\n\t\t{MT SubProductCategory} as string,\n\t\t{CDBO SubProductCategory} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(ToAddLoaddate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tMV_Diff as integer,\n\t\tMT_ProductCategory as string,\n\t\tMT_MV as integer,\n\t\tMT_AssetClass as string,\n\t\tsm_id as integer,\n\t\tCDBO_ProductCategory as string,\n\t\tCDBO_SubProductCategory as string,\n\t\tCDBO_MV as integer,\n\t\tEffDate as timestamp 'dd-MM-yyyy',\n\t\tPortName as string,\n\t\tMT_CurrFxRate as integer,\n\t\tReconIdentifiedBreaks as string,\n\t\tMT_CompanyAU as string,\n\t\tHoldID as integer,\n\t\tAbsMV_Diff as integer,\n\t\tMT_SubProductCategory as string,\n\t\tCDBO_CompanyAU as string,\n\t\tCurrency as string,\n\t\tLoaddate as date 'dd-MM-yyyy',\n\t\tCDBO_AssetClass as string,\n\t\tReconRecordMatch as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMV_Diff = {MV Diff},\n\t\tMT_ProductCategory = {MT ProductCategory},\n\t\tMT_MV = {MT MV},\n\t\tMT_AssetClass = {MT AssetClass},\n\t\tsm_id,\n\t\tCDBO_ProductCategory = {CDBO ProductCategory},\n\t\tCDBO_SubProductCategory = {CDBO SubProductCategory},\n\t\tCDBO_MV = {CDBO MV},\n\t\tEffDate,\n\t\tPortName,\n\t\tMT_CurrFxRate = {MT CurrFxRate},\n\t\tReconIdentifiedBreaks,\n\t\tMT_CompanyAU = {MT CompanyAU},\n\t\tHoldID,\n\t\tAbsMV_Diff = {AbsMV Diff},\n\t\tMT_SubProductCategory = {MT SubProductCategory},\n\t\tCDBO_CompanyAU = {CDBO CompanyAU},\n\t\tCurrency,\n\t\tLoaddate = ToAddLoaddate,\n\t\tCDBO_AssetClass = {CDBO AssetClass},\n\t\tReconRecordMatch),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

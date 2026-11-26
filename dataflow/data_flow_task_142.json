@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -16,21 +16,16 @@
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "fpinfradeliveryimporttbl"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEnclosure as string,\n\t\t{Client Enclosure Name} as string,\n\t\t{Main Feed Circuits - Count} as double,\n\t\t{Main Feed Circuits - Billable (kW)} as double,\n\t\t{Branch Circuits - Count} as double,\n\t\t{Branch Circuits - Billable (kW)} as double,\n\t\t{All Circuits - Billing Method} as string,\n\t\t{All Circuits - Billable (kW)} as double,\n\t\t{All Circuits - Current Commit (kW)} as double,\n\t\t{Active Alarms - Low Alarm} as double,\n\t\t{Active Alarms - High Warning} as double,\n\t\t{Active Alarms - High Alarm} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tActiveAlarmsHighWarning as double,\n\t\tAllCircuitsCurrentCommitkW as double,\n\t\tUploadDate as string,\n\t\tMainFeedCircuitsBillablekW as double,\n\t\tAllCircuitsBillablekW as double,\n\t\tEnclosure as string,\n\t\tClientEnclosureName as string,\n\t\tFName as string,\n\t\tEtlUser as string,\n\t\tBranchCircuitsBillablekW as double,\n\t\tActiveAlarmsHighAlarm as double,\n\t\tMainFeedCircuitsCount as double,\n\t\tBranchCircuitsCount as double,\n\t\tAllCircuitsBillingMethod as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tActiveAlarmsHighWarning = {Active Alarms - High Warning},\n\t\tAllCircuitsCurrentCommitkW = {All Circuits - Current Commit (kW)},\n\t\tUploadDate,\n\t\tMainFeedCircuitsBillablekW = {Main Feed Circuits - Billable (kW)},\n\t\tAllCircuitsBillablekW = {All Circuits - Billable (kW)},\n\t\tEnclosure,\n\t\tClientEnclosureName = {Client Enclosure Name},\n\t\tFName,\n\t\tEtlUser,\n\t\tBranchCircuitsBillablekW = {Branch Circuits - Billable (kW)},\n\t\tActiveAlarmsHighAlarm = {Active Alarms - High Alarm},\n\t\tMainFeedCircuitsCount = {Main Feed Circuits - Count},\n\t\tBranchCircuitsCount = {Branch Circuits - Count},\n\t\tAllCircuitsBillingMethod = {All Circuits - Billing Method}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tfpinfradeliveryimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Provisioned Date} as string,\n\t\tLookup as string,\n\t\tBUSINESS_APPLICATION_WF_GUID as string,\n\t\t{App ID} as string,\n\t\tLCL_CI_TYPE_DISPLAY as string,\n\t\tNew_NGDC_Strategy as string,\n\t\tEnvironment as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tBAM_App_GUID as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tNew_NGDC_Strategy as string,\n\t\tSPM_Demand_U_CI_TYPE as string,\n\t\tProvisioned_Date as string,\n\t\tDEVICE_Environment_Short as string,\n\t\tDetail_Status_Lookup as string,\n\t\tBAM_DISTRIBUTED_APP_ID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tBAM_App_GUID = BUSINESS_APPLICATION_WF_GUID,\n\t\timportdate,\n\t\tNew_NGDC_Strategy,\n\t\tSPM_Demand_U_CI_TYPE = LCL_CI_TYPE_DISPLAY,\n\t\tProvisioned_Date = {Provisioned Date},\n\t\tDEVICE_Environment_Short = Environment,\n\t\tDetail_Status_Lookup = Lookup,\n\t\tBAM_DISTRIBUTED_APP_ID = {App ID}),\n\tpartitionFileNames:[($fpinfradeliveryimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> fpinfradeliveryimporttbl"
     }
   }
 }

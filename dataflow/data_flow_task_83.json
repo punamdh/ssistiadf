@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SPM"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -30,7 +30,7 @@
       }, {
         "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Account Number} as decimal(18,0),\n\t\t{Order Number} as string,\n\t\tIBX as string,\n\t\t{Unique Space ID} as string,\n\t\t{Order Status} as string,\n\t\t{Create Date} as date,\n\t\t{Order Closed Date} as date,\n\t\t{Customer Reference #} as string,\n\t\t{PO Number} as string,\n\t\t{Ordering Contact Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tUniqueSpaceID as string,\n\t\tPoNumber as string,\n\t\tOrderNumber as string,\n\t\tOrderingContactName as string,\n\t\tCreateDate as string,\n\t\tFName as string,\n\t\tAccountNumber as integer,\n\t\tEtlUser as string,\n\t\tOrderStatus as string,\n\t\tCustomerReference as string,\n\t\tIBX as string,\n\t\tOrderClosedDate as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tUniqueSpaceID = {Unique Space ID},\n\t\tPoNumber = {PO Number},\n\t\tOrderNumber = {Order Number},\n\t\tOrderingContactName = {Ordering Contact Name},\n\t\tCreateDate = {Create Date},\n\t\tFName,\n\t\tAccountNumber = {Account Number},\n\t\tEtlUser,\n\t\tOrderStatus = {Order Status},\n\t\tCustomerReference = {Customer Reference #},\n\t\tIBX,\n\t\tOrderClosedDate = {Order Closed Date}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTimestamp as string,\n\t\t{DEN2 Sensor_2_01 Temperature} as string,\n\t\t{DEN2 Sensor_2_01 Humidity} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Fname1 = $FileName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tFname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFname = Fname1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
     }
   }
 }

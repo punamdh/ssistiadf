@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -27,7 +27,7 @@
       }, {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBtoOTCTrade_outputfilename as string ()\n}\n\nsource(output(\n\t\tRULE_NAME as string,\n\t\tWORKFLOW_ID as decimal(38,0),\n\t\tSTATUS as string,\n\t\tPOSSIBLE_ACTION as string,\n\t\tRESULTING_STATUS as string,\n\t\tCREATE_DTE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCLYSetScritturaDocAction\nOLEDBCLYSetScritturaDocAction derive(oWORKFLOW_ID = toString(WORKFLOW_ID),\n\t\toSTATUS = STATUS,\n\t\toRESULTING_STATUS = RESULTING_STATUS,\n\t\toRULE_NAME = RULE_NAME,\n\t\toCREATE_DTE = CREATE_DTE,\n\t\toPOSSIBLE_ACTION = POSSIBLE_ACTION) ~> DataConversion\nDataConversion derive(sImpacted_Keyword = toString('DocAction')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tRule_Name as string,\n\t\tWORKFLOW_ID as string,\n\t\tImpacted_Keyword as string,\n\t\tOriginal_Status as string,\n\t\tPossible_Action as string,\n\t\tResulting_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tRule_Name = oRULE_NAME,\n\t\tWORKFLOW_ID = oWORKFLOW_ID,\n\t\tImpacted_Keyword = sImpacted_Keyword,\n\t\tOriginal_Status = oSTATUS,\n\t\tPossible_Action = oPOSSIBLE_ACTION,\n\t\tResulting_Status = oRESULTING_STATUS),\n\tpartitionFileNames:[($OLEDBtoOTCTrade_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBtoOTCTrade"
+      "script" : "parameters{\n\tOLEDBtoOTCTrade_outputfilename as string ()\n}\n\nsource(output(\n\t\tRULE_NAME as string,\n\t\tWORKFLOW_ID as decimal(38,0),\n\t\tSTATUS as string,\n\t\tPOSSIBLE_ACTION as string,\n\t\tRESULTING_STATUS as string,\n\t\tCREATE_DTE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCLYSetScritturaDocAction\nOLEDBCLYSetScritturaDocAction derive(oPOSSIBLE_ACTION = POSSIBLE_ACTION,\n\t\toWORKFLOW_ID = toString(WORKFLOW_ID),\n\t\toRESULTING_STATUS = RESULTING_STATUS,\n\t\toSTATUS = STATUS,\n\t\toRULE_NAME = RULE_NAME,\n\t\toCREATE_DTE = CREATE_DTE) ~> DataConversion\nDataConversion derive(sImpacted_Keyword = toString('DocAction')) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tRule_Name as string,\n\t\tWORKFLOW_ID as string,\n\t\tImpacted_Keyword as string,\n\t\tOriginal_Status as string,\n\t\tPossible_Action as string,\n\t\tResulting_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,batchSize: 1000,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tRule_Name = oRULE_NAME,\n\t\tWORKFLOW_ID = oWORKFLOW_ID,\n\t\tImpacted_Keyword = sImpacted_Keyword,\n\t\tOriginal_Status = oSTATUS,\n\t\tPossible_Action = oPOSSIBLE_ACTION,\n\t\tResulting_Status = oRESULTING_STATUS),\n\tpartitionFileNames:[($OLEDBtoOTCTrade_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBtoOTCTrade"
     }
   }
 }

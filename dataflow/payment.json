@@ -1,0 +1,31 @@
+{
+  "name" : "payment",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1PAAF-CNESR-1BFF"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tRunDate as timestamp (toTimestamp('9/11/2025 1:03:12 PM')),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tPaymentSequenceNumber as string,\n\t\tPaymentName as string,\n\t\tPaymentId as string,\n\t\tPaymentCurrency as string,\n\t\tPaymentAmount as decimal(26,2),\n\t\tPaymentExchangeRate as decimal(26,0),\n\t\tPaymentAmountDefaultCurrency as string,\n\t\tPaymentDueDate as string,\n\t\tPaymentCreateDate as string,\n\t\tPaymentStatus as string,\n\t\tPaymentCheckNumber as string,\n\t\tPaymentTransactionId as string,\n\t\tPaymentDescription as string,\n\t\tPaymentTypeName as string,\n\t\tPaymentTypeDescription as string,\n\t\tPaymentPaymentDate as string,\n\t\tBudget as string,\n\t\tBudgetGroup as string,\n\t\tBudgetAmount as decimal(26,2),\n\t\tBudgetStartDate as string,\n\t\tBudgetEndDate as string,\n\t\tBudgetFiscalYear as string,\n\t\tBudgetFiscalYearName as string,\n\t\tBudgetFiscalYearStartDate as string,\n\t\tBudgetFiscalYearEndDate as string,\n\t\tPaymentGLCode as string,\n\t\tPaymentGLCodeName as string,\n\t\tOrganizationName as string,\n\t\tProposalId as string,\n\t\tOrganizationTaxId as string,\n\t\tOrganizationCategory as string,\n\t\tBudgetCategory as string,\n\t\tBudgetQuantity as string,\n\t\tPaymentItemPrice as string,\n\t\tPaymentItemQuantity as string,\n\t\tPaymentTaxEligibility as string,\n\t\tPaymentMethodName as string,\n\t\tBudgetID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Snapshot_Asof_Date = $RunDate,\n\t\tSnapshot_Active_Flag = 'Y') ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tPaymentTransactionId as string,\n\t\tOrganizationName as string,\n\t\tPaymentExchangeRate as integer,\n\t\tBudgetEndDate as string,\n\t\tBudgetFiscalYearName as string,\n\t\tPaymentSequenceNumber as string,\n\t\tPaymentAmountDefaultCurrency as string,\n\t\tBudgetID as string,\n\t\tPaymentName as string,\n\t\tPaymentItemPrice as string,\n\t\tBudgetFiscalYearEndDate as string,\n\t\tPaymentCurrency as string,\n\t\tPaymentDescription as string,\n\t\tPaymentItemQuantity as string,\n\t\tPaymentAmount as integer,\n\t\tBudgetFiscalYear as string,\n\t\tBudgetAmount as integer,\n\t\tSNAPSHOT_ACTIVE_FLAG as string,\n\t\tPaymentDueDate as string,\n\t\tPaymentMethodName as string,\n\t\tBudgetCategory as string,\n\t\tBudgetStartDate as string,\n\t\tPaymentTypeName as string,\n\t\tPaymentTypeDescription as string,\n\t\tBudget as string,\n\t\tBudgetGroup as string,\n\t\tPaymentCreateDate as string,\n\t\tPaymentStatus as string,\n\t\tPaymentPaymentDate as string,\n\t\tSNAPSHOT_AS_OF_DATE as timestamp 'dd-MM-yyyy',\n\t\tBudgetQuantity as string,\n\t\tPaymentId as string,\n\t\tPaymentTaxEligibility as string,\n\t\tBudgetFiscalYearStartDate as string,\n\t\tPaymentCheckNumber as string,\n\t\tPaymentGLCode as string,\n\t\tPaymentGLCodeName as string,\n\t\tOrganizationTaxId as string,\n\t\tProposalId as string,\n\t\tOrganizationCategory as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPaymentTransactionId,\n\t\tOrganizationName,\n\t\tPaymentExchangeRate,\n\t\tBudgetEndDate,\n\t\tBudgetFiscalYearName,\n\t\tPaymentSequenceNumber,\n\t\tPaymentAmountDefaultCurrency,\n\t\tBudgetID,\n\t\tPaymentName,\n\t\tPaymentItemPrice,\n\t\tBudgetFiscalYearEndDate,\n\t\tPaymentCurrency,\n\t\tPaymentDescription,\n\t\tPaymentItemQuantity,\n\t\tPaymentAmount,\n\t\tBudgetFiscalYear,\n\t\tBudgetAmount,\n\t\tSNAPSHOT_ACTIVE_FLAG = Snapshot_Active_Flag,\n\t\tPaymentDueDate,\n\t\tPaymentMethodName,\n\t\tBudgetCategory,\n\t\tBudgetStartDate,\n\t\tPaymentTypeName,\n\t\tPaymentTypeDescription,\n\t\tBudget,\n\t\tBudgetGroup,\n\t\tPaymentCreateDate,\n\t\tPaymentStatus,\n\t\tPaymentPaymentDate,\n\t\tSNAPSHOT_AS_OF_DATE = Snapshot_Asof_Date,\n\t\tBudgetQuantity,\n\t\tPaymentId,\n\t\tPaymentTaxEligibility,\n\t\tBudgetFiscalYearStartDate,\n\t\tPaymentCheckNumber,\n\t\tPaymentGLCode,\n\t\tPaymentGLCodeName,\n\t\tOrganizationTaxId,\n\t\tProposalId,\n\t\tOrganizationCategory),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

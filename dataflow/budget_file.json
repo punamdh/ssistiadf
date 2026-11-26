@@ -1,0 +1,31 @@
+{
+  "name" : "budget_file",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1PAAF-CNESR-1BFF"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn1"
+      } ],
+      "script" : "parameters{\n\tRunDate as timestamp (toTimestamp('9/11/2025 1:03:12 PM')),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tBudgetName as string,\n\t\tBudgetGroup as string,\n\t\tBudgetStartDate as string,\n\t\tBudgetEndDate as string,\n\t\tBudgetFiscalYear as string,\n\t\tBudgetFiscalYearName as string,\n\t\tBudgetFiscalYearStartDate as string,\n\t\tBudgetFiscalYearEndDate as string,\n\t\tBudgetCurrency as string,\n\t\tBudgetAmount as decimal(18,0),\n\t\tBudgetExchangeRate as decimal(18,0),\n\t\tBudgetAmountDefaultCurrency as string,\n\t\tBudgetTotalForecastAmount as decimal(25,0),\n\t\tBudgetProcessingAmount as decimal(22,0),\n\t\tBudgetPaidAmount as decimal(18,0),\n\t\tBudgetScheduledAmount as decimal(21,0),\n\t\tBudgetPreapprovedAmount as decimal(23,0),\n\t\tBudgetRefundAmount as decimal(18,0),\n\t\tBudgetRemainingAmount as decimal(21,0),\n\t\tBudgetQuantity as string,\n\t\tBudgetCategory as string,\n\t\tBudgetID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(SnapShot_Asof_Date = $RunDate,\n\t\tSnapshot_Active_Flag = 'Y') ~> DerivedColumn1\nDerivedColumn1 sink(input(\n\t\tBudgetEndDate as string,\n\t\tBudgetFiscalYearName as string,\n\t\tBudgetProcessingAmount as integer,\n\t\tBudgetTotalForecastAmount as integer,\n\t\tSNAPSHOT_AS_OF_DATE as timestamp 'dd-MM-yyyy',\n\t\tBudgetID as string,\n\t\tBudgetScheduledAmount as integer,\n\t\tBudgetQuantity as string,\n\t\tBudgetFiscalYearEndDate as string,\n\t\tBudgetExchangeRate as integer,\n\t\tBudgetPreapprovedAmount as integer,\n\t\tBudgetFiscalYear as string,\n\t\tBudgetCurrency as string,\n\t\tBudgetFiscalYearStartDate as string,\n\t\tBudgetAmount as integer,\n\t\tBudgetRefundAmount as integer,\n\t\tSNAPSHOT_ACTIVE_FLAG as string,\n\t\tBudgetAmountDefaultCurrency as string,\n\t\tBudgetCategory as string,\n\t\tBudgetStartDate as string,\n\t\tBudgetPaidAmount as integer,\n\t\tBudgetGroup as string,\n\t\tBudgetRemainingAmount as integer,\n\t\tBudgetName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tBudgetEndDate,\n\t\tBudgetFiscalYearName,\n\t\tBudgetProcessingAmount,\n\t\tBudgetTotalForecastAmount,\n\t\tSNAPSHOT_AS_OF_DATE = SnapShot_Asof_Date,\n\t\tBudgetID,\n\t\tBudgetScheduledAmount,\n\t\tBudgetQuantity,\n\t\tBudgetFiscalYearEndDate,\n\t\tBudgetExchangeRate,\n\t\tBudgetPreapprovedAmount,\n\t\tBudgetFiscalYear,\n\t\tBudgetCurrency,\n\t\tBudgetFiscalYearStartDate,\n\t\tBudgetAmount,\n\t\tBudgetRefundAmount,\n\t\tSNAPSHOT_ACTIVE_FLAG = Snapshot_Active_Flag,\n\t\tBudgetAmountDefaultCurrency,\n\t\tBudgetCategory,\n\t\tBudgetStartDate,\n\t\tBudgetPaidAmount,\n\t\tBudgetGroup,\n\t\tBudgetRemainingAmount,\n\t\tBudgetName),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

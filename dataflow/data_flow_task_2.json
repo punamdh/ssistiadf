@@ -5,27 +5,44 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "ExcelSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Excel1",
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        }
+      }, {
+        "name" : "LookupLKPTABLE",
+        "dataset" : {
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
+        "dataset" : null,
+        "name" : "RowCountCACHESINK"
+      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "ETPPDEV"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
+      }, {
+        "name" : "DataConversion"
+      }, {
+        "name" : "RowCount0"
+      }, {
+        "name" : "Lookup"
+      }, {
+        "name" : "Lookup0"
       } ],
-      "script" : "parameters{\n\tETPPDEV_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Source File} as string,\n\t\tName as string,\n\t\t{Interval Breakdown} as string,\n\t\tDataCenter as string,\n\t\t{Parent vCenter} as string,\n\t\t{CPU - Total Physical} as double,\n\t\t{CPU - Allocated Logical} as double,\n\t\t{CPU - P95} as double,\n\t\t{CPU - Max} as double,\n\t\t{CPU - Average} as double,\n\t\t{Memory - Total} as double,\n\t\t{Memory - Allocated} as double,\n\t\t{Memory - P95} as double,\n\t\t{Memory - Max} as double,\n\t\t{Memory - Average} as double,\n\t\t{Memory - Balloon#1} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> ExcelSource\nExcelSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\t{CPU_-_Max} as double,\n\t\t{Memory_-_Max} as double,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\t{Memory_-_Balloon_1} as double,\n\t\tSource_File as string,\n\t\tInterval_Breakdown as string,\n\t\t{Memory_-_P95} as double,\n\t\t{Memory_-_Total} as double,\n\t\tName as string,\n\t\t{CPU_-_Allocated_Logical} as double,\n\t\tDataCenter as string,\n\t\tParent_vCenter as string,\n\t\t{Memory_-_Allocated} as double,\n\t\t{CPU_-_P95} as double,\n\t\t{CPU_-_Total_Physical} as double,\n\t\t{Memory_-_Average} as double,\n\t\t{CPU_-_Average} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\t{CPU_-_Max} = {CPU - Max},\n\t\t{Memory_-_Max} = {Memory - Max},\n\t\timportdate = ImportDate,\n\t\t{Memory_-_Balloon_1} = {Memory - Balloon#1},\n\t\tSource_File = {Source File},\n\t\tInterval_Breakdown = {Interval Breakdown},\n\t\t{Memory_-_P95} = {Memory - P95},\n\t\t{Memory_-_Total} = {Memory - Total},\n\t\tName,\n\t\t{CPU_-_Allocated_Logical} = {CPU - Allocated Logical},\n\t\tDataCenter,\n\t\tParent_vCenter = {Parent vCenter},\n\t\t{Memory_-_Allocated} = {Memory - Allocated},\n\t\t{CPU_-_P95} = {CPU - P95},\n\t\t{CPU_-_Total_Physical} = {CPU - Total Physical},\n\t\t{Memory_-_Average} = {Memory - Average},\n\t\t{CPU_-_Average} = {CPU - Average}),\n\tpartitionFileNames:[($ETPPDEV_outputfilename)],\n\tpartitionBy('hash', 1)) ~> ETPPDEV"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tACCT as string,\n\t\tEFFECTIVEDATE as integer,\n\t\tBATCH_CD as string,\n\t\tENTRY_CD as string,\n\t\tTRANSACTION_AMT as decimal(17,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\tsource(output(\n\t\teffectiveDate as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> LookupLKPTABLE\nOLEDBSource derive(loadDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn derive({Copy of ACCT} = ACCT,\n\t\t{Copy of BATCH_CD} = BATCH_CD,\n\t\t{Copy of EFFECTIVEDATE} = EFFECTIVEDATE,\n\t\t{Copy of ENTRY_CD} = ENTRY_CD,\n\t\t{Copy of TRANSACTION_AMT} = TRANSACTION_AMT,\n\t\t{Copy of loadDate} = loadDate) ~> DataConversion\nDerivedColumn aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDataConversion,LookupLKPTABLE lookup({Copy of EFFECTIVEDATE} == LookupLKPTABLE@effectiveDate,\n\tmultiple: false,\n\tpickup: 'any',\n\tbroadcast: 'none')~> Lookup\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK\nLookup filter(!isMatch()) ~> Lookup0\nLookup0 sink(input(\n\t\tentryCd as string,\n\t\ttransactionAmt as integer,\n\t\tbatchCd as string,\n\t\teffectiveDate as integer,\n\t\tacct as string,\n\t\tloadDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tentryCd = {Copy of ENTRY_CD},\n\t\ttransactionAmt = {Copy of TRANSACTION_AMT},\n\t\tbatchCd = {Copy of BATCH_CD},\n\t\teffectiveDate = {Copy of EFFECTIVEDATE},\n\t\tacct = {Copy of ACCT},\n\t\tloadDate = {Copy of loadDate}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

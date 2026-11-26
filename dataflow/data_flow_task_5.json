@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -22,10 +22,8 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp,\n\t\tWF_GUID as string,\n\t\tSYS_CLASS_NAME as string,\n\t\tSYS_CLASS_DESCRIPTION as string,\n\t\tCORRELATION_ID as string,\n\t\tSYS_CREATED_ON as timestamp,\n\t\tSHORT_DESCRIPTION as string,\n\t\tIP_ADDRESS as string,\n\t\tNAME as string,\n\t\tOPERATIONAL_STATUS as string,\n\t\tOPERATIONAL_STATUS_DESCRIPTION as string,\n\t\tOPERATIONAL_STATUS_GROUP as string,\n\t\tSYS_UPDATED_ON as timestamp,\n\t\tSYS_CREATED_BY as string,\n\t\tSYS_UPDATED_BY as string,\n\t\tMANAGED_BY_GROUP_GUID as string,\n\t\tMANAGED_BY_GROUP_NAME as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tshort_description as string,\n\t\toperational_status_description as string,\n\t\toperational_status as string,\n\t\toperational_status_group as string,\n\t\twf_guid as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tip_address as string,\n\t\tsys_updated_on as timestamp 'dd-MM-yyyy',\n\t\ttodsh_business_effective_date as timestamp 'dd-MM-yyyy',\n\t\tsys_class_name as string,\n\t\tmanaged_by_group_guid as string,\n\t\tsys_updated_by as string,\n\t\tsys_created_on as timestamp 'dd-MM-yyyy',\n\t\tmanaged_by_group_name as string,\n\t\tname as string,\n\t\tcorrelation_id as string,\n\t\tsys_class_description as string,\n\t\tsys_created_by as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tshort_description = SHORT_DESCRIPTION,\n\t\toperational_status_description = OPERATIONAL_STATUS_DESCRIPTION,\n\t\toperational_status = OPERATIONAL_STATUS,\n\t\toperational_status_group = OPERATIONAL_STATUS_GROUP,\n\t\twf_guid = WF_GUID,\n\t\timportdate,\n\t\tip_address = IP_ADDRESS,\n\t\tsys_updated_on = SYS_UPDATED_ON,\n\t\ttodsh_business_effective_date = TODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tsys_class_name = SYS_CLASS_NAME,\n\t\tmanaged_by_group_guid = MANAGED_BY_GROUP_GUID,\n\t\tsys_updated_by = SYS_UPDATED_BY,\n\t\tsys_created_on = SYS_CREATED_ON,\n\t\tmanaged_by_group_name = MANAGED_BY_GROUP_NAME,\n\t\tname = NAME,\n\t\tcorrelation_id = CORRELATION_ID,\n\t\tsys_class_description = SYS_CLASS_DESCRIPTION,\n\t\tsys_created_by = SYS_CREATED_BY),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tPRODUCT_TYPE as string,\n\t\tTRADE_DATE as string,\n\t\tTRADE_ID as integer,\n\t\tPRODUCT_SUB_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource sink(input(\n\t\tPRODUCT_TYPE as string,\n\t\tTrade_Date as timestamp 'dd-MM-yyyy',\n\t\tTRADE_ID as integer,\n\t\tPRODUCT_SUB_TYPE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tPRODUCT_TYPE,\n\t\tTrade_Date = TRADE_DATE,\n\t\tTRADE_ID,\n\t\tPRODUCT_SUB_TYPE),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

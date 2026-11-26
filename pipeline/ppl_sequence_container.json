@@ -33,12 +33,12 @@
           "typeProperties" : {
             "variableName" : "FilePath",
             "value" : {
-              "value" : "@concat('\\\\ncwcnhf501.wellsfargo.com\\DRSUAT\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\OptionsBreaks', item().name)",
+              "value" : "@concat('\\\\ncwcnhf501.wellsfargo.com\\DRSUAT\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks', item().name)",
               "type" : "Expression"
             }
           }
         }, {
-          "name" : "ST_Execute_SQL_Task0_0",
+          "name" : "ST_File_Check_0",
           "type" : "Script",
           "policy" : null,
           "dependsOn" : [ {
@@ -56,14 +56,14 @@
             "scripts" : [ {
               "type" : "Query",
               "text" : {
-                "value" : "Select COUNT(FileName) from ReconControl.[dbo].[tbl_Broadridge_StreetsideActivity_OptionsBreaks]\nwhere FileName =  substring(concat(pipeline().parameters.BasePath, '/', @item().name),108,25)",
+                "value" : "select \ncase when \nsubstring(concat(pipeline().parameters.BasePath, '/', @item().name),146,8)  < concat(pipeline().parameters.BasePath, '/', @item().name)\nthen 0\nelse\n1\nend as filecheck",
                 "type" : "Expression"
               }
             } ],
             "scriptBlockExecutionTimeout" : null
           }
         }, {
-          "name" : "SETVAR_iFileExists",
+          "name" : "SETVAR_FileDateCheck",
           "type" : "SetVariable",
           "policy" : {
             "timeout" : "00:30:00",
@@ -73,22 +73,22 @@
             "secureInput" : false
           },
           "dependsOn" : [ {
-            "activity" : "ST_Execute_SQL_Task0_0",
+            "activity" : "ST_File_Check_0",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "state" : null,
           "description" : null,
           "onInactiveMarkAs" : null,
           "typeProperties" : {
-            "variableName" : "iFileExists",
-            "value" : "@int(activity('ST_Execute_SQL_Task0_0').output.resultSets[0].rows[0].0)"
+            "variableName" : "FileDateCheck",
+            "value" : "@int(activity('ST_File_Check_0').output.resultSets[0].rows[0].filecheck)"
           }
         }, {
-          "name" : "EP_End_-_File_alreday_Exist_0_0",
+          "name" : "EP_Execute_SQL_Task_0_0",
           "type" : "ExecutePipeline",
           "policy" : null,
           "dependsOn" : [ {
-            "activity" : "SETVAR_iFileExists",
+            "activity" : "SETVAR_FileDateCheck",
             "dependencyConditions" : [ "Succeeded" ]
           } ],
           "userProperties" : null,
@@ -103,32 +103,12 @@
             "waitOnCompletion" : true,
             "parameters" : { }
           }
-        }, {
-          "name" : "EP_START_-_Call_Log_table_entry_0_0",
-          "type" : "ExecutePipeline",
-          "policy" : null,
-          "dependsOn" : [ {
-            "activity" : "SETVAR_iFileExists",
-            "dependencyConditions" : [ "Succeeded" ]
-          } ],
-          "userProperties" : null,
-          "state" : null,
-          "description" : null,
-          "onInactiveMarkAs" : null,
-          "typeProperties" : {
-            "pipeline" : {
-              "referenceName" : "ppl_load_files_0_2",
-              "type" : "PipelineReference"
-            },
-            "waitOnCompletion" : true,
-            "parameters" : { }
-          }
         } ],
         "isSequential" : true
       }
     } ],
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "parameters" : {
       "BasePath" : {
@@ -139,11 +119,11 @@
     "variables" : {
       "FilePath" : {
         "type" : "String",
-        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\OptionsBreaks\\"
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\"
       },
       "sProcessName" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       },
       "sFileName" : {
         "type" : "String"
@@ -152,13 +132,21 @@
         "type" : "String",
         "defaultValue" : "WFSOpsReportingAndSolutions@wellsfargo.com"
       },
+      "FirstDayOfYear" : {
+        "type" : "String",
+        "defaultValue" : "01-01-25"
+      },
       "sComment" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
+      },
+      "FileDateCheck" : {
+        "type" : "String",
+        "defaultValue" : "0"
       },
       "FileToSearch" : {
         "type" : "String",
-        "defaultValue" : "Street_Options 04-01-2024.csv"
+        "defaultValue" : "Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "sRowCount" : {
         "type" : "String",
@@ -167,6 +155,10 @@
       "sTO" : {
         "type" : "String",
         "defaultValue" : "wfsrs@wellsfargo.com"
+      },
+      "FilePathBuySellBreaks" : {
+        "type" : "String",
+        "defaultValue" : "\\\\ncwcnhf501.wellsfargo.com\\DRSDev\\WFSOpsKRIReporting\\DropZone\\Broadridge\\StreetsideActivity\\BuyAndSellBreaks\\Copy of EQUITY BUY and SELL BREAKS 01-28-25.csv"
       },
       "iFileExists" : {
         "type" : "String",
@@ -181,7 +173,7 @@
       },
       "sEnvironment" : {
         "type" : "String",
-        "defaultValue" : "UAT"
+        "defaultValue" : "DEV"
       },
       "FileExistsFlag" : {
         "type" : "String",
@@ -197,7 +189,7 @@
       },
       "sMessage" : {
         "type" : "String",
-        "defaultValue" : "Broadridge_StreetsideActivity_OptionsBreaks_Daily_ETL"
+        "defaultValue" : "Broadridge_StreetSideActivity_BuySellBreaks_Daily_ETL"
       }
     }
   }

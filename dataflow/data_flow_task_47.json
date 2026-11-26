@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SpFiles/DARE_NAS_SpFiles"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -22,8 +22,10 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tStatus as string,\n\t\t{Process Name} as string,\n\t\tModified as date,\n\t\t{Process ID} as string,\n\t\t{BPM Process Link} as string,\n\t\t{Control ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tStatus as string,\n\t\tProcessName as string,\n\t\tModified as timestamp 'dd-MM-yyyy',\n\t\tProcessID as string,\n\t\tBPMProcessLink as string,\n\t\tControlID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tProcessName = {Process Name},\n\t\tModified,\n\t\tProcessID = {Process ID},\n\t\tBPMProcessLink = {BPM Process Link},\n\t\tControlID = {Control ID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Site Alias} as string,\n\t\t{Asset Alias} as string,\n\t\tAsset_ID__c as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tAssetID = left(trim(replace(Asset_ID__c, toString('''), toString(''))), 6)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tETLUser as string,\n\t\tsitealias as string,\n\t\tassetalias as string,\n\t\tAssetID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tETLUser,\n\t\tsitealias = {Site Alias},\n\t\tassetalias = {Asset Alias},\n\t\tAssetID),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

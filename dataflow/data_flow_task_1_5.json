@@ -5,13 +5,13 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/ETPP_5485/ETPP"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "ORACLESOURCEQuery",
+        "name" : "FlatFileSource",
         "dataset" : {
-          "referenceName" : "genric_parquet",
+          "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
@@ -20,12 +20,12 @@
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "Importtable"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "Addimportdatecolumn"
+        "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tImporttable_outputfilename as string ()\n}\n\nsource(output(\n\t\tREQUEST_NUMBER as string,\n\t\tCHANGE_TASK_NUMBER as string,\n\t\tTASK_PRIORITY_DESCRIPTION as string,\n\t\tTASK_CLOSED_AT as timestamp,\n\t\tTASK_CLOSED_BY as string,\n\t\tCI_ITEM_NAME as string,\n\t\tCI_ITEM_GUID as string,\n\t\tSTART_DATE as timestamp,\n\t\tEND_DATE as timestamp,\n\t\tASSIGNMENT_GROUP_NAME as string,\n\t\tASSIGNED_TO_NAME as string,\n\t\tCHANGE_TASK_TYPE as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp,\n\t\tSUB_TYPE_CODE as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ORACLESOURCEQuery\nORACLESOURCEQuery derive(ImportDate = currentTimestamp()) ~> Addimportdatecolumn\nAddimportdatecolumn sink(input(\n\t\tci_item_name as string,\n\t\tci_item_guid as string,\n\t\tend_date as date 'dd-MM-yyyy',\n\t\ttask_closed_at as timestamp 'dd-MM-yyyy',\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\ttask_priority_description as string,\n\t\ttodsh_business_effective_date as date 'dd-MM-yyyy',\n\t\tassignment_group_name as string,\n\t\trequest_number as string,\n\t\tsub_type_code as string,\n\t\tchange_task_number as string,\n\t\tchange_task_type as string,\n\t\tassigned_to_name as string,\n\t\ttask_closed_by as string,\n\t\tstart_date as date 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tci_item_name = CI_ITEM_NAME,\n\t\tci_item_guid = CI_ITEM_GUID,\n\t\tend_date = END_DATE,\n\t\ttask_closed_at = TASK_CLOSED_AT,\n\t\timportdate = ImportDate,\n\t\ttask_priority_description = TASK_PRIORITY_DESCRIPTION,\n\t\ttodsh_business_effective_date = TODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tassignment_group_name = ASSIGNMENT_GROUP_NAME,\n\t\trequest_number = REQUEST_NUMBER,\n\t\tsub_type_code = SUB_TYPE_CODE,\n\t\tchange_task_number = CHANGE_TASK_NUMBER,\n\t\tchange_task_type = CHANGE_TASK_TYPE,\n\t\tassigned_to_name = ASSIGNED_TO_NAME,\n\t\ttask_closed_by = TASK_CLOSED_BY,\n\t\tstart_date = START_DATE),\n\tpartitionFileNames:[($Importtable_outputfilename)],\n\tpartitionBy('hash', 1)) ~> Importtable"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tAppId as string,\n\t\tAppName as string,\n\t\tCloudAppId as string,\n\t\tContainerId as string,\n\t\tFoundation as string,\n\t\tOrg as string,\n\t\tSpace as string,\n\t\tType as string,\n\t\tDepEnv as string,\n\t\tDiegoIp as string,\n\t\tInstance as string,\n\t\tMemoryPercentage as string,\n\t\t{TotalMemory(GB)} as string,\n\t\t{UsedMemory(GB)} as string,\n\t\tDiskPercentage as string,\n\t\t{TotalDisk(GB)} as string,\n\t\t{UsedDisk(GB)} as string,\n\t\tCpuPercentage as string,\n\t\tLob as string,\n\t\t{Technical Manager} as string,\n\t\t{Leadership Level1} as string,\n\t\t{Leadership Level2} as string,\n\t\t{Leadership Level3} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(ImportDate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tSpace as string,\n\t\tImportDate as timestamp 'dd-MM-yyyy',\n\t\tOrg as string,\n\t\tInstance as string,\n\t\tCloudAppId as string,\n\t\tTotalMemory_GB_ as string,\n\t\tCpuPercentage as string,\n\t\tTotalDisk_GB_ as string,\n\t\tAppName as string,\n\t\tType as string,\n\t\tDepEnv as string,\n\t\tLeadership_Level3 as string,\n\t\tLeadership_Level2 as string,\n\t\tAppId as string,\n\t\tContainerId as string,\n\t\tTechnical_Manager as string,\n\t\tMemoryPercentage as string,\n\t\tFoundation as string,\n\t\tDiegoIp as string,\n\t\tDiskPercentage as string,\n\t\tLeadership_Level1 as string,\n\t\tLob as string,\n\t\tUsedMemory_GB_ as string,\n\t\tUsedDisk_GB_ as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tSpace,\n\t\tImportDate,\n\t\tOrg,\n\t\tInstance,\n\t\tCloudAppId,\n\t\tTotalMemory_GB_ = {TotalMemory(GB)},\n\t\tCpuPercentage,\n\t\tTotalDisk_GB_ = {TotalDisk(GB)},\n\t\tAppName,\n\t\tType,\n\t\tDepEnv,\n\t\tLeadership_Level3 = {Leadership Level3},\n\t\tLeadership_Level2 = {Leadership Level2},\n\t\tAppId,\n\t\tContainerId,\n\t\tTechnical_Manager = {Technical Manager},\n\t\tMemoryPercentage,\n\t\tFoundation,\n\t\tDiegoIp,\n\t\tDiskPercentage,\n\t\tLeadership_Level1 = {Leadership Level1},\n\t\tLob,\n\t\tUsedMemory_GB_ = {UsedMemory(GB)},\n\t\tUsedDisk_GB_ = {UsedDisk(GB)}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

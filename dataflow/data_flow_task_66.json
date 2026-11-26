@@ -5,32 +5,27 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource1",
+        "name" : "FlatFileSource",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCount1CACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination1"
+        "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn1"
-      }, {
-        "name" : "RowCount10"
+        "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tpower as string,\n\t\t{date time} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 derive(Fname1 = $FileName) ~> DerivedColumn1\nFlatFileSource1 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount10\nDerivedColumn1 sink(input(\n\t\tFname as string,\n\t\tPower as double,\n\t\tDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFname = Fname1,\n\t\tPower = power,\n\t\tDate = {date time}),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nRowCount10 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCount1CACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Group Account ID} as string,\n\t\t{Account ID (AD)} as string,\n\t\t{Display Name (AD)} as string,\n\t\t{Email (AD)} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tAccountID as string,\n\t\tEmail as string,\n\t\tDisplayName as string,\n\t\tGroupAccountID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tAccountID = {Account ID (AD)},\n\t\tEmail = {Email (AD)},\n\t\tDisplayName = {Display Name (AD)},\n\t\tGroupAccountID = {Group Account ID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

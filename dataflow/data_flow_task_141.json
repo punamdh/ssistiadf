@@ -5,32 +5,27 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "ChangeData",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination"
+        "name" : "flightplanmigrationsnowchangedataimporttbl"
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tContact as string,\n\t\t{Contact Type} as string,\n\t\t{Access Request Id} as string,\n\t\tStatus as string,\n\t\tAccessibility as string,\n\t\t{Start Date} as timestamp,\n\t\t{End Date} as timestamp,\n\t\tRequestor as string,\n\t\t{Request Date} as timestamp,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tStatus as string,\n\t\tUploadDate as string,\n\t\tContactType as string,\n\t\tAccessRequestId as string,\n\t\tAccessibility as string,\n\t\tEndDate as timestamp 'dd-MM-yyyy',\n\t\tFName as string,\n\t\tContact as string,\n\t\tStartDate as timestamp 'dd-MM-yyyy',\n\t\tEtlUser as string,\n\t\tRequestDate as timestamp 'dd-MM-yyyy',\n\t\tRequestor as string,\n\t\tNotes as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tStatus,\n\t\tUploadDate,\n\t\tContactType = {Contact Type},\n\t\tAccessRequestId = {Access Request Id},\n\t\tAccessibility,\n\t\tEndDate = {End Date},\n\t\tFName,\n\t\tContact,\n\t\tStartDate = {Start Date},\n\t\tEtlUser,\n\t\tRequestDate = {Request Date},\n\t\tRequestor,\n\t\tNotes),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tflightplanmigrationsnowchangedataimporttbl_outputfilename as string ()\n}\n\nsource(output(\n\t\t{App ID} as string,\n\t\t{Application Name} as string,\n\t\tCIO as string,\n\t\t{NGDC Comp Type} as string,\n\t\t{Component Migrate By} as string,\n\t\t{App Migration Date} as string,\n\t\tCR as string,\n\t\t{START DATE} as string,\n\t\tSTATUS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> ChangeData\nChangeData derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tApp_ID as string,\n\t\tSTATUS as string,\n\t\tApplication_Name as string,\n\t\tComponent_Migrate_By as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tCIO as string,\n\t\tNGDC_Comp_Type as string,\n\t\tSTART_DATE as string,\n\t\tApp_Migration_Date as string,\n\t\tCR as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tApp_ID = {App ID},\n\t\tSTATUS,\n\t\tApplication_Name = {Application Name},\n\t\tComponent_Migrate_By = {Component Migrate By},\n\t\timportdate,\n\t\tCIO,\n\t\tNGDC_Comp_Type = {NGDC Comp Type},\n\t\tSTART_DATE = {START DATE},\n\t\tApp_Migration_Date = {App Migration Date},\n\t\tCR),\n\tpartitionFileNames:[($flightplanmigrationsnowchangedataimporttbl_outputfilename)],\n\tpartitionBy('hash', 1)) ~> flightplanmigrationsnowchangedataimporttbl"
     }
   }
 }

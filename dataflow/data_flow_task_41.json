@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_Gen"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Group Account ID} as string,\n\t\t{Account ID (AD)} as string,\n\t\t{Display Name (AD)} as string,\n\t\t{Email (AD)} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(UploadDate = currentTimestamp(),\n\t\tETLUser = $userName) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tUploadDate as date 'dd-MM-yyyy',\n\t\tAccountID as string,\n\t\tEmail as string,\n\t\tDisplayName as string,\n\t\tGroupAccountID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tAccountID = {Account ID (AD)},\n\t\tEmail = {Email (AD)},\n\t\tDisplayName = {Display Name (AD)},\n\t\tGroupAccountID = {Group Account ID}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tDATE_ENTERED as string,\n\t\tCASE_NUMBER as string,\n\t\tWORKTYPE as string,\n\t\tAMOUNT as string,\n\t\tINVESTIGATOR_NAME as string,\n\t\tERROR_CATEGORY as string,\n\t\tERROR_TYPE as string,\n\t\tINPUT_OPERATOR as string,\n\t\tREPAIR_REJECT as string,\n\t\tVERIFICATION_COMMENTS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Load_Date = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tERROR_TYPE as string,\n\t\tINPUT_OPERATOR as string,\n\t\tDATE_ENTERED as string,\n\t\tWORKTYPE as string,\n\t\tINVESTIGATOR_NAME as string,\n\t\tCASE_NUMBER as string,\n\t\tAMOUNT as string,\n\t\tREPAIR_REJECT as string,\n\t\tERROR_CATEGORY as string,\n\t\tLoad_Date as date 'dd-MM-yyyy',\n\t\tVERIFICATION_COMMENTS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tERROR_TYPE,\n\t\tINPUT_OPERATOR,\n\t\tDATE_ENTERED,\n\t\tWORKTYPE,\n\t\tINVESTIGATOR_NAME,\n\t\tCASE_NUMBER,\n\t\tAMOUNT,\n\t\tREPAIR_REJECT,\n\t\tERROR_CATEGORY,\n\t\tLoad_Date,\n\t\tVERIFICATION_COMMENTS),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

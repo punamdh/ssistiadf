@@ -5,20 +5,17 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/ETPP"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -27,10 +24,8 @@
       } ],
       "transformations" : [ {
         "name" : "DerivedColumn"
-      }, {
-        "name" : "RowCount0"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tEnclosure as string,\n\t\t{Period Start} as date,\n\t\t{Temperature - MAX (F)} as double,\n\t\t{Temperature - MIN (F)} as double,\n\t\t{Temperature - AVG (F)} as double,\n\t\t{Temperature - MAX ROC (F)} as double,\n\t\t{Humidity - MAX (%)} as double,\n\t\t{Humidity - MIN (%)} as double,\n\t\t{Humidity - AVG (%)} as double,\n\t\t{Humidity - MAX ROC (%)} as double\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tUploadDate as string,\n\t\tTemperatureMIN as double,\n\t\tTemperatureAVG as double,\n\t\tHumidityMAXROC as double,\n\t\tPeriodStart as string,\n\t\tHumidityMIN as double,\n\t\tHumidityAVG as double,\n\t\tTemperatureMAXROC as double,\n\t\tHumidityMAX as double,\n\t\tEnclosure as string,\n\t\tTemperatureMAX as double,\n\t\tFName as string,\n\t\tEtlUser as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tUploadDate,\n\t\tTemperatureMIN = {Temperature - MIN (F)},\n\t\tTemperatureAVG = {Temperature - AVG (F)},\n\t\tHumidityMAXROC = {Humidity - MAX ROC (%)},\n\t\tPeriodStart = {Period Start},\n\t\tHumidityMIN = {Humidity - MIN (%)},\n\t\tHumidityAVG = {Humidity - AVG (%)},\n\t\tTemperatureMAXROC = {Temperature - MAX ROC (F)},\n\t\tHumidityMAX = {Humidity - MAX (%)},\n\t\tEnclosure,\n\t\tTemperatureMAX = {Temperature - MAX (F)},\n\t\tFName,\n\t\tEtlUser),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVIRTUAL_WF_GUID as string,\n\t\tVIRTUAL_HOST_NAME as string,\n\t\tVIRTUAL_HOST_SYS_CLASS_NAME as string,\n\t\tPHYSICAL_HOST_WF_GUID as string,\n\t\tPHYSICAL_HOST_NAME as string,\n\t\tPHYSICAL_HOST_SYS_CLASS_NAME as string,\n\t\tPHYSICAL_HOST_CPUS as string,\n\t\tPHYSICAL_HOST_CORES as string,\n\t\tCLUSTER_WF_GUID as string,\n\t\tCLUSTER_NAME as string,\n\t\tCLUSTER_SYS_CLASS_NAME as string,\n\t\tCLUSTER_STATUS as string,\n\t\tRELATIONSHIP_DATE as timestamp,\n\t\tCLUSTER_CPUS as string,\n\t\tCLUSTER_CORES as string,\n\t\tTODSH_BUSINESS_EFFECTIVE_DATE as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(importdate = currentTimestamp()) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tcluster_name as string,\n\t\tcluster_sys_class_name as string,\n\t\tphysical_host_cpus as string,\n\t\timportdate as timestamp 'dd-MM-yyyy',\n\t\tcluster_wf_guid as string,\n\t\tphysical_host_sys_class_name as string,\n\t\tcluster_cores as string,\n\t\tphysical_host_wf_guid as string,\n\t\ttodsh_business_effective_date as timestamp 'dd-MM-yyyy',\n\t\tvirtual_host_name as string,\n\t\tcluster_status as string,\n\t\tphysical_host_name as string,\n\t\tvirtual_host_sys_class_name as string,\n\t\trelationship_date as timestamp 'dd-MM-yyyy',\n\t\tvirtual_wf_guid as string,\n\t\tcluster_cpus as string,\n\t\tphysical_host_cores as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tcluster_name = CLUSTER_NAME,\n\t\tcluster_sys_class_name = CLUSTER_SYS_CLASS_NAME,\n\t\tphysical_host_cpus = PHYSICAL_HOST_CPUS,\n\t\timportdate,\n\t\tcluster_wf_guid = CLUSTER_WF_GUID,\n\t\tphysical_host_sys_class_name = PHYSICAL_HOST_SYS_CLASS_NAME,\n\t\tcluster_cores = CLUSTER_CORES,\n\t\tphysical_host_wf_guid = PHYSICAL_HOST_WF_GUID,\n\t\ttodsh_business_effective_date = TODSH_BUSINESS_EFFECTIVE_DATE,\n\t\tvirtual_host_name = VIRTUAL_HOST_NAME,\n\t\tcluster_status = CLUSTER_STATUS,\n\t\tphysical_host_name = PHYSICAL_HOST_NAME,\n\t\tvirtual_host_sys_class_name = VIRTUAL_HOST_SYS_CLASS_NAME,\n\t\trelationship_date = RELATIONSHIP_DATE,\n\t\tvirtual_wf_guid = VIRTUAL_WF_GUID,\n\t\tcluster_cpus = CLUSTER_CPUS,\n\t\tphysical_host_cores = PHYSICAL_HOST_CORES),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

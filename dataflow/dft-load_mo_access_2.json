@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/1EQS_5897/1EQS"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1EQS"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -25,7 +25,7 @@
       "transformations" : [ {
         "name" : "DataConversion"
       } ],
-      "script" : "parameters{\n\ttoOTCTRADEAUDITING_outputfilename as string ()\n}\n\nsource(output(\n\t\tGROUP_NAME as string,\n\t\tTRADE_STATUS as string,\n\t\tTRADE_ACTION as string,\n\t\tCREATE_DTE as timestamp,\n\t\tGROUP_ASSIGNED as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCalypso\nOLEDBCalypso derive(oTRADE_ACTION = TRADE_ACTION,\n\t\toTRADE_STATUS = TRADE_STATUS,\n\t\toCREATE_DTE = CREATE_DTE,\n\t\toGROUP_ASSIGNED = GROUP_ASSIGNED,\n\t\toGROUP_NAME = GROUP_NAME) ~> DataConversion\nDataConversion sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tGroup_Assigned as string,\n\t\tAudit_Action as string,\n\t\tGroup_Name as string,\n\t\tOriginal_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tGroup_Assigned = oGROUP_ASSIGNED,\n\t\tAudit_Action = oTRADE_ACTION,\n\t\tGroup_Name = oGROUP_NAME,\n\t\tOriginal_Status = oTRADE_STATUS),\n\tpartitionFileNames:[($toOTCTRADEAUDITING_outputfilename)],\n\tpartitionBy('hash', 1)) ~> toOTCTRADEAUDITING"
+      "script" : "parameters{\n\ttoOTCTRADEAUDITING_outputfilename as string ()\n}\n\nsource(output(\n\t\tGROUP_NAME as string,\n\t\tTRADE_STATUS as string,\n\t\tTRADE_ACTION as string,\n\t\tCREATE_DTE as timestamp,\n\t\tGROUP_ASSIGNED as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBCalypso\nOLEDBCalypso derive(oGROUP_ASSIGNED = GROUP_ASSIGNED,\n\t\toTRADE_ACTION = TRADE_ACTION,\n\t\toGROUP_NAME = GROUP_NAME,\n\t\toCREATE_DTE = CREATE_DTE,\n\t\toTRADE_STATUS = TRADE_STATUS) ~> DataConversion\nDataConversion sink(input(\n\t\tCreate_Dte as timestamp 'dd-MM-yyyy',\n\t\tGroup_Assigned as string,\n\t\tAudit_Action as string,\n\t\tGroup_Name as string,\n\t\tOriginal_Status as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCreate_Dte = oCREATE_DTE,\n\t\tGroup_Assigned = oGROUP_ASSIGNED,\n\t\tAudit_Action = oTRADE_ACTION,\n\t\tGroup_Name = oGROUP_NAME,\n\t\tOriginal_Status = oTRADE_STATUS),\n\tpartitionFileNames:[($toOTCTRADEAUDITING_outputfilename)],\n\tpartitionBy('hash', 1)) ~> toOTCTRADEAUDITING"
     }
   }
 }

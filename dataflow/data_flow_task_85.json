@@ -5,11 +5,11 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SPM"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "FlatFileSource1",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
@@ -17,7 +17,7 @@
       } ],
       "sinks" : [ {
         "dataset" : null,
-        "name" : "RowCountCACHESINK"
+        "name" : "RowCount1CACHESINK"
       }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
@@ -26,11 +26,11 @@
         "name" : "OLEDBDestination"
       } ],
       "transformations" : [ {
-        "name" : "DerivedColumn"
+        "name" : "DerivedColumn1"
       }, {
-        "name" : "RowCount0"
+        "name" : "RowCount10"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tLocation as string,\n\t\t{Business Service} as string,\n\t\tNumber as string,\n\t\tOpened as date,\n\t\t{Short description} as string,\n\t\tPriority as string,\n\t\tState as string,\n\t\tDescription as string,\n\t\t{Resolution code} as string,\n\t\t{Resolution   RFO Notes} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tOpened as timestamp 'dd-MM-yyyy',\n\t\tUploadDate as string,\n\t\tDescription as string,\n\t\tShortdescription as string,\n\t\tPriority as string,\n\t\tResolutioncode as string,\n\t\tFName as string,\n\t\tEtlUser as string,\n\t\tBusinessService as string,\n\t\tNumber as string,\n\t\tState as string,\n\t\tResolutionRFONotes as string,\n\t\tLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOpened,\n\t\tUploadDate,\n\t\tDescription,\n\t\tShortdescription = {Short description},\n\t\tPriority,\n\t\tResolutioncode = {Resolution code},\n\t\tFName,\n\t\tEtlUser,\n\t\tBusinessService = {Business Service},\n\t\tNumber,\n\t\tState,\n\t\tResolutionRFONotes = {Resolution   RFO Notes},\n\t\tLocation),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tTimestamp as string,\n\t\t{DFW5 Sensors_2_13 RackTemp} as string,\n\t\t{DFW5 Sensors_2_14 RackTemp} as string,\n\t\t{DFW5 Sensors_3_22 RackTemp} as string,\n\t\t{DFW5 Sensors_2_14 Rack} as string,\n\t\t{DFW5 Sensors_2_13 Rack} as string,\n\t\t{DFW5 Sensors_3_22 Rack} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 derive(Fname1 = $FileName) ~> DerivedColumn1\nFlatFileSource1 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount10\nDerivedColumn1 sink(input(\n\t\tFname as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFname = Fname1),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount10 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCount1CACHESINK"
     }
   }
 }

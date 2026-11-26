@@ -5,32 +5,25 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_SpFiles"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource1",
+        "name" : "FlatFileSource",
         "dataset" : {
           "referenceName" : "Generic_File_SRC",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCount1CACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         },
-        "name" : "OLEDBDestination1"
+        "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn1"
-      }, {
-        "name" : "RowCount10"
-      } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination1_outputfilename as string ()\n}\n\nsource(output(\n\t\tpower as string,\n\t\t{date time} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource1\nFlatFileSource1 derive(Fname1 = $FileName) ~> DerivedColumn1\nFlatFileSource1 aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount10\nDerivedColumn1 sink(input(\n\t\tFname as string,\n\t\tPower as double,\n\t\tDate as timestamp 'dd-MM-yyyy'\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tFname = Fname1,\n\t\tPower = power,\n\t\tDate = {date time}),\n\tpartitionFileNames:[($OLEDBDestination1_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination1\nRowCount10 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCount1CACHESINK"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tOwner as string,\n\t\tModified as string,\n\t\t{Created By} as string,\n\t\t{SME Groups} as string,\n\t\t{Team Page} as string,\n\t\t{Next Review Date} as string,\n\t\t{Last Approved Date} as timestamp,\n\t\tGrouping as string,\n\t\t{Review Frequency} as string,\n\t\tName as string,\n\t\tCreated as timestamp,\n\t\t{SHRP Control Procedure} as string,\n\t\t{Certification Jira Ticket Number} as string,\n\t\t{iGrafx Process} as string,\n\t\t{EBPM Managed} as string,\n\t\t{Engineering Code} as string,\n\t\t{Control ID} as string,\n\t\tNotes as string,\n\t\t{Process Manager} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tOwner as string,\n\t\tModified as timestamp 'dd-MM-yyyy',\n\t\tCreatedBy as string,\n\t\tSMEGroups as string,\n\t\tTeamPage as string,\n\t\tNextReviewDate as string,\n\t\tLastApprovedDate as string,\n\t\tGrouping as string,\n\t\tReviewFrequency as string,\n\t\tName as string,\n\t\tCreated as timestamp 'dd-MM-yyyy',\n\t\tSHRPControlProcedure as string,\n\t\tCertificationJiraTicketNumber as string,\n\t\tiGrafxProcess as string,\n\t\tEBPMManaged as string,\n\t\tEngineeringCode as string,\n\t\tControlID as string,\n\t\tNotes as string,\n\t\tProcessManager as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tOwner,\n\t\tModified,\n\t\tCreatedBy = {Created By},\n\t\tSMEGroups = {SME Groups},\n\t\tTeamPage = {Team Page},\n\t\tNextReviewDate = {Next Review Date},\n\t\tLastApprovedDate = {Last Approved Date},\n\t\tGrouping,\n\t\tReviewFrequency = {Review Frequency},\n\t\tName,\n\t\tCreated,\n\t\tSHRPControlProcedure = {SHRP Control Procedure},\n\t\tCertificationJiraTicketNumber = {Certification Jira Ticket Number},\n\t\tiGrafxProcess = {iGrafx Process},\n\t\tEBPMManaged = {EBPM Managed},\n\t\tEngineeringCode = {Engineering Code},\n\t\tControlID = {Control ID},\n\t\tNotes,\n\t\tProcessManager = {Process Manager}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

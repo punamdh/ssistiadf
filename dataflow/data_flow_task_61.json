@@ -5,7 +5,7 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SpFiles"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_NAS_Gen"
     },
     "typeProperties" : {
       "sources" : [ {
@@ -22,10 +22,8 @@
         },
         "name" : "OLEDBDestination"
       } ],
-      "transformations" : [ {
-        "name" : "DerivedColumn"
-      } ],
-      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\tSiteName as string,\n\t\tID as string,\n\t\tName as string,\n\t\tAssignee as string,\n\t\tDiscovered as string,\n\t\tCreated as string,\n\t\tOccurred as date,\n\t\tDescription as string,\n\t\tReporter as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(uploaddate = currentTimestamp(),\n\t\tETLUser = $userName,\n\t\tQty = iif((isNull(ID) || length(trim(ID)) == 0 || (upper(trim(ID)) == 'NULL')), 0, 1),\n\t\tOccurredMediaIncident = toString(year(Occurred)) + '-' + right('0' + toString(month(Occurred)), 2) + '-' + right('0' + toString(notConvertedectfunctiondateday(Occurred)), 2)) ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tDescription_MediaIncident as string,\n\t\tQtyMediaIncident as integer,\n\t\tSiteName_MediaIncident as string,\n\t\tOccurred_MediaIncident as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tDescription_MediaIncident = Description,\n\t\tQtyMediaIncident = Qty,\n\t\tSiteName_MediaIncident = SiteName,\n\t\tOccurred_MediaIncident = OccurredMediaIncident),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+      "transformations" : [ ],
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tVarianceNotes as string,\n\t\tInsertTs as date,\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource sink(input(\n\t\tVarianceNotes as string,\n\t\tInsertTs as timestamp 'dd-MM-yyyy',\n\t\tDC as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tVarianceNotes,\n\t\tInsertTs,\n\t\tDC),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }

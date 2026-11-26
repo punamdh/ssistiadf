@@ -1,0 +1,31 @@
+{
+  "name" : "geo_fundraising_expenses",
+  "type" : "Microsoft.DataFactory/factories/dataflows",
+  "apiVersion" : "2018-06-01",
+  "properties" : {
+    "type" : "MappingDataFlow",
+    "folder" : {
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/1PAAF-CNESR-1BFF"
+    },
+    "typeProperties" : {
+      "sources" : [ {
+        "name" : "FlatFileSource",
+        "dataset" : {
+          "referenceName" : "Generic_File_SRC",
+          "type" : "DatasetReference"
+        }
+      } ],
+      "sinks" : [ {
+        "dataset" : {
+          "referenceName" : "genric_parquet",
+          "type" : "DatasetReference"
+        },
+        "name" : "OLEDBDestination"
+      } ],
+      "transformations" : [ {
+        "name" : "DerivedColumn"
+      } ],
+      "script" : "parameters{\n\tRunDate as timestamp (toTimestamp('9/11/2025 1:03:12 PM')),\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\t{Proposal Id} as string,\n\t\tState as string,\n\t\tCounty as string,\n\t\tCity as string,\n\t\tAmount as decimal(26,2)\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(Snapshot_Asof_Date = $RunDate,\n\t\tSnapshot_Active_Flag = 'Y') ~> DerivedColumn\nDerivedColumn sink(input(\n\t\tState as string,\n\t\tSNAPSHOT_AS_OF_DATE as timestamp 'dd-MM-yyyy',\n\t\tAmount as integer,\n\t\tCity as string,\n\t\tCounty as string,\n\t\tSNAPSHOT_ACTIVE_FLAG as string,\n\t\tProposal_Id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tState,\n\t\tSNAPSHOT_AS_OF_DATE = Snapshot_Asof_Date,\n\t\tAmount,\n\t\tCity,\n\t\tCounty,\n\t\tSNAPSHOT_ACTIVE_FLAG = Snapshot_Active_Flag,\n\t\tProposal_Id = {Proposal Id}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
+    }
+  }
+}

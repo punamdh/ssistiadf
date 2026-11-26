@@ -5,20 +5,17 @@
   "properties" : {
     "type" : "MappingDataFlow",
     "folder" : {
-      "name" : "wellsfargo_13_Nov/Projects_6107/Projects/DARE_NAS_SPM"
+      "name" : "wellsfargo_13_Nov/OneDrive_1_25-11-2026/OneDrive_1_25-11-2026/DARE/DARE_SQLRW"
     },
     "typeProperties" : {
       "sources" : [ {
-        "name" : "FlatFileSource",
+        "name" : "OLEDBSource",
         "dataset" : {
-          "referenceName" : "Generic_File_SRC",
+          "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
         }
       } ],
       "sinks" : [ {
-        "dataset" : null,
-        "name" : "RowCountCACHESINK"
-      }, {
         "dataset" : {
           "referenceName" : "genric_parquet",
           "type" : "DatasetReference"
@@ -28,9 +25,9 @@
       "transformations" : [ {
         "name" : "DerivedColumn"
       }, {
-        "name" : "RowCount0"
+        "name" : "ConditionalSplit"
       } ],
-      "script" : "parameters{\n\tFileName as string (),\n\tOLEDBDestination_outputfilename as string (),\n\tuserName as string ()\n}\n\nsource(output(\n\t\t{Card type} as string,\n\t\tName as string,\n\t\t{Card number} as string,\n\t\tState as string,\n\t\t{Regional Location (i e  CLT1; RAL2; etc )} as string,\n\t\t{Company Name} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> FlatFileSource\nFlatFileSource derive(FName = $FileName,\n\t\tUploadDate = currentTimestamp(),\n\t\tEtlUser = $userName) ~> DerivedColumn\nFlatFileSource aggregate(groupBy(),\n\trowcount = count(1)) ~> RowCount0\nDerivedColumn sink(input(\n\t\tCardNumber as string,\n\t\tCompanyName as string,\n\t\tUploadDate as string,\n\t\tEtlUser as string,\n\t\tCardType as string,\n\t\tState as string,\n\t\tFName as string,\n\t\tName as string,\n\t\tRegionalLocation as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tCardNumber = {Card number},\n\t\tCompanyName = {Company Name},\n\t\tUploadDate,\n\t\tEtlUser,\n\t\tCardType = {Card type},\n\t\tState,\n\t\tFName,\n\t\tName,\n\t\tRegionalLocation = {Regional Location (i e  CLT1; RAL2; etc )}),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination\nRowCount0 sink(validateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tstore: 'cache',\n\tformat: 'inline',\n\toutput: true,\n\tsaveOrder: 1) ~> RowCountCACHESINK"
+      "script" : "parameters{\n\tOLEDBDestination_outputfilename as string ()\n}\n\nsource(output(\n\t\tSource as string,\n\t\tMaterialType as string,\n\t\tMaterialSubtype as string,\n\t\tMaterialCategory as string,\n\t\tRecordStatus as string,\n\t\tUsageStatus as string,\n\t\tInstanceCounts as integer,\n\t\tActiveInstanceCounts as integer,\n\t\tMaterialID as integer,\n\t\tMaterialName as string,\n\t\tManufacturer as string,\n\t\tModel as string,\n\t\tExternalWidth as double,\n\t\tExternalDepth as double,\n\t\tExternalHeight as double,\n\t\tWeight as double,\n\t\tRUSize as double,\n\t\tLabPowerWatts as decimal(13,0),\n\t\tLAB_kw as decimal(8,4),\n\t\tMPAF_kw as decimal(8,4),\n\t\tCABMax_kw as double,\n\t\tPowerType as string,\n\t\tTotalPlugs as integer,\n\t\tRequiredPlugs as integer,\n\t\tStandardCopperPorts as integer,\n\t\tStandardFiberOpticPorts as integer,\n\t\tUndefinedPorts as integer,\n\t\tLastInsertBy as string,\n\t\tLastInsertDate as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> OLEDBSource\nOLEDBSource derive(IsBlankRow = iif((isNull(MaterialName) || trim(MaterialName) == ''), 1, 0)) ~> DerivedColumn\nDerivedColumn split(IsBlankRow == 0,IsBlankRow == 1, disjoint: true) ~> ConditionalSplit@(Process,Ignore,ConditionalSplitDefaultOutput)\nConditionalSplit@Process sink(input(\n\t\tMaterialID as integer,\n\t\tMaterialCategory as string,\n\t\tLastInsertBy as string,\n\t\tSource as string,\n\t\tTotalPlugs as integer,\n\t\tCABMax_kw as double,\n\t\tMaterialType as string,\n\t\tLastInsertDate as timestamp 'dd-MM-yyyy',\n\t\tLabPowerWatts as integer,\n\t\tManufacturer as string,\n\t\tRequiredPlugs as integer,\n\t\tMaterialName as string,\n\t\tLAB_kw as double,\n\t\tRecordStatus as string,\n\t\tInstanceCounts as integer,\n\t\tStandardCopperPorts as integer,\n\t\tRUSize as double,\n\t\tActiveInstanceCounts as integer,\n\t\tExternalHeight as double,\n\t\tPowerType as string,\n\t\tWeight as double,\n\t\tUsageStatus as string,\n\t\tExternalWidth as double,\n\t\tModel as string,\n\t\tExternalDepth as double,\n\t\tUndefinedPorts as integer,\n\t\tMaterialSubtype as string,\n\t\tMPAF_kw as double,\n\t\tStandardFiberOpticPorts as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsaveOrder: 10000,\n\tmapColumn(\n\t\tMaterialID,\n\t\tMaterialCategory,\n\t\tLastInsertBy,\n\t\tSource,\n\t\tTotalPlugs,\n\t\tCABMax_kw,\n\t\tMaterialType,\n\t\tLastInsertDate,\n\t\tLabPowerWatts,\n\t\tManufacturer,\n\t\tRequiredPlugs,\n\t\tMaterialName,\n\t\tLAB_kw,\n\t\tRecordStatus,\n\t\tInstanceCounts,\n\t\tStandardCopperPorts,\n\t\tRUSize,\n\t\tActiveInstanceCounts,\n\t\tExternalHeight,\n\t\tPowerType,\n\t\tWeight,\n\t\tUsageStatus,\n\t\tExternalWidth,\n\t\tModel,\n\t\tExternalDepth,\n\t\tUndefinedPorts,\n\t\tMaterialSubtype,\n\t\tMPAF_kw,\n\t\tStandardFiberOpticPorts),\n\tpartitionFileNames:[($OLEDBDestination_outputfilename)],\n\tpartitionBy('hash', 1)) ~> OLEDBDestination"
     }
   }
 }
